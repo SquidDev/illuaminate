@@ -6,11 +6,13 @@ build: [
   ["dune" "runtest" "-p" name "-j" jobs] {with-test}
   ["dune" "build" "-p" name "@doc"] {with-doc}
 ]
-authors: ["SquidDev"]
-bug-reports: "https://github.com/squiddev/lsp/issues"
-homepage: "https://github.com/squiddev/lsp"
+maintainer: ["Jonathan Coates <git@squiddev.cc>"]
+authors: ["Jonathan Coates"]
+bug-reports: "https://github.com/squiddev/illuaminate/issues"
+homepage: "https://github.com/squiddev/illuaminate"
 license: "BSD-3-Clause"
-dev-repo: "git+https://github.com/squiddev/lsp.git"
+version: "0.1.0"
+dev-repo: "git+https://github.com/squiddev/illuaminate.git"
 synopsis: "Source code analysis for Lua."
 description:
   "Provides various tools for parsing, processing and producing Lua source code. Currently does very little, but will hopefully grow in the future."

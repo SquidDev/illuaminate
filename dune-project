@@ -4,9 +4,12 @@
 (implicit_transitive_deps false)
 
 (generate_opam_files true)
-(authors SquidDev)
+(name illuaminate)
+(version 0.1.0)
+(authors "Jonathan Coates")
 (license BSD-3-Clause)
-(source (github squiddev/lsp))
+(source (github squiddev/illuaminate))
+(maintainers "Jonathan Coates <git@squiddev.cc>")
 
 (package
   (name illuaminate)
