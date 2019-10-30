@@ -1,0 +1,8 @@
+(library
+ (name illuaminateDeriving)
+ (kind ppx_rewriter)
+ (flags
+  (:standard -safe-string))
+ (libraries ppxlib ppxlib.ast base)
+ (preprocess
+  (pps ppxlib.metaquot ppxlib.runner)))

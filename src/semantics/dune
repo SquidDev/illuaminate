@@ -1,0 +1,23 @@
+(library
+ (name illuaminateSemantics)
+ (public_name illuaminate.semantics)
+ (synopsis "Some basic semantic analysis for Illuaminate.")
+ (libraries containers illuaminate.core menhirLib omd str))
+
+(menhir
+ (modules type_grammar)
+ (merge_into type_grammar)
+ (flags
+  ("--table" "--explain")))
+
+(rule
+ (targets "type_messages.ml")
+ (deps "type_grammar.mly" "type_messages.txt")
+ (action
+  (with-stdout-to
+   "type_messages.ml"
+   (run menhir --compile-errors "type_messages.txt" "type_grammar.mly" --base
+     "type_grammar.mly"))))
+
+(ocamllex
+ (modules type_lexer))

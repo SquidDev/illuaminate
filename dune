@@ -1,0 +1,16 @@
+(env
+ (dev
+  (flags
+   (;  4: Fragile pattern matching: matching that will remain complete
+    ;     even if additional constructors are added to one of the
+    ;     variant types matched.
+    ; 40: Constructor or label name used out of scope.
+    ; 42: Disambiguated constructor or label name (compatibility warning)
+    ; 44: Open statement shadows already defined identifier
+    ; 48: Implicit elimination of optional arguments.
+    -w
+    +A-4-40-42-44-48
+    -strict-sequence
+    -safe-string
+    -g
+    -annot))))

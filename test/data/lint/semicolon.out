@@ -1,0 +1,36 @@
+semicolon.lua:[4:3-4:4]: Redundant semicolon. [syntax:redundant-semicolon]
+   │
+4  │ do ; end
+   │    ^
+semicolon.lua:[7:10-7:11]: Redundant semicolon. [syntax:redundant-semicolon]
+   │
+7  │ do local x; end
+   │           ^
+semicolon.lua:[9:3-9:4]: Redundant semicolon. [syntax:redundant-semicolon]
+   │
+9  │ do ; local x end
+   │    ^
+semicolon.lua:[13:6-13:7]: Redundant semicolon. [syntax:redundant-semicolon]
+    │
+13  │ do f(); f() end
+    │       ^
+Compilation succeeded with 4 warnings
+@@ -1,14 +1,14 @@
+ -- config: (lint (only (syntax:redundant-semicolon)))
+ local function f() end
+ 
+-do ; end
++do end
+ 
+ -- FIXME: We need to preserve trivia!
+-do local x; end
++do local xend
+ 
+-do ; local x end
++do local x end
+ 
+ do f(); (f)() end
+ 
+-do f(); f() end
++do f()f() end
+ 

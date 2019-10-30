@@ -1,0 +1,19 @@
+;; Various utility programs for generating code. Not actually used as
+;; part of illuaminate.
+
+(executable
+ (name genTree)
+ (libraries ppxlib ppxlib.ast base ocaml-migrate-parsetree)
+ (preprocess
+  (pps ppxlib.metaquot)))
+
+(rule
+ (targets syntax.ml)
+ (deps ../core/syntax.ml)
+ (action
+  (with-stdout-to
+   %{targets}
+   (progn
+    (echo "open Ppxlib\nlet loc = Location.none\nlet tree = [%str ")
+    (cat %{deps})
+    (echo "]")))))

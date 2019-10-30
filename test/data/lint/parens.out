@@ -1,0 +1,149 @@
+parens.lua:[5:2-5:5]: Unnecessary parenthesis. [syntax:redundant-parens]
+   │
+5  │   (f)((f), {
+   │   ^^^
+parens.lua:[5:6-5:9]: Unnecessary parenthesis. [syntax:redundant-parens]
+   │
+5  │   (f)((f), {
+   │       ^^^
+parens.lua:[6:6-6:9]: Unnecessary parenthesis. [syntax:redundant-parens]
+   │
+6  │       (f)
+   │       ^^^
+parens.lua:[13:2-13:9]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+13  │   ((nil))()
+    │   ^^^^^^^
+parens.lua:[15:12-15:19]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+15  │   local _ = ((nil))[1]
+    │             ^^^^^^^
+parens.lua:[22:12-22:17]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+22  │   local _ = (f())
+    │             ^^^^^
+parens.lua:[25:4-25:9]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+25  │   f((f()), 0)
+    │     ^^^^^
+parens.lua:[28:14-28:19]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+28  │   local _ = { (f()), 0 }
+    │               ^^^^^
+parens.lua:[31:28-31:33]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+31  │   local function _() return (f()), 0 end
+    │                             ^^^^^
+parens.lua:[37:12-37:17]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+37  │   local _ = (...)
+    │             ^^^^^
+parens.lua:[40:4-40:9]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+40  │   f((...), 0)
+    │     ^^^^^
+parens.lua:[43:14-43:19]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+43  │   local _ = { (...), 0 }
+    │               ^^^^^
+parens.lua:[46:31-46:36]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+46  │   local function _(...) return (...), 0 end
+    │                                ^^^^^
+parens.lua:[51:12-51:19]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+51  │   local _ = (2 + 2)
+    │             ^^^^^^^
+parens.lua:[55:12-55:16]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+55  │   local _ = (#2)
+    │             ^^^^
+parens.lua:[60:16-60:23]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+60  │   local _ = 2 + (2 * 2)
+    │                 ^^^^^^^
+parens.lua:[62:12-62:19]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+62  │   local _ = (2 + 2) + 2
+    │             ^^^^^^^
+Compilation succeeded with 17 warnings
+@@ -2,63 +2,63 @@
+ 
+ -- Redundant parenthesis around references
+ do
+-  (f)((f), {
+-      (f)
++  f(f, {
++      f
+   })
+ end
+ 
+ -- Redundant parenthesis around literals
+ do
+   (nil)() ; -- ok
+-  ((nil))()
++  (nil)()
+   local _ = (nil)[1] -- ok
+-  local _ = ((nil))[1]
++  local _ = (nil)[1]
+ end
+ 
+ 
+ -- Redundant parenthesis around calls
+ do
+   local _, _ = (f()) -- ok
+-  local _ = (f())
++  local _ = f()
+ 
+   f((f())) -- ok
+-  f((f()), 0)
++  f(f(), 0)
+ 
+   local _ = { (f()) } -- ok
+-  local _ = { (f()), 0 }
++  local _ = { f(), 0 }
+ 
+   local function _() return (f()) end -- ok
+-  local function _() return (f()), 0 end
++  local function _() return f(), 0 end
+ end
+ 
+ -- Redundant parenthesis around dots
+ do
+   local _, _ = (...) -- ok
+-  local _ = (...)
++  local _ = ...
+ 
+   f((...)) -- ok
+-  f((...), 0)
++  f(..., 0)
+ 
+   local _ = { (...) } -- ok
+-  local _ = { (...), 0 }
++  local _ = { ..., 0 }
+ 
+   local function _(...) return (...) end -- ok
+-  local function _(...) return (...), 0 end
++  local function _(...) return ..., 0 end
+ end
+ 
+ -- Operators
+ do
+-  local _ = (2 + 2)
++  local _ = 2 + 2
+   local _ = (2 + 2)() -- ok
+   local _ = (2 + 2)[1] -- ok
+ 
+-  local _ = (#2)
++  local _ = #2
+   local _ = (#2)() -- ok
+   local _ = (#2)[1] -- ok
+ 
+   local _ = (2 + 2) * 2 -- ok
+-  local _ = 2 + (2 * 2)
++  local _ = 2 + 2 * 2
+   local _ = 2 + (2 + 2) -- ok
+-  local _ = (2 + 2) + 2
++  local _ = 2 + 2 + 2
+ end
+ 

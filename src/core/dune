@@ -1,0 +1,7 @@
+(library
+ (name illuaminateCore)
+ (public_name illuaminate.core)
+ (synopsis "The core data structures for Illuaminate")
+ (libraries containers containers.data)
+ (preprocess
+  (pps ppx_deriving.std illuaminateDeriving)))

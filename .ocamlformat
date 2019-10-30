@@ -1,0 +1,13 @@
+margin = 100
+type-decl = sparse
+break-separators = after
+break-cases=toplevel
+doc-comments = before
+field-space = loose
+space-around-arrays
+space-around-lists
+space-around-records
+space-around-variants
+sequence-style=terminator
+wrap-comments
+parse-docstrings

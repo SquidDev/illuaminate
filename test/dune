@@ -1,0 +1,13 @@
+(test
+ (name test)
+ (libraries omnomnom omnomnom.golden omnomnom.junit containers
+   illuaminate.core illuaminate.config illuaminate.parser illuaminate.lint
+   patience_diff illuaminate.semantics)
+ (deps
+  (source_tree data))
+ (preprocess
+  (pps ppx_deriving.std))
+ (action
+  (run %{test} --base-dir "../" --junit)))
+
+(data_only_dirs data)

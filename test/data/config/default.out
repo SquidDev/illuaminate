@@ -1,0 +1,5 @@
+;; A description of your pet
+(pet (;; Your pet's name
+      (name Keith)
+      ;; Your pet's age
+      (age 3)))

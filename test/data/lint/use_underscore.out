@@ -1,0 +1,9 @@
+use_underscore.lua:[4:6-4:7]: Using "discard" variable `_`. [var:use-discard]
+   │
+4  │ print(_)
+   │       ^
+use_underscore.lua:[5:2-5:3]: Using "discard" variable `_`. [var:use-discard]
+   │
+5  │ x[_] = 0
+   │   ^
+Compilation succeeded with 2 warnings

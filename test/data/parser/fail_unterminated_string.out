@@ -1,0 +1,5 @@
+fail_unterminated_string.lua:[1:7-1:8]: Unterminated string [parse:syntax-error]
+   │
+1  │ print("
+   │        ^
+Compilation failed with 1 errors and 0 warnings

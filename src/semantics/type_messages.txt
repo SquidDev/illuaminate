@@ -1,0 +1,530 @@
+main: FUNCTION OPAREN CPAREN COLON SEMICOLON
+##
+## Ends in an error in state: 42.
+##
+## return -> COLON . ty [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+## return -> COLON . ty DOTS [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## COLON
+##
+
+Expected return type after ":"
+
+main: FUNCTION OPAREN CPAREN TRUE
+##
+## Ends in an error in state: 41.
+##
+## simple_type -> FUNCTION OPAREN args CPAREN . return [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## FUNCTION OPAREN args CPAREN
+##
+
+Expected return type after function
+
+main: FUNCTION OPAREN DOTS TRUE
+##
+## Ends in an error in state: 26.
+##
+## arg -> arg_name . COLON ty [ OSQUARE CSQUARE CPAREN COMMA ]
+##
+## The known suffix of the stack is as follows:
+## arg_name
+##
+
+Expected type annotation after argument name
+
+main: FUNCTION OPAREN IDENT COLON SEMICOLON
+##
+## Ends in an error in state: 27.
+##
+## arg -> arg_name COLON . ty [ OSQUARE CSQUARE CPAREN COMMA ]
+##
+## The known suffix of the stack is as follows:
+## arg_name COLON
+##
+
+Expected argument type after ":"
+
+main: FUNCTION OPAREN IDENT TRUE
+##
+## Ends in an error in state: 25.
+##
+## arg_name -> name . [ COLON ]
+## var -> name . [ PIPE OSQUARE DOTS DOT CSQUARE CPAREN COMMA ]
+##
+## The known suffix of the stack is as follows:
+## name
+##
+
+Expected type annotation, another argument or ")"
+
+main: FUNCTION OPAREN OSQUARE SEMICOLON
+##
+## Ends in an error in state: 12.
+##
+## args -> OSQUARE . arg args_rest CSQUARE [ CPAREN ]
+##
+## The known suffix of the stack is as follows:
+## OSQUARE
+##
+
+Expected optional argument definition
+
+main: FUNCTION OPAREN OSQUARE TRUE COMMA TRUE CPAREN
+##
+## Ends in an error in state: 38.
+##
+## args -> OSQUARE arg args_rest . CSQUARE [ CPAREN ]
+##
+## The known suffix of the stack is as follows:
+## OSQUARE arg args_rest
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
+## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+## In state 18, spurious reduction of production arg -> ty 
+## In state 34, spurious reduction of production args_rest -> 
+## In state 35, spurious reduction of production args_rest -> COMMA arg args_rest 
+##
+
+Expected "]" to close optional argument
+
+main: FUNCTION OPAREN OSQUARE TRUE CPAREN
+##
+## Ends in an error in state: 29.
+##
+## args -> OSQUARE arg . args_rest CSQUARE [ CPAREN ]
+##
+## The known suffix of the stack is as follows:
+## OSQUARE arg
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
+## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+## In state 18, spurious reduction of production arg -> ty 
+##
+
+Expected "]" to close optional argument
+
+main: FUNCTION OPAREN SEMICOLON
+##
+## Ends in an error in state: 11.
+##
+## simple_type -> FUNCTION OPAREN . args CPAREN return [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## FUNCTION OPAREN
+##
+
+Expected argument or ")"
+
+main: FUNCTION OPAREN TRUE COMMA FALSE CSQUARE
+##
+## Ends in an error in state: 40.
+##
+## simple_type -> FUNCTION OPAREN args . CPAREN return [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## FUNCTION OPAREN args
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
+## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+## In state 18, spurious reduction of production arg -> ty 
+## In state 34, spurious reduction of production args_rest -> 
+## In state 35, spurious reduction of production args_rest -> COMMA arg args_rest 
+## In state 47, spurious reduction of production args -> arg args_rest 
+##
+
+Expecting ")" to close argument list
+
+main: FUNCTION OPAREN TRUE COMMA SEMICOLON
+##
+## Ends in an error in state: 33.
+##
+## args_rest -> COMMA . arg args_rest [ CSQUARE CPAREN ]
+##
+## The known suffix of the stack is as follows:
+## COMMA
+##
+
+Expected another argument
+
+main: FUNCTION OPAREN TRUE COMMA TRUE DOTS TRUE
+##
+## Ends in an error in state: 34.
+##
+## args_rest -> COMMA arg . args_rest [ CSQUARE CPAREN ]
+##
+## The known suffix of the stack is as follows:
+## COMMA arg
+##
+
+Expected another argument or end of argument list
+
+main: FUNCTION OPAREN TRUE CSQUARE
+##
+## Ends in an error in state: 46.
+##
+## args -> arg . args_rest [ CPAREN ]
+##
+## The known suffix of the stack is as follows:
+## arg
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
+## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+## In state 18, spurious reduction of production arg -> ty 
+##
+
+Expected another argument or end of argument list
+
+main: FUNCTION OPAREN TRUE OSQUARE COMMA SEMICOLON
+##
+## Ends in an error in state: 31.
+##
+## args_rest -> OSQUARE COMMA . arg args_rest CSQUARE [ CSQUARE CPAREN ]
+##
+## The known suffix of the stack is as follows:
+## OSQUARE COMMA
+##
+
+Expected another argument
+
+main: FUNCTION OPAREN TRUE OSQUARE COMMA TRUE COMMA TRUE CPAREN
+##
+## Ends in an error in state: 36.
+##
+## args_rest -> OSQUARE COMMA arg args_rest . CSQUARE [ CSQUARE CPAREN ]
+##
+## The known suffix of the stack is as follows:
+## OSQUARE COMMA arg args_rest
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
+## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+## In state 18, spurious reduction of production arg -> ty 
+## In state 34, spurious reduction of production args_rest -> 
+## In state 35, spurious reduction of production args_rest -> COMMA arg args_rest 
+##
+
+Expected "]" after optional argument
+
+main: FUNCTION OPAREN TRUE OSQUARE COMMA TRUE CPAREN
+##
+## Ends in an error in state: 32.
+##
+## args_rest -> OSQUARE COMMA arg . args_rest CSQUARE [ CSQUARE CPAREN ]
+##
+## The known suffix of the stack is as follows:
+## OSQUARE COMMA arg
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
+## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+## In state 18, spurious reduction of production arg -> ty 
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: FUNCTION OPAREN TRUE OSQUARE TRUE
+##
+## Ends in an error in state: 30.
+##
+## args_rest -> OSQUARE . COMMA arg args_rest CSQUARE [ CSQUARE CPAREN ]
+##
+## The known suffix of the stack is as follows:
+## OSQUARE
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: FUNCTION OPAREN TRUE SEMICOLON
+##
+## Ends in an error in state: 18.
+##
+## arg -> ty . [ OSQUARE CSQUARE CPAREN COMMA ]
+## arg -> ty . DOTS [ OSQUARE CSQUARE CPAREN COMMA ]
+##
+## The known suffix of the stack is as follows:
+## ty
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
+## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: FUNCTION TRUE
+##
+## Ends in an error in state: 10.
+##
+## simple_type -> FUNCTION . OPAREN args CPAREN return [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## FUNCTION
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: IDENT DOT TRUE
+##
+## Ends in an error in state: 16.
+##
+## var -> var DOT . name [ SEMICOLON PIPE OSQUARE EOF DOTS DOT CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## var DOT
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: IDENT TRUE
+##
+## Ends in an error in state: 15.
+##
+## simple_type -> var . [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+## var -> var . DOT name [ SEMICOLON PIPE OSQUARE EOF DOTS DOT CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## var
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: OBRACE IDENT EQUALS SEMICOLON
+##
+## Ends in an error in state: 53.
+##
+## table_entry -> IDENT EQUALS . ty [ SEMICOLON COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## IDENT EQUALS
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: OBRACE IDENT TRUE
+##
+## Ends in an error in state: 52.
+##
+## name -> IDENT . [ SEMICOLON PIPE DOT COMMA CBRACE ]
+## table_entry -> IDENT . EQUALS ty [ SEMICOLON COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## IDENT
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: OBRACE OSQUARE SEMICOLON
+##
+## Ends in an error in state: 5.
+##
+## table_entry -> OSQUARE . ty CSQUARE EQUALS ty [ SEMICOLON COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## OSQUARE
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: OBRACE OSQUARE TRUE CSQUARE EQUALS SEMICOLON
+##
+## Ends in an error in state: 50.
+##
+## table_entry -> OSQUARE ty CSQUARE EQUALS . ty [ SEMICOLON COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## OSQUARE ty CSQUARE EQUALS
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: OBRACE OSQUARE TRUE CSQUARE TRUE
+##
+## Ends in an error in state: 49.
+##
+## table_entry -> OSQUARE ty CSQUARE . EQUALS ty [ SEMICOLON COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## OSQUARE ty CSQUARE
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: OBRACE OSQUARE TRUE SEMICOLON
+##
+## Ends in an error in state: 48.
+##
+## table_entry -> OSQUARE ty . CSQUARE EQUALS ty [ SEMICOLON COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## OSQUARE ty
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
+## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: OBRACE SEMICOLON
+##
+## Ends in an error in state: 4.
+##
+## simple_type -> OBRACE . table_body CBRACE [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## OBRACE
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: OBRACE TRUE OSQUARE
+##
+## Ends in an error in state: 56.
+##
+## table_body -> table_entry . [ CBRACE ]
+## table_body -> table_entry . table_sep table_body [ CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## table_entry
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
+## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+## In state 55, spurious reduction of production table_entry -> ty 
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: OBRACE TRUE SEMICOLON SEMICOLON
+##
+## Ends in an error in state: 59.
+##
+## table_body -> table_entry table_sep . table_body [ CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## table_entry table_sep
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: OPAREN SEMICOLON
+##
+## Ends in an error in state: 3.
+##
+## simple_type -> OPAREN . ty CPAREN [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## OPAREN
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: OPAREN TRUE SEMICOLON
+##
+## Ends in an error in state: 63.
+##
+## simple_type -> OPAREN ty . CPAREN [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## OPAREN ty
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
+## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+##
+
+<YOUR SYNTAX ERROR MESSAGE HERE>
+
+main: SEMICOLON
+##
+## Ends in an error in state: 0.
+##
+## main' -> . main [ # ]
+##
+## The known suffix of the stack is as follows:
+##
+##
+
+Expected type
+
+main: TRUE PIPE SEMICOLON
+##
+## Ends in an error in state: 21.
+##
+## separated_nonempty_list(PIPE,simple_type) -> simple_type PIPE . separated_nonempty_list(PIPE,simple_type) [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## simple_type PIPE
+##
+
+Expected type after "|"
+
+main: TRUE SEMICOLON
+##
+## Ends in an error in state: 65.
+##
+## main -> ty . EOF [ # ]
+##
+## The known suffix of the stack is as follows:
+## ty
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
+## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+##
+
+Not expecting any more types.
+
+main: TRUE TRUE
+##
+## Ends in an error in state: 20.
+##
+## separated_nonempty_list(PIPE,simple_type) -> simple_type . [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+## separated_nonempty_list(PIPE,simple_type) -> simple_type . PIPE separated_nonempty_list(PIPE,simple_type) [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## simple_type
+##
+
+Did you mean to declare a union type?
+

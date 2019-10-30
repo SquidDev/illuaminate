@@ -1,0 +1,66 @@
+{ Syntax.program =
+  [(Syntax.Assign
+      { Syntax.assign_vars =
+        (Syntax.SepList1.Mono
+           Syntax.NLookup {
+             tbl =
+             (Syntax.Ref
+                (Syntax.NVar
+                   (Syntax.Var
+                      Node.Node {leading_trivia = []; trailing_trivia = [];
+                        contents = "test"; span = pass_simple.lua[1:0-1:4]})));
+             open_k =
+             Node.Node {leading_trivia = []; trailing_trivia = [];
+               contents = [; span = pass_simple.lua[1:4-1:5]};
+             key =
+             (Syntax.String
+                { Syntax.lit_value = "";
+                  lit_node =
+                  Node.Node {leading_trivia = []; trailing_trivia = [];
+                    contents = "return"; span = pass_simple.lua[1:5-1:13]}
+                  });
+             close_k =
+             Node.Node {leading_trivia = [];
+               trailing_trivia =
+               [{ Span.value = (Node.Whitespace " ");
+                  span = pass_simple.lua[1:14-1:15] }
+                 ];
+               contents = ]; span = pass_simple.lua[1:13-1:14]}});
+        assign_eq =
+        Node.Node {leading_trivia = [];
+          trailing_trivia =
+          [{ Span.value = (Node.Whitespace " ");
+             span = pass_simple.lua[1:16-1:17] }
+            ];
+          contents = =; span = pass_simple.lua[1:15-1:16]};
+        assign_vals =
+        (Syntax.SepList1.Mono
+           (Syntax.Ref
+              Syntax.NDot {
+                tbl =
+                (Syntax.Ref
+                   (Syntax.NVar
+                      (Syntax.Var
+                         Node.Node {leading_trivia = [];
+                           trailing_trivia = []; contents = "test";
+                           span = pass_simple.lua[1:17-1:21]})));
+                dot =
+                Node.Node {leading_trivia = []; trailing_trivia = [];
+                  contents = .; span = pass_simple.lua[1:21-1:22]};
+                key =
+                Node.Node {leading_trivia = [];
+                  trailing_trivia =
+                  [{ Span.value = (Node.Whitespace " ");
+                     span = pass_simple.lua[1:27-1:28] };
+                    { Span.value = (Node.LineComment "- @local");
+                      span = pass_simple.lua[1:28-1:38] };
+                    { Span.value = (Node.Whitespace "\n");
+                      span = pass_simple.lua[1:38-2:0] }
+                    ];
+                  contents = "enter"; span = pass_simple.lua[1:22-1:27]}}))
+        })
+    ];
+  eof =
+  Node.Node {leading_trivia = []; trailing_trivia = [];
+    contents = end of file; span = pass_simple.lua[2:0-2:0]}
+  }
