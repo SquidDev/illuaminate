@@ -131,53 +131,53 @@ let get_span =
   in
   function
   | ADD x
-   |AND x
-   |CONCAT x
-   |DIV x
-   |EQ x
-   |GE x
-   |GT x
-   |LE x
-   |LT x
-   |MOD x
-   |MUL x
-   |NE x
-   |OR x
-   |POW x
-   |SUB x ->
+  | AND x
+  | CONCAT x
+  | DIV x
+  | EQ x
+  | GE x
+  | GT x
+  | LE x
+  | LT x
+  | MOD x
+  | MUL x
+  | NE x
+  | OR x
+  | POW x
+  | SUB x ->
       get_span x
   | LEN x | NOT x -> get_span x
   | BREAK x
-   |CBRACE x
-   |COLON x
-   |COMMA x
-   |CPAREN x
-   |CSQUARE x
-   |DO x
-   |DOT x
-   |DOTS x
-   |ELSE x
-   |ELSEIF x
-   |END x
-   |EOF x
-   |EQUALS x
-   |FALSE x
-   |FOR x
-   |FUNCTION x
-   |IF x
-   |IN x
-   |LOCAL x
-   |NIL x
-   |OBRACE x
-   |OPAREN x
-   |OSQUARE x
-   |REPEAT x
-   |RETURN x
-   |SEMICOLON x
-   |THEN x
-   |TRUE x
-   |UNTIL x
-   |WHILE x ->
+  | CBRACE x
+  | COLON x
+  | COMMA x
+  | CPAREN x
+  | CSQUARE x
+  | DO x
+  | DOT x
+  | DOTS x
+  | ELSE x
+  | ELSEIF x
+  | END x
+  | EOF x
+  | EQUALS x
+  | FALSE x
+  | FOR x
+  | FUNCTION x
+  | IF x
+  | IN x
+  | LOCAL x
+  | NIL x
+  | OBRACE x
+  | OPAREN x
+  | OSQUARE x
+  | REPEAT x
+  | RETURN x
+  | SEMICOLON x
+  | THEN x
+  | TRUE x
+  | UNTIL x
+  | WHILE x ->
       get_span x
   | IDENT x -> get_span x
   | STRING { lit_node; _ } -> get_span lit_node

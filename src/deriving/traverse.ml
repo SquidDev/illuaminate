@@ -6,19 +6,19 @@
 
    Copyright (c) 2018 Jane Street Group, LLC opensource@janestreet.com
 
-   Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-   and associated documentation files (the "Software"), to deal in the Software without
-   restriction, including without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
-   Software is furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+   associated documentation files (the "Software"), to deal in the Software without restriction,
+   including without limitation the rights to use, copy, modify, merge, publish, distribute,
+   sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
    The above copyright notice and this permission notice shall be included in all copies or
    substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-   KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE. *)
+   KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+   FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+   IN THE SOFTWARE. *)
 
 open Ppxlib
 open Ast_builder.Default
@@ -130,8 +130,8 @@ let method_name map name =
   | None -> (
     match name with
     | Lident n -> n
-    | Ldot (id, "t") | id ->
-        Longident.flatten_exn id |> String.concat "_" |> String.lowercase_ascii )
+    | Ldot (id, "t") | id -> Longident.flatten_exn id |> String.concat "_" |> String.lowercase_ascii
+    )
 
 type what = Backends.what
 
@@ -316,8 +316,7 @@ let type_deps ~skip tds =
         | _ -> map)
       LMap.empty tds
   in
-  List.fold_left (fun map td -> LMap.remove (Lident td.ptype_name.txt) map) map tds
-  |> LMap.bindings
+  List.fold_left (fun map td -> LMap.remove (Lident td.ptype_name.txt) map) map tds |> LMap.bindings
 
 let gen_class ~(what : what) ~loc ~options tds =
   let tds = tds |> List.filter (fun x -> not (pre_mem (Lident x.ptype_name.txt) options.skip)) in

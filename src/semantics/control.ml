@@ -140,8 +140,8 @@ let build_func t entry_block =
         and loop = fresh_block (Block body) (* The loop body *)
         and loop_end = fresh_block (LoopEnd stmt) (* The end of the loop body *)
         and continue = fresh_block (Block rest) (* Everything after the loop. *) in
-        (* The current block jumps to the head, the head jumps to the loop&continuation, and the
-           end backwards jumps to the head. *)
+        (* The current block jumps to the head, the head jumps to the loop&continuation, and the end
+           backwards jumps to the head. *)
         add_edge bb head (Jump stmt) false;
         add_if stmt head test (loop, false) (continue, false);
         add_edge loop_end loop (Jump stmt) true;
@@ -154,8 +154,8 @@ let build_func t entry_block =
         and loop = fresh_block (Block body) (* The loop body *)
         and loop_end = fresh_block (LoopEnd stmt) (* The end of the loop body *)
         and continue = fresh_block (Block rest) (* Everything after the loop. *) in
-        (* The current block jumps to the body, the end jumps to the test, and the test jumps to
-           the loop&continuation. *)
+        (* The current block jumps to the body, the end jumps to the test, and the test jumps to the
+           loop&continuation. *)
         add_edge bb loop (Jump stmt) false;
         add_edge loop_end tail (Jump stmt) false;
         add_if stmt tail test (continue, false) (loop, true);
@@ -201,7 +201,7 @@ let analyse _ prog =
        StmtTbl.add t.stmts s (Unresolved func);
        match s with
        | LocalFunction { localf_args = args; localf_body = body; _ }
-        |AssignFunction { assignf_args = args; assignf_body = body; _ } ->
+       | AssignFunction { assignf_args = args; assignf_body = body; _ } ->
            let func = new_func body in
            ArgTbl.add t.functions args func; {<func>}#block body
        | _ -> super#stmt s

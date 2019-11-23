@@ -297,8 +297,8 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
                           |> report Tag.bad_index
                       | Some idx when new_idx <> idx + 1 && new_idx <> idx ->
                           Printf.sprintf
-                            "Parameter '%s' is part of parameter set '%d', but the previous arg \
-                             is part of '%d'"
+                            "Parameter '%s' is part of parameter set '%d', but the previous arg is \
+                             part of '%d'"
                             name new_idx idx
                           |> report Tag.bad_index
                       | _ -> () );
@@ -334,8 +334,7 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
               match flag with
               | Named ("type", ty) -> (
                   Option.iter
-                    (fun _ ->
-                      "Return value has multiple types" |> report Tag.duplicate_definitions)
+                    (fun _ -> "Return value has multiple types" |> report Tag.duplicate_definitions)
                     ret.ret_type;
                   match Type_parser.parse_vararg ty with
                   | Ok (many, ty) -> (idx, { ret with ret_type = Some ty; ret_many = many })
@@ -368,10 +367,8 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
                 | None -> unknown "Return value" flag; (idx, ret) )
               | Named _ -> unknown "Return value" flag; (idx, ret))
             ( None,
-              { ret_type = None;
-                ret_many = false;
-                ret_description = Some (parse_description body)
-              } )
+              { ret_type = None; ret_many = false; ret_description = Some (parse_description body) }
+            )
             flags
         in
         b.b_rets <- add_group idx ret b.b_rets
@@ -447,8 +444,8 @@ let extract node =
   (* Extract all comments before this token *)
   let rec extract_comments cs = function
     | [] -> cs
-    | { Span.value = Node.BlockComment (_, c); span } :: xs
-      when String.length c > 0 && c.[0] == '-' ->
+    | { Span.value = Node.BlockComment (_, c); span } :: xs when String.length c > 0 && c.[0] == '-'
+      ->
         let documented = parse c |> build span in
         extract_comments (documented :: cs) xs
     | { Span.value = Node.LineComment c; span } :: xs when String.length c > 0 && c.[0] == '-' ->

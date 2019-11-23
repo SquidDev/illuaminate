@@ -8,10 +8,7 @@ let parse ~name contents =
   | Error err ->
       let buffer = Buffer.create 128 in
       IlluaminateParser.Error.report errs err.span err.value;
-      Error.display_of_string
-        ~out:(Format.formatter_of_buffer buffer)
-        (fun _ -> Some contents)
-        errs;
+      Error.display_of_string ~out:(Format.formatter_of_buffer buffer) (fun _ -> Some contents) errs;
       Buffer.contents buffer
   | Ok parsed -> Syntax.show_program parsed
 

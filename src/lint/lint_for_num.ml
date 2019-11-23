@@ -14,8 +14,7 @@ let linter =
     ]
   and count_down ~start ~limit =
     [ Printf.sprintf
-        "Numeric for loop counts down from %.14g to %.14g, but has a non-negative step." start
-        limit
+        "Numeric for loop counts down from %.14g to %.14g, but has a non-negative step." start limit
       |> note ~tag
     ]
   and count_for ~limit =

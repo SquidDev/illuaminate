@@ -25,8 +25,8 @@ type definition =
           variable) *)
   | OfExpr of Syntax.expr  (** This variable is bound to an expression. *)
   | OfSelect of int * Syntax.expr
-      (** This variable is bound to the nth part of a varargs (where n is 0 indexed, and should be
-          > 0). *)
+      (** This variable is bound to the nth part of a varargs (where n is 0 indexed, and should be >
+          0). *)
   | OfFunction of Syntax.args * Syntax.block
 
 (** The canonical source of a variable. *)

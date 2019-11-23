@@ -57,9 +57,7 @@ let parse (file : Span.filename) (lexbuf : Lexing.lexbuf) =
           | None -> 0 (* Should never happen, but... *)
           | Some (I.Element (s, _, _, _)) -> I.number s
         in
-        let error =
-          try Messages.message state |> String.trim with Not_found -> "Unknown error"
-        in
+        let error = try Messages.message state |> String.trim with Not_found -> "Unknown error" in
         match last with
         | Some t -> Error { Span.span = Token.get_span t; value = UnexpectedToken (t, error) }
         | None -> assert false )

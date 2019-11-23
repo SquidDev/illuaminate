@@ -14,8 +14,8 @@ val set : 'a t -> 'a -> unit
 
 (** Unify two points.
 
-    If the points are not already equivalent, then the given function will be applied to compute
-    the new value of the equivalency class from the two previous ones. *)
+    If the points are not already equivalent, then the given function will be applied to compute the
+    new value of the equivalency class from the two previous ones. *)
 val union_with : ('a -> 'a -> 'a) -> 'a t -> 'a t -> unit
 
 (** Perform a right-biased union of two equivalency classes. *)

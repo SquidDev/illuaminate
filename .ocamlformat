@@ -1,13 +1,19 @@
 margin = 100
+
+wrap-comments
+parse-docstrings
+doc-comments = before
+
 type-decl = sparse
 break-separators = after
-break-cases=toplevel
-doc-comments = before
+break-cases = toplevel
 field-space = loose
+sequence-style = terminator
+break-sequences = false
+dock-collection-brackets = false
+cases-matching-exp-indent = compact
+
 space-around-arrays
 space-around-lists
 space-around-records
 space-around-variants
-sequence-style=terminator
-wrap-comments
-parse-docstrings

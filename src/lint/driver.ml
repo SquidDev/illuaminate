@@ -164,10 +164,7 @@ let lint ~store ~data (Linter linter : t) program =
     | NLookup { tbl; open_k; key; close_k } ->
         expr context tbl; token context open_k; expr context key; token context close_k
   and fun_expr context { fun_function; fun_args; fun_body; fun_end } =
-    token context fun_function;
-    args context fun_args;
-    block context fun_body;
-    token context fun_end
+    token context fun_function; args context fun_args; block context fun_body; token context fun_end
   and table context { table_open; table_body; table_close } =
     token context table_open;
     List.iter
@@ -271,8 +268,8 @@ let fix prog fixes =
        method! block stmts =
          let visit (type a) (original : stmt) (x : stmt) (note : a note_at) : stmt list option =
            match note with
-           | { witness = AtStmt; source; note = { fix = FixBlock f; _ }; _ }
-             when source == original ->
+           | { witness = AtStmt; source; note = { fix = FixBlock f; _ }; _ } when source == original
+             ->
                Result.fold ~ok:(fun x -> Some x) ~error:failwith (f x)
            | _ -> None
          in
