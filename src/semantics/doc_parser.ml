@@ -44,19 +44,19 @@ let parse_description =
     Description (x |> String.trim |> Omd.of_string ~extensions:[ ext ] ~default_lang)
 
 module Tag = struct
-  let malformed_tag = Error.make_tag Error.Error "doc:malformed-tag"
+  let malformed_tag = Error.Tag.make Error.Error "doc:malformed-tag"
 
-  let malformed_type = Error.make_tag Error.Error "doc:malformed-type"
+  let malformed_type = Error.Tag.make Error.Error "doc:malformed-type"
 
-  let unknown_flag = Error.make_tag Error.Error "doc:unknown-flag"
+  let unknown_flag = Error.Tag.make Error.Error "doc:unknown-flag"
 
-  let unknown_tag = Error.make_tag Error.Error "doc:unknown-tag"
+  let unknown_tag = Error.Tag.make Error.Error "doc:unknown-tag"
 
-  let duplicate_definitions = Error.make_tag Error.Error "doc:duplicate-definitions"
+  let duplicate_definitions = Error.Tag.make Error.Error "doc:duplicate-definitions"
 
-  let bad_index = Error.make_tag Error.Error "doc:bad-index"
+  let bad_index = Error.Tag.make Error.Error "doc:bad-index"
 
-  let wrong_throws = Error.make_tag Error.Error "doc:wrong-throws"
+  let wrong_throws = Error.Tag.make Error.Error "doc:wrong-throws"
 
   let all =
     [ malformed_tag;
@@ -180,7 +180,7 @@ let parse comment =
 
 type comment_builder =
   { mutable b_unknown : string list;
-    mutable b_errors : (Error.tag * string) list;
+    mutable b_errors : (Error.Tag.t * string) list;
     (* General. *)
     mutable b_see : see list;
     mutable b_usages : example list;

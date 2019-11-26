@@ -3,7 +3,7 @@ open IlluaminateCore
 open Linter
 
 let linter =
-  let tag = Error.make_tag Error.Error "syntax:invalid-break" in
+  let tag = Error.Tag.make Error.Error "syntax:invalid-break" in
   let msg = [ note ~tag "Using `break` outside a loop" ] in
   let rec has_loop = function
     | [] -> false

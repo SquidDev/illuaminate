@@ -3,7 +3,7 @@ open IlluaminateCore
 open Linter
 
 let linter =
-  let tag = Error.make_tag Error.Warning "control:for-num" in
+  let tag = Error.Tag.make Error.Warning "control:for-num" in
   let count_nowhere =
     [ note ~tag "This loop has the same start and stop point, and so will only execute once." ]
   and count_nothing = [ note ~tag "Numeric for loop has a step of 0. It will never progress." ]

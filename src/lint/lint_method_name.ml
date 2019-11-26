@@ -3,7 +3,7 @@ open IlluaminateCore
 open Linter
 
 let linter =
-  let tag = Error.make_tag Error.Error "syntax:method-name" in
+  let tag = Error.Tag.make Error.Error "syntax:method-name" in
   let msg n = [ note ~tag ~span:(Node.span n) "Method names cannot appear at this position." ] in
   let stmt () _ = function
     | AssignFunction { assignf_name = FDot { tbl; _ } | FSelf { tbl; _ }; _ } ->

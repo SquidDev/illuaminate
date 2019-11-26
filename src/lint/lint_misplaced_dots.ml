@@ -3,7 +3,7 @@ open IlluaminateCore
 open Linter
 
 let linter =
-  let tag = Error.make_tag Error.Error "syntax:misplaced-dots" in
+  let tag = Error.Tag.make Error.Error "syntax:misplaced-dots" in
   let msg n =
     note ~tag ~span:(Node.span n) "Varargs can only appear as the last argument to a function."
   in

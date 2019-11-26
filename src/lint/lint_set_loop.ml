@@ -7,7 +7,7 @@ open struct
 end
 
 let linter =
-  let tag = Error.make_tag Error.Warning "var:set-loop" in
+  let tag = Error.Tag.make Error.Warning "var:set-loop" in
   let stmt () (context : context) =
     let check (Var name as var) =
       let resolve = Data.get context.program R.key context.data in

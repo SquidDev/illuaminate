@@ -3,7 +3,7 @@ open IlluaminateCore
 open Linter
 
 let linter =
-  let tag = Error.make_tag Error.Warning "var:arg-arg" in
+  let tag = Error.Tag.make Error.Warning "var:arg-arg" in
   let msg n = note ~tag ~span:(Node.span n) "Argument named \"arg\"." in
   let check { args_args = args; _ } =
     let go es = function

@@ -8,7 +8,7 @@ type 'a fixer =
 type 'a note =
   { message : string;
     fix : 'a fixer;
-    tag : Error.tag;
+    tag : Error.Tag.t;
     span : Span.t option
   }
 
@@ -35,7 +35,7 @@ let default_visitor : ('op, 'term) visitor = fun _ _ _ -> []
 
 type 'op linter_info =
   { options : 'op IlluaminateConfig.Category.key;
-    tags : IlluaminateCore.Error.tag list;
+    tags : IlluaminateCore.Error.Tag.t list;
     program : ('op, Syntax.program) visitor;
     token : ('op, Syntax.token) visitor;
     expr : ('op, Syntax.expr) visitor;

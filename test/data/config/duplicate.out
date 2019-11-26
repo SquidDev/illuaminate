@@ -1,1 +1,1 @@
-duplicate.sexp:2:2: Duplicate key "pet".
+duplicate.sexp:2:1: Multiple definitions of "pet"

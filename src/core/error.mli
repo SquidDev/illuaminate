@@ -4,26 +4,34 @@ type level =
   | Error  (** A problem, which may cause problems during processing or runtime *)
   | Warning  (** A potential problem, which will not prevent anything from occurring *)
 
-(** A marker token for errors, used for filtering and classification *)
-type tag
+module Tag : sig
+  (** A marker token for errors, used for filtering and classification *)
+  type t
 
-(** Display a tag in a formatter. *)
-val pp_tag : Format.formatter -> tag -> unit
+  (** Display a tag in a formatter. *)
+  val pp : Format.formatter -> t -> unit
 
-(** Create a new error tag, and register it internally *)
-val make_tag : level -> string -> tag
+  (** Create a new error tag, and register it internally *)
+  val make : level -> string -> t
 
-(** Find a tag with a given name *)
-val find_tag : string -> tag option
+  (** Find a tag with a given name *)
+  val find : string -> t option
+
+  (** Compare two tags. *)
+  val compare : t -> t -> int
+end
 
 (** An error reporting writer, into which errors are placed *)
 type t
 
 (** Make a new error reporter *)
-val make : ?muted:tag list -> unit -> t
+val make : unit -> t
+
+(** Wrap an existing error reporter, muting some messages. *)
+val mute : Tag.t list -> t -> t
 
 (** Report a new error at a specific position *)
-val report : t -> tag -> Span.t -> string -> unit
+val report : t -> Tag.t -> Span.t -> string -> unit
 
 (** Display any errors which occurred, with a function which maps file names to input streams *)
 val display_of_channel : ?out:Format.formatter -> (Span.filename -> in_channel option) -> t -> unit

@@ -18,7 +18,7 @@ type type_info = { type_name : string } [@@unboxed]
 type comment =
   { (* Some general information about this comment. *)
     source : Span.t;
-    errors : (Error.tag * string) list;
+    errors : (Error.Tag.t * string) list;
     (* Shared fields across all types. *)
     description : description option;
     see : see list;

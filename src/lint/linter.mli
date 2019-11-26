@@ -13,12 +13,12 @@ type 'a note = private
     fix : 'a fixer;
         (** A function which will be used to fix up this warning. Note, this function should not
             make any assumptions about the form of this node. *)
-    tag : Error.tag;  (** The tag associated with this error. *)
+    tag : Error.Tag.t;  (** The tag associated with this error. *)
     span : Span.t option  (** An optional span to override the node. *)
   }
 
 (** Construct a new {!type:note} *)
-val note : ?fix:'a fixer -> ?span:Span.t -> tag:Error.tag -> string -> 'a note
+val note : ?fix:'a fixer -> ?span:Span.t -> tag:Error.Tag.t -> string -> 'a note
 
 (** A vertex in a path from the top of a program to the leaves. *)
 type path_item =
@@ -49,7 +49,7 @@ type ('op, 'term) visitor = 'op -> context -> 'term -> 'term note list
     linter behaves. *)
 type 'op linter_info =
   { options : 'op IlluaminateConfig.Category.key;  (** A term which parses this group's options. *)
-    tags : Error.tag list;  (** The tags this linter may report errors under.*)
+    tags : Error.Tag.t list;  (** The tags this linter may report errors under.*)
     program : ('op, Syntax.program) visitor;
     token : ('op, Syntax.token) visitor;
     expr : ('op, Syntax.expr) visitor;
@@ -64,7 +64,7 @@ type t = private Linter : 'a linter_info -> t
 (** Construct a new linter. *)
 val make :
   options:'op IlluaminateConfig.Category.key ->
-  tags:Error.tag list ->
+  tags:Error.Tag.t list ->
   ?program:('op, Syntax.program) visitor ->
   ?token:('op, Syntax.token) visitor ->
   ?expr:('op, Syntax.expr) visitor ->
@@ -76,7 +76,7 @@ val make :
 
 (** Construct a new linter with no options *)
 val make_no_opt :
-  tags:Error.tag list ->
+  tags:Error.Tag.t list ->
   ?program:(unit, Syntax.program) visitor ->
   ?token:(unit, Syntax.token) visitor ->
   ?expr:(unit, Syntax.expr) visitor ->

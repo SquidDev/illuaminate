@@ -13,6 +13,6 @@ let show_error = function
   | UnexpectedToken (tok, m) ->
       "Unexpected " ^ (Token.get_token tok |> IlluaminateCore.Token.show) ^ ". " ^ m
 
-let syntax_error = E.make_tag E.Critical "parse:syntax-error"
+let syntax_error = E.Tag.make E.Critical "parse:syntax-error"
 
 let report errs pos err = E.report errs syntax_error pos (show_error err)

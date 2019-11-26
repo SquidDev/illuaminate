@@ -20,7 +20,7 @@ let linter =
     in
     Category.add term category
   in
-  let tag = Error.make_tag Error.Warning "syntax:redundant-parens" in
+  let tag = Error.Tag.make Error.Warning "syntax:redundant-parens" in
   let unpack = function
     | Node.SimpleNode _ -> []
     | Node.Node { leading_trivia = l; trailing_trivia = t; _ } -> l @ t

@@ -6,7 +6,8 @@ open Lens
 
 let only =
   let field =
-    Term.field ~name:"only" ~comment:"Only use these linters" ~default:[] Converter.(list string)
+    Term.field ~name:"only" ~comment:"Only use these linters" ~default:[]
+      Term.Converter.(list string)
   in
   Category.add field Linter.category
 
@@ -53,7 +54,8 @@ let process ~name contents out =
             match CCString.chop_prefix ~pre:"config:" c with
             | Some c ->
                 let buf = Lexing.from_string c in
-                Storage.read buf term |> Result.fold ~ok:Fun.id ~error:failwith
+                Term.to_parser term |> Parser.fields |> Parser.parse_buf buf
+                |> Result.fold ~ok:Fun.id ~error:(fun (_, x) -> failwith x)
             | None -> Term.default term )
         | _ -> Term.default term
       in
@@ -61,7 +63,7 @@ let process ~name contents out =
       let only =
         List.map
           (fun x ->
-            match Error.find_tag x with
+            match Error.Tag.find x with
             | None -> failwith (Printf.sprintf "Unknown tag %S" x)
             | Some t -> t)
           only

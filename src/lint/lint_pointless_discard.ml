@@ -4,7 +4,7 @@ open Linter
 
 let linter =
   (* TODO: Could totally have fixers for this. *)
-  let tag = Error.make_tag Error.Warning "var:pointless-discard" in
+  let tag = Error.Tag.make Error.Warning "var:pointless-discard" in
   let note n = [ note ~span:(Node.span n) ~tag "Pointless discard variable `_`." ] in
   let check_args { args_args = args; _ } =
     match SepList0.last args with

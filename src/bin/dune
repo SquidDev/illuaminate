@@ -3,3 +3,6 @@
  (public_name illuaminate)
  (libraries containers cmdliner illuaminate.core illuaminate.parser
    illuaminate.semantics illuaminate.lint illuaminate.config))
+
+(ocamllex
+ (modules glob))

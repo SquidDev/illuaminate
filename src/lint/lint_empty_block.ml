@@ -18,8 +18,8 @@ let linter =
     in
     Category.add term category
   in
-  let tag_do = Error.make_tag Error.Warning "syntax:empty-do" in
-  let tag_if = Error.make_tag Error.Warning "syntax:empty-if" in
+  let tag_do = Error.Tag.make Error.Warning "syntax:empty-do" in
+  let tag_if = Error.Tag.make Error.Warning "syntax:empty-if" in
   let msg_do =
     let fix =
       FixBlock

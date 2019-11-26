@@ -7,7 +7,7 @@ open struct
 end
 
 let linter =
-  let tag = Error.make_tag Error.Warning "var:unused" in
+  let tag = Error.Tag.make Error.Warning "var:unused" in
   let fix_var = FixOne (fun (Var name) -> Ok (Var (Node.with_contents "_" name))) in
   let fix_args ({ args_args = args; _ } as rest) =
     let rec go =

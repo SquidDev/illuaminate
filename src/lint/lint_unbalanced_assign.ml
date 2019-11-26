@@ -3,7 +3,7 @@ open IlluaminateCore
 open Linter
 
 let linter =
-  let tag = Error.make_tag Error.Warning "var:unbalanced-assign" in
+  let tag = Error.Tag.make Error.Warning "var:unbalanced-assign" in
   let too_few =
     [ note ~tag "Right-hand side of assignment has less values than left hand side expects." ]
   and too_many =

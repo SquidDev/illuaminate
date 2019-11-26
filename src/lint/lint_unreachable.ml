@@ -7,8 +7,8 @@ open struct
 end
 
 let linter =
-  let tag_unreach = Error.make_tag Error.Warning "control:unreachable" in
-  let tag_loop = Error.make_tag Error.Warning "control:loop-once" in
+  let tag_unreach = Error.Tag.make Error.Warning "control:unreachable" in
+  let tag_loop = Error.Tag.make Error.Warning "control:loop-once" in
   let msg_unreach span = [ note ~tag:tag_unreach ~span "Unreachable code" ] in
   let msg_loop span = [ note ~tag:tag_loop ~span "Loop is executed at most once." ] in
   let is_meaningless (edge : C.edge) =

@@ -7,7 +7,7 @@ open struct
 end
 
 let linter =
-  let tag = Error.make_tag Error.Warning "var:set-global" in
+  let tag = Error.Tag.make Error.Warning "var:set-global" in
   let stmt () (context : context) = function
     | AssignFunction { assignf_name = FVar (Var name as var); _ } -> (
         let resolve = Data.get context.program R.key context.data in

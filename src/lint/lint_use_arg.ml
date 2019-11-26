@@ -7,7 +7,7 @@ open struct
 end
 
 let linter =
-  let tag = Error.make_tag Error.Warning "var:use-arg" in
+  let tag = Error.Tag.make Error.Warning "var:use-arg" in
   let msg = [ note ~tag "Using implicit vararg variable \"arg\"." ] in
   let name () (context : context) = function
     | NVar (Var name as var) when Node.contents.get name = "arg" -> (

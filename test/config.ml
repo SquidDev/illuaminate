@@ -22,11 +22,11 @@ let spec_key = Category.add spec cat
 let process spec proj ~name contents =
   let buf = Lexing.from_string contents in
   buf.lex_curr_p <- { buf.lex_curr_p with Lexing.pos_fname = name };
-  match Storage.read buf spec with
+  match Term.to_parser spec |> Parser.fields |> Parser.parse_buf buf with
   | Ok k -> show_config (proj k)
-  | Error e -> e
+  | Error ({ row; col }, e) -> Printf.sprintf "%s:%d:%d: %s" name row col e
 
-let to_string spec ~name:_ = Format.asprintf "%a" Storage.write_default spec
+let to_string spec ~name:_ = Format.asprintf "%a" Term.write_default spec
 
 let tests =
   group "The config system"
