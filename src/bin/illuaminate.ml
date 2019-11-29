@@ -1,11 +1,12 @@
 open IlluaminateCore
 open IlluaminateConfig
 open IlluaminateLint
+module Pattern = IlluaminatePattern
 module TagSet = Set.Make (Error.Tag)
 
 module Config = struct
   type dir_config =
-    { dir : Str.regexp;
+    { dir : Pattern.t;
       enabled : Error.Tag.t list;
       disabled : Error.Tag.t list;
       linter_options : Schema.store
@@ -43,12 +44,12 @@ module Config = struct
     let open Parser in
     let at_parser =
       let+ dir = string and+ options = Term.to_parser dir_schema |> Parser.fields in
-      options (Glob.parse dir)
+      options (Pattern.parse dir)
     in
     field_repeated ~name:"at" at_parser |> fields
 
   let default =
-    [ { dir = Str.regexp ".*";
+    [ { dir = Pattern.parse "/";
         enabled = [];
         disabled = [];
         linter_options = IlluaminateConfig.Term.default linter_schema
@@ -67,7 +68,7 @@ module Config = struct
     let enabled, store =
       List.fold_left
         (fun (linters, store) { dir; enabled; disabled; linter_options } ->
-          if Str.string_match dir path 0 then
+          if Pattern.matches path dir then
             let linters = List.fold_left (Fun.flip TagSet.remove) linters disabled in
             let linters = List.fold_left (Fun.flip TagSet.add) linters enabled in
             (linters, linter_options)

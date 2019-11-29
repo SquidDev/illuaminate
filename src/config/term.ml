@@ -92,12 +92,12 @@ let write_default out term = write_term out term; Format.pp_print_newline out ()
 let rec to_parser : type a. a t -> a Parser.fields =
   let open Parser in
   function
-  | Node { name; body = Field { default; converter = (parse, _) }; _ } ->
-     let+ value = field_opt ~name parse in
-     Option.value ~default value
+  | Node { name; body = Field { default; converter = parse, _ }; _ } ->
+      let+ value = field_opt ~name parse in
+      Option.value ~default value
   | Node { name; body = Group body; _ } ->
-     let+ value = field_opt ~name (to_parser body |> fields) in
-     Option.value ~default:(default body) value
+      let+ value = field_opt ~name (to_parser body |> fields) in
+      Option.value ~default:(default body) value
   | Const k -> Parser.const k
-  | Map (f, x) -> (let+) (to_parser x) f
-  | Pair (x, y) -> (and+) (to_parser x) (to_parser y)
+  | Map (f, x) -> ( let+ ) (to_parser x) f
+  | Pair (x, y) -> ( and+ ) (to_parser x) (to_parser y)

@@ -15,4 +15,6 @@
 module Term = Term
 module Parser = Parser
 
-include module type of struct include Category end
+include module type of struct
+  include Category
+end
