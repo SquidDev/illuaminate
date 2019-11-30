@@ -1,9 +1,9 @@
 set_global.lua:[3:0-3:1]: Setting unknown global variable "x". [var:set-global]
    │
-3  │ x, y, z = 0, 0
+ 3 │ x, y, z = 0, 0
    │ ^
 set_global.lua:[3:3-3:4]: Setting unknown global variable "y". [var:set-global]
    │
-3  │ x, y, z = 0, 0
+ 3 │ x, y, z = 0, 0
    │    ^
 Compilation succeeded with 2 warnings

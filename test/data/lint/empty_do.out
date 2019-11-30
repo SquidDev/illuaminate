@@ -1,6 +1,6 @@
 empty_do.lua:[2:0-2:6]: Empty do statement [syntax:empty-do]
    │
-2  │ do end
+ 2 │ do end
    │ ^^^^^^
 Compilation succeeded with 1 warnings
 @@ -1,5 +1,3 @@

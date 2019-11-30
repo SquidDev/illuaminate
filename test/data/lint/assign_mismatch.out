@@ -1,13 +1,13 @@
 assign_mismatch.lua:[4:0-4:20]: Right-hand side of assignment has more values than left hand side expects. [var:unbalanced-assign]
    │
-4  │ local x, y = 0, 0, 0
+ 4 │ local x, y = 0, 0, 0
    │ ^^^^^^^^^^^^^^^^^^^^
 assign_mismatch.lua:[6:0-6:8]: Right-hand side of assignment has less values than left hand side expects. [var:unbalanced-assign]
    │
-6  │ x, y = 0
+ 6 │ x, y = 0
    │ ^^^^^^^^
 assign_mismatch.lua:[7:0-7:8]: Right-hand side of assignment has more values than left hand side expects. [var:unbalanced-assign]
    │
-7  │ x, y = 0, 0, 0
+ 7 │ x, y = 0, 0, 0
    │ ^^^^^^^^
 Compilation succeeded with 3 warnings

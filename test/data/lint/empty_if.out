@@ -1,14 +1,14 @@
 empty_if.lua:[2:0-2:9]: Empty if clause [syntax:empty-if]
    │
-2  │ if x then
+ 2 │ if x then
    │ ^^^^^^^^^
 empty_if.lua:[3:0-3:13]: Empty elseif clause [syntax:empty-if]
    │
-3  │ elseif y then
+ 3 │ elseif y then
    │ ^^^^^^^^^^^^^
 empty_if.lua:[6:0-6:4]: Empty else clause [syntax:empty-if]
    │
-6  │ else
+ 6 │ else
    │ ^^^^
 Compilation succeeded with 3 warnings
 @@ -3,6 +3,5 @@

@@ -1,9 +1,9 @@
 method_name.lua:[3:11-3:12]: Method names cannot appear at this position. [syntax:method-name]
    │
-3  │ function x:y:z() end
+ 3 │ function x:y:z() end
    │            ^
 method_name.lua:[4:11-4:12]: Method names cannot appear at this position. [syntax:method-name]
    │
-4  │ function x:y.z() end
+ 4 │ function x:y.z() end
    │            ^
 Compilation failed with 2 errors and 0 warnings

@@ -1,6 +1,17 @@
 open IlluaminateCore
 open IlluaminateLint
 
+let uses_ansi channel =
+  let dumb =
+    try
+      match Sys.getenv "TERM" with
+      | "dumb" | "" -> true
+      | _ -> false
+    with Not_found -> true
+  in
+  let isatty = try Unix.(isatty (descr_of_out_channel channel)) with Unix.Unix_error _ -> false in
+  (not dumb) && isatty
+
 let gather_files paths =
   let cwd = Unix.getcwd () in
   let absolute x = if Filename.is_relative x then Filename.concat cwd x else x in
@@ -135,4 +146,7 @@ let () =
     ( Term.(ret (const (`Help (`Pager, None)))),
       Term.info "illuaminate" ~doc ~exits:Term.default_exits )
   in
+
+  if uses_ansi stdout then Error.Style.setup_ansi Format.std_formatter;
+  if uses_ansi stderr then Error.Style.setup_ansi Format.err_formatter;
   Term.exit @@ Term.eval_choice default_cmd [ lint_cmd; fix_cmd; init_config_cmd ]

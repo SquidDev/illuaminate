@@ -1,22 +1,22 @@
 parens.clarify.lua:[3:10-3:17]: Unnecessary parenthesis. [syntax:redundant-parens]
    │
-3  │ local _ = (2 + 2)
+ 3 │ local _ = (2 + 2)
    │           ^^^^^^^
 parens.clarify.lua:[12:10-12:19]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
-12  │ local _ = ((2 + 2)) * 2
+ 12 │ local _ = ((2 + 2)) * 2
     │           ^^^^^^^^^
 parens.clarify.lua:[13:14-13:23]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
-13  │ local _ = 2 + ((2 * 2))
+ 13 │ local _ = 2 + ((2 * 2))
     │               ^^^^^^^^^
 parens.clarify.lua:[14:14-14:23]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
-14  │ local _ = 2 + ((2 + 2))
+ 14 │ local _ = 2 + ((2 + 2))
     │               ^^^^^^^^^
 parens.clarify.lua:[15:10-15:19]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
-15  │ local _ = ((2 + 2)) + 2
+ 15 │ local _ = ((2 + 2)) + 2
     │           ^^^^^^^^^
 Compilation succeeded with 5 warnings
 @@ -1,6 +1,6 @@

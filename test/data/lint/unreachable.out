@@ -1,41 +1,41 @@
 unreachable.lua:[8:2-8:9]: Unreachable code [control:unreachable]
    │
-8  │   print()
+ 8 │   print()
    │   ^^^^^^^
 unreachable.lua:[18:2-22:5]: Unreachable code [control:unreachable]
     │
-18  │   if f() then
+ 18 │   if f() then
     │   ^^^^^^^^^^^
 unreachable.lua:[24:2-24:8]: Unreachable code [control:unreachable]
     │
-24  │   return
+ 24 │   return
     │   ^^^^^^
 unreachable.lua:[30:2-30:8]: Unreachable code [control:unreachable]
     │
-30  │   return
+ 30 │   return
     │   ^^^^^^
 unreachable.lua:[42:2-44:11]: Loop is executed at most once. [control:loop-once]
     │
-42  │   repeat
+ 42 │   repeat
     │   ^^^^^^
 unreachable.lua:[44:8-44:11]: Unreachable code [control:unreachable]
     │
-44  │   until f()
+ 44 │   until f()
     │         ^^^
 unreachable.lua:[52:4-52:11]: Unreachable code [control:unreachable]
     │
-52  │     print()
+ 52 │     print()
     │     ^^^^^^^
 unreachable.lua:[58:9-58:12]: Unreachable code [control:unreachable]
     │
-58  │   elseif f() then
+ 58 │   elseif f() then
     │          ^^^
 unreachable.lua:[61:4-61:11]: Unreachable code [control:unreachable]
     │
-61  │     print()
+ 61 │     print()
     │     ^^^^^^^
 unreachable.lua:[67:0-67:7]: Unreachable code [control:unreachable]
     │
-67  │ print()
+ 67 │ print()
     │ ^^^^^^^
 Compilation succeeded with 10 warnings

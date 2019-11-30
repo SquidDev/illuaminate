@@ -1,9 +1,9 @@
 arg_arg.lua:[3:17-3:20]: Argument named "arg". [var:arg-arg]
    │
-3  │ local function f(arg, arg) end
+ 3 │ local function f(arg, arg) end
    │                  ^^^
 arg_arg.lua:[3:22-3:25]: Argument named "arg". [var:arg-arg]
    │
-3  │ local function f(arg, arg) end
+ 3 │ local function f(arg, arg) end
    │                       ^^^
 Compilation succeeded with 2 warnings

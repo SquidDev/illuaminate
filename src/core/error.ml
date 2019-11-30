@@ -143,7 +143,7 @@ let display_line out line (tag : Tag.t) (pos : Span.t) message =
     out "%s:[%d:%d-%d:%d]: %s [%s]@\n" pos.filename.name pos.start_line pos.start_col
     pos.finish_line pos.finish_col message tag.name;
   let fmt no line =
-    Style.(printf (BrightColor Green)) out "%*s " (String.length line_no) no;
+    Style.(printf (BrightColor Green)) out " %*s" (String.length line_no) no;
     if line = "" then Format.fprintf out " │@\n" else Format.fprintf out " │ %s@\n" line
   in
   fmt "" "";

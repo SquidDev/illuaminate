@@ -37,7 +37,7 @@ let test_cases =
     ("a/*.txt", "a/foo.txt", true);
     ("a/*.txt", "a/b/foo.txt", false);
     ("a/*.txt", "x/a/foo.txt", false);
-    ("**/a/*.txt", "x/a/foo.txt", true);
+    ("**/a/*.txt", "x/a/foo.txt", true)
     (* TODO: ("**/a/*.txt", "a/foo.txt", true) *)
   ]
 
