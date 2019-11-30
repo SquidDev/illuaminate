@@ -7,7 +7,8 @@ open struct
 end
 
 let linter =
-  let tag = Error.Tag.make Error.Warning "var:unused" in
+  let tag_generic = Error.Tag.make Error.Warning "var:unused" in
+  let tag_global = Error.Tag.make Error.Warning "var:unused-global" in
   let fix_var = FixOne (fun (Var name) -> Ok (Var (Node.with_contents "_" name))) in
   let fix_args ({ args_args = args; _ } as rest) =
     let rec go =
@@ -44,7 +45,7 @@ let linter =
         (* If the list argument is a dot, and both it and the implicit {!arg} is unused, then warn. *)
         match R.get_dots dot resolve with
         | { R.dot_usages = []; dot_implicit = Some { usages = []; _ }; _ } ->
-            [ note ~tag ~fix "Unused varargs." ]
+            [ note ~tag:tag_generic ~fix "Unused varargs." ]
         | _ -> [] )
     | _ -> []
   in
@@ -56,7 +57,12 @@ let linter =
       | Bind :: _ | Name (NVar _) :: Bind :: _ | FunctionName (FVar _) :: Bind :: _ -> (
           let resolve = Data.get context.program R.key context.data in
           match R.get_definition var resolve with
-          | { R.usages = []; _ } ->
+          | { R.usages = []; kind; _ } ->
+              let tag =
+                match kind with
+                | Global -> tag_global
+                | _ -> tag_generic
+              in
               [ note ~fix:fix_var ~tag (Printf.sprintf "Unused variable %S." name) ]
           | _ -> [] )
       | _ -> []
@@ -68,4 +74,4 @@ let linter =
     | Fun { fun_args = args; _ } -> check_args context fix_expr args
     | _ -> []
   in
-  make_no_opt ~tags:[ tag ] ~var ~expr ~stmt ()
+  make_no_opt ~tags:[ tag_generic; tag_global ] ~var ~expr ~stmt ()

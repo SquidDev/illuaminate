@@ -77,9 +77,9 @@ rule token = parse
 | digit+    as i { Token (Int (int_of_string i, i)) }
 | "0x" hex+ as i { Token (Int (int_of_string i, i)) }
 
-| digit* '.' digit+ as i { Token (Number (float_of_string i, i)) }
-| digit* '.' digit+ ['E' 'e'] digit+ as i { Token (Number (float_of_string i, i)) }
-| digit* '.' digit+ ['E' 'e'] ['+' '-'] digit+ as i { Token (Number (float_of_string i, i)) }
+| digit+            ['E' 'e'] ['+' '-']? digit+ as i { Token (Number (float_of_string i, i)) }
+| digit* '.' digit+                             as i { Token (Number (float_of_string i, i)) }
+| digit* '.' digit+ ['E' 'e'] ['+' '-']? digit+ as i { Token (Number (float_of_string i, i)) }
 
 (* Identifiers *)
 | ident_head ident_tail* as i { Token (Ident i) }
