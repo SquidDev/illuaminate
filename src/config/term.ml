@@ -54,40 +54,41 @@ and default_body : type a. a body -> a = function
   | Field { default; _ } -> default
   | Group g -> default g
 
-let rec write_term : type a. Format.formatter -> a t -> unit =
- fun out t ->
+let rec write_term : type a. Format.formatter -> a t -> int -> int =
+ fun out t prev ->
   let open Format in
   match t with
   | Node { name; comment; body } ->
+      (* Write 'prev' lines between the previous entry and this one. *)
+      for _ = 1 to prev do
+        pp_force_newline out ()
+      done;
       (* Comment *)
       pp_print_string out ";; ";
       pp_print_string out comment;
       pp_force_newline out ();
       (* Value *)
-      pp_open_box out 1;
+      pp_open_hvbox out 2;
       pp_print_string out "(";
       pp_print_string out name;
-      pp_print_space out ();
       write_group out body;
       pp_print_string out ")";
-      pp_close_box out ()
-  | Map (_, t) -> write_term out t
-  | Pair (l, r) -> write_term out l; pp_force_newline out (); write_term out r
-  | Const _ -> ()
+      pp_close_box out ();
+      (* The next item should have one blank line. *)
+      2
+  | Map (_, t) -> write_term out t prev
+  | Pair (l, r) -> write_term out l prev |> write_term out r
+  | Const _ -> prev
 
 and write_group : 'a. Format.formatter -> 'a body -> unit =
  fun out t ->
-  let open Format in
   match t with
-  | Field { default; converter = _, t } -> Sexplib.Sexp.pp_hum_indent 2 out (t default)
-  | Group g ->
-      pp_open_box out 1;
-      pp_print_string out "(";
-      write_term out g;
-      pp_print_string out ")";
-      pp_close_box out ()
+  | Field { default; converter = _, t } ->
+      Format.pp_print_space out ();
+      Sexplib.Sexp.pp_hum_indent 2 out (t default)
+  | Group g -> write_term out g 1 |> ignore
 
-let write_default out term = write_term out term; Format.pp_print_newline out ()
+let write_default out term = write_term out term 0 |> ignore
 
 let rec to_parser : type a. a t -> a Parser.fields =
   let open Parser in

@@ -59,7 +59,19 @@ val float : float t
 (** Parse an integer. *)
 val int : int t
 
-(** Parse a list of items. *)
+(** Parse all remaining items using this parser. *)
+val many : 'a t -> 'a list t
+
+(** Parse all remaining items using this parser.
+
+    This requires there to be at least one item present - `some term` is equivalent to `term` then
+    `many term`. *)
+val some : 'a t -> 'a list t
+
+(** Enter a list, and parse the body using this parser. *)
+val in_list : 'a t -> 'a t
+
+(** Parse a list of items. Equivalent to `in_list (many term)`. *)
 val list : 'a t -> 'a list t
 
 (** Parse any remaining values as fields. *)

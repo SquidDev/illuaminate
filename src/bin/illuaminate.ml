@@ -1,87 +1,5 @@
 open IlluaminateCore
-open IlluaminateConfig
 open IlluaminateLint
-module Pattern = IlluaminatePattern
-module TagSet = Set.Make (Error.Tag)
-
-module Config = struct
-  type dir_config =
-    { dir : Pattern.t;
-      enabled : Error.Tag.t list;
-      disabled : Error.Tag.t list;
-      linter_options : Schema.store
-    }
-
-  type t = dir_config list
-
-  let linter_schema =
-    List.fold_left
-      (fun s (Linter.Linter l) -> Schema.union s (Schema.singleton l.options))
-      Schema.empty Linters.all
-    |> Schema.to_term
-
-  (** The parser for Illuaminate's config. *)
-  let parser =
-    let open Term in
-    let dir_schema =
-      let+ linter_options = linter_schema
-      and+ enabled =
-        field ~name:"+linters" ~comment:"Enabled linters. This will extend the parent set."
-          ~default:[]
-          Converter.(list string)
-      and+ disabled =
-        field ~name:"-linters" ~comment:"Disabled linters. This will extend from the parent."
-          ~default:[]
-          Converter.(list string)
-      in
-      fun dir ->
-        { dir;
-          linter_options;
-          enabled = List.filter_map Error.Tag.find enabled;
-          disabled = List.filter_map Error.Tag.find disabled
-        }
-    in
-    let open Parser in
-    let at_parser =
-      let+ dir = string and+ options = Term.to_parser dir_schema |> Parser.fields in
-      options (Pattern.parse dir)
-    in
-    field_repeated ~name:"at" at_parser |> fields
-
-  let default =
-    [ { dir = Pattern.parse "/";
-        enabled = [];
-        disabled = [];
-        linter_options = IlluaminateConfig.Term.default linter_schema
-      }
-    ]
-
-  let generater formatter () = Term.write_default formatter linter_schema
-
-  let all_tags =
-    List.fold_left
-      (fun tags (Linter.Linter linter) -> List.fold_left (Fun.flip TagSet.add) tags linter.tags)
-      TagSet.empty Linters.all
-
-  (** Get all linters and their configuration options for a particular file. *)
-  let get_linters (store : t) path =
-    let enabled, store =
-      List.fold_left
-        (fun (linters, store) { dir; enabled; disabled; linter_options } ->
-          if Pattern.matches path dir then
-            let linters = List.fold_left (Fun.flip TagSet.remove) linters disabled in
-            let linters = List.fold_left (Fun.flip TagSet.add) linters enabled in
-            (linters, linter_options)
-          else (linters, store))
-        (all_tags, Term.default linter_schema)
-        store
-    in
-    ( List.filter
-        (fun (Linter.Linter l) -> List.exists (Fun.flip TagSet.mem enabled) l.tags)
-        Linters.all,
-      TagSet.elements (TagSet.diff all_tags enabled),
-      store )
-end
 
 let gather_files paths =
   let cwd = Unix.getcwd () in
@@ -166,7 +84,7 @@ let init_config config =
     exit 1 );
   let out = open_out config in
   let formatter = Format.formatter_of_out_channel out in
-  Config.generater formatter ();
+  Config.generate formatter ();
   Format.pp_print_flush formatter ();
   close_out out
 

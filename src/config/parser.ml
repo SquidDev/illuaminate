@@ -62,23 +62,6 @@ let float : float t = atom ~ty:"number" float_of_string_opt
 
 let string : string t = atom ~ty:"string" Option.some
 
-let list (term : 'a t) : 'a list t =
-  let rec parse_children end_pos xs = function
-    | [] -> Ok (List.rev xs)
-    | ss -> (
-      match term end_pos ss with
-      | Error e -> Error e
-      | Ok (x, ss') -> parse_children end_pos (x :: xs) ss' )
-  in
-  let rec go end_pos = function
-    | [] -> Error (end_pos, "Expected list, got nothing")
-    | S.Comment _ :: xs -> go end_pos xs
-    | Sexp (List (_, xs, end_pos)) :: state ->
-        parse_children end_pos [] xs |> Result.map (fun x -> (x, state))
-    | Sexp (Atom (pos, _, _)) :: _ -> Error (pos, "Expected list, got atom")
-  in
-  go
-
 let rec check_empty x = function
   | [] -> Ok x
   | S.Comment _ :: xs -> check_empty x xs
@@ -86,6 +69,31 @@ let rec check_empty x = function
 
 let parse_til_empty body end_pos state =
   body end_pos state >>= fun (x, state) -> check_empty x state
+
+let many (term : 'a t) : 'a list t =
+  let rec go xs : 'a list t =
+   fun end_pos -> function
+    | [] -> Ok (List.rev xs, [])
+    | ss -> (
+      match term end_pos ss with
+      | Error e -> Error e
+      | Ok (x, ss') -> go (x :: xs) end_pos ss' )
+  in
+  go []
+
+let some (term : 'a t) : 'a list t =
+  let+ x = term and+ xs = many term in
+  x :: xs
+
+let rec in_list (term : 'a t) : 'a t =
+ fun end_pos -> function
+  | [] -> Error (end_pos, "Expected list, got nothing")
+  | S.Comment _ :: xs -> in_list term end_pos xs
+  | Sexp (List (_, xs, end_pos)) :: state ->
+      parse_til_empty term end_pos xs |> Result.map (fun x -> (x, state))
+  | Sexp (Atom (pos, _, _)) :: _ -> Error (pos, "Expected list, got atom")
+
+let list (term : 'a t) : 'a list t = in_list (many term)
 
 let fields (body : 'a fields) : 'a t =
   let rec extract_field end_pos = function
