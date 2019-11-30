@@ -25,14 +25,14 @@
 %token <int IlluaminateCore.Syntax.literal> INT
 %token <float IlluaminateCore.Syntax.literal> NUMBER
 
-%right "^"
-%right NOT
-%left "*" "/" "%"
-%left "+" "-"
-%right ".."
-%left "<" ">" "<=" ">=" "~=" "=="
-%left AND
 %left OR
+%left AND
+%left "<" ">" "<=" ">=" "~=" "=="
+%right ".."
+%left "+" "-"
+%left "*" "/" "%"
+%right NOT
+%right "^"
 
 %start <IlluaminateCore.Syntax.program> main
 

@@ -62,12 +62,12 @@ parens.lua:[60:16-60:23]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  60 │   local _ = 2 + (2 * 2)
     │                 ^^^^^^^
-parens.lua:[62:12-62:19]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[63:12-63:19]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
- 62 │   local _ = (2 + 2) + 2
+ 63 │   local _ = (2 + 2) + 2
     │             ^^^^^^^
 Compilation succeeded with 17 warnings
-@@ -2,63 +2,63 @@
+@@ -2,64 +2,64 @@
  
  -- Redundant parenthesis around references
  do
@@ -143,6 +143,7 @@ Compilation succeeded with 17 warnings
 -  local _ = 2 + (2 * 2)
 +  local _ = 2 + 2 * 2
    local _ = 2 + (2 + 2) -- ok
+   local _ = 2 * (2 + 2) + 1 -- ok
 -  local _ = (2 + 2) + 2
 +  local _ = 2 + 2 + 2
  end
