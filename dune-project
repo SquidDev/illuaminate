@@ -1,6 +1,5 @@
-(lang dune 1.11)
+(lang dune 2.0)
 (using menhir 2.0)
-(using fmt 1.1 (enabled_for ocaml dune))
 (implicit_transitive_deps false)
 
 (generate_opam_files true)
@@ -18,7 +17,7 @@
   (depends
     (ocaml (>= 4.06))
     ; Build-time (:build)
-    (dune (and :build (>= 1.10)))
+    (dune (and :build (>= 2.0)))
     (ppxlib :build)
     (ppx_deriving :build)
     (odoc :build)
@@ -30,4 +29,5 @@
     cmdliner
     containers
     menhir
+    omd
     re))

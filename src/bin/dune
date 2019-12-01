@@ -4,6 +4,7 @@
  (libraries containers cmdliner illuaminate.core illuaminate.parser
    illuaminate.semantics illuaminate.lint illuaminate.config
    illuaminate.pattern)
+ (modes native js byte)
  (js_of_ocaml
   (javascript_files runtime.js)
   (flags "--opt=3")))
