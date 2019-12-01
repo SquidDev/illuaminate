@@ -6,4 +6,4 @@ invalid_break.lua:[9:4-9:9]: Using `break` outside a loop [syntax:invalid-break]
    │
  9 │     break
    │     ^^^^^
-Compilation failed with 2 errors and 0 warnings
+2 errors and 0 warnings

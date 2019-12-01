@@ -14,4 +14,4 @@ pointless_discard.lua:[13:17-13:18]: Pointless discard variable `_`. [var:pointl
     │
  13 │ local function f(_) end
     │                  ^
-Compilation succeeded with 4 warnings
+No errors and 4 warnings

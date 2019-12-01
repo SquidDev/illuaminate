@@ -2,4 +2,4 @@ set_global_function.lua:[2:0-2:16]: Setting unknown global function "f". [var:se
    │
  2 │ function f() end
    │ ^^^^^^^^^^^^^^^^
-Compilation succeeded with 1 warnings
+No errors and 1 warnings

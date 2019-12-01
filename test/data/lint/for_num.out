@@ -22,4 +22,4 @@ for_num.lua:[24:0-24:23]: This loop has the same start and stop point, and so wi
     │
  24 │ for _ = 1 + 4, 5 do end
     │ ^^^^^^^^^^^^^^^^^^^^^^^
-Compilation succeeded with 6 warnings
+No errors and 6 warnings

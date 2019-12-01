@@ -33,8 +33,8 @@ val mute : Tag.t list -> t -> t
 (** Report a new error at a specific position *)
 val report : t -> Tag.t -> Span.t -> string -> unit
 
-(** Display any errors which occurred, with a function which maps file names to input streams *)
-val display_of_channel : ?out:Format.formatter -> (Span.filename -> in_channel option) -> t -> unit
+(** Display any errors which occurred. *)
+val display_of_channel : ?out:Format.formatter -> t -> unit
 
 (** Display any errors which occurred, with a function which maps file names to strings *)
 val display_of_string : ?out:Format.formatter -> (Span.filename -> string option) -> t -> unit

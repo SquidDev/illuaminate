@@ -6,4 +6,4 @@ method_name.lua:[4:11-4:12]: Method names cannot appear at this position. [synta
    │
  4 │ function x:y.z() end
    │            ^
-Compilation failed with 2 errors and 0 warnings
+2 errors and 0 warnings

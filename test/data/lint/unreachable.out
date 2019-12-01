@@ -38,4 +38,4 @@ unreachable.lua:[67:0-67:7]: Unreachable code [control:unreachable]
     │
  67 │ print()
     │ ^^^^^^^
-Compilation succeeded with 10 warnings
+No errors and 10 warnings

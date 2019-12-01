@@ -6,7 +6,7 @@ unused_dots.lua:[4:0-4:25]: Unused varargs. [var:unused]
    │
  4 │ local function g(...) end
    │ ^^^^^^^^^^^^^^^^^^^^^^^^^
-Compilation succeeded with 2 warnings
+No errors and 2 warnings
 @@ -1,7 +1,7 @@
  -- config: (lint (only (var:unused)))
  

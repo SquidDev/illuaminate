@@ -10,4 +10,4 @@ assign_mismatch.lua:[7:0-7:8]: Right-hand side of assignment has more values tha
    │
  7 │ x, y = 0, 0, 0
    │ ^^^^^^^^
-Compilation succeeded with 3 warnings
+No errors and 3 warnings

@@ -163,10 +163,9 @@ let summary out t =
         | Warning -> (errors, warnings + 1))
       (0, 0) (unwrap t).errors
   in
-  if errors > 0 then
-    Format.fprintf out "Compilation failed with %d errors and %d warnings@\n" errors warnings
-  else if warnings > 0 then Format.fprintf out "Compilation succeeded with %d warnings@\n" warnings
-  else Format.fprintf out "Compilation succeeded with no warnings@\n"
+  if errors > 0 then Format.fprintf out "%d errors and %d warnings@\n" errors warnings
+  else if warnings > 0 then Format.fprintf out "No errors and %d warnings@\n" warnings
+  else ()
 
 let each_error f t =
   t.errors
@@ -174,36 +173,29 @@ let each_error f t =
   |> List.sort compare
   |> List.iter (fun (_, tag, (pos : Span.t), message) -> f tag pos message)
 
-let display_of_channel ?(out = Format.err_formatter) getter t =
+let display_of_channel ?(out = Format.err_formatter) t =
   let last = ref None in
-  let get_channel name =
+  let get_channel name : in_channel =
     match !last with
     | Some (last_name, ch) when name = last_name -> ch
     | Some (_, ch) ->
-        ( match ch with
-        | Some ch -> close_in ch
-        | _ -> () );
-        let ch = getter name in
+        close_in ch;
+        let ch = open_in name in
         last := Some (name, ch);
         ch
     | None ->
-        let ch = getter name in
+        let ch = open_in name in
         last := Some (name, ch);
         ch
   in
   unwrap t
   |> each_error (fun tag (pos : Span.t) message ->
-         match get_channel pos.filename with
-         | None -> ()
-         | Some ch ->
-             ( try
-                 seek_in ch pos.start_bol;
-                 let line = input_line ch in
-                 display_line out line tag pos message
-               with End_of_file -> display_line out "[ERROR: File has changed]" tag pos message );
-             close_in ch);
+         let ch = get_channel pos.filename.path in
+         seek_in ch pos.start_bol;
+         let line = input_line ch in
+         display_line out line tag pos message);
   ( match !last with
-  | Some (_, Some ch) -> close_in ch
+  | Some (_, ch) -> close_in ch
   | _ -> () );
   summary out t
 

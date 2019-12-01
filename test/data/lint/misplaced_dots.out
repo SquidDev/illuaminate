@@ -2,4 +2,4 @@ misplaced_dots.lua:[3:17-3:20]: Varargs can only appear as the last argument to 
    │
  3 │ local function f(..., x) end
    │                  ^^^
-Compilation failed with 1 errors and 0 warnings
+1 errors and 0 warnings

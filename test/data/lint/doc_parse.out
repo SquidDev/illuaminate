@@ -10,4 +10,4 @@ doc_parse.lua:[3:0-7:13]: Duplicate @module definitions (named 'foo' and 'bar') 
    │
  3 │ --- A module
    │ ^^^^^^^^^^^^
-Compilation failed with 3 errors and 0 warnings
+3 errors and 0 warnings

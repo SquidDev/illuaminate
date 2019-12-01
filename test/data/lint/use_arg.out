@@ -10,4 +10,4 @@ use_arg.lua:[6:2-6:5]: Using implicit vararg variable "arg". [var:use-arg]
    │
  6 │   arg[0] = nil
    │   ^^^
-Compilation succeeded with 3 warnings
+No errors and 3 warnings

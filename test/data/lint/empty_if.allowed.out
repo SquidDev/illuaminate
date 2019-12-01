@@ -2,7 +2,7 @@ empty_if.allowed.lua:[6:0-6:4]: Empty else clause [syntax:empty-if]
    │
  6 │ else
    │ ^^^^
-Compilation succeeded with 1 warnings
+No errors and 1 warnings
 @@ -3,6 +3,5 @@
  elseif y then
  elseif z then
