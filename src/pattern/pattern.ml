@@ -1,6 +1,6 @@
 type t =
   { absolute : bool;
-    pattern : Str.regexp
+    pattern : Re.re
   }
 
 let matches str { absolute; pattern } =
@@ -9,6 +9,6 @@ let matches str { absolute; pattern } =
     else
       match String.index_from_opt str idx '/' with
       | None -> false
-      | Some idx -> Str.string_match pattern str (idx + 1) || match_at (idx + 1)
+      | Some idx -> Re.execp ~pos:(idx + 1) pattern str || match_at (idx + 1)
   in
-  Str.string_match pattern str 0 || ((not absolute) && match_at 0)
+  Re.execp pattern str || ((not absolute) && match_at 0)

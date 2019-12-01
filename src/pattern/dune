@@ -2,7 +2,7 @@
  (name illuaminatePattern)
  (public_name illuaminate.pattern)
  (synopsis "Gitignore style pattern parsing.")
- (libraries containers))
+ (libraries containers re))
 
 (ocamllex
  (modules parse))

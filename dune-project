@@ -1,4 +1,4 @@
-(lang dune 1.10)
+(lang dune 1.11)
 (using menhir 2.0)
 (using fmt 1.1 (enabled_for ocaml dune))
 (implicit_transitive_deps false)
@@ -24,8 +24,10 @@
     (odoc :build)
     ; Test (:with-test)
     (omnomnom :with-test)
+    (patience_diff :with-test)
+    (junit :with-test)
     ; Runtime
-    base-unix
     cmdliner
     containers
-    menhir))
+    menhir
+    re))

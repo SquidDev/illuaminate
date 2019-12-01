@@ -107,7 +107,10 @@ let match_word =
     | ' ' | '\t' | '\n' -> true
     | _ -> false)
 
-let tag_start = Str.regexp "^[ \t]*@\\([a-zA-Z0-9_]+\\)"
+let tag_start =
+  (* ^[ \t]*@([a-zA-Z0-9_]+) *)
+  let open Re in
+  seq [ bol; rep (set " \t"); char '@'; group (rep1 (alt [ alnum; char '_' ])) ] |> compile
 
 module IntMap = Map.Make (CCInt)
 
@@ -140,16 +143,10 @@ let get_group (group : 'a grouped) : 'a list list =
 (** Parse a doc comment, extracting the description and any tags. *)
 let parse comment =
   (* Find the next tag after a position *)
-  let find_tag pos =
-    try
-      let first = Str.search_forward tag_start comment pos in
-      Some first
-    with Not_found -> None
-  in
-  match find_tag 0 with
-  | None -> (comment, [])
-  | Some _ ->
-      let description = Str.string_before comment (Str.match_beginning ()) in
+  match Re.all tag_start comment with
+  | [] -> (comment, [])
+  | group :: groups ->
+      let description = CCString.take (Re.Group.start group 0) comment in
       let get_flags start group_end =
         if start >= group_end || comment.[start] <> '[' then ([], start)
         else
@@ -163,20 +160,22 @@ let parse comment =
           in
           go [] (start + 1)
       in
-      let rec get_tags xs =
-        let tag_name = Str.matched_group 1 comment and tag_end = Str.match_end () in
+      let rec get_tags group groups xs =
+        let tag_name = Re.Group.get group 1 and tag_end = Re.Group.stop group 0 in
         let group_end =
-          match find_tag tag_end with
-          | Some fin -> fin
-          | None -> String.length comment
+          match groups with
+          | group :: _ -> Re.Group.start group 0
+          | [] -> String.length comment
         in
         let flags, tag_end = get_flags tag_end group_end in
         let xs =
           (tag_name, flags, String.sub comment tag_end (group_end - tag_end) |> String.trim) :: xs
         in
-        if group_end < String.length comment then get_tags xs else List.rev xs
+        match groups with
+        | [] -> List.rev xs
+        | g :: gs -> get_tags g gs xs
       in
-      (description, get_tags [])
+      (description, get_tags group groups [])
 
 type comment_builder =
   { mutable b_unknown : string list;
@@ -249,8 +248,8 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
       | None ->
           Printf.sprintf "Expected type for parameter (from body '%s')" (String.escaped body)
           |> report Tag.malformed_tag
-      | Some (ty, cont) ->
-          tag_worker ("param", Named ("type", ty) :: flags, Str.string_after body cont) )
+      | Some (ty, cont) -> tag_worker ("param", Named ("type", ty) :: flags, CCString.drop cont body)
+      )
     (* Extract the parameter name and then process flags *)
     | "param", flags, body -> (
       match match_word body 0 with
@@ -313,7 +312,7 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
                 { arg_name = name;
                   arg_opt = false;
                   arg_type = None;
-                  arg_description = Some (Str.string_after body cont |> parse_description)
+                  arg_description = Some (CCString.drop cont body |> parse_description)
                 } )
               flags
           in
@@ -325,7 +324,7 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
           Printf.sprintf "Expected type for return (from body '%s')" (String.escaped body)
           |> report Tag.malformed_tag
       | Some (ty, cont) ->
-          tag_worker ("return", Named ("type", ty) :: flags, Str.string_after body cont) )
+          tag_worker ("return", Named ("type", ty) :: flags, CCString.drop cont body) )
     (* And add a return value, processing flags *)
     | "return", flags, body ->
         let idx, ret =

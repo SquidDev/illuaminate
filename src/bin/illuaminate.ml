@@ -19,7 +19,7 @@ module LoadedFile = struct
         | Ok tree -> Some tree)
 
   let gather errs paths : t list =
-    let cwd = Unix.getcwd () in
+    let cwd = Sys.getcwd () in
     let mk_name path =
       let name =
         IlluaminatePattern.Paths.make_relative ~path ~dir:cwd |> Option.value ~default:path
@@ -55,15 +55,8 @@ module LoadedFile = struct
     |> List.filter_map (fun path -> get_config_for path |> Option.map (fun c -> (path, c)))
     |> List.iter (fun (path, config) ->
            let rec add is_root path =
-             if Sys.is_directory path then (
-               let handle = Unix.opendir path in
-               try
-                 while true do
-                   let child = Unix.readdir handle in
-                   if child <> Filename.current_dir_name && child <> Filename.parent_dir_name then
-                     add false (Filename.concat path child)
-                 done
-               with End_of_file -> (); Unix.closedir handle )
+             if Sys.is_directory path then
+               Sys.readdir path |> Array.iter (fun child -> add false (Filename.concat path child))
              else if is_root || Filename.extension path = ".lua" then
                let file = mk_name path in
                if Config.is_source config file.path then
@@ -82,7 +75,7 @@ let uses_ansi channel =
       | _ -> false
     with Not_found -> true
   in
-  let isatty = try Unix.(isatty (descr_of_out_channel channel)) with Unix.Unix_error _ -> false in
+  let isatty = try Unix.isatty channel with Unix.Unix_error _ -> false in
   (not dumb) && isatty
 
 let lint paths =
@@ -166,6 +159,6 @@ let () =
       Term.info "illuaminate" ~doc ~exits:Term.default_exits )
   in
 
-  if uses_ansi stdout then Error.Style.setup_ansi Format.std_formatter;
-  if uses_ansi stderr then Error.Style.setup_ansi Format.err_formatter;
+  if uses_ansi Unix.stdout then Error.Style.setup_ansi Format.std_formatter;
+  if uses_ansi Unix.stderr then Error.Style.setup_ansi Format.err_formatter;
   Term.exit @@ Term.eval_choice default_cmd [ lint_cmd; fix_cmd; init_config_cmd ]

@@ -3,4 +3,7 @@
  (public_name illuaminate)
  (libraries containers cmdliner illuaminate.core illuaminate.parser
    illuaminate.semantics illuaminate.lint illuaminate.config
-   illuaminate.pattern unix))
+   illuaminate.pattern)
+ (js_of_ocaml
+  (javascript_files runtime.js)
+  (flags "--opt=3")))
