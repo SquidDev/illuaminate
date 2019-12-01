@@ -23,11 +23,14 @@ type pat_config =
 
 (** The main config file. *)
 type t =
-  { sources : Pattern.t list;  (** Patterns which include source files to load. *)
-    pat_config : pat_config list
-        (** Path-specific overrides. These are applied in order, so later ones will override earlier
-            ones. *)
-  }
+  | Config of
+      { root : string;
+        sources : Pattern.t list;  (** Patterns which include source files to load. *)
+        pat_config : pat_config list
+            (** Path-specific overrides. These are applied in order, so later ones will override
+                earlier ones. *)
+      }
+  | Default
 
 (** The schema for linters. Used to generate *)
 let linter_schema =
@@ -36,7 +39,7 @@ let linter_schema =
     Schema.empty Linters.all
   |> Schema.to_term
 
-let root = Pattern.parse "/"
+let root_pat = Pattern.parse "/"
 
 (** The parser for Illuaminate's config. *)
 let parser =
@@ -68,14 +71,50 @@ let parser =
   let main =
     let+ sources = field_opt ~name:"sources" (some pattern)
     and+ pat_config = field_repeated ~name:"at" pat_config in
-    { sources = Option.value ~default:[ root ] sources; pat_config }
+    fun root -> Config { root; sources = Option.value ~default:[ root_pat ] sources; pat_config }
   in
 
   fields main
 
-let default = { sources = [ root ]; pat_config = [] }
+let parse_error = Error.(Tag.make Critical "config:parse")
 
-let generate out () =
+let of_file err (file : Span.filename) =
+  let parsed =
+    CCIO.with_in file.path (fun channel ->
+        let lexbuf = Lexing.from_channel channel in
+        lexbuf.lex_curr_p <-
+          { Lexing.pos_fname = file.name; pos_lnum = 1; pos_cnum = 0; pos_bol = 0 };
+        IlluaminateConfig.Parser.parse_buf lexbuf parser)
+  in
+  match parsed with
+  | Ok x -> Some (x (Filename.dirname file.path))
+  | Error ({ row; col }, msg) ->
+      let bol =
+        CCIO.with_in file.path (fun chan ->
+            let rec go i pos =
+              if i = row then pos
+              else
+                match CCIO.read_line chan with
+                | None -> pos
+                | Some line -> go (i + 1) (pos + String.length line)
+            in
+            go 1 0)
+      in
+      Error.report err parse_error
+        { Span.filename = file;
+          start_line = row;
+          start_col = col;
+          start_bol = bol;
+          finish_line = row;
+          finish_col = col;
+          finish_bol = bol
+        }
+        msg;
+      None
+
+let default = Default
+
+let generate out =
   let open Format in
   let comment txt = pp_print_string out ";; "; pp_print_string out txt; pp_force_newline out ()
   and blank = pp_force_newline out in
@@ -120,20 +159,36 @@ let apply_mod set = function
   | Exclude All -> TagSet.empty
   | Exclude (Tag t) -> TagSet.remove t set
 
+let is_source config path =
+  match config with
+  | Default -> true
+  | Config { root; sources; _ } -> (
+    match Pattern.Paths.make_relative ~path ~dir:root with
+    | None -> Printf.printf "No\n"; false
+    | Some path -> List.exists (Pattern.matches path) sources )
+
 (** Get all linters and their configuration options for a particular file. *)
-let get_linters (store : t) path =
-  let enabled, store =
-    List.fold_left
-      (fun (linters, store) { pattern; tags; linter_options } ->
-        if Pattern.matches path pattern then
-          let linters = List.fold_left apply_mod linters tags in
-          (linters, linter_options)
-        else (linters, store))
-      (all_tags, Term.default linter_schema)
-      store.pat_config
-  in
-  ( List.filter
-      (fun (Linter.Linter l) -> List.exists (Fun.flip TagSet.mem enabled) l.tags)
-      Linters.all,
-    TagSet.elements (TagSet.diff all_tags enabled),
-    store )
+let get_linters config path =
+  match config with
+  | Default -> (Linters.all, [], Term.default linter_schema)
+  | Config { root; pat_config; _ } ->
+      let path =
+        match Pattern.Paths.make_relative ~path ~dir:root with
+        | None -> failwith "Path should be a child of the config's root."
+        | Some path -> path
+      in
+      let enabled, store =
+        List.fold_left
+          (fun (linters, store) { pattern; tags; linter_options } ->
+            if Pattern.matches path pattern then
+              let linters = List.fold_left apply_mod linters tags in
+              (linters, linter_options)
+            else (linters, store))
+          (all_tags, Term.default linter_schema)
+          pat_config
+      in
+      ( List.filter
+          (fun (Linter.Linter l) -> List.exists (Fun.flip TagSet.mem enabled) l.tags)
+          Linters.all,
+        TagSet.elements (TagSet.diff all_tags enabled),
+        store )
