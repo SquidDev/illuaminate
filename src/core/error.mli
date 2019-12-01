@@ -19,6 +19,9 @@ module Tag : sig
 
   (** Compare two tags. *)
   val compare : t -> t -> int
+
+  (** A predicate which determines if a tag should be reported or not. *)
+  type filter = t -> bool
 end
 
 (** An error reporting writer, into which errors are placed *)
@@ -26,9 +29,6 @@ type t
 
 (** Make a new error reporter *)
 val make : unit -> t
-
-(** Wrap an existing error reporter, muting some messages. *)
-val mute : Tag.t list -> t -> t
 
 (** Report a new error at a specific position *)
 val report : t -> Tag.t -> Span.t -> string -> unit

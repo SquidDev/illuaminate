@@ -1,6 +1,5 @@
 open IlluaminateCore
 open IlluaminateConfig
-open IlluaminateLint
 
 (** The configuration option for a set of files. This will contain some global options, and path
     specific information. *)
@@ -18,5 +17,5 @@ val generate : Format.formatter -> unit
 (** Determine if this file is included in the source list. *)
 val is_source : t -> string -> bool
 
-(** Get all applicable linters from the config object. *)
-val get_linters : t -> string -> Linter.t list * Error.Tag.t list * Schema.store
+(** Get the enabled error tags and linter options from the config object. *)
+val get_linters : t -> string -> Error.Tag.filter * Schema.store

@@ -93,45 +93,17 @@ module Tag = struct
   let find name = StringMap.find_opt name !tags
 
   let compare l r = String.compare l.name r.name
+
+  type filter = t -> bool
 end
 
-module TagSet = Set.Make (Tag)
+type t = { mutable errors : (Tag.t * Span.t * string) list }
 
-type store = { mutable errors : (bool * Tag.t * Span.t * string) list }
+let make () = { errors = [] }
 
-type t =
-  | Root of store
-  | Mute of
-      { muted : TagSet.t;
-        wraps : store
-      }
+let compare (_, a, _) (_, b, _) = Span.compare a b
 
-let unwrap = function
-  | Root store -> store
-  | Mute { wraps; _ } -> wraps
-
-let muted tag = function
-  | Root _ -> false
-  | Mute { muted; _ } -> TagSet.mem tag muted
-
-let make () = Root { errors = [] }
-
-let mute errs base =
-  let store, extra_muted =
-    match base with
-    | Root store -> (store, TagSet.empty)
-    | Mute { muted; wraps } -> (wraps, muted)
-  in
-  Mute { wraps = store; muted = TagSet.union (TagSet.of_list errs) extra_muted }
-
-let compare (_, _, (a : Span.t), _) (_, _, (b : Span.t), _) =
-  if a.filename <> b.filename then String.compare a.filename.name b.filename.name
-  else if a.start_line <> b.start_line then compare a.start_line b.start_line
-  else compare a.start_col b.start_col
-
-let report t tag span message =
-  let store = unwrap t in
-  store.errors <- (muted tag t, tag, span, message) :: store.errors
+let report t tag span message = t.errors <- (tag, span, message) :: t.errors
 
 let error_ansi = function
   | Critical | Error -> Style.Red
@@ -150,30 +122,28 @@ let display_line out line (tag : Tag.t) (pos : Span.t) message =
   fmt line_no (CCString.replace ~sub:"\t" ~by:" " line);
   let length =
     if pos.finish_line = pos.start_line then pos.finish_col - pos.start_col
-    else String.length line - pos.start_col
+    else String.length line - pos.start_col + 1
   in
-  fmt "" (String.make pos.start_col ' ' ^ String.make length '^')
+  fmt "" (String.make (pos.start_col - 1) ' ' ^ String.make length '^')
 
 let summary out t =
   let errors, warnings =
     List.fold_left
-      (fun (errors, warnings) (_, (tag : Tag.t), _, _) ->
+      (fun (errors, warnings) ((tag : Tag.t), _, _) ->
         match tag.level with
         | Critical | Error -> (errors + 1, warnings)
         | Warning -> (errors, warnings + 1))
-      (0, 0) (unwrap t).errors
+      (0, 0) t.errors
   in
   if errors > 0 then Format.fprintf out "%d errors and %d warnings@\n" errors warnings
   else if warnings > 0 then Format.fprintf out "No errors and %d warnings@\n" warnings
   else ()
 
-let each_error f t =
-  t.errors
-  |> List.filter (fun (muted, _, _, _) -> not muted)
-  |> List.sort compare
-  |> List.iter (fun (_, tag, (pos : Span.t), message) -> f tag pos message)
+let each_error f store =
+  store.errors |> List.sort compare
+  |> List.iter (fun (tag, (pos : Span.t), message) -> f tag pos message)
 
-let display_of_channel ?(out = Format.err_formatter) t =
+let display_of_channel ?(out = Format.err_formatter) store =
   let last = ref None in
   let get_channel name : in_channel =
     match !last with
@@ -188,7 +158,7 @@ let display_of_channel ?(out = Format.err_formatter) t =
         last := Some (name, ch);
         ch
   in
-  unwrap t
+  store
   |> each_error (fun tag (pos : Span.t) message ->
          let ch = get_channel pos.filename.path in
          seek_in ch pos.start_bol;
@@ -197,10 +167,10 @@ let display_of_channel ?(out = Format.err_formatter) t =
   ( match !last with
   | Some (_, ch) -> close_in ch
   | _ -> () );
-  summary out t
+  summary out store
 
-let display_of_string ?(out = Format.err_formatter) getter t =
-  unwrap t
+let display_of_string ?(out = Format.err_formatter) getter store =
+  store
   |> each_error (fun tag (pos : Span.t) message ->
          match getter pos.filename with
          | None -> ()
@@ -213,4 +183,4 @@ let display_of_string ?(out = Format.err_formatter) getter t =
                  - pos.start_bol )
              in
              display_line out line tag pos message);
-  summary out t
+  summary out store

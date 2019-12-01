@@ -82,34 +82,12 @@ let of_file err (file : Span.filename) =
   let parsed =
     CCIO.with_in file.path (fun channel ->
         let lexbuf = Lexing.from_channel channel in
-        lexbuf.lex_curr_p <-
-          { Lexing.pos_fname = file.name; pos_lnum = 1; pos_cnum = 0; pos_bol = 0 };
-        IlluaminateConfig.Parser.parse_buf lexbuf parser)
+        IlluaminateConfig.Parser.parse_buf file lexbuf parser)
   in
   match parsed with
   | Ok x -> Some (x (Filename.dirname file.path))
-  | Error ({ row; col }, msg) ->
-      let bol =
-        CCIO.with_in file.path (fun chan ->
-            let rec go i pos =
-              if i = row then pos
-              else
-                match CCIO.read_line chan with
-                | None -> pos
-                | Some line -> go (i + 1) (pos + String.length line)
-            in
-            go 1 0)
-      in
-      Error.report err parse_error
-        { Span.filename = file;
-          start_line = row;
-          start_col = col;
-          start_bol = bol;
-          finish_line = row;
-          finish_col = col;
-          finish_bol = bol
-        }
-        msg;
+  | Error (pos, msg) ->
+      Error.report err parse_error pos msg;
       None
 
 let default = Default
@@ -170,7 +148,7 @@ let is_source config path =
 (** Get all linters and their configuration options for a particular file. *)
 let get_linters config path =
   match config with
-  | Default -> (Linters.all, [], Term.default linter_schema)
+  | Default -> ((fun _ -> true), Term.default linter_schema)
   | Config { root; pat_config; _ } ->
       let path =
         match Pattern.Paths.make_relative ~path ~dir:root with
@@ -187,8 +165,4 @@ let get_linters config path =
           (all_tags, Term.default linter_schema)
           pat_config
       in
-      ( List.filter
-          (fun (Linter.Linter l) -> List.exists (Fun.flip TagSet.mem enabled) l.tags)
-          Linters.all,
-        TagSet.elements (TagSet.diff all_tags enabled),
-        store )
+      (Fun.flip TagSet.mem enabled, store)

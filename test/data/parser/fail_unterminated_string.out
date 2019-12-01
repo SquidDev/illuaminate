@@ -1,4 +1,4 @@
-fail_unterminated_string.lua:[1:7-1:8]: Unterminated string [parse:syntax-error]
+fail_unterminated_string.lua:[1:8-1:9]: Unterminated string [parse:syntax-error]
    │
  1 │ print("
    │        ^

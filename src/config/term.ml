@@ -1,17 +1,15 @@
 module Converter = struct
-  open Sexplib.Conv
+  type 'a t = 'a Parser.t * ('a -> Sexp.raw)
 
-  type 'a t = 'a Parser.t * ('a -> Sexplib.Sexp.t)
+  let bool : bool t = (Parser.bool, fun x -> Atom (string_of_bool x))
 
-  let bool = (Parser.bool, sexp_of_bool)
+  let string : string t = (Parser.string, fun x -> Atom x)
 
-  let string = (Parser.string, sexp_of_string)
+  let float : float t = (Parser.float, fun x -> Atom (string_of_float x))
 
-  let float = (Parser.float, sexp_of_float)
+  let int : int t = (Parser.int, fun x -> Atom (string_of_int x))
 
-  let int = (Parser.int, sexp_of_int)
-
-  let list (f, t) = (Parser.list f, sexp_of_list t)
+  let list (f, t) : 'a list t = (Parser.list f, fun x -> List (List.map t x))
 end
 
 type 'a body =
@@ -68,7 +66,7 @@ let rec write_term : type a. Format.formatter -> a t -> int -> int =
       pp_print_string out comment;
       pp_force_newline out ();
       (* Value *)
-      pp_open_hvbox out 2;
+      pp_open_box out 2;
       pp_print_string out "(";
       pp_print_string out name;
       write_group out body;
@@ -85,7 +83,7 @@ and write_group : 'a. Format.formatter -> 'a body -> unit =
   match t with
   | Field { default; converter = _, t } ->
       Format.pp_print_space out ();
-      Sexplib.Sexp.pp_hum_indent 2 out (t default)
+      Sexp.pp out (t default)
   | Group g -> write_term out g 1 |> ignore
 
 let write_default out term = write_term out term 0 |> ignore

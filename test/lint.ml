@@ -33,7 +33,8 @@ let process ~name contents out =
             match CCString.chop_prefix ~pre:"config:" c with
             | Some c ->
                 let buf = Lexing.from_string c in
-                Term.to_parser term |> Parser.fields |> Parser.parse_buf buf
+                Term.to_parser term |> Parser.fields
+                |> Parser.parse_buf { Span.path = "?"; name = "?" } buf
                 |> Result.fold ~ok:Fun.id ~error:(fun (_, x) -> failwith x)
             | None -> Term.default term )
         | _ -> Term.default term

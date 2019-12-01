@@ -2,4 +2,7 @@
  (name illuaminateConfig)
  (public_name illuaminate.config)
  (synopsis "Helpers for loading/saving configuration files.")
- (libraries sexplib))
+ (libraries illuaminate.core))
+
+(ocamllex
+ (modules lexer))

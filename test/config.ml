@@ -1,4 +1,5 @@
 open Omnomnom.Tests
+open IlluaminateCore
 open IlluaminateConfig
 
 type config =
@@ -21,10 +22,9 @@ let spec_key = Category.add spec cat
 
 let process spec proj ~name contents =
   let buf = Lexing.from_string contents in
-  buf.lex_curr_p <- { buf.lex_curr_p with Lexing.pos_fname = name };
-  match Term.to_parser spec |> Parser.fields |> Parser.parse_buf buf with
+  match Term.to_parser spec |> Parser.fields |> Parser.parse_buf { Span.path = name; name } buf with
   | Ok k -> show_config (proj k)
-  | Error ({ row; col }, e) -> Printf.sprintf "%s:%d:%d: %s" name row col e
+  | Error (pos, e) -> Format.asprintf "%a: %s" Span.pp pos e
 
 let to_string spec ~name:_ = Format.asprintf "%a" Term.write_default spec
 

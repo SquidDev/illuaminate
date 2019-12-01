@@ -21,13 +21,10 @@ depends: [
   "dune" {build & >= "1.10"}
   "ppxlib" {build}
   "ppx_deriving" {build}
-  "reason" {build}
   "odoc" {build}
   "omnomnom" {with-test}
-  "omd"
-  "cmdliner"
-  "menhir"
-  "yojson"
   "base-unix"
+  "cmdliner"
   "containers"
+  "menhir"
 ]

@@ -1,12 +1,12 @@
-use_arg.lua:[4:8-4:11]: Using implicit vararg variable "arg". [var:use-arg]
+use_arg.lua:[4:9-4:12]: Using implicit vararg variable "arg". [var:use-arg]
    │
  4 │   print(arg)
    │         ^^^
-use_arg.lua:[5:2-5:5]: Using implicit vararg variable "arg". [var:use-arg]
+use_arg.lua:[5:3-5:6]: Using implicit vararg variable "arg". [var:use-arg]
    │
  5 │   arg = nil
    │   ^^^
-use_arg.lua:[6:2-6:5]: Using implicit vararg variable "arg". [var:use-arg]
+use_arg.lua:[6:3-6:6]: Using implicit vararg variable "arg". [var:use-arg]
    │
  6 │   arg[0] = nil
    │   ^^^

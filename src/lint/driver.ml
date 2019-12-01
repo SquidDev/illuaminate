@@ -34,7 +34,9 @@ type any_note = Note : 'a note_at -> any_note
 
 let report_note err (Note n) = report_note_at err n
 
-let lint ~store ~data (Linter linter : t) program =
+let always : Error.Tag.filter = fun _ -> true
+
+let worker ~store ~data ~tags (Linter linter : t) program =
   let open! Syntax in
   let options = C.Schema.get linter.options store in
   let messages = ref [] in
@@ -43,7 +45,9 @@ let lint ~store ~data (Linter linter : t) program =
     | [] -> ()
     | xs ->
         messages :=
-          List.fold_left (fun xs note -> Note { note; source; witness } :: xs) !messages xs
+          List.fold_left
+            (fun xs note -> if tags note.tag then Note { note; source; witness } :: xs else xs)
+            !messages xs
   in
   let ( |: ) t ctx = { ctx with path = t :: ctx.path } in
   let token = visit linter.token AtToken in
@@ -230,6 +234,9 @@ let lint ~store ~data (Linter linter : t) program =
   token context program.eof;
   !messages
 
+let lint ~store ~data ?(tags = always) (Linter l as linter : t) program =
+  if List.exists tags l.tags then worker ~store ~data ~tags linter program else []
+
 let fix_some ~original node note =
   if note.source != original then node
   else
@@ -321,10 +328,10 @@ let fix prog fixes =
     end)
       #program prog
 
-let lint_and_fix_all ~store ~data linters program =
+let lint_and_fix_all ~store ~data ?tags linters program =
   List.fold_left
     (fun (program, msgs) linter ->
-      let msgs' = lint ~store ~data linter program in
+      let msgs' = lint ~store ~data ?tags linter program in
       let program = fix program msgs' in
       (program, msgs' @ msgs))
     (program, []) linters

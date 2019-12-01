@@ -21,14 +21,11 @@
     (dune (and :build (>= 1.10)))
     (ppxlib :build)
     (ppx_deriving :build)
-    (reason :build)
     (odoc :build)
     ; Test (:with-test)
     (omnomnom :with-test)
     ; Runtime
-    omd
-    cmdliner
-    menhir
-    yojson
     base-unix
-    containers))
+    cmdliner
+    containers
+    menhir))

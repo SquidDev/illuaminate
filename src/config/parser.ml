@@ -1,26 +1,20 @@
-module S = Sexplib.Type_with_layout.Parsed
+open IlluaminateCore
 module StringMap = Map.Make (String)
-module Pos = Sexplib.Src_pos.Absolute
-
-let pos_of_t = function
-  | S.Atom (pos, _, _) -> pos
-  | S.List (pos, _, _) -> pos
-
-let pos_of = function
-  | S.Sexp t -> pos_of_t t
-  | S.Comment (Plain_comment (pos, _)) -> pos
-  | S.Comment (Sexp_comment (pos, _, _)) -> pos
 
 let ( >>= ) = Result.bind
 
+let pos_of : Sexp.t -> Span.t = function
+  | Atom (x, _) -> x
+  | List (x, _) -> x
+
 module Kind = struct
-  type term = S.t_or_comment list
+  type term = Sexp.t list
 
   (** All fields for each key, with their start and end position, in reverse order. *)
-  type fields = (Pos.t * Pos.t * S.t_or_comment list) list StringMap.t
+  type fields = (Span.t * Sexp.t list) list StringMap.t
 end
 
-type ('a, 'kind) parser = Pos.t -> 'kind -> ('a * 'kind, Pos.t * string) result
+type ('a, 'kind) parser = Span.t -> 'kind -> ('a * 'kind, Span.t * string) result
 
 type 'a t = ('a, Kind.term) parser
 
@@ -36,17 +30,14 @@ let ( let+ ) (node : ('a, 'k) parser) (f : 'a -> 'b) : ('b, 'k) parser =
 let ( and+ ) a b pos state =
   a pos state >>= fun (x, state) -> b pos state |> Result.map (fun (y, state) -> ((x, y), state))
 
-let atom_res ~ty parse =
-  let rec go end_pos = function
-    | [] -> Error (end_pos, Printf.sprintf "Expected %s, got nothing" ty)
-    | S.Comment _ :: xs -> go end_pos xs
-    | Sexp (List (pos, _, _)) :: _ -> Error (pos, Printf.sprintf "Expected %s, got list" ty)
-    | Sexp (Atom (pos, txt, _)) :: xs -> (
-      match parse txt with
-      | Error e -> Error (pos, e)
-      | Ok x -> Ok (x, xs) )
-  in
-  go
+let atom_res ~ty parse : 'a t =
+ fun end_pos -> function
+  | [] -> Error (end_pos, Printf.sprintf "Expected %s, got nothing" ty)
+  | List (pos, _) :: _ -> Error (pos, Printf.sprintf "Expected %s, got list" ty)
+  | Atom (pos, txt) :: xs -> (
+    match parse txt with
+    | Error e -> Error (pos, e)
+    | Ok x -> Ok (x, xs) )
 
 let atom ~ty parse =
   atom_res ~ty (fun x ->
@@ -62,10 +53,9 @@ let float : float t = atom ~ty:"number" float_of_string_opt
 
 let string : string t = atom ~ty:"string" Option.some
 
-let rec check_empty x = function
+let check_empty x = function
   | [] -> Ok x
-  | S.Comment _ :: xs -> check_empty x xs
-  | S.Sexp t :: _ -> Error (pos_of_t t, "Expected ')', got another s-expr.")
+  | t :: _ -> Error (pos_of t, "Expected ')', got another s-expr.")
 
 let parse_til_empty body end_pos state =
   body end_pos state >>= fun (x, state) -> check_empty x state
@@ -85,36 +75,30 @@ let some (term : 'a t) : 'a list t =
   let+ x = term and+ xs = many term in
   x :: xs
 
-let rec in_list (term : 'a t) : 'a t =
+let in_list (term : 'a t) : 'a t =
  fun end_pos -> function
   | [] -> Error (end_pos, "Expected list, got nothing")
-  | S.Comment _ :: xs -> in_list term end_pos xs
-  | Sexp (List (_, xs, end_pos)) :: state ->
-      parse_til_empty term end_pos xs |> Result.map (fun x -> (x, state))
-  | Sexp (Atom (pos, _, _)) :: _ -> Error (pos, "Expected list, got atom")
+  | List (pos, xs) :: state ->
+      parse_til_empty term (Span.finish pos) xs |> Result.map (fun x -> (x, state))
+  | Atom (pos, _) :: _ -> Error (pos, "Expected list, got atom")
 
 let list (term : 'a t) : 'a list t = in_list (many term)
 
 let fields (body : 'a fields) : 'a t =
-  let rec extract_field end_pos = function
+  let extract_field end_pos : Sexp.t list -> _ = function
     | [] -> Error (end_pos, "Expected key-value pair, but this list was empty.")
-    | S.Comment _ :: xs -> extract_field end_pos xs
-    | S.Sexp (List (pos, _, _)) :: _ ->
-        Error (pos, "The first item of a key-value pair must be an atom.")
-    | S.Sexp (Atom (_, t, _)) :: xs -> Ok (t, xs)
+    | List (pos, _) :: _ -> Error (pos, "The first item of a key-value pair must be an atom.")
+    | Atom (_, t) :: xs -> Ok (t, xs)
   in
-  let rec gather res = function
+  let rec gather res : Sexp.t list -> _ = function
     | [] -> Ok res
-    | S.Comment _ :: xs -> gather res xs
-    | S.Sexp (Atom (pos, _, _)) :: _ -> Error (pos, "Expected key-value pair, got a string.")
-    | S.Sexp (List (start, ss, fin)) :: xs -> (
-      match extract_field fin ss with
+    | Atom (pos, _) :: _ -> Error (pos, "Expected key-value pair, got a string.")
+    | List (pos, ss) :: xs -> (
+      match extract_field (Span.finish pos) ss with
       | Error e -> Error e
       | Ok (key, value) ->
           gather
-            (StringMap.update key
-               (fun x -> Some ((start, fin, value) :: Option.value ~default:[] x))
-               res)
+            (StringMap.update key (fun x -> Some ((pos, value) :: Option.value ~default:[] x)) res)
             xs )
   in
   let rec last = function
@@ -129,12 +113,12 @@ let fields (body : 'a fields) : 'a t =
       match StringMap.choose_opt state with
       | None -> Ok (x, [])
       | Some (key, xs) ->
-          let pos, _, _ = last xs in
+          let pos, _ = last xs in
           let key, pos =
             StringMap.fold
               (fun key xs (key', pos') ->
-                let pos, _, _ = last xs in
-                if Pos.geq pos' pos then (key, pos) else (key', pos'))
+                let pos, _ = last xs in
+                if Span.compare pos pos' < 0 then (key, pos) else (key', pos'))
               state (key, pos)
           in
           Error (pos, Printf.sprintf "Unexpected key %S" key) )
@@ -144,18 +128,19 @@ let field ~name (body : 'a t) : 'a fields =
   match StringMap.find_opt name fields with
   | None -> Error (pos, Printf.sprintf "Missing %s field" name)
   | Some [] -> failwith "Impossible"
-  | Some ((pos, _, _) :: _ :: _) -> Error (pos, Printf.sprintf "Multiple definitions of %S" name)
-  | Some [ (_, end_pos, xs) ] ->
-      parse_til_empty body end_pos xs |> Result.map (fun x -> (x, StringMap.remove name fields))
+  | Some ((pos, _) :: _ :: _) -> Error (pos, Printf.sprintf "Multiple definitions of %S" name)
+  | Some [ (pos, xs) ] ->
+      parse_til_empty body (Span.finish pos) xs
+      |> Result.map (fun x -> (x, StringMap.remove name fields))
 
 let field_opt ~name (body : 'a t) : 'a option fields =
  fun _ fields ->
   match StringMap.find_opt name fields with
   | None -> Ok (None, fields)
   | Some [] -> failwith "Impossible"
-  | Some ((pos, _, _) :: _ :: _) -> Error (pos, Printf.sprintf "Multiple definitions of %S" name)
-  | Some [ (_, end_pos, xs) ] ->
-      parse_til_empty body end_pos xs
+  | Some ((pos, _) :: _ :: _) -> Error (pos, Printf.sprintf "Multiple definitions of %S" name)
+  | Some [ (pos, xs) ] ->
+      parse_til_empty body (Span.finish pos) xs
       |> Result.map (fun x -> (Some x, StringMap.remove name fields))
 
 let field_repeated ~name (body : 'a t) : 'a list fields =
@@ -165,26 +150,46 @@ let field_repeated ~name (body : 'a t) : 'a list fields =
   | Some xs ->
       let rec go res = function
         | [] -> Ok (res, StringMap.remove name fields)
-        | (_, end_pos, xs) :: xss -> (
-          match parse_til_empty body end_pos xs with
+        | (pos, xs) :: xss -> (
+          match parse_til_empty body (Span.finish pos) xs with
           | Error e -> Error e
           | Ok x -> go (x :: res) xss )
       in
       go [] xs
 
-let parse state (body : 'a t) : ('a, Pos.t * string) result =
-  let rec get_last : S.t_or_comment list -> Pos.t = function
-    | [] -> { row = 1; col = 1 }
+let parse state (body : 'a t) last : ('a, Span.t * string) result =
+  let rec get_last : Sexp.t list -> Span.t = function
+    | [] -> last
     | [ x ] -> pos_of x
     | _ :: xs -> get_last xs
   in
   parse_til_empty body (get_last state) state
 
-type pos = Sexplib.Src_pos.Absolute.t =
-  { row : int;
-    col : int
-  }
-
-let parse_buf buf body =
-  let value = Sexplib.(Parser_with_layout.sexps_abs Lexer.main_with_layout buf) in
-  parse value body
+let parse_buf (file : Span.filename) (lexbuf : Lexing.lexbuf) body =
+  try
+    lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = file.path };
+    let rec go stack (head : Sexp.t list) head_start : Sexp.t list =
+      let start = lexbuf.lex_curr_p in
+      let token = Lexer.token lexbuf in
+      match token with
+      | Skip -> go stack head head_start
+      | String x ->
+          go stack (Atom (Span.of_pos2 file start lexbuf.lex_curr_p, x) :: head) head_start
+      | Open -> go ((head, head_start) :: stack) [] start
+      | Close -> (
+        match stack with
+        | [] -> raise (Lexer.Error ("Closing ')' with no matching '('", start, lexbuf.lex_curr_p))
+        | (xs, xs_pos) :: stack ->
+            go stack
+              (List (Span.of_pos2 file head_start lexbuf.lex_curr_p, List.rev head) :: xs)
+              xs_pos )
+      | End -> (
+        match stack with
+        | [] -> List.rev head
+        | _ :: _ ->
+            let head_start' = { head_start with pos_cnum = head_start.pos_cnum + 1 } in
+            raise (Lexer.Error ("Unclosed '('", head_start, head_start')) )
+    in
+    let value = go [] [] lexbuf.lex_curr_p in
+    parse value body (Span.of_pos2 file lexbuf.lex_curr_p lexbuf.lex_curr_p)
+  with Lexer.Error (err, start, fin) -> Error (Span.of_pos2 file start fin, err)

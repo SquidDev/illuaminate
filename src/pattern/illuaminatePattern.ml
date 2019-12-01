@@ -18,12 +18,12 @@ module Paths = struct
   let make_relative ~path ~dir =
     let rec unzip ps ds =
       match (ps, ds) with
-      | [], [] -> Some (Filename.current_dir_name)
+      | [], [] -> Some Filename.current_dir_name
       | ps, [] -> Some (String.concat Filename.dir_sep ps)
       | p :: ps, d :: ds when p = d -> unzip ps ds
-      | _ , _ :: _ -> None
-
+      | _, _ :: _ -> None
     in
+
     let path = CCString.split ~by:Filename.dir_sep path
     and dir = CCString.split ~by:Filename.dir_sep dir in
     unzip path dir

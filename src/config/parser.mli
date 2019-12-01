@@ -3,6 +3,8 @@
     Config files are built from s-expressions, and so the parsing combinators reflect the underlying
     structure of the file. *)
 
+open IlluaminateCore
+
 (** Represents a configured term.
 
     This effectively acts as a representation of the underlying configuration file, merged together
@@ -90,13 +92,5 @@ val field_repeated : name:string -> 'a t -> 'a list fields
 
 (** {4 Running the parser} *)
 
-type pos = Sexplib.Src_pos.Absolute.t =
-  { row : int;
-    col : int
-  }
-
-(** Parse this sexpr into a string. *)
-val parse : Sexplib.Type_with_layout.Parsed.t_or_comment list -> 'a t -> ('a, pos * string) result
-
-(** Read a single term from a buffer . *)
-val parse_buf : Lexing.lexbuf -> 'a t -> ('a, pos * string) result
+(** Run this parser against a buffer. *)
+val parse_buf : Span.filename -> Lexing.lexbuf -> 'a t -> ('a, Span.t * string) result

@@ -17,7 +17,12 @@ val report_note : Error.t -> any_note -> unit
 
 (** Gather all errors from a specific linter. *)
 val lint :
-  store:IlluaminateConfig.Schema.store -> data:Data.t -> Linter.t -> Syntax.program -> any_note list
+  store:IlluaminateConfig.Schema.store ->
+  data:Data.t ->
+  ?tags:Error.Tag.filter ->
+  Linter.t ->
+  Syntax.program ->
+  any_note list
 
 (** Fix one or more notes.
 
@@ -31,6 +36,7 @@ val fix : Syntax.program -> any_note list -> Syntax.program
 val lint_and_fix_all :
   store:IlluaminateConfig.Schema.store ->
   data:Data.t ->
+  ?tags:Error.Tag.filter ->
   Linter.t list ->
   Syntax.program ->
   Syntax.program * any_note list

@@ -8,6 +8,7 @@ end
 
 let linter =
   let tag_generic = Error.Tag.make Error.Warning "var:unused" in
+  let tag_arg = Error.Tag.make Error.Warning "var:unused-arg" in
   let tag_global = Error.Tag.make Error.Warning "var:unused-global" in
   let fix_var = FixOne (fun (Var name) -> Ok (Var (Node.with_contents "_" name))) in
   let fix_args ({ args_args = args; _ } as rest) =
@@ -61,6 +62,7 @@ let linter =
               let tag =
                 match kind with
                 | Global -> tag_global
+                | Arg _ -> tag_arg
                 | _ -> tag_generic
               in
               [ note ~fix:fix_var ~tag (Printf.sprintf "Unused variable %S." name) ]
@@ -74,4 +76,4 @@ let linter =
     | Fun { fun_args = args; _ } -> check_args context fix_expr args
     | _ -> []
   in
-  make_no_opt ~tags:[ tag_generic; tag_global ] ~var ~expr ~stmt ()
+  make_no_opt ~tags:[ tag_generic; tag_arg; tag_global ] ~var ~expr ~stmt ()

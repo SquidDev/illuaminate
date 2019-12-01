@@ -93,11 +93,10 @@ let lint paths =
   |> List.iter (function
        | { LoadedFile.parsed = None; _ } -> ()
        | { file; config; parsed = Some parsed } ->
-           let linters, muted, store = Config.get_linters config file.path in
-           let errs = Error.mute muted errs in
-           linters
+           let tags, store = Config.get_linters config file.path in
+           Linters.all
            |> List.iter (fun l ->
-                  Driver.lint ~store ~data l parsed |> List.iter (Driver.report_note errs)));
+                  Driver.lint ~store ~data ~tags l parsed |> List.iter (Driver.report_note errs)));
   Error.display_of_channel errs
 
 let fix paths =
@@ -109,8 +108,10 @@ let fix paths =
     |> List.map (function
          | { LoadedFile.parsed = None; _ } as f -> f
          | { file; config; parsed = Some parsed } as f ->
-             let linters, _, store = Config.get_linters config file.path in
-             let program, _ = Driver.lint_and_fix_all ~store ~data linters parsed in
+             (* TODO: Have a separate linter list for fixers - so we can have things which are
+                linted but not fixed? *)
+             let tags, store = Config.get_linters config file.path in
+             let program, _ = Driver.lint_and_fix_all ~store ~data ~tags Linters.all parsed in
              { f with parsed = Some program })
   in
   let rewrite old_module new_module =
