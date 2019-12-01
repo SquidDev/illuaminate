@@ -196,9 +196,12 @@ let display_of_channel ?(out = Format.err_formatter) getter t =
          match get_channel pos.filename with
          | None -> ()
          | Some ch ->
-             seek_in ch pos.start_bol;
-             let line = input_line ch in
-             display_line out line tag pos message);
+             ( try
+                 seek_in ch pos.start_bol;
+                 let line = input_line ch in
+                 display_line out line tag pos message
+               with End_of_file -> display_line out "[ERROR: File has changed]" tag pos message );
+             close_in ch);
   ( match !last with
   | Some (_, Some ch) -> close_in ch
   | _ -> () );

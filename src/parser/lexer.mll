@@ -6,6 +6,11 @@
 
   exception Error of (Error.t * Lexing.position * Lexing.position)
   let lexeme_spanned lexbuf x = (x, Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)
+
+  let buffer_with len char =
+    let b = Buffer.create len in
+    Buffer.add_char b char;
+    b
 }
 
 let white = [' ' '\t' ]
@@ -84,8 +89,8 @@ rule token = parse
 (* Identifiers *)
 | ident_head ident_tail* as i { Token (Ident i) }
 
-| '\"'          { string (Buffer.create 17) '\"' lexbuf }
-| '\''          { string (Buffer.create 17) '\'' lexbuf }
+| '\"'          { string (buffer_with 17 '\"') (Buffer.create 17) '\"' lexbuf }
+| '\''          { string (buffer_with 17 '\'') (Buffer.create 17) '\'' lexbuf }
 | '[' ('='* as x) '[' { long_string (Buffer.create 16) (String.length x) (fun x -> Token (String (x, x))) lexbuf }
 (* TODO: This is utterly wrong. *)
 
@@ -93,30 +98,39 @@ rule token = parse
 
 | _ { raise (Error (lexeme_spanned lexbuf (UnexpectedCharacter (Lexing.lexeme lexbuf)))) }
 
-and string buf c = parse
-| '\"'              { if c = '\"' then Token (String ("", Buffer.contents buf))
-                      else (Buffer.add_char buf '\"'; string buf c lexbuf) }
-| '\''              { if c = '\'' then Token (String ("", Buffer.contents buf))
-                      else (Buffer.add_char buf '\''; string buf c lexbuf) }
+and string contents value c = parse
+| '\"'              { Buffer.add_char contents '\"';
+                      if c = '\"' then Token (String (Buffer.contents value, Buffer.contents contents))
+                      else (Buffer.add_char value '\"'; string contents value c lexbuf) }
+| '\''              { Buffer.add_char contents '\'';
+                      if c = '\'' then Token (String (Buffer.contents value, Buffer.contents contents))
+                      else (Buffer.add_char value '\''; string contents value c lexbuf) }
 
-| "\\a"             { Buffer.add_char buf '\007'; string buf c lexbuf }
-| "\\b"             { Buffer.add_char buf '\b'; string buf c lexbuf }
-| "\\f"             { Buffer.add_char buf '\012'; string buf c lexbuf }
-| "\\n"             { Buffer.add_char buf '\n'; string buf c lexbuf }
-| "\\r"             { Buffer.add_char buf '\r'; string buf c lexbuf }
-| "\\v"             { Buffer.add_char buf '\011'; string buf c lexbuf }
-| "\\t"             { Buffer.add_char buf '\t'; string buf c lexbuf }
+| "\\a"             { Buffer.add_string contents "\\a";  Buffer.add_char value '\007'; string contents value c lexbuf }
+| "\\b"             { Buffer.add_string contents "\\b";  Buffer.add_char value '\b';   string contents value c lexbuf }
+| "\\f"             { Buffer.add_string contents "\\f";  Buffer.add_char value '\012'; string contents value c lexbuf }
+| "\\n"             { Buffer.add_string contents "\\n";  Buffer.add_char value '\n';   string contents value c lexbuf }
+| "\\r"             { Buffer.add_string contents "\\r";  Buffer.add_char value '\r';   string contents value c lexbuf }
+| "\\v"             { Buffer.add_string contents "\\v";  Buffer.add_char value '\011'; string contents value c lexbuf }
+| "\\t"             { Buffer.add_string contents "\\t";  Buffer.add_char value '\t';   string contents value c lexbuf }
 
-| "\\\\"            { Buffer.add_char buf '\\'; string buf c lexbuf }
-| "\\\""            { Buffer.add_char buf '\"'; string buf c lexbuf }
-| "\\\'"            { Buffer.add_char buf '\''; string buf c lexbuf }
+| "\\\\"            { Buffer.add_string contents "\\\\"; Buffer.add_char value '\\';   string contents value c lexbuf }
+| "\\\""            { Buffer.add_string contents "\\\""; Buffer.add_char value '\"';   string contents value c lexbuf }
+| "\\\'"            { Buffer.add_string contents "\\\'"; Buffer.add_char value '\'';   string contents value c lexbuf }
 
 | "\\x" ((hex hex?) as x)
-  { Buffer.add_char buf ("0x" ^ x |> int_of_string |> char_of_int); string buf c lexbuf }
+                    { Buffer.add_string contents "\\x"; Buffer.add_string contents x;
+                      Buffer.add_char value ("0x" ^ x |> int_of_string |> char_of_int);
+                      string contents value c lexbuf }
 | "\\" ((digit digit? digit?) as x)
-  { Buffer.add_char buf (int_of_string x |> char_of_int); string buf c lexbuf }
+                    { Buffer.add_char contents '\\'; Buffer.add_string contents x;
+                      Buffer.add_char value (int_of_string x |> char_of_int);
+                      string contents value c lexbuf }
 
-| [^'\\' '\"' '\'' '\n']+ as x { Buffer.add_string buf x; string buf c lexbuf }
+| [^'\\' '\"' '\'' '\n']+ as x
+                    { Buffer.add_string contents x;
+                      Buffer.add_string value x;
+                      string contents value c lexbuf }
 
 | eof { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
 | '\n' { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }

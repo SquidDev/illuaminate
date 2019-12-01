@@ -14,10 +14,10 @@
                contents = [; span = pass_simple.lua[1:4-1:5]};
              key =
              (Syntax.String
-                { Syntax.lit_value = "";
+                { Syntax.lit_value = "return";
                   lit_node =
                   Node.Node {leading_trivia = []; trailing_trivia = [];
-                    contents = "return"; span = pass_simple.lua[1:5-1:13]}
+                    contents = "\"return\""; span = pass_simple.lua[1:5-1:13]}
                   });
              close_k =
              Node.Node {leading_trivia = [];

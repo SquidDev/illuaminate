@@ -55,7 +55,7 @@ module LoadedFile = struct
     |> List.filter_map (fun path -> get_config_for path |> Option.map (fun c -> (path, c)))
     |> List.iter (fun (path, config) ->
            let rec add is_root path =
-             if Sys.is_directory path then
+             if Sys.is_directory path then (
                let handle = Unix.opendir path in
                try
                  while true do
@@ -63,7 +63,7 @@ module LoadedFile = struct
                    if child <> Filename.current_dir_name && child <> Filename.parent_dir_name then
                      add false (Filename.concat path child)
                  done
-               with End_of_file -> ()
+               with End_of_file -> (); Unix.closedir handle )
              else if is_root || Filename.extension path = ".lua" then
                let file = mk_name path in
                if Config.is_source config file.path then
