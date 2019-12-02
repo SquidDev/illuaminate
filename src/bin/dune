@@ -7,4 +7,10 @@
  (modes native js byte)
  (js_of_ocaml
   (javascript_files runtime.js)
-  (flags "--opt=3")))
+  (flags "--opt=3" "--custom-header=#!/usr/bin/env node")))
+
+(rule
+ (target illuaminate.min.exe)
+ (deps illuaminate.exe)
+ (action
+  (run upx -o %{target} %{deps})))

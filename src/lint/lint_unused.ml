@@ -46,7 +46,7 @@ let linter =
         (* If the list argument is a dot, and both it and the implicit {!arg} is unused, then warn. *)
         match R.get_dots dot resolve with
         | { R.dot_usages = []; dot_implicit = Some { usages = []; _ }; _ } ->
-            [ note ~tag:tag_generic ~fix "Unused varargs." ]
+            [ note ~tag:tag_generic ~fix ~span:(Node.span dot) "Unused varargs." ]
         | _ -> [] )
     | _ -> []
   in

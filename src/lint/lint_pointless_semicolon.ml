@@ -4,7 +4,7 @@ open Linter
 open Lens
 
 let linter =
-  let tag = Error.Tag.make Error.Warning "syntax:redundant-semicolon" in
+  let tag = Error.Tag.make Error.Note "syntax:redundant-semicolon" in
   let fix =
     FixBlock
       (function

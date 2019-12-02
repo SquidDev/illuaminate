@@ -74,6 +74,7 @@ type level =
   | Critical
   | Error
   | Warning
+  | Note
 
 module Tag = struct
   type t =
@@ -105,9 +106,12 @@ let compare (_, a, _) (_, b, _) = Span.compare a b
 
 let report t tag span message = t.errors <- (tag, span, message) :: t.errors
 
+let has_problems { errors } = not (CCList.is_empty errors)
+
 let error_ansi = function
   | Critical | Error -> Style.Red
   | Warning -> Style.Yellow
+  | Note -> Style.Blue
 
 let display_line out line (tag : Tag.t) (pos : Span.t) message =
   let line_no = string_of_int pos.start_line in
@@ -132,7 +136,7 @@ let summary out t =
       (fun (errors, warnings) ((tag : Tag.t), _, _) ->
         match tag.level with
         | Critical | Error -> (errors + 1, warnings)
-        | Warning -> (errors, warnings + 1))
+        | Warning | Note -> (errors, warnings + 1))
       (0, 0) t.errors
   in
   if errors > 0 then Format.fprintf out "%d errors and %d warnings@\n" errors warnings

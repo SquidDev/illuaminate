@@ -11,7 +11,7 @@ homepage: "https://github.com/squiddev/illuaminate"
 bug-reports: "https://github.com/squiddev/illuaminate/issues"
 depends: [
   "ocaml" {>= "4.06"}
-  "dune" {build & >= "1.10"}
+  "dune" {build & >= "2.0"}
   "ppxlib" {build}
   "ppx_deriving" {build}
   "odoc" {build}
@@ -21,6 +21,7 @@ depends: [
   "cmdliner"
   "containers"
   "menhir"
+  "omd"
   "re"
 ]
 build: [

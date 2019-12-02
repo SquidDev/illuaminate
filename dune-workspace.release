@@ -3,8 +3,12 @@
 
 (context
  (opam
-  (switch 4.08.1)
-  (targets native windows)))
+  (switch 4.08.1)))
+
+;; (context
+;;  (opam
+;;   (switch 4.08.1+32bit)
+;;   (targets windows)))
 
 (context
  (opam

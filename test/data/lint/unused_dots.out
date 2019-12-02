@@ -1,11 +1,11 @@
-unused_dots.lua:[3:1-3:38]: Unused varargs. [var:unused]
+unused_dots.lua:[3:21-3:24]: Unused varargs. [var:unused]
    │
  3 │ local function f(x, ...) return x end
-   │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-unused_dots.lua:[4:1-4:26]: Unused varargs. [var:unused]
+   │                     ^^^
+unused_dots.lua:[4:18-4:21]: Unused varargs. [var:unused]
    │
  4 │ local function g(...) end
-   │ ^^^^^^^^^^^^^^^^^^^^^^^^^
+   │                  ^^^
 No errors and 2 warnings
 @@ -1,7 +1,7 @@
  -- config: (lint (only (var:unused)))

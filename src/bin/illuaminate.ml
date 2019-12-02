@@ -90,7 +90,8 @@ let lint paths =
            Linters.all
            |> List.iter (fun l ->
                   Driver.lint ~store ~data ~tags l parsed |> List.iter (Driver.report_note errs)));
-  Error.display_of_channel errs
+  Error.display_of_channel errs;
+  if Error.has_problems errs then exit 1
 
 let fix paths =
   let errs = Error.make () in
@@ -119,7 +120,8 @@ let fix paths =
     | _ -> ()
   in
   List.iter2 rewrite modules modules';
-  Error.display_of_channel errs
+  Error.display_of_channel errs;
+  if Error.has_problems errs then exit 1
 
 let init_config config =
   if Sys.file_exists config then (

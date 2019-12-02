@@ -2,7 +2,8 @@
 type level =
   | Critical  (** An error which cannot be recovered from *)
   | Error  (** A problem, which may cause problems during processing or runtime *)
-  | Warning  (** A potential problem, which will not prevent anything from occurring *)
+  | Warning  (** A potential problem or bug. *)
+  | Note  (** A minor issue. Effectively just a less major warning. *)
 
 module Tag : sig
   (** A marker token for errors, used for filtering and classification *)
@@ -32,6 +33,9 @@ val make : unit -> t
 
 (** Report a new error at a specific position *)
 val report : t -> Tag.t -> Span.t -> string -> unit
+
+(** Determine if the error reporter has any problems in it. *)
+val has_problems : t -> bool
 
 (** Display any errors which occurred. *)
 val display_of_channel : ?out:Format.formatter -> t -> unit
