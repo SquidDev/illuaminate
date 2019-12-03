@@ -23,6 +23,15 @@ depends: [
   "menhir"
   "omd"
   "re"
+  "cohttp"
+  "cohttp-lwt"
+  "cohttp-lwt-unix"
+  "lwt"
+  "lwt_ssl"
+  "ppx_deriving_yojson"
+  "result"
+  "ssl"
+  "yojson"
 ]
 build: [
   ["dune" "subst"] {pinned}

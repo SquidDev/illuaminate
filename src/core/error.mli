@@ -7,7 +7,10 @@ type level =
 
 module Tag : sig
   (** A marker token for errors, used for filtering and classification *)
-  type t
+  type t = private
+    { name : string;
+      level : level
+    }
 
   (** Display a tag in a formatter. *)
   val pp : Format.formatter -> t -> unit
@@ -25,6 +28,20 @@ module Tag : sig
   type filter = t -> bool
 end
 
+module Error : sig
+  (** An error reported within the system. *)
+  type t = private
+    { tag : Tag.t;
+      span : Span.t;
+      message : string;
+      details : (Format.formatter -> unit) option
+    }
+
+  (** Compare two errors by their position. This is suitable for sorting, but obviously does not
+      determine equality. *)
+  val span_compare : t -> t -> int
+end
+
 (** An error reporting writer, into which errors are placed *)
 type t
 
@@ -34,17 +51,25 @@ val make : unit -> t
 (** Report a new error at a specific position *)
 val report : t -> Tag.t -> Span.t -> string -> unit
 
+(** Report a new error at a specific position with additional details.
+
+    The detail printer may use the styles provided by {!Style} to provide richer messages. *)
+val report_detailed : t -> Tag.t -> Span.t -> string -> (Format.formatter -> unit) -> unit
+
 (** Determine if the error reporter has any problems in it. *)
 val has_problems : t -> bool
 
-(** Display any errors which occurred. *)
-val display_of_channel : ?out:Format.formatter -> t -> unit
+(** Return a sorted list of errors and their locations. *)
+val errors : t -> Error.t list
+
+(** Display any errors which occurred. This assumes files exist on disk - use {!display_of_string}
+    if this is not the case. *)
+val display_of_files : ?out:Format.formatter -> t -> unit
 
 (** Display any errors which occurred, with a function which maps file names to strings *)
 val display_of_string : ?out:Format.formatter -> (Span.filename -> string option) -> t -> unit
 
-(** Provides a mechanism for formatting strings displayed by {!display_of_string} or
-    {!display_of_channel}. *)
+(** Provides a mechanism for formatting strings, allowing displaying richer error messages. *)
 module Style : sig
   (** One of the 8 basic colors supported by ANSI escape sequences. *)
   type ansi_color =
@@ -69,11 +94,11 @@ module Style : sig
     | DullColor of ansi_color
         (** Tint the styled string's foreground with a "dull" color.
 
-            When unit ANSI, this will be in the 30-37 range without the bold flag. *)
+            When using ANSI, this will be in the 30-37 range without the bold flag. *)
     | BrightColor of ansi_color
         (** Tint the styled string's foreground with a "bright" color.
 
-            When unit ANSI, this will be in the 90-97 range with the bold flag. *)
+            When using ANSI, this will be in the 90-97 range with the bold flag. *)
     | Underlined  (** Underline this string. *)
     | Styled of t list  (** Apply multiple styles. *)
 

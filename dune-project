@@ -1,5 +1,6 @@
 (lang dune 2.0)
 (using menhir 2.0)
+(using library_variants 0.2)
 (implicit_transitive_deps false)
 
 (generate_opam_files true)
@@ -25,9 +26,20 @@
     (omnomnom :with-test)
     (patience_diff :with-test)
     (junit :with-test)
-    ; Runtime
+    ; Core
     cmdliner
     containers
     menhir
     omd
-    re))
+    re
+    ; GitHub integration (HTTP support mostly)
+    cohttp
+    cohttp-lwt
+    cohttp-lwt-unix
+    lwt
+    lwt_ssl
+    ppx_deriving_yojson
+    result
+    ssl
+    yojson
+    ))

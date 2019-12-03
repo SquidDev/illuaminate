@@ -78,7 +78,7 @@ let uses_ansi channel =
   let isatty = try Unix.isatty channel with Unix.Unix_error _ -> false in
   (not dumb) && isatty
 
-let lint paths =
+let lint paths github =
   let errs = Error.make () in
   let modules = LoadedFile.gather errs paths in
   let data = Data.create () in
@@ -90,7 +90,11 @@ let lint paths =
            Linters.all
            |> List.iter (fun l ->
                   Driver.lint ~store ~data ~tags l parsed |> List.iter (Driver.report_note errs)));
-  Error.display_of_channel errs;
+  Error.display_of_files errs;
+  ( if github then
+    match IlluaminateGithub.publish_errors errs with
+    | Ok () -> ()
+    | Error msg -> Printf.eprintf "%s\n" msg; exit 2 );
   if Error.has_problems errs then exit 1
 
 let fix paths =
@@ -120,11 +124,11 @@ let fix paths =
     | _ -> ()
   in
   List.iter2 rewrite modules modules';
-  Error.display_of_channel errs;
+  Error.display_of_files errs;
   if Error.has_problems errs then exit 1
 
-let init_config config =
-  if Sys.file_exists config then (
+let init_config config force =
+  if (not force) && Sys.file_exists config then (
     Printf.eprintf "File already exists";
     exit 1 );
   let out = open_out config in
@@ -141,7 +145,17 @@ let () =
   in
   let lint_cmd =
     let doc = "Checks all files, and reports errors." in
-    (Term.(const lint $ files_arg), Term.info "lint" ~doc)
+    let github =
+      value & flag
+      & info
+          ~doc:
+            "Annotate your code with any warnings using GitHub's Checks API. This is designed to \
+             be run under GitHub actions, and so will search for appropriate information from the \
+             $(b,GITHUB_TOKEN), $(b,GITHUB_SHA) and $(b,GITHUB_REPOSITORY) environment variables."
+          [ "github" ]
+    in
+
+    (Term.(const lint $ files_arg $ github), Term.info "lint" ~doc)
   in
   let fix_cmd =
     let doc = "Checks all files and fixes problems in them." in
@@ -152,7 +166,11 @@ let () =
     let config_arg =
       required & pos 0 (some string) None & info ~doc:"The config to generate." ~docv:"CONFIG" []
     in
-    (Term.(const init_config $ config_arg), Term.info "init-config" ~doc)
+    let force =
+      value & flag
+      & info ~doc:"Always write the config file, even if it already exists." [ "f"; "force" ]
+    in
+    (Term.(const init_config $ config_arg $ force), Term.info "init-config" ~doc)
   in
 
   let default_cmd =

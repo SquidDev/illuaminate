@@ -98,26 +98,43 @@ module Tag = struct
   type filter = t -> bool
 end
 
-type t = { mutable errors : (Tag.t * Span.t * string) list }
+module Error = struct
+  type t =
+    { tag : Tag.t;
+      span : Span.t;
+      message : string;
+      details : (Format.formatter -> unit) option
+    }
+
+  let span_compare { span = a; _ } { span = b; _ } = Span.compare a b
+end
+
+type t = { mutable errors : Error.t list }
 
 let make () = { errors = [] }
 
-let compare (_, a, _) (_, b, _) = Span.compare a b
+let report t tag span message = t.errors <- { tag; span; message; details = None } :: t.errors
 
-let report t tag span message = t.errors <- (tag, span, message) :: t.errors
+let report_detailed t tag span message details =
+  t.errors <- { tag; span; message; details = Some details } :: t.errors
 
 let has_problems { errors } = not (CCList.is_empty errors)
+
+let errors { errors } = errors
 
 let error_ansi = function
   | Critical | Error -> Style.Red
   | Warning -> Style.Yellow
   | Note -> Style.Blue
 
-let display_line out line (tag : Tag.t) (pos : Span.t) message =
-  let line_no = string_of_int pos.start_line in
+let display_line out line { Error.tag; span; message; details } =
+  let line_no = string_of_int span.start_line in
   Style.(printf (BrightColor (error_ansi tag.level)))
-    out "%s:[%d:%d-%d:%d]: %s [%s]@\n" pos.filename.name pos.start_line pos.start_col
-    pos.finish_line pos.finish_col message tag.name;
+    out "%s:[%d:%d-%d:%d]: %s [%s]@\n" span.filename.name span.start_line span.start_col
+    span.finish_line span.finish_col message tag.name;
+  ( match details with
+  | None -> ()
+  | Some details -> Format.fprintf out "%t@\n" details );
   let fmt no line =
     Style.(printf (BrightColor Green)) out " %*s" (String.length line_no) no;
     if line = "" then Format.fprintf out " │@\n" else Format.fprintf out " │ %s@\n" line
@@ -125,15 +142,15 @@ let display_line out line (tag : Tag.t) (pos : Span.t) message =
   fmt "" "";
   fmt line_no (CCString.replace ~sub:"\t" ~by:" " line);
   let length =
-    if pos.finish_line = pos.start_line then pos.finish_col - pos.start_col
-    else String.length line - pos.start_col + 1
+    if span.finish_line = span.start_line then span.finish_col - span.start_col
+    else String.length line - span.start_col + 1
   in
-  fmt "" (String.make (pos.start_col - 1) ' ' ^ String.make length '^')
+  fmt "" (String.make (span.start_col - 1) ' ' ^ String.make length '^')
 
 let summary out t =
   let errors, warnings =
     List.fold_left
-      (fun (errors, warnings) ((tag : Tag.t), _, _) ->
+      (fun (errors, warnings) { Error.tag; _ } ->
         match tag.level with
         | Critical | Error -> (errors + 1, warnings)
         | Warning | Note -> (errors, warnings + 1))
@@ -143,11 +160,9 @@ let summary out t =
   else if warnings > 0 then Format.fprintf out "No errors and %d warnings@\n" warnings
   else ()
 
-let each_error f store =
-  store.errors |> List.sort compare
-  |> List.iter (fun (tag, (pos : Span.t), message) -> f tag pos message)
+let each_error f store = store.errors |> List.sort Error.span_compare |> List.iter f
 
-let display_of_channel ?(out = Format.err_formatter) store =
+let display_of_files ?(out = Format.err_formatter) store =
   let last = ref None in
   let get_channel name : in_channel =
     match !last with
@@ -163,11 +178,11 @@ let display_of_channel ?(out = Format.err_formatter) store =
         ch
   in
   store
-  |> each_error (fun tag (pos : Span.t) message ->
-         let ch = get_channel pos.filename.path in
-         seek_in ch pos.start_bol;
+  |> each_error (fun ({ span; _ } as err) ->
+         let ch = get_channel span.filename.path in
+         seek_in ch span.start_bol;
          let line = input_line ch in
-         display_line out line tag pos message);
+         display_line out line err);
   ( match !last with
   | Some (_, ch) -> close_in ch
   | _ -> () );
@@ -175,16 +190,16 @@ let display_of_channel ?(out = Format.err_formatter) store =
 
 let display_of_string ?(out = Format.err_formatter) getter store =
   store
-  |> each_error (fun tag (pos : Span.t) message ->
-         match getter pos.filename with
+  |> each_error (fun ({ span; _ } as err) ->
+         match getter span.filename with
          | None -> ()
          | Some contents ->
              let line =
-               String.sub contents pos.start_bol
-                 ( ( match String.index_from_opt contents pos.start_bol '\n' with
+               String.sub contents span.start_bol
+                 ( ( match String.index_from_opt contents span.start_bol '\n' with
                    | None -> String.length contents
                    | Some x -> x )
-                 - pos.start_bol )
+                 - span.start_bol )
              in
-             display_line out line tag pos message);
+             display_line out line err);
   summary out store

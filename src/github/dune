@@ -1,0 +1,9 @@
+(library
+ (name illuaminateGithub)
+ (public_name illuaminate.github)
+ (synopsis "Allows uploading status checks to the GitHub API.")
+ (virtual_modules network)
+ (default_implementation illuaminate.github.unix)
+ (libraries illuaminate.core yojson ppx_deriving_yojson.runtime)
+ (preprocess
+  (pps ppx_deriving_yojson)))

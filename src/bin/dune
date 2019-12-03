@@ -3,8 +3,8 @@
  (public_name illuaminate)
  (libraries containers cmdliner illuaminate.core illuaminate.parser
    illuaminate.semantics illuaminate.lint illuaminate.config
-   illuaminate.pattern)
- (modes native js byte)
+   illuaminate.pattern illuaminate.github)
+ (modes exe js)
  (js_of_ocaml
   (javascript_files runtime.js)
   (flags "--opt=3" "--custom-header=#!/usr/bin/env node")))

@@ -1,0 +1,7 @@
+(library
+ (name iluaminateGithub_unix)
+ (public_name illuaminate.github.unix)
+ (implements illuaminate.github)
+ (libraries result lwt lwt.unix cohttp cohttp-lwt-unix cohttp-lwt uri yojson
+   illuaminate.core ppx_deriving_yojson.runtime)
+ (variant unix))
