@@ -137,7 +137,7 @@ let init_config config force =
   Format.pp_print_flush formatter ();
   close_out out
 
-let () =
+let run () =
   let open Cmdliner in
   let open Cmdliner.Arg in
   let files_arg =
