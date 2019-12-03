@@ -241,7 +241,7 @@ let fix_some ~original node note =
   if note.source != original then node
   else
     match note.note.fix with
-    | FixOne f -> Result.fold ~ok:Fun.id ~error:failwith (f node)
+    | FixOne f -> Result.value ~default:node (f node)
     | _ -> node
 
 let fix prog fixes =
@@ -277,7 +277,7 @@ let fix prog fixes =
            match note with
            | { witness = AtStmt; source; note = { fix = FixBlock f; _ }; _ } when source == original
              ->
-               Result.fold ~ok:(fun x -> Some x) ~error:failwith (f x)
+               Some (Result.value ~default:[ x ] (f x))
            | _ -> None
          in
          let rec visit_all original x = function
