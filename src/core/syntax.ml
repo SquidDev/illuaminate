@@ -770,6 +770,8 @@ module Last = struct
 
   let var = First.var
 
+  let arg = First.arg
+
   let name =
     let get = function
       | NVar x -> var.get x

@@ -2,16 +2,64 @@ pointless_discard.lua:[3:7-3:8]: Pointless discard variable `_`. [var:pointless-
    │
  3 │ local _ = 0
    │       ^
-pointless_discard.lua:[6:4-6:5]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[5:10-5:11]: Pointless discard variable `_`. [var:pointless-discard]
    │
- 6 │ _, _ = 0
+ 5 │ local a, _ = f(), 0
+   │          ^
+pointless_discard.lua:[7:4-7:5]: Pointless discard variable `_`. [var:pointless-discard]
+   │
+ 7 │ _, _ = 0
    │    ^
-pointless_discard.lua:[10:8-10:9]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[9:4-9:5]: Pointless discard variable `_`. [var:pointless-discard]
+   │
+ 9 │ a, _ = f(), 0
+   │    ^
+pointless_discard.lua:[12:8-12:9]: Pointless discard variable `_`. [var:pointless-discard]
     │
- 10 │ for _, _ in pairs({}) do end
+ 12 │ for _, _ in pairs({}) do end
     │        ^
-pointless_discard.lua:[13:18-13:19]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[14:8-14:9]: Pointless discard variable `_`. [var:pointless-discard]
     │
- 13 │ local function f(_) end
+ 14 │ for k, _ in pairs({}) do end
+    │        ^
+pointless_discard.lua:[16:18-16:19]: Pointless discard variable `_`. [var:pointless-discard]
+    │
+ 16 │ local function f(_) end
     │                  ^
-No errors and 4 warnings
+pointless_discard.lua:[20:16-20:17]: Pointless discard variable `_`. [var:pointless-discard]
+    │
+ 20 │ local function _() end
+    │                ^
+pointless_discard.lua:[21:10-21:11]: Pointless discard variable `_`. [var:pointless-discard]
+    │
+ 21 │ function _() end
+    │          ^
+No errors and 9 warnings
+@@ -1,22 +1,14 @@
+--- config: (lint (only (var:pointless-discard)))
+-
+-local _ = 0
+ local _, x = 0 -- ok
+-local a, _ = f(), 0
+-
+-_, _ = 0
++local a = f(), 0
+ _, a = 0 -- ok
+-a, _ = f(), 0
++a = f(), 0
+ 
+ for _ in pairs({}) do end -- ok
+-for _, _ in pairs({}) do end
++for _ in pairs({}) do end
+ for _, v in pairs({}) do end -- ok
+-for k, _ in pairs({}) do end
++for k in pairs({}) do end
+ 
+-local function f(_) end
++local function f() end
+ local function f(_, a) end -- ok
+ local function f(_, ...) end -- ok
+-
+-local function _() end
+-function _() end
+ 

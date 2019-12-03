@@ -46,7 +46,7 @@ let linter =
         (* If the list argument is a dot, and both it and the implicit {!arg} is unused, then warn. *)
         match R.get_dots dot resolve with
         | { R.dot_usages = []; dot_implicit = Some { usages = []; _ }; _ } ->
-            [ note ~tag:tag_generic ~fix ~span:(Node.span dot) "Unused varargs." ]
+            [ note ~tag:tag_arg ~fix ~span:(Node.span dot) "Unused varargs." ]
         | _ -> [] )
     | _ -> []
   in
@@ -69,6 +69,8 @@ let linter =
           | _ -> [] )
       | _ -> []
   and stmt () context = function
+    (* TODO: Ideally we'd have fixers for unused assignments which remove them. For now, we have to
+       rely on the fact that pointless_discard will run afterwards. *)
     | LocalFunction { localf_args = args; _ } | AssignFunction { assignf_args = args; _ } ->
         check_args context fix_stmt args
     | _ -> []
