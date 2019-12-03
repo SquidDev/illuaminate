@@ -76,6 +76,12 @@ val in_list : 'a t -> 'a t
 (** Parse a list of items. Equivalent to `in_list (many term)`. *)
 val list : 'a t -> 'a list t
 
+(** If the next term is a list, parse a list of items. Otherwise call the parser directly.
+
+    It is recommended your parser only accepts atoms - otherwise you may get rather unexpected
+    behaviour. *)
+val list_or_one : 'a t -> 'a list t
+
 (** Parse any remaining values as fields. *)
 val fields : 'a fields -> 'a t
 

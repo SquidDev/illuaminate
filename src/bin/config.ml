@@ -16,7 +16,7 @@ type tag_set_mod =
 
 (** Configuration for a specific file pattern. *)
 type pat_config =
-  { pattern : Pattern.t;
+  { pattern : Pattern.t list;
     tags : tag_set_mod list;  (** Modifications to apply to the tag set. *)
     linter_options : Schema.store  (** Modifications to the linter. *)
   }
@@ -65,7 +65,7 @@ let parser =
     (linter_options, Option.value ~default:[] tags)
   in
   let pat_config =
-    let+ pattern = pattern and+ linter_options, tags = fields pat_config_fields in
+    let+ pattern = list_or_one pattern and+ linter_options, tags = fields pat_config_fields in
     { pattern; linter_options; tags }
   in
   let main =
@@ -158,7 +158,7 @@ let get_linters config path =
       let enabled, store =
         List.fold_left
           (fun (linters, store) { pattern; tags; linter_options } ->
-            if Pattern.matches path pattern then
+            if List.exists (Pattern.matches path) pattern then
               let linters = List.fold_left apply_mod linters tags in
               (linters, linter_options)
             else (linters, store))

@@ -84,6 +84,12 @@ let in_list (term : 'a t) : 'a t =
 
 let list (term : 'a t) : 'a list t = in_list (many term)
 
+let list_or_one (term : 'a t) : 'a list t =
+ fun end_pos -> function
+  | List (pos, xs) :: state ->
+      parse_til_empty (many term) (Span.finish pos) xs |> Result.map (fun x -> (x, state))
+  | state -> term end_pos state |> Result.map (fun (x, s) -> ([ x ], s))
+
 let fields (body : 'a fields) : 'a t =
   let extract_field end_pos : Sexp.t list -> _ = function
     | [] -> Error (end_pos, "Expected key-value pair, but this list was empty.")
