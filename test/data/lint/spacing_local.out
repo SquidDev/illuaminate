@@ -1,0 +1,31 @@
+spacing_local.lua:[3:8-3:9]: Expected whitespace after ",". [format:separator-space]
+   │
+ 3 │ local x,y, z
+   │        ^
+spacing_local.lua:[4:12-4:13]: Expected whitespace after ",". [format:separator-space]
+   │
+ 4 │ local x = 0,1, 2
+   │            ^
+spacing_local.lua:[5:8-5:9]: Expected whitespace around "=". [format:separator-space]
+   │
+ 5 │ local x=0
+   │        ^
+spacing_local.lua:[6:9-6:10]: Expected whitespace around "=". [format:separator-space]
+   │
+ 6 │ local x =0
+   │         ^
+No errors and 4 warnings
+@@ -1,9 +1,9 @@
+ -- config: (lint (only (format:op-space format:separator-space)))
+ 
+-local x,y, z
+-local x = 0,1, 2
+-local x=0
+-local x =0
++local x, y, z
++local x = 0, 1, 2
++local x = 0
++local x = 0
+ local x = 0 -- ok
+ 
+ local x -- dubious, but ok

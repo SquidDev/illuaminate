@@ -1,0 +1,16 @@
+spacing_binop.lua:[3:13-3:14]: Expected whitespace around "+". [format:separator-space]
+   │
+ 3 │ local x = (0+0)*0 + 1
+   │             ^
+spacing_binop.lua:[3:16-3:17]: Expected whitespace around "*". [format:separator-space]
+   │
+ 3 │ local x = (0+0)*0 + 1
+   │                ^
+No errors and 2 warnings
+@@ -1,5 +1,5 @@
+ -- config: (lint (only (format:op-space)))
+ 
+-local x = (0+0)*0 + 1
++local x = (0 + 0) * 0 + 1
+ local x = 0 + 0 -- ok
+ 

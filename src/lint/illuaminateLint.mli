@@ -68,6 +68,9 @@ module Linters : sig
   (** Forwards any errors from parsing doc comments. *)
   val doc_parse : linter
 
+  (** Checks for whitespace around basic punctuation such as ",", ";", "=" and all binary operators. *)
+  val spacing : linter
+
   (** A list of all linters. *)
   val all : linter list
 end

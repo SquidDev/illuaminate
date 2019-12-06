@@ -38,6 +38,8 @@ module Linters = struct
 
   let doc_parse = Lint_doc_parse.linter
 
+  let spacing = Lint_spacing.linter
+
   let all =
     [ arg_arg;
       doc_parse;
@@ -47,13 +49,16 @@ module Linters = struct
       method_name;
       misplaced_dots;
       parens;
-      pointless_discard;
       pointless_semicolon;
       set_global;
       set_loop;
+      spacing;
       unbalanced_assign;
       unreachable;
+      (* "pointless_discard" occurs after "unused" to ensure we'll entirely remove redundant
+         assigns. *)
       unused;
+      pointless_discard;
       use_arg;
       use_discard
     ]
