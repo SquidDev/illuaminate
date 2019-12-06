@@ -40,6 +40,8 @@ module Linters = struct
 
   let spacing = Lint_spacing.linter
 
+  let table_trailing = Lint_table_trailing.linter
+
   let all =
     [ arg_arg;
       doc_parse;
@@ -53,6 +55,7 @@ module Linters = struct
       set_global;
       set_loop;
       spacing;
+      table_trailing;
       unbalanced_assign;
       unreachable;
       (* "pointless_discard" occurs after "unused" to ensure we'll entirely remove redundant

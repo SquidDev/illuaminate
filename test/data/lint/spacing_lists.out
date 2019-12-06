@@ -6,10 +6,6 @@ spacing_lists.lua:[4:10-4:11]: Expected whitespace around "=". [format:separator
    │
  4 │ print { x=0, 0,1, 2 }
    │          ^
-spacing_lists.lua:[4:10-4:11]: Expected whitespace around "=". [format:separator-space]
-   │
- 4 │ print { x=0, 0,1, 2 }
-   │          ^
 spacing_lists.lua:[4:15-4:16]: Expected whitespace after ",". [format:separator-space]
    │
  4 │ print { x=0, 0,1, 2 }
@@ -26,7 +22,7 @@ spacing_lists.lua:[8:15-8:16]: Expected whitespace around "=". [format:separator
    │
  8 │ local _ = { x =0 }
    │               ^
-No errors and 7 warnings
+No errors and 6 warnings
 @@ -1,10 +1,10 @@
  -- config: (lint (only (format:op-space)))
  

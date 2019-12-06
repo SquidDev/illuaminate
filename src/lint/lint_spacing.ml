@@ -43,29 +43,20 @@ module Fix = struct
     in
     node
 
-  let rec table = function
+  let rec table_body = function
     | [] -> []
     | (RawPair ({ ident; eq; _ } as p), c) :: xs ->
-        (RawPair { p with eq = around ident eq }, c) :: table xs
+        (RawPair { p with eq = around ident eq }, c) :: table_body xs
     | (ExprPair ({ close_k; eq; _ } as p), c) :: xs ->
-        (ExprPair { p with eq = around close_k eq }, c) :: table xs
-    | ((Array _, _) as p) :: xs -> p :: table xs
-
-  let args = function
-    | CallTable ({ table_body; _ } as t) -> CallTable { t with table_body = table table_body }
-    | (CallString _ | CallArgs _) as a -> a
-
-  let call = function
-    | Call ({ args = a; _ } as c) -> Call { c with args = args a }
-    | Invoke ({ args = a; _ } as c) -> Invoke { c with args = args a }
+        (ExprPair { p with eq = around close_k eq }, c) :: table_body xs
+    | ((Array _, _) as p) :: xs -> p :: table_body xs
 
   let expr =
     FixOne
       (function
       | BinOp ({ binop_lhs; binop_op; _ } as op) ->
           Ok (BinOp { op with binop_op = around (Last.expr.get binop_lhs) binop_op })
-      | Table ({ table_body; _ } as t) -> Ok (Table { t with table_body = table table_body })
-      | ECall c -> Ok (ECall (call c))
+      | Table x -> Ok (Table { x with table_body = table_body x.table_body })
       | _ -> Error "Unknown expression")
 
   let stmt =
@@ -85,7 +76,6 @@ module Fix = struct
                { stmt with
                  local_vals = Some (around (local_vars |> SepList1.last.get |> Last.var.get) eql, vs)
                })
-      | SCall c -> Ok (SCall (call c))
       | _ -> Error "Unknown statement")
 end
 
@@ -106,21 +96,13 @@ module Lint = struct
           (Printf.sprintf "Expected whitespace around %S." name)
       ]
 
-  let rec table fix notes = function
+  let rec table_body notes = function
     | [] -> notes
-    | (RawPair { ident; eq; _ }, _) :: xs -> table fix (around Token.show fix ident eq @ notes) xs
+    | (RawPair { ident; eq; _ }, _) :: xs ->
+        table_body (around Token.show Fix.expr ident eq @ notes) xs
     | (ExprPair { close_k; eq; _ }, _) :: xs ->
-        table fix (around Token.show fix close_k eq @ notes) xs
-    | (Array _, _) :: xs -> table fix notes xs
-
-  let args fix = function
-    | CallTable { table_body; _ } -> table fix [] table_body
-    | CallString _ -> []
-    | CallArgs _ -> []
-
-  let call fix = function
-    | Call { args = a; _ } -> args fix a
-    | Invoke { args = a; _ } -> args fix a
+        table_body (around Token.show Fix.expr close_k eq @ notes) xs
+    | (Array _, _) :: xs -> table_body notes xs
 
   let token () _ node =
     match Node.contents.get node with
@@ -130,8 +112,7 @@ module Lint = struct
   let expr () _ = function
     | BinOp { binop_lhs; binop_op; _ } ->
         around BinOp.show Fix.expr (Last.expr.get binop_lhs) binop_op
-    | Table { table_body; _ } -> table Fix.expr [] table_body
-    | ECall c -> call Fix.expr c
+    | Table x -> table_body [] x.table_body
     | _ -> []
 
   let stmt () _ = function
@@ -140,7 +121,6 @@ module Lint = struct
     | ForNum { forn_var; forn_eq; _ } -> around Token.show Fix.stmt (Last.var.get forn_var) forn_eq
     | Local { local_vars; local_vals = Some (eql, _); _ } ->
         around Token.show Fix.stmt (local_vars |> SepList1.last.get |> Last.var.get) eql
-    | SCall c -> call Fix.stmt c
     | _ -> []
 end
 

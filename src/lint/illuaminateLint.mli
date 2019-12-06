@@ -71,6 +71,9 @@ module Linters : sig
   (** Checks for whitespace around basic punctuation such as ",", ";", "=" and all binary operators. *)
   val spacing : linter
 
+  (** Checks for trailing commas/semicolons on tables. *)
+  val table_trailing : linter
+
   (** A list of all linters. *)
   val all : linter list
 end

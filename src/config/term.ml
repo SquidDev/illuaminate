@@ -10,6 +10,8 @@ module Converter = struct
   let int : int t = (Parser.int, fun x -> Atom (string_of_int x))
 
   let list (f, t) : 'a list t = (Parser.list f, fun x -> List (List.map t x))
+
+  let atom ~ty parse print : 'a t = (Parser.atom_res ~ty parse, fun x -> Atom (print x))
 end
 
 type 'a body =

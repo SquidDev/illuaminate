@@ -946,4 +946,6 @@ module Spanned = struct
   let program = project First.program Last.program
 
   let table_item = project First.table_item Last.table_item
+
+  let table = project First.table Last.table
 end

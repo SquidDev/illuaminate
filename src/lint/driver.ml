@@ -310,6 +310,55 @@ let fix prog fixes =
          in
          List.fold_left (fun x (Note note) -> visit x note) expr fixes |> super#expr
 
+       method! call_args args =
+         let rewrap = function
+           | Table t -> CallTable t
+           | String t -> CallString t
+           | e ->
+               CallArgs
+                 { open_a = SimpleNode { contents = OParen };
+                   args = Some (Mono e);
+                   close_a = SimpleNode { contents = CParen }
+                 }
+         in
+         let fix { fix; _ } args expr =
+           match fix with
+           | FixOne f -> f expr |> Result.fold ~error:(fun _ -> args) ~ok:rewrap
+           | _ -> args
+         in
+
+         let args =
+           match args with
+           | CallArgs _ -> args
+           | CallTable original ->
+               let rec visit notes (arg : call_args) : call_args =
+                 match (arg, notes) with
+                 | _, [] -> arg
+                 | (CallArgs _ | CallString _), _ -> arg (* If we're no longer a table, abort. *)
+                 | CallTable t, Note { witness = AtExpr; source; note } :: notes ->
+                     ( match source with
+                     | Table source when source == original -> fix note args (Table t)
+                     | _ -> args )
+                     |> visit notes
+                 | CallTable _, _ :: notes -> visit notes arg
+               in
+               visit fixes args
+           | CallString original ->
+               let rec visit notes (arg : call_args) : call_args =
+                 match (arg, notes) with
+                 | _, [] -> arg
+                 | (CallArgs _ | CallTable _), _ -> arg (* If we're no longer a string, abort. *)
+                 | CallString s, Note { witness = AtExpr; source; note } :: notes ->
+                     ( match source with
+                     | String source when source == original -> fix note args (String s)
+                     | _ -> args )
+                     |> visit notes
+                 | CallString _, _ :: notes -> visit notes arg
+               in
+               visit fixes args
+         in
+         super#call_args args
+
        method! name name =
          let visit (type a) (x : name) (note : a note_at) : name =
            match note with

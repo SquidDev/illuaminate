@@ -18,6 +18,8 @@ module Converter : sig
   val int : int t
 
   val list : 'a t -> 'a list t
+
+  val atom : ty:string -> (string -> ('a, string) result) -> ('a -> string) -> 'a t
 end
 
 type 'a t
