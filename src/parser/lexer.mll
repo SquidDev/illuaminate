@@ -140,11 +140,12 @@ and string contents value c = parse
 | _ { raise (Error (lexeme_spanned lexbuf (UnexpectedCharacter (Lexing.lexeme lexbuf)))) }
 
 and long_string buf eqs term = parse
-| [^']']+ as x      { Buffer.add_string buf x; long_string buf eqs term lexbuf }
+| [^']' '\n']+ as x { Buffer.add_string buf x; long_string buf eqs term lexbuf }
 | ']' '='* ']' as x { if String.length x == eqs + 2
                       then term eqs (Buffer.contents buf)
                       else (Buffer.add_string buf x; long_string buf eqs term lexbuf) }
 | ']'               { Buffer.add_char buf ']'; long_string buf eqs term lexbuf }
+| '\n'              { Buffer.add_char buf '\n'; Lexing.new_line lexbuf; long_string buf eqs term lexbuf }
 | eof               { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
 
 and line_comment = parse
