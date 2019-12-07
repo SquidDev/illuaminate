@@ -21,11 +21,10 @@ let process ~name contents out =
       Error.display_of_string ~out (fun _ -> Some contents) errs
   | Ok parsed ->
       let store =
-        let term =
+        let schema =
           List.fold_left
             (fun s (Linter.Linter l) -> Schema.union s (Schema.singleton l.options))
             (Schema.singleton only) Linters.all
-          |> Schema.to_term
         in
         match parsed ^. Syntax.First.program with
         | Node { leading_trivia = { value = LineComment c | BlockComment (_, c); _ } :: _; _ } -> (
@@ -33,11 +32,11 @@ let process ~name contents out =
             match CCString.chop_prefix ~pre:"config:" c with
             | Some c ->
                 let buf = Lexing.from_string c in
-                Term.to_parser term |> Parser.fields
+                Schema.to_parser schema |> Parser.fields
                 |> Parser.parse_buf { Span.path = "?"; name = "?" } buf
                 |> Result.fold ~ok:Fun.id ~error:(fun (_, x) -> failwith x)
-            | None -> Term.default term )
-        | _ -> Term.default term
+            | None -> Schema.default schema )
+        | _ -> Schema.default schema
       in
       let only = Schema.get only store in
       let only =

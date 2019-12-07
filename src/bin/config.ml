@@ -37,7 +37,6 @@ let linter_schema =
   List.fold_left
     (fun s (Linter.Linter l) -> Schema.union s (Schema.singleton l.options))
     Schema.empty Linters.all
-  |> Schema.to_term
 
 let root_pat = Pattern.parse "/"
 
@@ -60,7 +59,7 @@ let parser =
       | _ -> tag_parser name |> Result.map (fun x -> Include x)
   in
   let pat_config_fields =
-    let+ linter_options = Term.to_parser linter_schema
+    let+ linter_options = Schema.to_parser linter_schema
     and+ tags = some (atom_res ~ty:"string" tag_set_mod) |> field_opt ~name:"linters" in
     (linter_options, Option.value ~default:[] tags)
   in
@@ -121,7 +120,7 @@ let generate out =
   blank ();
   blank ();
 
-  Term.write_default out linter_schema;
+  Schema.write_default out linter_schema;
 
   pp_print_string out ")";
   pp_close_box out ()
@@ -148,7 +147,7 @@ let is_source config path =
 (** Get all linters and their configuration options for a particular file. *)
 let get_linters config path =
   match config with
-  | Default -> ((fun _ -> true), Term.default linter_schema)
+  | Default -> ((fun _ -> true), Schema.default linter_schema)
   | Config { root; pat_config; _ } ->
       let path =
         match Pattern.Paths.make_relative ~path ~dir:root with
@@ -160,9 +159,9 @@ let get_linters config path =
           (fun (linters, store) { pattern; tags; linter_options } ->
             if List.exists (Pattern.matches path) pattern then
               let linters = List.fold_left apply_mod linters tags in
-              (linters, linter_options)
+              (linters, Schema.merge store linter_options)
             else (linters, store))
-          (all_tags, Term.default linter_schema)
+          (all_tags, Schema.default linter_schema)
           pat_config
       in
       (Fun.flip TagSet.mem enabled, store)

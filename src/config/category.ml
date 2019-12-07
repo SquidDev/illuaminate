@@ -18,7 +18,7 @@ module Category = struct
   module type Key = sig
     type value
 
-    type values += Value of value
+    type values += Value of value Term.Repr.repr
 
     val id : int
 
@@ -35,7 +35,7 @@ module Category = struct
     ( module struct
       type value = t
 
-      type values += Value of value
+      type values += Value of value Term.Repr.repr
 
       let id = new_id ()
 
@@ -60,10 +60,10 @@ module Schema = struct
 
   type t =
     { cats : cats;
-      keys : IntSet.t
+      all_terms : (module Key) IntMap.t
     }
 
-  let empty = { cats = IntMap.empty; keys = IntSet.empty }
+  let empty = { cats = IntMap.empty; all_terms = IntMap.empty }
 
   let singleton (type a) (key : a Category.key) : t =
     let module K = (val key : Category.Key with type value = a) in
@@ -74,7 +74,10 @@ module Schema = struct
       | { parent = Some parent; id; _ } as cat ->
           IntMap.singleton id { cat; terms = IntMap.empty; children = make parent }
     in
-    { cats = make K.owner; keys = IntSet.singleton K.id }
+    { cats = make K.owner; all_terms = IntMap.singleton K.id (module K : Category.Key) }
+
+  let merge_nodup l r =
+    IntMap.union (fun _ l r -> if l == r then Some l else failwith "Duplicate keys") l r
 
   let union l r =
     let rec union_cats l r =
@@ -87,7 +90,7 @@ module Schema = struct
             })
         l r
     in
-    { cats = union_cats l.cats r.cats; keys = IntSet.union l.keys r.keys }
+    { cats = union_cats l.cats r.cats; all_terms = merge_nodup l.all_terms r.all_terms }
 
   type store =
     { schema : t;
@@ -96,35 +99,65 @@ module Schema = struct
 
   let get (type t) (key : t Category.key) { storage; schema } =
     let module K = (val key) in
-    if IntSet.mem K.id schema.keys then
+    if IntMap.mem K.id schema.all_terms then
       match IntMap.find_opt K.id storage with
-      | Some (K.Value v) -> v
+      | Some (K.Value v) -> Term.Repr.value v
       | _ -> Term.default K.term
     else invalid_arg "Key is not within this schema."
 
-  let known_union = IntMap.union (fun _ _ x -> Some x)
+  let default schema = { schema; storage = IntMap.empty }
 
-  let to_term ({ cats; _ } as schema) : store Term.t =
-    let open Term in
-    let build_terms terms =
+  let to_parser ({ cats; _ } as schema) : store Parser.fields =
+    let open Parser in
+    let build_keys keys =
       IntMap.fold
         (fun _ key rest ->
           let module K = (val key : Key) in
-          let+ term = K.term and+ rest = rest in
+          let+ term = Term.Repr.to_repr_parser K.term and+ rest = rest in
           IntMap.add K.id (K.Value term) rest)
-        terms (const IntMap.empty)
+        keys (Parser.const IntMap.empty)
     in
     let rec build_cats children =
       IntMap.fold
-        (fun _ { cat = { name; comment; _ }; terms; children } rest ->
+        (fun _ { cat = { name; _ }; terms; children } rest ->
           let+ terms =
-            group ~name ~comment
-            @@ let+ terms = build_terms terms and+ children = build_cats children in
-               known_union terms children
+            (let+ terms = build_keys terms and+ children = build_cats children in
+             merge_nodup terms children)
+            |> fields |> field_opt ~name
           and+ rest = rest in
-          known_union terms rest)
+          merge_nodup (Option.value ~default:IntMap.empty terms) rest)
         children (const IntMap.empty)
     in
     let+ storage = build_cats cats in
     { schema; storage }
+
+  let write_default out { cats; _ } : unit =
+    let write_keys out keys prev =
+      IntMap.fold
+        (fun _ key prev ->
+          let module K = (val key : Key) in
+          Term.write_term out K.term prev)
+        keys prev
+    in
+    let rec write_cat out { terms; children; _ } = write_keys out terms 1 |> write_cats out children
+    and write_cats out keys prev =
+      IntMap.fold
+        (fun _ ({ cat = { name; comment; _ }; _ } as cat) prev ->
+          Term.write_key out write_cat cat ~name ~comment prev)
+        keys prev
+      |> ignore
+    in
+    write_cats out cats 0
+
+  let merge l r =
+    if l.schema != r.schema then invalid_arg "The two stores have incompatible schemas"
+    else
+      let merge id x y =
+        let key = IntMap.find id l.schema.all_terms in
+        let module K = (val key : Key) in
+        match (x, y) with
+        | K.Value x, K.Value y -> Some (K.Value (Term.Repr.merge x y))
+        | _, _ -> failwith "Malformed store"
+      in
+      { schema = l.schema; storage = IntMap.union merge l.storage r.storage }
 end
