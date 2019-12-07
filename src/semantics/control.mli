@@ -57,3 +57,6 @@ val get_func : Syntax.args -> t -> func
 
 (** Get the basic block this statement belongs to. *)
 val get_block : Syntax.stmt -> t -> basic_block
+
+(** Print a function's CFG in the format of a Graphviz dot file. *)
+val write_dot : Format.formatter -> func -> unit

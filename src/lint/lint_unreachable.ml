@@ -11,20 +11,22 @@ let linter =
   let tag_loop = Error.Tag.make Error.Warning "control:loop-once" in
   let msg_unreach span = [ note ~tag:tag_unreach ~span "Unreachable code" ] in
   let msg_loop span = [ note ~tag:tag_loop ~span "Loop is executed at most once." ] in
-  let is_meaningless (edge : C.edge) =
-    (* Determine if this edge is meaningless. *)
-    match edge.from_block.contents with
-    | C.LoopEnd _ -> true
-    | _ -> false
-  in
   let check_func (func : C.func) =
     let check_block (block : C.basic_block) =
-      if block.block_id <> func.entry.block_id && List.for_all is_meaningless block.C.incoming then
-        match block.C.contents with
+      if block.block_id <> func.entry.block_id && CCList.is_empty block.incoming then
+        (* FIXME: This test really isn't perfect.
+
+           For instance, `while true do break end end` will report a loop which only runs once, but
+           `while true do do break end print("Hello") end will report unreachable code. Ideally it'd
+           report both.
+
+           The inverse problem occurs with repeat/until loops, where the test will not be marked
+           unreachable, but the loop is marked as only being iterable once.*)
+        match block.contents with
         | Block [] -> []
         | Block (s :: _) -> msg_unreach (Spanned.stmt s)
         | Test e -> msg_unreach (Spanned.expr e)
-        | TestFor _ -> []
+        | TestFor s -> msg_unreach (Spanned.stmt s)
         | LoopEnd s -> msg_loop (Spanned.stmt s)
       else []
     in

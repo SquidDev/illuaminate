@@ -26,5 +26,8 @@ val expr : Format.formatter -> expr -> unit
 (** Write a statement to a formatter. *)
 val stmt : Format.formatter -> stmt -> unit
 
+(** Write a block to a formatter. *)
+val block : Format.formatter -> block -> unit
+
 (** Write a program to a formatter. *)
 val program : Format.formatter -> program -> unit

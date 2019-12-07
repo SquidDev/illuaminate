@@ -18,10 +18,6 @@ unreachable.lua:[42:3-44:12]: Loop is executed at most once. [control:loop-once]
     │
  42 │   repeat
     │   ^^^^^^
-unreachable.lua:[44:9-44:12]: Unreachable code [control:unreachable]
-    │
- 44 │   until f()
-    │         ^^^
 unreachable.lua:[52:5-52:12]: Unreachable code [control:unreachable]
     │
  52 │     print()
@@ -34,8 +30,8 @@ unreachable.lua:[61:5-61:12]: Unreachable code [control:unreachable]
     │
  61 │     print()
     │     ^^^^^^^
-unreachable.lua:[67:1-67:8]: Unreachable code [control:unreachable]
+unreachable.lua:[75:1-75:8]: Unreachable code [control:unreachable]
     │
- 67 │ print()
+ 75 │ print()
     │ ^^^^^^^
-No errors and 10 warnings
+No errors and 9 warnings

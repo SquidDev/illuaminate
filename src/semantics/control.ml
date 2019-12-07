@@ -111,7 +111,7 @@ let build_func t entry_block =
         go' loop bb body
     | Break _ ->
         ( match loop with
-        | None -> () (* FIXME: Report an error? *)
+        | None -> ()
         | Some continue -> add_edge bb continue (Jump stmt) false );
         None
     | If { if_if; if_elseif; if_else; _ } ->
@@ -230,3 +230,34 @@ let get_block stmt t =
       match StmtTbl.find t.stmts stmt with
       | Resolved r -> r
       | Unresolved _ -> failwith "Should have resolved statement but didn't." )
+
+let write_dot out { entry; blocks; _ } =
+  let open Format in
+  let get_contents = function
+    | Test e -> Format.asprintf "%a" Emit.expr e |> String.trim |> Printf.sprintf "Test <%s>"
+    | TestFor s -> Format.asprintf "%a" Emit.stmt s |> String.trim |> Printf.sprintf "TestFor <%s>"
+    | Block b -> Format.asprintf "%a" Emit.block b |> String.trim |> Printf.sprintf "Block <%s>"
+    | LoopEnd s -> Format.asprintf "%a" Emit.stmt s |> String.trim |> Printf.sprintf "LoopEnd <%s>"
+  in
+  let get_source = function
+    | Jump s -> Format.asprintf "%a" Emit.stmt s |> String.trim |> Printf.sprintf "Jump <%s>"
+    | Fallthrough -> "Fallthrough"
+  in
+  let write_edge { from_source; from_block; to_block; backwards } =
+    fprintf out "b%d -> b%d[label=%S,style=%s];@ " from_block.block_id to_block.block_id
+      (get_source from_source)
+      (if backwards then "dashed" else "solid")
+  in
+  let write_block { block_id; outgoing; contents; _ } =
+    fprintf out "b%d[label=%S,shape=%s];@ " block_id (get_contents contents)
+      (if block_id = entry.block_id then "box" else "ellipse");
+    List.iter write_edge outgoing;
+    ()
+  in
+  pp_print_string out "digraph G {";
+  pp_open_vbox out 2;
+  pp_force_newline out ();
+  List.iter write_block blocks;
+  pp_close_box out ();
+  pp_print_string out "}";
+  pp_force_newline out ()
