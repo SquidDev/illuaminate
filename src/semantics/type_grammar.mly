@@ -40,8 +40,7 @@ let arg_name :=
 
 let arg :=
   | ~ = arg_name ; ":" ; ~ = ty ; { { name = Some arg_name; ty; opt = false } }
-  | ~ = ty ;                      { { name = None; ty; opt = false } }
-  | ~ = ty ; "..." ;              { { name = Some "..."; ty; opt = false } }
+  | (many, ty) = var_ty ;         { { name = if many then Some "..." else None; ty; opt = false } }
 
 let args_rest :=
   | { [] }
@@ -54,9 +53,9 @@ let args :=
   | ~ = arg ; ~ = args_rest ;             { { arg with opt = true } :: args_rest }
 
 let return :=
-  | { ([], None) }
-  | ":" ; ~ = ty ;                        { ([ty], None) }
-  | ":" ; ~ = ty ; "..."  ;               { ([], Some ty) }
+  |                                       { ([], None) }
+  | ":" ; ty = simple_type ;              { ([ty], None) }
+  | ":" ; ty = simple_type ; "..." ;      { ([], Some ty) }
 
 let var :=
   | ~ = name ;                            <>
@@ -72,12 +71,15 @@ let simple_type :=
   | ~ = STRING ;                      <StringTy>
   | ~ = NUMBER ;                      <NumberTy>
   | ~ = INT ;                         <IntTy>
-  | FUNCTION ; "(" ; ~ = args ; ")" ; ~ = return ;
-  { Function { args; return; } }
   | "{" ; ~ = table_body ; "}";       <Table>
 
+let function_type :=
+  | ~ = simple_type ;                 <>
+  | FUNCTION ; "(" ; ~ = args ; ")" ; ~ = return ;
+  { Function { args; return; } }
+
 let ty :=
-  | x = separated_nonempty_list("|", simple_type) ;
+  | x = separated_nonempty_list("|", function_type) ;
     { match x with
       | [] -> assert false
       | [x] -> x
@@ -95,6 +97,6 @@ let table_body :=
   | x = table_entry ; table_sep ; xs = table_body ; { x :: xs }
 
 let table_entry :=
-  | ~ = ty ;                                  <Array>
+  | (many, ty) = var_ty ;                     { if many then Many ty else Item ty }
   | key = IDENT ; "=" ; value = ty ;          { Field { key; value } }
   | "[" ; key = ty ; "]" ; "=" ; value = ty ; { Hash { key; value } }

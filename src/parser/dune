@@ -8,16 +8,54 @@
 
 (menhir
  (modules grammar)
- (flags
-  ("--table" "--explain")))
+ (flags (--table)))
 
 (rule
- (targets "messages.ml")
- (deps "grammar.mly" "messages.txt")
+ (target "messages.ml")
+ (deps
+  (:grammar grammar.mly)
+  (:messages messages.txt))
  (action
   (with-stdout-to
-   "messages.ml"
-   (run menhir "--compile-errors" "messages.txt" "grammar.mly"))))
+   %{target}
+   (run menhir --compile-errors %{messages} %{grammar}))))
+
+;; Check message file is complete, and do this as part of tests.
+
+(rule
+ (targets "messages_complete.txt")
+ (deps "grammar.mly")
+ (mode
+  (promote (until-clean)))
+ (action
+  (with-stdout-to
+   %{targets}
+   (run menhir --list-errors %{deps}))))
+
+(rule
+ (alias check-messages)
+ (deps
+  (:grammar grammar.mly)
+  (:complete messages_complete.txt)
+  (:main messages.txt))
+ (action
+  (run menhir --compare-errors %{complete} --compare-errors %{main}
+    %{grammar})))
+
+(alias
+ (name runtest)
+ (deps
+  (alias check-messages)))
+
+;; Provide rules for generating the .conflict and .automaton file
+
+(rule
+ (targets "grammar.conflicts" "grammar.automaton")
+ (deps "grammar.mly")
+ (mode
+  (promote (until-clean)))
+ (action
+  (run menhir --table --explain --dump %{deps})))
 
 (ocamllex
  (modules lexer))

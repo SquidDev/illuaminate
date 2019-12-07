@@ -1,4 +1,11 @@
+# Build files
 /_*
 .merlin
 *.install
+
+# Parser files
+*.conflicts
+*.automaton
+*messages_complete.txt
+
 .#*

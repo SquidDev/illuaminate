@@ -6,18 +6,55 @@
 
 (menhir
  (modules type_grammar)
- (merge_into type_grammar)
  (flags
-  ("--table" "--explain")))
+  (--table --strict)))
 
 (rule
- (targets "type_messages.ml")
- (deps "type_grammar.mly" "type_messages.txt")
+ (target "type_messages.ml")
+ (deps
+  (:grammar type_grammar.mly)
+  (:messages type_messages.txt))
  (action
   (with-stdout-to
-   "type_messages.ml"
-   (run menhir --compile-errors "type_messages.txt" "type_grammar.mly" --base
-     "type_grammar.mly"))))
+   %{target}
+   (run menhir --compile-errors %{messages} %{grammar}))))
+
+;; Check message file is complete, and do this as part of tests.
+
+(rule
+ (targets "type_messages_complete.txt")
+ (deps "type_grammar.mly")
+ (mode
+  (promote (until-clean)))
+ (action
+  (with-stdout-to
+   %{targets}
+   (run menhir --list-errors %{deps}))))
+
+(rule
+ (alias check-messages)
+ (deps
+  (:grammar type_grammar.mly)
+  (:complete type_messages_complete.txt)
+  (:main type_messages.txt))
+ (action
+  (run menhir --compare-errors %{complete} --compare-errors %{main}
+    %{grammar})))
+
+(alias
+ (name runtest)
+ (deps
+  (alias check-messages)))
+
+;; Provide rules for generating the .conflict and .automaton file
+
+(rule
+ (targets "type_grammar.conflicts" "type_grammar.automaton")
+ (deps "type_grammar.mly")
+ (mode
+  (promote (until-clean)))
+ (action
+  (run menhir --table --explain --dump %{deps})))
 
 (ocamllex
  (modules type_lexer))

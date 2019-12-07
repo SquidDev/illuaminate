@@ -1,9 +1,68 @@
+main_vararg: SEMICOLON
+##
+## Ends in an error in state: 72.
+##
+## main_vararg' -> . main_vararg [ # ]
+##
+## The known suffix of the stack is as follows:
+##
+##
+
+Unexpected token (expecting some type)
+
+main_vararg: TRUE TRUE
+##
+## Ends in an error in state: 20.
+##
+## function_type -> simple_type . [ SEMICOLON PIPE OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
+## var_ty -> simple_type . DOTS [ SEMICOLON OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## simple_type
+##
+
+Unexpected token after type.
+
+main_vararg: TRUE SEMICOLON
+##
+## Ends in an error in state: 73.
+##
+## main_vararg -> var_ty . EOF [ # ]
+##
+## The known suffix of the stack is as follows:
+## var_ty
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 20, spurious reduction of production function_type -> simple_type
+## In state 24, spurious reduction of production separated_nonempty_list(PIPE,function_type) -> function_type
+## In state 22, spurious reduction of production ty -> separated_nonempty_list(PIPE,function_type)
+## In state 19, spurious reduction of production var_ty -> ty
+##
+
+Expected EOF after type.
+
+main: FUNCTION OPAREN CPAREN COLON TRUE TRUE
+##
+## Ends in an error in state: 47.
+##
+## return -> COLON simple_type . [ SEMICOLON PIPE OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
+## return -> COLON simple_type . DOTS [ SEMICOLON PIPE OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## COLON simple_type
+##
+
+Unexpected token after return type.
+
 main: FUNCTION OPAREN CPAREN COLON SEMICOLON
 ##
-## Ends in an error in state: 42.
+## Ends in an error in state: 45.
 ##
-## return -> COLON . ty [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
-## return -> COLON . ty DOTS [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+## return -> COLON . simple_type [ SEMICOLON PIPE OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
+## return -> COLON . simple_type DOTS [ SEMICOLON PIPE OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
 ##
 ## The known suffix of the stack is as follows:
 ## COLON
@@ -13,9 +72,9 @@ Expected return type after ":"
 
 main: FUNCTION OPAREN CPAREN TRUE
 ##
-## Ends in an error in state: 41.
+## Ends in an error in state: 44.
 ##
-## simple_type -> FUNCTION OPAREN args CPAREN . return [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+## function_type -> FUNCTION OPAREN args CPAREN . return [ SEMICOLON PIPE OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
 ##
 ## The known suffix of the stack is as follows:
 ## FUNCTION OPAREN args CPAREN
@@ -25,7 +84,7 @@ Expected return type after function
 
 main: FUNCTION OPAREN DOTS TRUE
 ##
-## Ends in an error in state: 26.
+## Ends in an error in state: 29.
 ##
 ## arg -> arg_name . COLON ty [ OSQUARE CSQUARE CPAREN COMMA ]
 ##
@@ -37,7 +96,7 @@ Expected type annotation after argument name
 
 main: FUNCTION OPAREN IDENT COLON SEMICOLON
 ##
-## Ends in an error in state: 27.
+## Ends in an error in state: 30.
 ##
 ## arg -> arg_name COLON . ty [ OSQUARE CSQUARE CPAREN COMMA ]
 ##
@@ -49,7 +108,7 @@ Expected argument type after ":"
 
 main: FUNCTION OPAREN IDENT TRUE
 ##
-## Ends in an error in state: 25.
+## Ends in an error in state: 23.
 ##
 ## arg_name -> name . [ COLON ]
 ## var -> name . [ PIPE OSQUARE DOTS DOT CSQUARE CPAREN COMMA ]
@@ -74,7 +133,7 @@ Expected optional argument definition
 
 main: FUNCTION OPAREN OSQUARE TRUE COMMA TRUE CPAREN
 ##
-## Ends in an error in state: 38.
+## Ends in an error in state: 41.
 ##
 ## args -> OSQUARE arg args_rest . CSQUARE [ CPAREN ]
 ##
@@ -85,18 +144,20 @@ main: FUNCTION OPAREN OSQUARE TRUE COMMA TRUE CPAREN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
-## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
-## In state 18, spurious reduction of production arg -> ty 
-## In state 34, spurious reduction of production args_rest -> 
-## In state 35, spurious reduction of production args_rest -> COMMA arg args_rest 
+## In state 20, spurious reduction of production function_type -> simple_type
+## In state 24, spurious reduction of production separated_nonempty_list(PIPE,function_type) -> function_type
+## In state 22, spurious reduction of production ty -> separated_nonempty_list(PIPE,function_type)
+## In state 19, spurious reduction of production var_ty -> ty
+## In state 15, spurious reduction of production arg -> var_ty
+## In state 37, spurious reduction of production args_rest ->
+## In state 38, spurious reduction of production args_rest -> COMMA arg args_rest
 ##
 
 Expected "]" to close optional argument
 
 main: FUNCTION OPAREN OSQUARE TRUE CPAREN
 ##
-## Ends in an error in state: 29.
+## Ends in an error in state: 32.
 ##
 ## args -> OSQUARE arg . args_rest CSQUARE [ CPAREN ]
 ##
@@ -107,9 +168,11 @@ main: FUNCTION OPAREN OSQUARE TRUE CPAREN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
-## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
-## In state 18, spurious reduction of production arg -> ty 
+## In state 20, spurious reduction of production function_type -> simple_type
+## In state 24, spurious reduction of production separated_nonempty_list(PIPE,function_type) -> function_type
+## In state 22, spurious reduction of production ty -> separated_nonempty_list(PIPE,function_type)
+## In state 19, spurious reduction of production var_ty -> ty
+## In state 15, spurious reduction of production arg -> var_ty
 ##
 
 Expected "]" to close optional argument
@@ -118,7 +181,7 @@ main: FUNCTION OPAREN SEMICOLON
 ##
 ## Ends in an error in state: 11.
 ##
-## simple_type -> FUNCTION OPAREN . args CPAREN return [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+## function_type -> FUNCTION OPAREN . args CPAREN return [ SEMICOLON PIPE OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
 ##
 ## The known suffix of the stack is as follows:
 ## FUNCTION OPAREN
@@ -128,9 +191,9 @@ Expected argument or ")"
 
 main: FUNCTION OPAREN TRUE COMMA FALSE CSQUARE
 ##
-## Ends in an error in state: 40.
+## Ends in an error in state: 43.
 ##
-## simple_type -> FUNCTION OPAREN args . CPAREN return [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+## function_type -> FUNCTION OPAREN args . CPAREN return [ SEMICOLON PIPE OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
 ##
 ## The known suffix of the stack is as follows:
 ## FUNCTION OPAREN args
@@ -139,19 +202,21 @@ main: FUNCTION OPAREN TRUE COMMA FALSE CSQUARE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
-## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
-## In state 18, spurious reduction of production arg -> ty 
-## In state 34, spurious reduction of production args_rest -> 
-## In state 35, spurious reduction of production args_rest -> COMMA arg args_rest 
-## In state 47, spurious reduction of production args -> arg args_rest 
+## In state 20, spurious reduction of production function_type -> simple_type
+## In state 24, spurious reduction of production separated_nonempty_list(PIPE,function_type) -> function_type
+## In state 22, spurious reduction of production ty -> separated_nonempty_list(PIPE,function_type)
+## In state 19, spurious reduction of production var_ty -> ty
+## In state 15, spurious reduction of production arg -> var_ty
+## In state 37, spurious reduction of production args_rest ->
+## In state 38, spurious reduction of production args_rest -> COMMA arg args_rest
+## In state 51, spurious reduction of production args -> arg args_rest
 ##
 
 Expecting ")" to close argument list
 
 main: FUNCTION OPAREN TRUE COMMA SEMICOLON
 ##
-## Ends in an error in state: 33.
+## Ends in an error in state: 36.
 ##
 ## args_rest -> COMMA . arg args_rest [ CSQUARE CPAREN ]
 ##
@@ -163,7 +228,7 @@ Expected another argument
 
 main: FUNCTION OPAREN TRUE COMMA TRUE DOTS TRUE
 ##
-## Ends in an error in state: 34.
+## Ends in an error in state: 37.
 ##
 ## args_rest -> COMMA arg . args_rest [ CSQUARE CPAREN ]
 ##
@@ -175,7 +240,7 @@ Expected another argument or end of argument list
 
 main: FUNCTION OPAREN TRUE CSQUARE
 ##
-## Ends in an error in state: 46.
+## Ends in an error in state: 50.
 ##
 ## args -> arg . args_rest [ CPAREN ]
 ##
@@ -186,16 +251,18 @@ main: FUNCTION OPAREN TRUE CSQUARE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
-## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
-## In state 18, spurious reduction of production arg -> ty 
+## In state 20, spurious reduction of production function_type -> simple_type
+## In state 24, spurious reduction of production separated_nonempty_list(PIPE,function_type) -> function_type
+## In state 22, spurious reduction of production ty -> separated_nonempty_list(PIPE,function_type)
+## In state 19, spurious reduction of production var_ty -> ty
+## In state 15, spurious reduction of production arg -> var_ty
 ##
 
 Expected another argument or end of argument list
 
 main: FUNCTION OPAREN TRUE OSQUARE COMMA SEMICOLON
 ##
-## Ends in an error in state: 31.
+## Ends in an error in state: 34.
 ##
 ## args_rest -> OSQUARE COMMA . arg args_rest CSQUARE [ CSQUARE CPAREN ]
 ##
@@ -207,7 +274,7 @@ Expected another argument
 
 main: FUNCTION OPAREN TRUE OSQUARE COMMA TRUE COMMA TRUE CPAREN
 ##
-## Ends in an error in state: 36.
+## Ends in an error in state: 39.
 ##
 ## args_rest -> OSQUARE COMMA arg args_rest . CSQUARE [ CSQUARE CPAREN ]
 ##
@@ -218,18 +285,20 @@ main: FUNCTION OPAREN TRUE OSQUARE COMMA TRUE COMMA TRUE CPAREN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
-## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
-## In state 18, spurious reduction of production arg -> ty 
-## In state 34, spurious reduction of production args_rest -> 
-## In state 35, spurious reduction of production args_rest -> COMMA arg args_rest 
+## In state 20, spurious reduction of production function_type -> simple_type
+## In state 24, spurious reduction of production separated_nonempty_list(PIPE,function_type) -> function_type
+## In state 22, spurious reduction of production ty -> separated_nonempty_list(PIPE,function_type)
+## In state 19, spurious reduction of production var_ty -> ty
+## In state 15, spurious reduction of production arg -> var_ty
+## In state 37, spurious reduction of production args_rest ->
+## In state 38, spurious reduction of production args_rest -> COMMA arg args_rest
 ##
 
 Expected "]" after optional argument
 
 main: FUNCTION OPAREN TRUE OSQUARE COMMA TRUE CPAREN
 ##
-## Ends in an error in state: 32.
+## Ends in an error in state: 35.
 ##
 ## args_rest -> OSQUARE COMMA arg . args_rest CSQUARE [ CSQUARE CPAREN ]
 ##
@@ -240,16 +309,18 @@ main: FUNCTION OPAREN TRUE OSQUARE COMMA TRUE CPAREN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
-## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
-## In state 18, spurious reduction of production arg -> ty 
+## In state 20, spurious reduction of production function_type -> simple_type
+## In state 24, spurious reduction of production separated_nonempty_list(PIPE,function_type) -> function_type
+## In state 22, spurious reduction of production ty -> separated_nonempty_list(PIPE,function_type)
+## In state 19, spurious reduction of production var_ty -> ty
+## In state 15, spurious reduction of production arg -> var_ty
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Expected another argument
 
 main: FUNCTION OPAREN TRUE OSQUARE TRUE
 ##
-## Ends in an error in state: 30.
+## Ends in an error in state: 33.
 ##
 ## args_rest -> OSQUARE . COMMA arg args_rest CSQUARE [ CSQUARE CPAREN ]
 ##
@@ -257,43 +328,24 @@ main: FUNCTION OPAREN TRUE OSQUARE TRUE
 ## OSQUARE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
-
-main: FUNCTION OPAREN TRUE SEMICOLON
-##
-## Ends in an error in state: 18.
-##
-## arg -> ty . [ OSQUARE CSQUARE CPAREN COMMA ]
-## arg -> ty . DOTS [ OSQUARE CSQUARE CPAREN COMMA ]
-##
-## The known suffix of the stack is as follows:
-## ty
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
-## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
-##
-
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Expected "," at start of optional argument.
 
 main: FUNCTION TRUE
 ##
 ## Ends in an error in state: 10.
 ##
-## simple_type -> FUNCTION . OPAREN args CPAREN return [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+## function_type -> FUNCTION . OPAREN args CPAREN return [ SEMICOLON PIPE OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
+## simple_type -> FUNCTION . [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
 ##
 ## The known suffix of the stack is as follows:
 ## FUNCTION
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Expected "(" to start function signature.
 
 main: IDENT DOT TRUE
 ##
-## Ends in an error in state: 16.
+## Ends in an error in state: 17.
 ##
 ## var -> var DOT . name [ SEMICOLON PIPE OSQUARE EOF DOTS DOT CSQUARE CPAREN COMMA CBRACE ]
 ##
@@ -301,11 +353,11 @@ main: IDENT DOT TRUE
 ## var DOT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Expected field name.
 
 main: IDENT TRUE
 ##
-## Ends in an error in state: 15.
+## Ends in an error in state: 16.
 ##
 ## simple_type -> var . [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
 ## var -> var . DOT name [ SEMICOLON PIPE OSQUARE EOF DOTS DOT CSQUARE CPAREN COMMA CBRACE ]
@@ -314,11 +366,11 @@ main: IDENT TRUE
 ## var
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Unexpected token after name.
 
 main: OBRACE IDENT EQUALS SEMICOLON
 ##
-## Ends in an error in state: 53.
+## Ends in an error in state: 57.
 ##
 ## table_entry -> IDENT EQUALS . ty [ SEMICOLON COMMA CBRACE ]
 ##
@@ -326,20 +378,20 @@ main: OBRACE IDENT EQUALS SEMICOLON
 ## IDENT EQUALS
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Expected type after table key.
 
 main: OBRACE IDENT TRUE
 ##
-## Ends in an error in state: 52.
+## Ends in an error in state: 56.
 ##
-## name -> IDENT . [ SEMICOLON PIPE DOT COMMA CBRACE ]
+## name -> IDENT . [ SEMICOLON PIPE DOTS DOT COMMA CBRACE ]
 ## table_entry -> IDENT . EQUALS ty [ SEMICOLON COMMA CBRACE ]
 ##
 ## The known suffix of the stack is as follows:
 ## IDENT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Unexpected token after name.
 
 main: OBRACE OSQUARE SEMICOLON
 ##
@@ -351,11 +403,11 @@ main: OBRACE OSQUARE SEMICOLON
 ## OSQUARE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Expected table key.
 
 main: OBRACE OSQUARE TRUE CSQUARE EQUALS SEMICOLON
 ##
-## Ends in an error in state: 50.
+## Ends in an error in state: 54.
 ##
 ## table_entry -> OSQUARE ty CSQUARE EQUALS . ty [ SEMICOLON COMMA CBRACE ]
 ##
@@ -363,11 +415,11 @@ main: OBRACE OSQUARE TRUE CSQUARE EQUALS SEMICOLON
 ## OSQUARE ty CSQUARE EQUALS
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Expected type after table key.
 
 main: OBRACE OSQUARE TRUE CSQUARE TRUE
 ##
-## Ends in an error in state: 49.
+## Ends in an error in state: 53.
 ##
 ## table_entry -> OSQUARE ty CSQUARE . EQUALS ty [ SEMICOLON COMMA CBRACE ]
 ##
@@ -375,11 +427,11 @@ main: OBRACE OSQUARE TRUE CSQUARE TRUE
 ## OSQUARE ty CSQUARE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Expected "=" after table key.
 
 main: OBRACE OSQUARE TRUE SEMICOLON
 ##
-## Ends in an error in state: 48.
+## Ends in an error in state: 52.
 ##
 ## table_entry -> OSQUARE ty . CSQUARE EQUALS ty [ SEMICOLON COMMA CBRACE ]
 ##
@@ -390,11 +442,11 @@ main: OBRACE OSQUARE TRUE SEMICOLON
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
-## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+## In state 24, spurious reduction of production separated_nonempty_list(PIPE,function_type) -> function_type
+## In state 22, spurious reduction of production ty -> separated_nonempty_list(PIPE,function_type)
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Expected "]" to close table key.
 
 main: OBRACE SEMICOLON
 ##
@@ -406,11 +458,11 @@ main: OBRACE SEMICOLON
 ## OBRACE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Expected a table key or type.
 
 main: OBRACE TRUE OSQUARE
 ##
-## Ends in an error in state: 56.
+## Ends in an error in state: 60.
 ##
 ## table_body -> table_entry . [ CBRACE ]
 ## table_body -> table_entry . table_sep table_body [ CBRACE ]
@@ -422,16 +474,18 @@ main: OBRACE TRUE OSQUARE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
-## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
-## In state 55, spurious reduction of production table_entry -> ty 
+## In state 20, spurious reduction of production function_type -> simple_type
+## In state 24, spurious reduction of production separated_nonempty_list(PIPE,function_type) -> function_type
+## In state 22, spurious reduction of production ty -> separated_nonempty_list(PIPE,function_type)
+## In state 19, spurious reduction of production var_ty -> ty
+## In state 59, spurious reduction of production table_entry -> var_ty
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Unexpected token after table entry (are you missing a "}"?)
 
 main: OBRACE TRUE SEMICOLON SEMICOLON
 ##
-## Ends in an error in state: 59.
+## Ends in an error in state: 63.
 ##
 ## table_body -> table_entry table_sep . table_body [ CBRACE ]
 ##
@@ -439,7 +493,7 @@ main: OBRACE TRUE SEMICOLON SEMICOLON
 ## table_entry table_sep
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Expected another table entry or "}".
 
 main: OPAREN SEMICOLON
 ##
@@ -451,11 +505,11 @@ main: OPAREN SEMICOLON
 ## OPAREN
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Unexpected token (expected a type).
 
 main: OPAREN TRUE SEMICOLON
 ##
-## Ends in an error in state: 63.
+## Ends in an error in state: 67.
 ##
 ## simple_type -> OPAREN ty . CPAREN [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
 ##
@@ -466,11 +520,11 @@ main: OPAREN TRUE SEMICOLON
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
-## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+## In state 24, spurious reduction of production separated_nonempty_list(PIPE,function_type) -> function_type
+## In state 22, spurious reduction of production ty -> separated_nonempty_list(PIPE,function_type)
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+Expected closing ")".
 
 main: SEMICOLON
 ##
@@ -486,19 +540,19 @@ Expected type
 
 main: TRUE PIPE SEMICOLON
 ##
-## Ends in an error in state: 21.
+## Ends in an error in state: 25.
 ##
-## separated_nonempty_list(PIPE,simple_type) -> simple_type PIPE . separated_nonempty_list(PIPE,simple_type) [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+## separated_nonempty_list(PIPE,function_type) -> function_type PIPE . separated_nonempty_list(PIPE,function_type) [ SEMICOLON OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
 ##
 ## The known suffix of the stack is as follows:
-## simple_type PIPE
+## function_type PIPE
 ##
 
 Expected type after "|"
 
 main: TRUE SEMICOLON
 ##
-## Ends in an error in state: 65.
+## Ends in an error in state: 69.
 ##
 ## main -> ty . EOF [ # ]
 ##
@@ -509,22 +563,21 @@ main: TRUE SEMICOLON
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 20, spurious reduction of production separated_nonempty_list(PIPE,simple_type) -> simple_type 
-## In state 24, spurious reduction of production ty -> separated_nonempty_list(PIPE,simple_type) 
+## In state 24, spurious reduction of production separated_nonempty_list(PIPE,function_type) -> function_type
+## In state 22, spurious reduction of production ty -> separated_nonempty_list(PIPE,function_type)
 ##
 
 Not expecting any more types.
 
 main: TRUE TRUE
 ##
-## Ends in an error in state: 20.
+## Ends in an error in state: 24.
 ##
-## separated_nonempty_list(PIPE,simple_type) -> simple_type . [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
-## separated_nonempty_list(PIPE,simple_type) -> simple_type . PIPE separated_nonempty_list(PIPE,simple_type) [ SEMICOLON PIPE OSQUARE EOF DOTS CSQUARE CPAREN COMMA CBRACE ]
+## separated_nonempty_list(PIPE,function_type) -> function_type . [ SEMICOLON OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
+## separated_nonempty_list(PIPE,function_type) -> function_type . PIPE separated_nonempty_list(PIPE,function_type) [ SEMICOLON OSQUARE EOF CSQUARE CPAREN COMMA CBRACE ]
 ##
 ## The known suffix of the stack is as follows:
-## simple_type
+## function_type
 ##
 
 Did you mean to declare a union type?
-

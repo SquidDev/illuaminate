@@ -28,7 +28,8 @@ module type S = sig
         { key : string;
           value : t
         }
-    | Array of t
+    | Item of t
+    | Many of t
     | Hash of
         { key : t;
           value : t

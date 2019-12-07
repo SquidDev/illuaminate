@@ -22,7 +22,7 @@ become more useful as it continues to develop.
    4.08.1`). Later versions may work, but haven't been tested.
  - Insall [omnomnom][] using `opam pin add omnomnom https://github.com/SquidDev/omnomnom.git`.
  - Install all other dependencies: `opam install --deps-only ./illuaminate.opam`
- - Build using Dune: `dune build && dune runtest`
+ - Build using Dune: `dune build @install @runtest`
  - You may either install illuaminate into opam using `dune install`, or use the
    files in the `_build/install/default/bin` directory.
 
