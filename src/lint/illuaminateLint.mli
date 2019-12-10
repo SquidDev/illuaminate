@@ -74,6 +74,9 @@ module Linters : sig
   (** Checks for trailing commas/semicolons on tables. *)
   val table_trailing : linter
 
+  (** Replace string.len(x) with #x *)
+  val string_len : linter
+
   (** A list of all linters. *)
   val all : linter list
 end

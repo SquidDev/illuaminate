@@ -949,3 +949,19 @@ module Spanned = struct
 
   let table = project First.table Last.table
 end
+
+module Precedence = struct
+  type t =
+    | Raw  (** Raw expressions which never need to be wrapped variables, calls, etc... *)
+    | Lit  (** Literals, which should be wrapped when called or indexed. *)
+    | Op of int  (** Precedence for operators *)
+    | Wrap  (** Expressions which always should be wrapped *)
+  [@@deriving eq, ord]
+
+  (** Get the precedence of an expression. *)
+  let of_expr = function
+    | Nil _ | True _ | False _ | Number _ | Int _ | String _ | Fun _ | Table _ | Dots _ -> Lit
+    | ECall _ | Ref _ | Parens _ -> Raw
+    | UnOp { unop_op; _ } -> Op (Node.contents.get unop_op |> UnOp.precedence)
+    | BinOp { binop_op; _ } -> Op (Node.contents.get binop_op |> BinOp.precedence)
+end

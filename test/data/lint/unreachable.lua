@@ -64,19 +64,9 @@ local function _()
 end
 
 local function f(x)
-  print("Start")
   repeat
-    print("Body")
   until x() -- ok
-  print("After")
 end
-
-local function _()
-  while true do do break end end
-
-  return
-end
-
 
 do return end
 print()

@@ -97,3 +97,28 @@ let leading_trivia =
     | Node n, _ -> Node { n with leading_trivia = t }
   in
   { get; over }
+
+(** Join two lists of trivial nodes together. While {!(\@)} will normally suffice for this,
+    {!join_trivia} attempts to merge whitespace between adjacent nodes too. *)
+let join_trivia xs ys : trivial Span.spanned list =
+  match ys with
+  | [] -> xs
+  | { Span.value = Whitespace r; span = rs } :: ys' ->
+      let is_space = function
+        | ' ' | '\t' -> true
+        | _ -> false
+      in
+      let rec go = function
+        | [] -> ys
+        | [ ({ Span.value = Whitespace l; span = ls } as x) ] ->
+            if l = "" then ys
+            else if is_space l.[String.length l - 1] then
+              { Span.value = Whitespace (CCString.rdrop_while is_space l ^ r);
+                span = Span.of_span2 ls rs
+              }
+              :: ys'
+            else x :: ys
+        | x :: xs -> x :: go xs
+      in
+      go xs
+  | ys -> xs @ ys

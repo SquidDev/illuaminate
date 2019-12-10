@@ -30,8 +30,8 @@ unreachable.lua:[61:5-61:12]: Unreachable code [control:unreachable]
     │
  61 │     print()
     │     ^^^^^^^
-unreachable.lua:[75:1-75:8]: Unreachable code [control:unreachable]
+unreachable.lua:[72:1-72:8]: Unreachable code [control:unreachable]
     │
- 75 │ print()
+ 72 │ print()
     │ ^^^^^^^
 No errors and 9 warnings

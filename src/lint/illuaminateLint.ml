@@ -42,6 +42,8 @@ module Linters = struct
 
   let table_trailing = Lint_table_trailing.linter
 
+  let string_len = Lint_string_len.linter
+
   let all =
     [ arg_arg;
       doc_parse;
@@ -55,6 +57,7 @@ module Linters = struct
       set_global;
       set_loop;
       spacing;
+      string_len;
       table_trailing;
       unbalanced_assign;
       unreachable;
