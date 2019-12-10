@@ -23,13 +23,13 @@ let linter =
   let tag = Error.Tag.make Error.Note "syntax:redundant-parens" in
   let unpack = function
     | Node.SimpleNode _ -> []
-    | Node.Node { leading_trivia = l; trailing_trivia = t; _ } -> l @ t
+    | Node.Node { leading_trivia = l; trailing_trivia = t; _ } -> Node.join_trivia l t
   in
   let rec unwrap = function
     | Parens { paren_open = o; paren_expr = e; paren_close = c } ->
         let l, e, t = unwrap e in
         let l' = unpack o and t' = unpack c in
-        (l' @ l, e, t @ t')
+        (Node.join_trivia l' l, e, Node.join_trivia t t')
     | e -> ([], e, [])
   in
   let unwrap_all =
@@ -42,12 +42,12 @@ let linter =
           let e =
             match l with
             | [] -> e
-            | _ -> ((First.expr -| Node.leading_trivia) %= fun x -> x @ l) @@ e
+            | _ -> ((First.expr -| Node.leading_trivia) %= fun x -> Node.join_trivia x l) @@ e
           in
           let e =
             match t with
             | [] -> e
-            | _ -> ((Last.expr -| Node.trailing_trivia) %= fun x -> t @ x) @@ e
+            | _ -> ((Last.expr -| Node.trailing_trivia) %= fun x -> Node.join_trivia t x) @@ e
           in
           Ok e
       | _ -> Error "Expected Parens"
@@ -61,9 +61,9 @@ let linter =
           let open Lens in
           let l, e, t = unwrap e in
           Parens
-            { paren_open = (Node.trailing_trivia %= fun x -> x @ l) @@ paren_open;
+            { paren_open = (Node.trailing_trivia %= fun x -> Node.join_trivia x l) @@ paren_open;
               paren_expr = e;
-              paren_close = (Node.leading_trivia %= fun x -> t @ x) @@ paren_close
+              paren_close = (Node.leading_trivia %= fun x -> Node.join_trivia t x) @@ paren_close
             }
           |> Result.ok
       | _ -> Error "Expected Parens"
