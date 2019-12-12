@@ -22,13 +22,11 @@
 ;; Check message file is complete, and do this as part of tests.
 
 (rule
- (targets "type_messages_complete.txt")
- (deps "type_grammar.mly")
- (mode
-  (promote (until-clean)))
+ (target type_messages_complete.txt)
+ (deps type_grammar.mly)
  (action
   (with-stdout-to
-   %{targets}
+   %{target}
    (run menhir --list-errors %{deps}))))
 
 (rule
