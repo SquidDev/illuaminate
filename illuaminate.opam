@@ -11,10 +11,11 @@ homepage: "https://github.com/squiddev/illuaminate"
 bug-reports: "https://github.com/squiddev/illuaminate/issues"
 depends: [
   "ocaml" {>= "4.06"}
-  "dune" {build & >= "2.0"}
+  "dune" {>= "2.0"}
   "ppxlib" {build}
   "ppx_deriving" {build}
-  "odoc" {build}
+  "js_of_ocaml-compiler" {build}
+  "odoc" {with-doc}
   "omnomnom" {with-test}
   "patience_diff" {with-test}
   "junit" {with-test}

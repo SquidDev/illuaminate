@@ -18,10 +18,11 @@
   (depends
     (ocaml (>= 4.06))
     ; Build-time (:build)
-    (dune (and :build (>= 2.0)))
+    (dune (>= 2.0))
     (ppxlib :build)
     (ppx_deriving :build)
-    (odoc :build)
+    (js_of_ocaml-compiler :build)
+    (odoc :with-doc)
     ; Test (:with-test)
     (omnomnom :with-test)
     (patience_diff :with-test)
