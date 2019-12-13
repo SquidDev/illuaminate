@@ -5,7 +5,8 @@ module LoadedFile = struct
   type t =
     { file : Span.filename;
       config : Config.t;
-      parsed : Syntax.program option
+      parsed : Syntax.program option;
+      id : Data.Files.id option
     }
 
   (** Parse a file and report its errors. *)
@@ -18,7 +19,7 @@ module LoadedFile = struct
             None
         | Ok tree -> Some tree)
 
-  let gather errs paths : t list =
+  let gather errs paths : t list * Data.Files.t =
     let cwd = Sys.getcwd () in
     let mk_name path =
       let name =
@@ -50,7 +51,7 @@ module LoadedFile = struct
     let get_config_for path =
       if Sys.is_directory path then get_config path else get_config (Filename.dirname path)
     in
-    let files = ref [] in
+    let files = ref [] and file_store = ref (Data.Files.create ()) in
     paths
     |> List.filter_map (fun path -> get_config_for path |> Option.map (fun c -> (path, c)))
     |> List.iter (fun (path, config) ->
@@ -60,11 +61,19 @@ module LoadedFile = struct
              else if is_root || Filename.extension path = ".lua" then
                let file = mk_name path in
                if Config.is_source config file.path then
-                 files := { file; config; parsed = parse errs file } :: !files
+                 let parse = parse errs file in
+                 let id =
+                   parse
+                   |> Option.map (fun x ->
+                          let files, id = Data.Files.add x !file_store in
+                          file_store := files;
+                          id)
+                 in
+                 files := { file; config; parsed = parse; id } :: !files
            in
 
            add true path);
-    !files
+    (!files, !file_store)
 end
 
 let uses_ansi channel =
@@ -80,12 +89,12 @@ let uses_ansi channel =
 
 let lint paths github =
   let errs = Error.make () in
-  let modules = LoadedFile.gather errs paths in
-  let data = Data.create () in
+  let modules, file_store = LoadedFile.gather errs paths in
+  let data = Data.of_files file_store in
   modules
   |> List.iter (function
        | { LoadedFile.parsed = None; _ } -> ()
-       | { file; config; parsed = Some parsed } ->
+       | { file; config; parsed = Some parsed; _ } ->
            let tags, store = Config.get_linters config file.path in
            Linters.all
            |> List.iter (fun l ->
@@ -99,17 +108,16 @@ let lint paths github =
 
 let fix paths =
   let errs = Error.make () in
-  let modules = LoadedFile.gather errs paths in
-  let data = Data.create () in
+  let modules, files = LoadedFile.gather errs paths in
   let modules' =
     modules
     |> List.map (function
          | { LoadedFile.parsed = None; _ } as f -> f
-         | { file; config; parsed = Some parsed } as f ->
+         | { file; config; parsed = Some parsed; _ } as f ->
              (* TODO: Have a separate linter list for fixers - so we can have things which are
                 linted but not fixed? *)
              let tags, store = Config.get_linters config file.path in
-             let program, _ = Driver.lint_and_fix_all ~store ~data ~tags Linters.all parsed in
+             let program, _ = Driver.lint_and_fix_all ~store ~files ~tags Linters.all parsed in
              { f with parsed = Some program })
   in
   let rewrite old_module new_module =

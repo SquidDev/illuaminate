@@ -71,7 +71,9 @@ let linter =
             | i, Some (Node.Node { leading_trivia = []; trailing_trivia = []; _ }) -> (i, None)
             | i, Some (Node.Node { leading_trivia; trailing_trivia; _ }) ->
                 ( Lens.(Last.table_item -| Node.trailing_trivia).over
-                    (fun x -> let (@^) = Node.join_trivia in x @^ leading_trivia @^ trailing_trivia)
+                    (fun x ->
+                      let ( @^ ) = Node.join_trivia in
+                      x @^ leading_trivia @^ trailing_trivia)
                     i,
                   None )
           in

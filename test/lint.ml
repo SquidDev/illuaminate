@@ -47,7 +47,7 @@ let process ~name contents out =
             | Some t -> t)
           only
       in
-      let data = Data.create () in
+      let files = Data.Files.create () in
       let linters =
         Linters.all
         |> List.filter (fun (Linter.Linter l) ->
@@ -55,7 +55,7 @@ let process ~name contents out =
                | [] -> true
                | _ -> List.exists (fun x -> List.mem x l.tags) only)
       in
-      let program, notes = Driver.lint_and_fix_all ~store ~data linters parsed in
+      let program, notes = Driver.lint_and_fix_all ~store ~files linters parsed in
       let errs = Error.make () in
       List.iter (Driver.report_note errs) notes;
       Error.display_of_string ~out (fun _ -> Some contents) errs;

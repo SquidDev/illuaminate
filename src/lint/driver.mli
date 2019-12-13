@@ -35,7 +35,8 @@ val fix : Syntax.program -> any_note list -> Syntax.program
     Returns the updated program, and all notes (irregardless of whether fixed or not). *)
 val lint_and_fix_all :
   store:IlluaminateConfig.Schema.store ->
-  data:Data.t ->
+  files:Data.Files.t ->
+  ?id:Data.Files.id ->
   ?tags:Error.Tag.filter ->
   Linter.t list ->
   Syntax.program ->

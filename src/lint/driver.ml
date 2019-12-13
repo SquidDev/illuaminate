@@ -377,10 +377,19 @@ let fix prog fixes =
     end)
       #program prog
 
-let lint_and_fix_all ~store ~data ?tags linters program =
-  List.fold_left
-    (fun (program, msgs) linter ->
-      let msgs' = lint ~store ~data ?tags linter program in
-      let program = fix program msgs' in
-      (program, msgs' @ msgs))
-    (program, []) linters
+let lint_and_fix_all ~store ~files ?id ?tags linters program =
+  let program, notes, _ =
+    List.fold_left
+      (fun (program, msgs, files) linter ->
+        let msgs' = lint ~store ~data:(Data.of_files files) ?tags linter program in
+        let program = fix program msgs' in
+        let files =
+          match id with
+          | None -> files
+          | Some id -> Data.Files.update id program files
+        in
+        (program, msgs' @ msgs, files))
+      (program, [], files) linters
+  in
+
+  (program, notes)
