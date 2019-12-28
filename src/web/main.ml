@@ -78,7 +78,11 @@ and lint () : unit =
       Linters.all
       |> List.iter (fun l ->
              Driver.lint ~store ~data ~tags l parsed |> List.iter (Driver.report_note errs)) );
-  let out = Error.errors errs |> display_errors input |> render Dom_html.document in
+  let out =
+    Error.errors errs
+    |> List.sort Error.Error.span_compare
+    |> display_errors input |> render Dom_html.document
+  in
   match Js.Opt.to_option output##.lastChild with
   | None -> output##appendChild out |> ignore
   | Some last -> output##replaceChild out last |> ignore

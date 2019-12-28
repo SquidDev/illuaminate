@@ -79,7 +79,10 @@ button:active {
   text-decoration: underline;
 }
 
-#error-messages { font-size: 0.8em; }
+#error-messages {
+  font-size: 0.8em;
+  white-space: pre-wrap;
+}
 
 .error, .error-summary { padding: 0.5em 0px; }
 
