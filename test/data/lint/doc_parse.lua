@@ -5,3 +5,5 @@
 -- @module foo
 -- @module bar
 -- @module[x]
+
+--- @unknown_standalone

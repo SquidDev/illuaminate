@@ -449,6 +449,7 @@ let extract node =
         extract_comments (documented :: cs) xs
     | { Span.value = Node.LineComment c; span } :: xs when String.length c > 0 && c.[0] == '-' ->
         let buffer = Buffer.create 16 in
+        Buffer.add_substring buffer c 1 (String.length c - 1);
         let last, xs = extract_block buffer span span.start_line span.start_col xs in
         let documented = Buffer.contents buffer |> parse |> build (Span.of_span2 span last) in
         extract_comments (documented :: cs) xs
