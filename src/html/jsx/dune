@@ -1,0 +1,9 @@
+(library
+ (name jsx)
+ (synopsis
+   "Primitive JSX pre-processor. This consumes Reasons's @JSX annotations and replaces them with calls to create_node.")
+ (libraries ppxlib ppxlib.ast base)
+ (kind ppx_rewriter)
+ (ppx_runtime_libraries ppxlib)
+ (preprocess
+  (pps ppxlib.metaquot)))

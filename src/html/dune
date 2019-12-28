@@ -1,0 +1,3 @@
+(library
+ (name html)
+ (synopsis "A basic HTML library suitable for using with illuaminate.jsx"))

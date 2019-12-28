@@ -1,0 +1,99 @@
+/** Standard reset from http://meyerweb.com/eric/tools/css/reset/ */
+html, body, div, span, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, code, em,
+img, kbd, strong, sub, sup, ol, ul, li, fieldset, form, label, table, caption,
+tbody, tfoot, thead, tr, th, td, article, aside, details, figure, figcaption,
+footer, header, hgroup, menu, nav, output, ruby, section, summary {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+body { line-height: 1; }
+ol, ul { list-style: none; }
+blockquote, q { quotes: none; }
+blockquote:before, blockquote:after, q:before, q:after {
+  content: '';
+  content: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/** Main styles */
+
+body {
+  line-height: 1.6;
+  font-size: 18px;
+  color: #222;
+  background: #fff;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue",
+    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.container {
+  margin: 40px auto;
+  max-width: 1000px;
+  padding: 0 10px;
+}
+
+h1 { font-size: 1.6em; }
+h2 { font-size: 1.2em; }
+p { margin: 1.1em 0em; }
+
+pre, code, textarea { font-family: "Consolas", "Courier New", monospace; }
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 200px;
+  box-sizing: border-box;
+  border: solid 1px #ddd;
+  padding: 3px;
+}
+
+textarea:focus { border-color: #000; }
+
+button {
+  background: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+}
+
+button::before { content: "["; }
+button::after { content: "]"; }
+
+button:hover,
+button:focus,
+button:active {
+  text-decoration: underline;
+}
+
+#error-messages { font-size: 0.8em; }
+
+.error, .error-summary { padding: 0.5em 0px; }
+
+.error-summary { font-size: 1.2em; }
+.error-none { color: #007020; }
+.error-some { color: #880000; }
+
+.error { border-top: solid 1px #ddd; }
+.error:hover { background: #f0f0f0; }
+
+.error-error .error-pos, .error-critical .error-pos { color: #880000; }
+.error-warning .error-pos { color: #cb4b16; }
+.error-note .error-pos { color: #268bd2; }
+
+.error-line { margin: 0.5em 0px; }
+.error-line-no, .error-line-str { padding: 0.5em; }
+.error-line-no { border-right: solid 1px #000; }

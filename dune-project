@@ -20,7 +20,9 @@
     ; Build-time (:build)
     (dune (>= 2.0))
     (ppxlib :build)
+    (reason :build)
     (ppx_deriving :build)
+    (js_of_ocaml-ppx :build)
     (js_of_ocaml-compiler :build)
     (odoc :with-doc)
     ; Test (:with-test)
@@ -33,6 +35,7 @@
     menhir
     omd
     re
+    js_of_ocaml
     ; GitHub integration (HTTP support mostly)
     cohttp
     cohttp-lwt
