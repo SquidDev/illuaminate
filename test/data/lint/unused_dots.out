@@ -1,8 +1,8 @@
-unused_dots.lua:[3:21-3:24]: Unused varargs. [var:unused-arg]
+unused_dots.lua:[3:21-3:23]: Unused varargs. [var:unused-arg]
    │
  3 │ local function f(x, ...) return x end
    │                     ^^^
-unused_dots.lua:[4:18-4:21]: Unused varargs. [var:unused-arg]
+unused_dots.lua:[4:18-4:20]: Unused varargs. [var:unused-arg]
    │
  4 │ local function g(...) end
    │                  ^^^

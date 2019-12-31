@@ -4,39 +4,39 @@
         Node.Node {
           leading_trivia =
           [{ Span.value = (Node.BlockComment (0, " One line "));
-             span = pass_multiline_string.lua[1:1-1:17] };
+             span = pass_multiline_string.lua[1:1-1:16] };
             { Span.value = (Node.Whitespace "\n");
-              span = pass_multiline_string.lua[1:17-2:1] };
+              span = pass_multiline_string.lua[1:17-2:0] };
             { Span.value = (Node.Whitespace "\n");
-              span = pass_multiline_string.lua[2:1-3:1] };
+              span = pass_multiline_string.lua[2:1-3:0] };
             { Span.value = (Node.BlockComment (0, "\nMulti-line\n"));
-              span = pass_multiline_string.lua[3:1-5:3] };
+              span = pass_multiline_string.lua[3:1-5:2] };
             { Span.value = (Node.Whitespace "\n");
-              span = pass_multiline_string.lua[5:3-6:1] };
+              span = pass_multiline_string.lua[5:3-6:0] };
             { Span.value = (Node.Whitespace "\n");
-              span = pass_multiline_string.lua[6:1-7:1] }
+              span = pass_multiline_string.lua[6:1-7:0] }
             ];
           trailing_trivia =
           [{ Span.value = (Node.Whitespace " ");
-             span = pass_multiline_string.lua[7:6-7:7] }
+             span = pass_multiline_string.lua[7:6-7:6] }
             ];
-          contents = local; span = pass_multiline_string.lua[7:1-7:6]};
+          contents = local; span = pass_multiline_string.lua[7:1-7:5]};
         local_vars =
         (Syntax.SepList1.Mono
            (Syntax.Var
               Node.Node {leading_trivia = [];
                 trailing_trivia =
                 [{ Span.value = (Node.Whitespace " ");
-                   span = pass_multiline_string.lua[7:8-7:9] }
+                   span = pass_multiline_string.lua[7:8-7:8] }
                   ];
-                contents = "_"; span = pass_multiline_string.lua[7:7-7:8]}));
+                contents = "_"; span = pass_multiline_string.lua[7:7-7:7]}));
         local_vals =
         (Some (Node.Node {leading_trivia = [];
                  trailing_trivia =
                  [{ Span.value = (Node.Whitespace " ");
-                    span = pass_multiline_string.lua[7:10-7:11] }
+                    span = pass_multiline_string.lua[7:10-7:10] }
                    ];
-                 contents = =; span = pass_multiline_string.lua[7:9-7:10]},
+                 contents = =; span = pass_multiline_string.lua[7:9-7:9]},
                (Syntax.SepList1.Mono
                   (Syntax.String
                      { Syntax.lit_value = " One line ";
@@ -44,10 +44,10 @@
                        Node.Node {leading_trivia = [];
                          trailing_trivia =
                          [{ Span.value = (Node.Whitespace "\n");
-                            span = pass_multiline_string.lua[7:25-8:1] }
+                            span = pass_multiline_string.lua[7:25-8:0] }
                            ];
                          contents = "[[ One line ]]";
-                         span = pass_multiline_string.lua[7:11-7:25]}
+                         span = pass_multiline_string.lua[7:11-7:24]}
                        }))))
         });
     (Syntax.Local
@@ -55,32 +55,32 @@
          Node.Node {leading_trivia = [];
            trailing_trivia =
            [{ Span.value = (Node.Whitespace " ");
-              span = pass_multiline_string.lua[8:6-8:7] }
+              span = pass_multiline_string.lua[8:6-8:6] }
              ];
-           contents = local; span = pass_multiline_string.lua[8:1-8:6]};
+           contents = local; span = pass_multiline_string.lua[8:1-8:5]};
          local_vars =
          (Syntax.SepList1.Mono
             (Syntax.Var
                Node.Node {leading_trivia = [];
                  trailing_trivia =
                  [{ Span.value = (Node.Whitespace " ");
-                    span = pass_multiline_string.lua[8:8-8:9] }
+                    span = pass_multiline_string.lua[8:8-8:8] }
                    ];
-                 contents = "_"; span = pass_multiline_string.lua[8:7-8:8]}));
+                 contents = "_"; span = pass_multiline_string.lua[8:7-8:7]}));
          local_vals =
          (Some (Node.Node {leading_trivia = [];
                   trailing_trivia =
                   [{ Span.value = (Node.Whitespace " ");
-                     span = pass_multiline_string.lua[8:10-8:11] }
+                     span = pass_multiline_string.lua[8:10-8:10] }
                     ];
-                  contents = =; span = pass_multiline_string.lua[8:9-8:10]},
+                  contents = =; span = pass_multiline_string.lua[8:9-8:9]},
                 (Syntax.SepList1.Mono
                    (Syntax.String
                       { Syntax.lit_value = "\nMulti-\nline\nstring\n";
                         lit_node =
                         Node.Node {leading_trivia = []; trailing_trivia = [];
                           contents = "[=[\nMulti-\nline\nstring\n]=]";
-                          span = pass_multiline_string.lua[8:11-12:4]}
+                          span = pass_multiline_string.lua[8:11-12:3]}
                         }))))
          })
     ];
@@ -88,8 +88,8 @@
   Node.Node {
     leading_trivia =
     [{ Span.value = (Node.Whitespace "\n");
-       span = pass_multiline_string.lua[12:4-13:1] }
+       span = pass_multiline_string.lua[12:4-13:0] }
       ];
     trailing_trivia = []; contents = end of file;
-    span = pass_multiline_string.lua[13:1-13:1]}
+    span = pass_multiline_string.lua[13:1-13:0]}
   }

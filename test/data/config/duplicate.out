@@ -1,1 +1,1 @@
-duplicate.sexp[2:1-2:9]: Multiple definitions of "pet"
+duplicate.sexp[2:1-2:8]: Multiple definitions of "pet"

@@ -1,8 +1,8 @@
-set_global_toplevel.lua:[7:3-7:4]: Setting unknown global variable "d". [var:set-global]
+set_global_toplevel.lua:[7:3-7:3]: Setting unknown global variable "d". [var:set-global]
    │
  7 │   d = 0
    │   ^
-set_global_toplevel.lua:[8:3-8:4]: Setting unknown global variable "e". [var:set-global]
+set_global_toplevel.lua:[8:3-8:3]: Setting unknown global variable "e". [var:set-global]
    │
  8 │   e = 0
    │   ^

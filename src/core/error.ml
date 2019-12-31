@@ -142,7 +142,7 @@ let display_line out line { Error.tag; span; message; details } =
   fmt "" "";
   fmt line_no (CCString.replace ~sub:"\t" ~by:" " line);
   let length =
-    if span.finish_line = span.start_line then span.finish_col - span.start_col
+    if span.finish_line = span.start_line then span.finish_col - span.start_col + 1
     else String.length line - span.start_col + 1
   in
   fmt "" (String.make (span.start_col - 1) ' ' ^ String.make length '^')

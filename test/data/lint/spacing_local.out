@@ -1,16 +1,16 @@
-spacing_local.lua:[3:8-3:9]: Expected whitespace after ",". [format:separator-space]
+spacing_local.lua:[3:8-3:8]: Expected whitespace after ",". [format:separator-space]
    │
  3 │ local x,y, z
    │        ^
-spacing_local.lua:[4:12-4:13]: Expected whitespace after ",". [format:separator-space]
+spacing_local.lua:[4:12-4:12]: Expected whitespace after ",". [format:separator-space]
    │
  4 │ local x = 0,1, 2
    │            ^
-spacing_local.lua:[5:8-5:9]: Expected whitespace around "=". [format:separator-space]
+spacing_local.lua:[5:8-5:8]: Expected whitespace around "=". [format:separator-space]
    │
  5 │ local x=0
    │        ^
-spacing_local.lua:[6:9-6:10]: Expected whitespace around "=". [format:separator-space]
+spacing_local.lua:[6:9-6:9]: Expected whitespace around "=". [format:separator-space]
    │
  6 │ local x =0
    │         ^

@@ -28,7 +28,7 @@ let of_pos2 filename (start : Lexing.position) (fin : Lexing.position) =
     start_col = start.pos_cnum - start.pos_bol + 1;
     start_bol = start.pos_bol;
     finish_line = fin.pos_lnum;
-    finish_col = fin.pos_cnum - fin.pos_bol + 1;
+    finish_col = fin.pos_cnum - fin.pos_bol;
     finish_bol = fin.pos_bol
   }
 

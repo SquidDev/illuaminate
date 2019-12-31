@@ -1,68 +1,68 @@
-parens.lua:[5:3-5:6]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[5:3-5:5]: Unnecessary parenthesis. [syntax:redundant-parens]
    │
  5 │   (f)((f), {
    │   ^^^
-parens.lua:[5:7-5:10]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[5:7-5:9]: Unnecessary parenthesis. [syntax:redundant-parens]
    │
  5 │   (f)((f), {
    │       ^^^
-parens.lua:[6:7-6:10]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[6:7-6:9]: Unnecessary parenthesis. [syntax:redundant-parens]
    │
  6 │       (f)
    │       ^^^
-parens.lua:[13:3-13:10]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[13:3-13:9]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  13 │   ((nil))()
     │   ^^^^^^^
-parens.lua:[15:13-15:20]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[15:13-15:19]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  15 │   local _ = ((nil))[1]
     │             ^^^^^^^
-parens.lua:[22:13-22:18]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[22:13-22:17]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  22 │   local _ = (f())
     │             ^^^^^
-parens.lua:[25:5-25:10]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[25:5-25:9]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  25 │   f((f()), 0)
     │     ^^^^^
-parens.lua:[28:15-28:20]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[28:15-28:19]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  28 │   local _ = { (f()), 0 }
     │               ^^^^^
-parens.lua:[31:29-31:34]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[31:29-31:33]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  31 │   local function _() return (f()), 0 end
     │                             ^^^^^
-parens.lua:[37:13-37:18]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[37:13-37:17]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  37 │   local _ = (...)
     │             ^^^^^
-parens.lua:[40:5-40:10]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[40:5-40:9]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  40 │   f((...), 0)
     │     ^^^^^
-parens.lua:[43:15-43:20]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[43:15-43:19]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  43 │   local _ = { (...), 0 }
     │               ^^^^^
-parens.lua:[46:32-46:37]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[46:32-46:36]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  46 │   local function _(...) return (...), 0 end
     │                                ^^^^^
-parens.lua:[51:13-51:20]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[51:13-51:19]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  51 │   local _ = (2 + 2)
     │             ^^^^^^^
-parens.lua:[55:13-55:17]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[55:13-55:16]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  55 │   local _ = (#2)
     │             ^^^^
-parens.lua:[60:17-60:24]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[60:17-60:23]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  60 │   local _ = 2 + (2 * 2)
     │                 ^^^^^^^
-parens.lua:[63:13-63:20]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[63:13-63:19]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  63 │   local _ = (2 + 2) + 2
     │             ^^^^^^^

@@ -1,8 +1,8 @@
-spacing_for.lua:[3:6-3:7]: Expected whitespace around "=". [format:separator-space]
+spacing_for.lua:[3:6-3:6]: Expected whitespace around "=". [format:separator-space]
    │
  3 │ for i=0, 10 do end
    │      ^
-spacing_for.lua:[4:6-4:7]: Expected whitespace around "=". [format:separator-space]
+spacing_for.lua:[4:6-4:6]: Expected whitespace around "=". [format:separator-space]
    │
  4 │ for i= 0, 10 do end
    │      ^

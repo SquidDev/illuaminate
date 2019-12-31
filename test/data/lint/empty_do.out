@@ -1,4 +1,4 @@
-empty_do.lua:[2:1-2:7]: Empty do statement [syntax:empty-do]
+empty_do.lua:[2:1-2:6]: Empty do statement [syntax:empty-do]
    │
  2 │ do end
    │ ^^^^^^

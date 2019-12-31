@@ -1,9 +1,0 @@
-lint_string_escape.lua:[7:4-7:6]: Unknown escape character '\('. [syntax:string-escape]
-   │
- 7 │  "a\(b",
-   │    ^^
-lint_string_escape.lua:[13:4-13:6]: Unknown escape character '\('. [syntax:string-escape]
-    │
- 13 │  'a\(b',
-    │    ^^
-No errors and 2 warnings

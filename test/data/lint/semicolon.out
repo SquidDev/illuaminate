@@ -1,16 +1,16 @@
-semicolon.lua:[4:4-4:5]: Redundant semicolon. [syntax:redundant-semicolon]
+semicolon.lua:[4:4-4:4]: Redundant semicolon. [syntax:redundant-semicolon]
    │
  4 │ do ; end
    │    ^
-semicolon.lua:[7:11-7:12]: Redundant semicolon. [syntax:redundant-semicolon]
+semicolon.lua:[7:11-7:11]: Redundant semicolon. [syntax:redundant-semicolon]
    │
  7 │ do local x; end
    │           ^
-semicolon.lua:[9:4-9:5]: Redundant semicolon. [syntax:redundant-semicolon]
+semicolon.lua:[9:4-9:4]: Redundant semicolon. [syntax:redundant-semicolon]
    │
  9 │ do ; local x end
    │    ^
-semicolon.lua:[13:7-13:8]: Redundant semicolon. [syntax:redundant-semicolon]
+semicolon.lua:[13:7-13:7]: Redundant semicolon. [syntax:redundant-semicolon]
     │
  13 │ do f(); f() end
     │       ^

@@ -1,36 +1,36 @@
-pointless_discard.lua:[3:7-3:8]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[3:7-3:7]: Pointless discard variable `_`. [var:pointless-discard]
    │
  3 │ local _ = 0
    │       ^
-pointless_discard.lua:[5:10-5:11]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[5:10-5:10]: Pointless discard variable `_`. [var:pointless-discard]
    │
  5 │ local a, _ = f(), 0
    │          ^
-pointless_discard.lua:[7:4-7:5]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[7:4-7:4]: Pointless discard variable `_`. [var:pointless-discard]
    │
  7 │ _, _ = 0
    │    ^
-pointless_discard.lua:[9:4-9:5]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[9:4-9:4]: Pointless discard variable `_`. [var:pointless-discard]
    │
  9 │ a, _ = f(), 0
    │    ^
-pointless_discard.lua:[12:8-12:9]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[12:8-12:8]: Pointless discard variable `_`. [var:pointless-discard]
     │
  12 │ for _, _ in pairs({}) do end
     │        ^
-pointless_discard.lua:[14:8-14:9]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[14:8-14:8]: Pointless discard variable `_`. [var:pointless-discard]
     │
  14 │ for k, _ in pairs({}) do end
     │        ^
-pointless_discard.lua:[16:18-16:19]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[16:18-16:18]: Pointless discard variable `_`. [var:pointless-discard]
     │
  16 │ local function f(_) end
     │                  ^
-pointless_discard.lua:[20:16-20:17]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[20:16-20:16]: Pointless discard variable `_`. [var:pointless-discard]
     │
  20 │ local function _() end
     │                ^
-pointless_discard.lua:[21:10-21:11]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[21:10-21:10]: Pointless discard variable `_`. [var:pointless-discard]
     │
  21 │ function _() end
     │          ^

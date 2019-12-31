@@ -1,8 +1,8 @@
-use_underscore.lua:[4:7-4:8]: Using "discard" variable `_`. [var:use-discard]
+use_underscore.lua:[4:7-4:7]: Using "discard" variable `_`. [var:use-discard]
    │
  4 │ print(_)
    │       ^
-use_underscore.lua:[5:3-5:4]: Using "discard" variable `_`. [var:use-discard]
+use_underscore.lua:[5:3-5:3]: Using "discard" variable `_`. [var:use-discard]
    │
  5 │ x[_] = 0
    │   ^

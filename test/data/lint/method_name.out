@@ -1,8 +1,8 @@
-method_name.lua:[3:12-3:13]: Method names cannot appear at this position. [syntax:method-name]
+method_name.lua:[3:12-3:12]: Method names cannot appear at this position. [syntax:method-name]
    │
  3 │ function x:y:z() end
    │            ^
-method_name.lua:[4:12-4:13]: Method names cannot appear at this position. [syntax:method-name]
+method_name.lua:[4:12-4:12]: Method names cannot appear at this position. [syntax:method-name]
    │
  4 │ function x:y.z() end
    │            ^

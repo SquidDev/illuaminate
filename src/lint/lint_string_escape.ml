@@ -16,10 +16,8 @@ let linter =
               let msg (chr, start, finish) =
                 let span =
                   { span with
-                    start_col = span.start_col + start.Lexing.pos_cnum - 1;
-                    start_bol = span.start_bol + start.Lexing.pos_cnum - 1;
-                    finish_col = span.start_col + finish.Lexing.pos_cnum - 1;
-                    finish_bol = span.start_bol + finish.Lexing.pos_cnum - 1
+                    start_col = span.start_col + start.Lexing.pos_cnum;
+                    finish_col = span.start_col + finish.Lexing.pos_cnum - 1
                   }
                 in
                 note ~tag ~span (Printf.sprintf "Unknown escape character '\\%c'." chr)
