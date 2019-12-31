@@ -93,10 +93,16 @@ button:active {
 .error { border-top: solid 1px #ddd; }
 .error:hover { background: #f0f0f0; }
 
+.error-line { margin: 0.5em 0px; }
+.error-line-no, .error-line-str { padding: 0.5em; }
+.error-line-no { border-right: solid 1px #000; }
+.error-line strong { text-decoration: underline wavy; }
+
+/* Color error message text, and the line underline */
 .error-error .error-pos, .error-critical .error-pos { color: #880000; }
 .error-warning .error-pos { color: #cb4b16; }
 .error-note .error-pos { color: #268bd2; }
 
-.error-line { margin: 0.5em 0px; }
-.error-line-no, .error-line-str { padding: 0.5em; }
-.error-line-no { border-right: solid 1px #000; }
+.error-error strong, .error-critical strong { text-decoration-color: #880000; }
+.error-warning strong { text-decoration-color: #cb4b16; }
+.error-note strong { text-decoration-color: #268bd2; }

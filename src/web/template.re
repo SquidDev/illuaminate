@@ -15,7 +15,41 @@ let level: Error.level => string =
     | Note => "note"
     };
 
+let partition_string = (start, length, str) => {
+  let str_len = String.length(str);
+  if (start >= str_len) {
+    (
+      str,
+      None,
+      "" // If we start before the string length, just bail entirely.
+    );
+  } else if (start + length <= 0) {
+    ("", None, str);
+  } else {
+    let start = max(0, start);
+    let length = min(str_len - start, length);
+    (
+      String.sub(str, 0, start),
+      Some(String.sub(str, start, length)),
+      String.sub(str, start + length, str_len - start - length),
+    );
+  };
+};
+
 let error = (line, ~fix=?, {Error.Error.span, message, tag, _}) => {
+  let length =
+    if (span.finish_line == span.start_line) {
+      span.finish_col - span.start_col + 1;
+    } else {
+      String.length(line) - span.start_col + 1;
+    };
+
+  let (before, contents, after) =
+    partition_string(span.start_col - 1, length, line);
+  //  = CCString.take(span.start_col - 1, line);
+  // let contents = String.sub(line, span.start_col - 1, length);
+  // let after = CCString.drop(span.start_col - 1 + length, line);
+
   <div class_={"error error-" ++ level(tag.level)}>
     <div class_="error-pos">
       {Printf.sprintf(
@@ -38,7 +72,11 @@ let error = (line, ~fix=?, {Error.Error.span, message, tag, _}) => {
       <span class_="error-line-no">
         {str(string_of_int(span.start_line))}
       </span>
-      <span class_="error-line-str"> {str(line)} </span>
+      <span class_="error-line-str">
+        {str(before)}
+        <strong> {Option.fold(~none=str(" "), ~some=str, contents)} </strong>
+        {str(after)}
+      </span>
     </div>
   </div>;
 };
