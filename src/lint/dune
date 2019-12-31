@@ -4,3 +4,6 @@
  (synopsis "Basic linting for Illuaminate.")
  (libraries containers illuaminate.core illuaminate.config
    illuaminate.semantics ppx_deriving.runtime))
+
+(ocamllex
+ (modules lex_string_escape))

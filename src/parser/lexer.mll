@@ -117,10 +117,6 @@ and string contents value c = parse
 | "\\v"             { Buffer.add_string contents "\\v";  Buffer.add_char value '\011'; string contents value c lexbuf }
 | "\\t"             { Buffer.add_string contents "\\t";  Buffer.add_char value '\t';   string contents value c lexbuf }
 
-| "\\\\"            { Buffer.add_string contents "\\\\"; Buffer.add_char value '\\';   string contents value c lexbuf }
-| "\\\""            { Buffer.add_string contents "\\\""; Buffer.add_char value '\"';   string contents value c lexbuf }
-| "\\\'"            { Buffer.add_string contents "\\\'"; Buffer.add_char value '\'';   string contents value c lexbuf }
-
 | "\\x" ((hex hex?) as x)
                     { Buffer.add_string contents "\\x"; Buffer.add_string contents x;
                       Buffer.add_char value ("0x" ^ x |> int_of_string |> char_of_int);
@@ -128,6 +124,11 @@ and string contents value c = parse
 | "\\" ((digit digit? digit?) as x)
                     { Buffer.add_char contents '\\'; Buffer.add_string contents x;
                       Buffer.add_char value (int_of_string x |> char_of_int);
+                      string contents value c lexbuf }
+
+| "\\" ([^ '\n'] as x)
+                    { Buffer.add_char contents '\\'; Buffer.add_char contents x;
+                      Buffer.add_char value x;
                       string contents value c lexbuf }
 
 | [^'\\' '\"' '\'' '\n']+ as x

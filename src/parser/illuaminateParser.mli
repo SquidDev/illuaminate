@@ -11,5 +11,16 @@ module Error : sig
   val report : Error.t -> Span.t -> t -> unit
 end
 
+module Lexer : sig
+  (** The type of tokens produced by the lexer. *)
+  type token =
+    | Token of Token.t
+    | Trivial of Node.trivial
+
+  (** Lex a file, producing a simple token stream. *)
+  val lex :
+    Span.filename -> Lexing.lexbuf -> (token Span.spanned array, Error.t Span.spanned) result
+end
+
 (** Parse a file, either producing a program or some syntax error. *)
 val parse : Span.filename -> Lexing.lexbuf -> (Syntax.program, Error.t Span.spanned) result

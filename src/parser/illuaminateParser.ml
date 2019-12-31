@@ -70,3 +70,23 @@ let parse (file : Span.filename) (lexbuf : Lexing.lexbuf) =
     Grammar.Incremental.main Lexing.dummy_pos |> go None first
   with Lexer.Error (err, start, fin) ->
     Error { Span.span = Span.of_pos2 file start fin; value = err }
+
+module Lexer = struct
+  type token = lexer_token =
+    | Token of IlluaminateCore.Token.t
+    | Trivial of IlluaminateCore.Node.trivial
+
+  let lex (file : Span.filename) (lexbuf : Lexing.lexbuf) :
+      (token Span.spanned array, Error.t Span.spanned) result =
+    try
+      lexbuf.lex_curr_p <- { Lexing.pos_fname = file.path; pos_lnum = 1; pos_cnum = 0; pos_bol = 0 };
+      let rec go xs =
+        let token = lex_one file lexbuf in
+        match token with
+        | { value = Token EoF; _ } -> token :: xs
+        | _ -> go (token :: xs)
+      in
+      go [] |> List.rev |> Array.of_list |> Result.ok
+    with Lexer.Error (err, start, fin) ->
+      Error { Span.span = Span.of_pos2 file start fin; value = err }
+end

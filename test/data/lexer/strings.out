@@ -1,0 +1,22 @@
+"a"
+(Node.Whitespace "\n")
+"a\nb"
+(Node.Whitespace "\n")
+"a\0b"
+(Node.Whitespace "\n")
+"a\x00b"
+(Node.Whitespace "\n")
+"a\(b"
+(Node.Whitespace "\n")
+(Node.Whitespace "\n")
+'a'
+(Node.Whitespace "\n")
+'a\nb'
+(Node.Whitespace "\n")
+'a\0b'
+(Node.Whitespace "\n")
+'a\x00b'
+(Node.Whitespace "\n")
+'a\(b'
+(Node.Whitespace "\n")
+end of file

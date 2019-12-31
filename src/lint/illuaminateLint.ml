@@ -44,7 +44,10 @@ module Linters = struct
 
   let string_len = Lint_string_len.linter
 
+  let string_escape = Lint_string_escape.linter
+
   let all =
+    (* TODO: Find a more efficient order for these (namely group related passes together instead) *)
     [ arg_arg;
       doc_parse;
       empty_block;
@@ -53,6 +56,7 @@ module Linters = struct
       method_name;
       misplaced_dots;
       parens;
+      string_escape;
       pointless_semicolon;
       set_global;
       set_loop;
