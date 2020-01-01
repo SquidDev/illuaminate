@@ -46,6 +46,8 @@ module Linters = struct
 
   let string_escape = Lint_string_escape.linter
 
+  let malformed_number = Lint_malformed_number.linter
+
   let all =
     (* TODO: Find a more efficient order for these (namely group related passes together instead) *)
     [ arg_arg;
@@ -57,6 +59,7 @@ module Linters = struct
       misplaced_dots;
       parens;
       string_escape;
+      malformed_number;
       pointless_semicolon;
       set_global;
       set_loop;

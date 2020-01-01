@@ -27,7 +27,7 @@ let show_error = function
   | Type_lexer.UnexpectedCharacter c ->
       Printf.sprintf "Unexpected character \"%s\"" (String.escaped c)
   | UnterminatedString -> "Unterminated string"
-  | UnexpectedToken (tok, m) -> "Unexpected " ^ show_token tok ^ ". " ^ m
+  | UnexpectedToken (tok, m) -> Printf.sprintf "Unexpected `%s`: %s" (show_token tok) m
   | SyntaxError m -> m
 
 let parse_from f input =

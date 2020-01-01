@@ -201,9 +201,7 @@ let worker ~store ~data ~tags (Linter linter : t) program =
     | Nil a -> token context a
     | True a -> token context a
     | False a -> token context a
-    | Number _ -> ()
-    | Int _ -> ()
-    | String _ -> ()
+    | Number _ | Int _ | String _ | MalformedNumber _ -> ()
     | Fun a -> fun_expr context a
     | Table a -> table context a
     | UnOp a -> unop_expr context a

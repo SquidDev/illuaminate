@@ -24,6 +24,7 @@
 %token <string IlluaminateCore.Syntax.literal> STRING
 %token <int IlluaminateCore.Syntax.literal> INT
 %token <float IlluaminateCore.Syntax.literal> NUMBER
+%token <string IlluaminateCore.Node.t> MNUMBER
 
 %left OR
 %left AND
@@ -96,14 +97,15 @@ let call_args :=
 (* Expressions *)
 let atom :=
   | simple_expr
-  | ~ = table  ; <Table>
-  | ~ = NIL    ; <Nil>
-  | ~ = TRUE   ; <True>
-  | ~ = FALSE  ; <False>
-  | ~ = "..."  ; <Dots>
-  | ~ = INT    ; <Int>
-  | ~ = NUMBER ; <Number>
-  | ~ = STRING ; <String>
+  | ~ = table   ; <Table>
+  | ~ = NIL     ; <Nil>
+  | ~ = TRUE    ; <True>
+  | ~ = FALSE   ; <False>
+  | ~ = "..."   ; <Dots>
+  | ~ = INT     ; <Int>
+  | ~ = NUMBER  ; <Number>
+  | ~ = MNUMBER ; <MalformedNumber>
+  | ~ = STRING  ; <String>
   | fun_function = FUNCTION ; fun_args = args ; fun_body = stmts ; fun_end = END
   ; { Fun { fun_function; fun_args; fun_body; fun_end } }
 

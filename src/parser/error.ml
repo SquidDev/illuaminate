@@ -11,7 +11,7 @@ let show_error = function
   | UnterminatedString -> "Unterminated string"
   | SyntaxError m -> m
   | UnexpectedToken (tok, m) ->
-      "Unexpected " ^ (Token.get_token tok |> IlluaminateCore.Token.show) ^ ". " ^ m
+      Printf.sprintf "Unexpected `%s`: %s" (Token.get_token tok |> IlluaminateCore.Token.show) m
 
 let syntax_error = E.Tag.make E.Critical "parse:syntax-error"
 

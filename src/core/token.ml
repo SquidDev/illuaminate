@@ -33,6 +33,7 @@ type t =
   | Len
   | Local
   | Lt
+  | MalformedNumber of string
   | Mod
   | Mul
   | Ne
@@ -91,6 +92,7 @@ let show = function
   | Len -> "#"
   | Local -> "local"
   | Lt -> "<"
+  | MalformedNumber x -> x
   | Mod -> "%"
   | Mul -> "*"
   | Ne -> "~="

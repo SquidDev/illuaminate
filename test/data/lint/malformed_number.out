@@ -1,0 +1,17 @@
+malformed_number.lua:[3:3-3:5]: Malformed number [syntax:malformed-number]
+   │
+ 3 │   2..,
+   │   ^^^
+malformed_number.lua:[4:3-4:6]: Malformed number [syntax:malformed-number]
+   │
+ 4 │   2...,
+   │   ^^^^
+malformed_number.lua:[5:3-5:7]: Malformed number [syntax:malformed-number]
+   │
+ 5 │   2.2..,
+   │   ^^^^^
+malformed_number.lua:[6:3-6:7]: Malformed number [syntax:malformed-number]
+   │
+ 6 │   2e2.2,
+   │   ^^^^^
+4 errors and 0 warnings

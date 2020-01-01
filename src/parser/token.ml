@@ -47,6 +47,7 @@ let make_token leading_trivia trailing_trivia span =
   | Len -> LEN (mk OpLen)
   | Local -> LOCAL (mk Token.Local)
   | Lt -> LT (mk OpLt)
+  | MalformedNumber x -> MNUMBER (mk x)
   | Mod -> MOD (mk OpMod)
   | Mul -> MUL (mk OpMul)
   | Ne -> NE (mk OpNe)
@@ -123,6 +124,7 @@ let get_token = function
   | STRING { lit_value; lit_node } -> String (lit_value, lit_node ^. contents)
   | NUMBER { lit_value; lit_node; _ } -> Number (lit_value, lit_node ^. contents)
   | INT { lit_value; lit_node; _ } -> Int (lit_value, lit_node ^. contents)
+  | MNUMBER x -> MalformedNumber (x ^. contents)
 
 let get_span =
   let get_span = function
@@ -179,7 +181,7 @@ let get_span =
   | UNTIL x
   | WHILE x ->
       get_span x
-  | IDENT x -> get_span x
+  | IDENT x | MNUMBER x -> get_span x
   | STRING { lit_node; _ } -> get_span lit_node
   | NUMBER { lit_node; _ } -> get_span lit_node
   | INT { lit_node; _ } -> get_span lit_node

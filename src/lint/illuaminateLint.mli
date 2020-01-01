@@ -77,6 +77,12 @@ module Linters : sig
   (** Replace string.len(x) with #x *)
   val string_len : linter
 
+  (** Checks for invalid escape characters in strings. *)
+  val string_escape : linter
+
+  (** Checks for all {!IlluaminateCore.Syntax.MalformedNumber} nodes and informs about them. *)
+  val malformed_number : linter
+
   (** A list of all linters. *)
   val all : linter list
 end

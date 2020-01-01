@@ -16,6 +16,11 @@
   let mk_long_string eqs c =
     let eqs = String.make eqs '=' in
     Token (String (c, "[" ^ eqs ^ "[" ^ c ^ "]" ^ eqs ^ "]"))
+
+  let mk_number c =
+    match float_of_string_opt c with
+    | None -> Token (MalformedNumber c)
+    | Some f -> Token (Number (f, c))
 }
 
 let white = [' ' '\t' ]
@@ -23,6 +28,7 @@ let white = [' ' '\t' ]
 
 let digit = ['0'-'9']
 let hex = ['0'-'9' 'a'-'f' 'A'-'F']
+let number = digit | ['E' 'e'] ['+' '-']? | '.'
 
 let ident_head = ['a'-'z' 'A'-'Z' '_']
 let ident_tail = ident_head | '_' | digit
@@ -83,12 +89,10 @@ rule token = parse
 | '#'  { Token Len }
 
 (* Numbers *)
-| digit+    as i { Token (Int (int_of_string i, i)) }
 | "0x" hex+ as i { Token (Int (int_of_string i, i)) }
-
-| digit+            ['E' 'e'] ['+' '-']? digit+ as i { Token (Number (float_of_string i, i)) }
-| digit* '.' digit+                             as i { Token (Number (float_of_string i, i)) }
-| digit* '.' digit+ ['E' 'e'] ['+' '-']? digit+ as i { Token (Number (float_of_string i, i)) }
+| digit+ as i    { Token (Int (int_of_string i, i)) }
+| digit number* as i     { mk_number i }
+| '.' digit number* as i { mk_number i }
 
 (* Identifiers *)
 | ident_head ident_tail* as i { Token (Ident i) }

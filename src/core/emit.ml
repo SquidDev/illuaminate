@@ -235,6 +235,7 @@ and expr out = function
   | False a -> token ~kind:LiteralKeyword out a
   | Number a -> literal ~kind:Number out a
   | Int a -> literal ~kind:Number out a
+  | MalformedNumber a -> node ~kind:Number Format.pp_print_string out a
   | String a -> literal ~kind:String out a
   | Fun a -> fun_expr out a
   | Table a -> table out a

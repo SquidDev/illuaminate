@@ -407,6 +407,7 @@ and expr =
   | False of token
   | Number of float literal
   | Int of int literal
+  | MalformedNumber of string Node.t
   | String of string literal
   | Fun of fun_expr
   | Table of table
@@ -622,6 +623,15 @@ module First = struct
     in
     literal_embed get set
 
+  let lit_malformed_number =
+    let get x = Token.MalformedNumber x
+    and over f x =
+      match f (Token.MalformedNumber x) with
+      | Token.MalformedNumber x -> x
+      | t -> failwith (Format.asprintf "Cannot convert token '%a' to malformed number." Token.pp t)
+    in
+    Node.lens_embed { get; over }
+
   let rec stmt =
     let get = function
       | Do x -> do_stmt.get x
@@ -697,6 +707,7 @@ module First = struct
       | Dots x | Nil x | True x | False x -> x
       | Number x -> lit_number.get x
       | Int x -> lit_int.get x
+      | MalformedNumber x -> lit_malformed_number.get x
       | String x -> lit_string.get x
       | Fun x -> fun_expr.get x
       | Table x -> table.get x
@@ -712,6 +723,7 @@ module First = struct
       | False x -> False (f x)
       | Number x -> Number (lit_number.over f x)
       | Int x -> Int (lit_int.over f x)
+      | MalformedNumber x -> MalformedNumber (lit_malformed_number.over f x)
       | String x -> String (lit_string.over f x)
       | Fun x -> Fun (fun_expr.over f x)
       | Table x -> Table (table.over f x)
@@ -831,6 +843,7 @@ module Last = struct
       | Dots x | Nil x | True x | False x -> x
       | Number x -> First.lit_number.get x
       | Int x -> First.lit_int.get x
+      | MalformedNumber x -> First.lit_malformed_number.get x
       | String x -> First.lit_string.get x
       | Fun x -> fun_expr.get x
       | Table x -> table.get x
@@ -846,6 +859,7 @@ module Last = struct
       | False x -> False (f x)
       | Number x -> Number (First.lit_number.over f x)
       | Int x -> Int (First.lit_int.over f x)
+      | MalformedNumber x -> MalformedNumber (First.lit_malformed_number.over f x)
       | String x -> String (First.lit_string.over f x)
       | Fun x -> Fun (fun_expr.over f x)
       | Table x -> Table (table.over f x)
@@ -960,7 +974,9 @@ module Precedence = struct
 
   (** Get the precedence of an expression. *)
   let of_expr = function
-    | Nil _ | True _ | False _ | Number _ | Int _ | String _ | Fun _ | Table _ | Dots _ -> Lit
+    | Nil _ | True _ | False _ | Number _ | Int _ | MalformedNumber _ | String _ | Fun _ | Table _
+    | Dots _ ->
+        Lit
     | ECall _ | Ref _ | Parens _ -> Raw
     | UnOp { unop_op; _ } -> Op (Node.contents.get unop_op |> UnOp.precedence)
     | BinOp { binop_op; _ } -> Op (Node.contents.get binop_op |> BinOp.precedence)
