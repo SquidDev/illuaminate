@@ -41,7 +41,9 @@ let linter =
         let resolve = Data.get context.program R.key context.data in
         match G.of_expr resolve fn with
         | Some g when g = string_len && safe_args call.args ->
-            [ note ~fix ~tag "Prefer passing function arguments to pcall, rather than using a closure." ]
+            [ note ~fix ~tag
+                "Prefer passing function arguments to pcall, rather than using a closure."
+            ]
         | _ -> [] )
     | _ -> []
   in

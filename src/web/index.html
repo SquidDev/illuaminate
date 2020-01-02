@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Illuaminate</title>
-    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="main.css?v=%%VCS_COMMIT_ID%%" />
 
     <meta http-equiv="content-language" content="en-US">
 
@@ -40,7 +40,7 @@
   </head>
 
   <body>
-    <section class="container">
+    <section class="contents">
       <h1>💡 Illuaminate</h1>
       <p>
         Illuaminate is a series of tools for working with Lua source code, providing ways of making your codebase
@@ -56,6 +56,10 @@
       <pre id="error-messages"><div class="error-summary error-loading">Loading Illuaminate...</div></pre>
     </section>
 
-    <script type="text/javascript" src="main.js"></script>
+    <footer>
+      Illuaminate <a href="https://github.com/SquidDev/illuaminate/commit/%%VCS_COMMIT_ID%%" title="View this version on GitHub"><code>%%VERSION%%</code></a>.
+    </footer>
+
+    <script type="text/javascript" src="main.js?v=%%VCS_COMMIT_ID%%"></script>
   </body>
 </html>
