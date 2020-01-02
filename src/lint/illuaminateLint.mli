@@ -83,6 +83,9 @@ module Linters : sig
   (** Checks for all {!IlluaminateCore.Syntax.MalformedNumber} nodes and informs about them. *)
   val malformed_number : linter
 
+  (** Checks for calls to pcall which could be eta-reduced. *)
+  val pcall_eta : linter
+
   (** A list of all linters. *)
   val all : linter list
 end

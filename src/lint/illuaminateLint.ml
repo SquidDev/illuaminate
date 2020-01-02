@@ -48,6 +48,8 @@ module Linters = struct
 
   let malformed_number = Lint_malformed_number.linter
 
+  let pcall_eta = Lint_pcall_eta.linter
+
   let all =
     (* TODO: Find a more efficient order for these (namely group related passes together instead) *)
     [ arg_arg;
@@ -65,6 +67,7 @@ module Linters = struct
       set_loop;
       spacing;
       string_len;
+      pcall_eta;
       table_trailing;
       unbalanced_assign;
       unreachable;

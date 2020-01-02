@@ -1,7 +1,8 @@
 module Control = Control
+module Global = Global
+module Pure = Pure
 module Reference = Reference
 module Resolve = Resolve
-module Global = Global
 
 module Doc : sig
   module Comment = Doc_comment

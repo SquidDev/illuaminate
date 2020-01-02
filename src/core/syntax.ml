@@ -10,6 +10,10 @@ module SepList1 = struct
     | Mono x -> fx x
     | Cons1 (x, t, xs) -> fx x; tok t; iter fx ~tok xs
 
+  let rec for_all f = function
+    | Mono x -> f x
+    | Cons1 (x, _, xs) -> f x && for_all f xs
+
   let rec map fx ?(tok = Fun.id) = function
     | Mono x -> Mono (fx x)
     | Cons1 (x, t, xs) -> Cons1 (fx x, tok t, map fx ~tok xs)
@@ -73,9 +77,9 @@ end
 module SepList0 = struct
   type 'a t = 'a SepList1.t option [@@deriving show]
 
-  let map' f = function
-    | None -> []
-    | Some x -> SepList1.map' f x
+  let map' f x = Option.fold ~none:[] ~some:(SepList1.map' f) x
+
+  let for_all f x = Option.fold ~none:true ~some:(SepList1.for_all f) x
 
   let map_with' f s = function
     | None -> (s, [])
@@ -962,6 +966,8 @@ module Spanned = struct
   let table_item = project First.table_item Last.table_item
 
   let table = project First.table Last.table
+
+  let call = project First.call Last.call
 end
 
 module Precedence = struct
