@@ -14,28 +14,32 @@ pointless_discard.lua:[9:4-9:4]: Pointless discard variable `_`. [var:pointless-
    │
  9 │ a, _ = f(), 0
    │    ^
-pointless_discard.lua:[12:8-12:8]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[13:1-13:1]: Pointless discard variable `_`. [var:pointless-discard]
     │
- 12 │ for _, _ in pairs({}) do end
+ 13 │ _ = { [f()] = g(), h(), 2 .. 2 }
+    │ ^
+pointless_discard.lua:[16:8-16:8]: Pointless discard variable `_`. [var:pointless-discard]
+    │
+ 16 │ for _, _ in pairs({}) do end
     │        ^
-pointless_discard.lua:[14:8-14:8]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[18:8-18:8]: Pointless discard variable `_`. [var:pointless-discard]
     │
- 14 │ for k, _ in pairs({}) do end
+ 18 │ for k, _ in pairs({}) do end
     │        ^
-pointless_discard.lua:[16:18-16:18]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[20:18-20:18]: Pointless discard variable `_`. [var:pointless-discard]
     │
- 16 │ local function f(_) end
+ 20 │ local function f(_) end
     │                  ^
-pointless_discard.lua:[20:16-20:16]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[24:16-24:16]: Pointless discard variable `_`. [var:pointless-discard]
     │
- 20 │ local function _() end
+ 24 │ local function _() end
     │                ^
-pointless_discard.lua:[21:10-21:10]: Pointless discard variable `_`. [var:pointless-discard]
+pointless_discard.lua:[25:10-25:10]: Pointless discard variable `_`. [var:pointless-discard]
     │
- 21 │ function _() end
+ 25 │ function _() end
     │          ^
-No errors and 9 warnings
-@@ -1,22 +1,14 @@
+No errors and 10 warnings
+@@ -1,26 +1,14 @@
 --- config: (lint (only (var:pointless-discard)))
 -
 -local _ = 0
@@ -46,8 +50,13 @@ No errors and 9 warnings
 +local a = f(), 0
  _, a = 0 -- ok
 -a, _ = f(), 0
+-
+--- TODO: This converts into `f()g()h()', which is correct but terribly ugly. The
+--- linter driver needs to correctly handle this.
+-_ = { [f()] = g(), h(), 2 .. 2 }
+-
 +a = f(), 0
- 
++f()g()h()
  for _ in pairs({}) do end -- ok
 -for _, _ in pairs({}) do end
 +for _ in pairs({}) do end

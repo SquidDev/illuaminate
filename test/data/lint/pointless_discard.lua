@@ -8,6 +8,10 @@ _, _ = 0
 _, a = 0 -- ok
 a, _ = f(), 0
 
+-- TODO: This converts into `f()g()h()', which is correct but terribly ugly. The
+-- linter driver needs to correctly handle this.
+_ = { [f()] = g(), h(), 2 .. 2 }
+
 for _ in pairs({}) do end -- ok
 for _, _ in pairs({}) do end
 for _, v in pairs({}) do end -- ok

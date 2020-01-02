@@ -45,9 +45,27 @@ module Fix = struct
 
   (** Attempt to flatten an expression into a series of statements. *)
   let rec flatten : expr -> (stmt list, string) result = function
-    | Ref (NVar _) | Dots _ | Nil _ | True _ | False _ | Number _ | Int _ | Fun _ -> Ok []
+    | Ref (NVar _)
+    | Dots _ | Nil _ | True _ | False _ | Number _ | MalformedNumber _ | Int _ | String _ | Fun _ ->
+        Ok []
     | Parens { paren_expr = x; _ } -> flatten x
-    | _ -> Error "Do not know how to flatten this expression."
+    | Table { table_body; _ } ->
+        let rec items xs =
+          let ( let+ ) = Result.bind in
+          function
+          | [] -> Ok (List.rev xs)
+          | ((Array e | RawPair { value = e; _ }), _) :: ts ->
+              let+ e = flatten e in
+              items (e @ xs) ts
+          | (ExprPair { key; value; _ }, _) :: ts ->
+              let+ k = flatten key in
+              let+ v = flatten value in
+              items (v @ k @ xs) ts
+        in
+        items [] table_body
+    | ECall c -> Ok [ SCall c ]
+    | (UnOp _ | BinOp _ | Ref _) as e ->
+        if IlluaminateSemantics.Pure.Safe.expr e then Ok [] else Error "Impure term"
 
   (** Attempt to flatten multiple expressions into a series of statements. *)
   let rec flatten1 : expr SepList1.t -> (stmt list, string) result = function
