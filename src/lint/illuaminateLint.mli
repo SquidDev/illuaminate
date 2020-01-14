@@ -77,6 +77,9 @@ module Linters : sig
   (** Replace string.len(x) with #x *)
   val string_len : linter
 
+  (** Warn about various issues with the string library *)
+  val string_lib : linter
+
   (** Checks for invalid escape characters in strings. *)
   val string_escape : linter
 

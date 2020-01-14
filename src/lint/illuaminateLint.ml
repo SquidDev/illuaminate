@@ -44,6 +44,8 @@ module Linters = struct
 
   let string_len = Lint_string_len.linter
 
+  let string_lib = Lint_string_lib.linter
+
   let string_escape = Lint_string_escape.linter
 
   let malformed_number = Lint_malformed_number.linter
@@ -67,6 +69,7 @@ module Linters = struct
       set_loop;
       spacing;
       string_len;
+      string_lib;
       pcall_eta;
       table_trailing;
       unbalanced_assign;
