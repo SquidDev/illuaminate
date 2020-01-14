@@ -11,5 +11,5 @@ let linter =
     ~program:(fun () context prog ->
       Data.get prog D.key context.data |> D.comments
       |> CCList.flat_map (fun (x : Doc.Comment.comment) ->
-             List.map (fun (tag, msg) -> note ~span:x.source ~tag msg) x.Doc.Comment.errors))
+             List.map (fun (tag, msg) -> note ~span:x.source ~tag "%s" msg) x.Doc.Comment.errors))
     ()

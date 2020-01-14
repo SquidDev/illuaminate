@@ -18,7 +18,12 @@ type 'a note = private
   }
 
 (** Construct a new {!type:note} *)
-val note : ?fix:'a fixer -> ?span:Span.t -> tag:Error.Tag.t -> string -> 'a note
+val note :
+  ?fix:'a fixer ->
+  ?span:Span.t ->
+  tag:Error.Tag.t ->
+  ('f, Format.formatter, unit, 'a note) format4 ->
+  'f
 
 (** A vertex in a path from the top of a program to the leaves. *)
 type path_item =

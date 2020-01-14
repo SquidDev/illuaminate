@@ -12,7 +12,8 @@ type 'a note =
     span : Span.t option
   }
 
-let note ?(fix = FixNothing) ?span ~tag message = { fix; message; span; tag }
+let note ?(fix = FixNothing) ?span ~tag message =
+  Format.kasprintf (fun message -> { fix; message; span; tag }) message
 
 type path_item =
   | Expr of Syntax.expr

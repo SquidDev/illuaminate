@@ -319,7 +319,7 @@ and resolve_name s syntax =
 
 and resolve_call s = function
   | S.Call { fn; args } -> resolve_expr s fn; resolve_call_args s args
-  | Invoke { fn; args; _ } -> resolve_expr s fn; resolve_call_args s args
+  | Invoke { obj; args; _ } -> resolve_expr s obj; resolve_call_args s args
 
 and resolve_call_args s = function
   | S.CallArgs { args; _ } -> S.SepList0.iter (resolve_expr s) args

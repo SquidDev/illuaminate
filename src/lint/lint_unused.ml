@@ -65,7 +65,7 @@ let linter =
                 | Arg _ -> tag_arg
                 | _ -> tag_generic
               in
-              [ note ~fix:fix_var ~tag (Printf.sprintf "Unused variable %S." name) ]
+              [ note ~fix:fix_var ~tag "Unused variable %S." name ]
           | _ -> [] )
       | _ -> []
   and stmt () context = function

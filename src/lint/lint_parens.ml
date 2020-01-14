@@ -78,9 +78,9 @@ let linter =
     (* Determine whether this term is in a call/index context. *)
     let is_fn_or_tbl () =
       match path with
-      | Expr (ECall (Call { fn; _ } | Invoke { fn; _ })) :: _
-      | Stmt (SCall (Call { fn; _ } | Invoke { fn; _ })) :: _ ->
-          fn == parens
+      | Expr (ECall (Call { fn = x; _ } | Invoke { obj = x; _ })) :: _
+      | Stmt (SCall (Call { fn = x; _ } | Invoke { obj = x; _ })) :: _ ->
+          x == parens
       | Name (NDot { tbl; _ } | NLookup { tbl; _ }) :: _ -> tbl == parens
       | _ -> false
     in

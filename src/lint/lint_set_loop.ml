@@ -13,9 +13,7 @@ let linter =
       let resolve = Data.get context.program R.key context.data in
       match R.get_definition var resolve with
       | { kind = Loop _; _ } ->
-          [ note ~tag ~span:(Node.span name)
-              (Printf.sprintf "Mutating loop variable %S." (Node.contents.get name))
-          ]
+          [ note ~tag ~span:(Node.span name) "Mutating loop variable %S." (Node.contents.get name) ]
       | _ -> []
     in
     function

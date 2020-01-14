@@ -55,14 +55,12 @@ let linter =
         in
         if allow_empty_if then
           match clauses with
-          | (name, [], span, fix) :: _ ->
-              [ note ~span ~fix ~tag:tag_if (Printf.sprintf "Empty %s clause" name) ]
+          | (name, [], span, fix) :: _ -> [ note ~span ~fix ~tag:tag_if "Empty %s clause" name ]
           | _ -> []
         else
           List.filter_map
             (function
-              | name, [], span, fix ->
-                  Some (note ~span ~fix ~tag:tag_if (Printf.sprintf "Empty %s clause" name))
+              | name, [], span, fix -> Some (note ~span ~fix ~tag:tag_if "Empty %s clause" name)
               | _ -> None)
             clauses
     | _ -> []

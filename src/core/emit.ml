@@ -245,8 +245,8 @@ and expr out = function
 
 and call out = function
   | Call { fn; args } -> expr out fn; call_args out args
-  | Invoke { fn; colon; meth; args } ->
-      expr out fn;
+  | Invoke { obj; colon; meth; args } ->
+      expr out obj;
       token ~kind:Symbol out colon;
       node ~kind:Symbol Format.pp_print_string out meth;
       call_args out args

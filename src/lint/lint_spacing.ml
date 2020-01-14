@@ -84,17 +84,15 @@ module Lint = struct
     if has_trailing tok then []
     else
       let name = tok |> Node.contents.get |> Token.show in
-      [ note ~tag:tag_sep_space ~span:(Node.span tok) ~fix:Fix.after
-          (Printf.sprintf "Expected whitespace after %S." name)
+      [ note ~tag:tag_sep_space ~span:(Node.span tok) ~fix:Fix.after "Expected whitespace after %S."
+          name
       ]
 
   let around show fix prev node =
     if has_leading prev node && has_trailing node then []
     else
       let name = Node.contents.get node |> show in
-      [ note ~tag:tag_sep_space ~span:(Node.span node) ~fix
-          (Printf.sprintf "Expected whitespace around %S." name)
-      ]
+      [ note ~tag:tag_sep_space ~span:(Node.span node) ~fix "Expected whitespace around %S." name ]
 
   let rec table_body notes = function
     | [] -> notes

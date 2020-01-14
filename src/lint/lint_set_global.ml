@@ -40,9 +40,7 @@ let linter =
         let resolve = Data.get context.program R.key context.data in
         match R.get_definition var resolve with
         | { kind = Global; _ } ->
-            [ note ~tag
-                (Printf.sprintf "Setting unknown global function %S." (Node.contents.get name))
-            ]
+            [ note ~tag "Setting unknown global function %S." (Node.contents.get name) ]
         | _ -> [] )
     | _ -> []
   and name opts context name =
@@ -51,9 +49,7 @@ let linter =
         let resolve = Data.get context.program R.key context.data in
         match R.get_definition var resolve with
         | { kind = Global; _ } ->
-            [ note ~tag
-                (Printf.sprintf "Setting unknown global variable %S." (Node.contents.get name))
-            ]
+            [ note ~tag "Setting unknown global variable %S." (Node.contents.get name) ]
         | _ -> [] )
     | _ -> []
   in

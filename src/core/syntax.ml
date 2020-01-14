@@ -426,7 +426,7 @@ and call =
         args : call_args
       }  (** [f(x)] *)
   | Invoke of
-      { fn : expr;
+      { obj : expr;
         colon : token;
         meth : string Node.t;
         args : call_args
@@ -740,10 +740,10 @@ module First = struct
   and call =
     let get = function
       | Call { fn; _ } -> expr.get fn
-      | Invoke { fn; _ } -> expr.get fn
+      | Invoke { obj; _ } -> expr.get obj
     and over f = function
       | Call ({ fn; _ } as rest) -> Call { rest with fn = expr.over f fn }
-      | Invoke ({ fn; _ } as rest) -> Invoke { rest with fn = expr.over f fn }
+      | Invoke ({ obj; _ } as rest) -> Invoke { rest with obj = expr.over f obj }
     in
     { get; over }
 
@@ -950,6 +950,7 @@ module Last = struct
   let program = Program.eof
 end
 
+(** Get the span terms range over. These just wrap functions declared in {!First} and {!Last}. *)
 module Spanned = struct
   open Lens
 
@@ -968,6 +969,8 @@ module Spanned = struct
   let table = project First.table Last.table
 
   let call = project First.call Last.call
+
+  let list1 f x = Span.of_span2 (SepList1.first.get x |> f) (SepList1.last.get x |> f)
 end
 
 module Precedence = struct
@@ -986,4 +989,17 @@ module Precedence = struct
     | ECall _ | Ref _ | Parens _ -> Raw
     | UnOp { unop_op; _ } -> Op (Node.contents.get unop_op |> UnOp.precedence)
     | BinOp { binop_op; _ } -> Op (Node.contents.get binop_op |> BinOp.precedence)
+end
+
+module Helpers = struct
+  (** Convert a series of call arguments into a simple {!SepList0.t} *)
+  let get_call_args : call_args -> expr SepList0.t = function
+    | CallArgs { args; _ } -> args
+    | CallTable t -> Some (Mono (Table t))
+    | CallString x -> Some (Mono (String x))
+
+  (** Determine if this expression may return multiple values. *)
+  let has_var_return = function
+    | ECall _ | Dots _ -> true
+    | _ -> false
 end

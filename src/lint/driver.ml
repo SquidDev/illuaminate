@@ -209,8 +209,8 @@ let worker ~store ~data ~tags (Linter linter : t) program =
     | Parens a -> paren_expr context a
   and call context = function
     | Call { fn; args } -> expr context fn; call_args context args
-    | Invoke { fn; colon; meth = _; args } ->
-        expr context fn; token context colon; call_args context args
+    | Invoke { obj; colon; meth = _; args } ->
+        expr context obj; token context colon; call_args context args
   and call_args context = function
     | CallArgs { open_a; args; close_a } ->
         token context open_a; list0 expr context args; token context close_a

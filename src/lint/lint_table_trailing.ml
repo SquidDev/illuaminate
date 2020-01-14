@@ -89,13 +89,14 @@ let linter =
         | None -> [] (* If it's an empty table, allow both. *)
         | Some (item, None) when multiline ->
             [ Separator.token sep |> Token.show
-              |> Printf.sprintf "Expected trailing %S on multiline table"
-              |> note ~fix:(add_sep (Separator.token sep)) ~span:(Spanned.table_item item) ~tag
+              |> note
+                   ~fix:(add_sep (Separator.token sep))
+                   ~span:(Spanned.table_item item) ~tag "Expected trailing %S on multiline table"
             ]
         | Some (_, Some tok) when not multiline ->
             [ Node.contents.get tok |> Token.show
-              |> Printf.sprintf "Unexpected trailing %S on single line table"
               |> note ~fix:del_sep ~span:(Node.span tok) ~tag
+                   "Unexpected trailing %S on single line table"
             ]
         | _ -> [] )
     | _ -> []

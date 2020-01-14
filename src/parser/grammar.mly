@@ -85,8 +85,8 @@ let simple_expr :=
 let call :=
   | fn = simple_expr ; args = call_args
   ; { Call { fn; args } }
-  | fn = simple_expr ; colon = ":" ; meth = IDENT ; args = call_args
-  ; { Invoke { fn; colon; meth; args } }
+  | obj = simple_expr ; colon = ":" ; meth = IDENT ; args = call_args
+  ; { Invoke { obj; colon; meth; args } }
 
 let call_args :=
   | open_a = "(" ; args = sep_list0(",", expr) ; close_a = ")"

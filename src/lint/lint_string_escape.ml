@@ -20,7 +20,7 @@ let linter =
                     finish_col = span.start_col + finish.Lexing.pos_cnum - 1
                   }
                 in
-                note ~tag ~span (Printf.sprintf "Unknown escape character '\\%c'." chr)
+                note ~tag ~span "Unknown escape character '\\%c'." chr
               in
               List.map msg es
         else []

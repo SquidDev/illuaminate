@@ -8,19 +8,16 @@ let linter =
     [ note ~tag "This loop has the same start and stop point, and so will only execute once." ]
   and count_nothing = [ note ~tag "Numeric for loop has a step of 0. It will never progress." ]
   and count_up ~start ~limit =
-    [ Printf.sprintf "Numeric for loop counts up from %.14g to %.14g, but has a negative step."
-        start limit
-      |> note ~tag
+    [ note ~tag "Numeric for loop counts up from %.14g to %.14g, but has a negative step." start
+        limit
     ]
   and count_down ~start ~limit =
-    [ Printf.sprintf
-        "Numeric for loop counts down from %.14g to %.14g, but has a non-negative step." start limit
-      |> note ~tag
+    [ note ~tag "Numeric for loop counts down from %.14g to %.14g, but has a non-negative step."
+        start limit
     ]
   and count_for ~limit =
-    [ Printf.sprintf
-        "Numeric for loop counts down from #(expr) to %.14g, but has a non-negative step." limit
-      |> note ~tag
+    [ note ~tag "Numeric for loop counts down from #(expr) to %.14g, but has a non-negative step."
+        limit
     ]
   in
   let rec unwrap = function

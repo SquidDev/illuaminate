@@ -47,12 +47,6 @@ let linter =
         | _ -> [] )
     | _ -> []
   in
-
-  let get_args = function
-    | CallArgs { args; _ } -> args
-    | CallTable t -> Some (Mono (Table t))
-    | CallString x -> Some (Mono (String x))
-  in
   let fix = function
     | Call
         { fn;
@@ -75,7 +69,7 @@ let linter =
         }
       when let span = Spanned.call (Call call) in
            span.start_line = span.finish_line ->
-        let args = get_args call.args in
+        let args = Helpers.get_call_args call.args in
         let args =
           match args with
           | None -> SepList1.Mono call.fn
