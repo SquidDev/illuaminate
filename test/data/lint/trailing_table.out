@@ -1,8 +1,8 @@
-trailing_table.lua:[10:3-10:3]: Expected trailing "," on multiline table [syntax:table-trailing]
+trailing_table.lua:[10:3-10:3]: Expected trailing "," on multiline table [format:table-trailing]
     │
  10 │   0
     │   ^
-trailing_table.lua:[13:14-13:14]: Unexpected trailing "," on single line table [syntax:table-trailing]
+trailing_table.lua:[13:14-13:14]: Unexpected trailing "," on single line table [format:table-trailing]
     │
  13 │ local _ = { 0, }
     │              ^

@@ -33,7 +33,7 @@ module Separator = struct
 end
 
 let linter =
-  let tag = Error.Tag.make Error.Note "syntax:table-trailing" in
+  let tag = Error.Tag.make Error.Note "format:table-trailing" in
   let rec over_last f = function
     | [] -> []
     | [ x ] -> [ f x ]

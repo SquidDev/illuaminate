@@ -1,4 +1,4 @@
--- config: (lint (only (syntax:table-trailing)))
+-- config: (lint (only (format:table-trailing)))
 
 local _ = {} -- ok
 local _ = { 0 } -- ok
