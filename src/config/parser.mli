@@ -1,4 +1,4 @@
-(** {!Config} provides a very basic way of declaring configuration options using combinators.
+(** {!Parser} provides a very basic way of declaring configuration options using combinators.
 
     Config files are built from s-expressions, and so the parsing combinators reflect the underlying
     structure of the file. *)

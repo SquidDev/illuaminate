@@ -1,5 +1,10 @@
+(** A basic evaluator. This is not designed to be a complete definition of Lua, for obvious reasons,
+    but instead a way to evaluate {i simple} expressions (such as binary operators and constants). *)
+
 open Syntax
 
+(** A runtime representation of simple values. This does not include functions or tables, only basic
+    literals. *)
 type repr =
   | RUnknown
   | RNil

@@ -1,4 +1,17 @@
 {
+
+type character =
+  | Char of char
+  | Class of char
+
+type set_class =
+  | Range of character * character
+  | Single of character
+
+type set =
+  | Inclusive of set_class
+  | Exclusive of set_class
+
 type specifier = Eof | Unknown of char | Known of string * char
 }
 

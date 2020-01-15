@@ -4,6 +4,10 @@
     while still allowing elegant composition. Thus we just ignore that, and have a combined lens
     type. *)
 
+(** The type of polymorphic lenses.
+
+    These are declared as a getter function ([get]) and a modification function ([over]). This
+    allows for more convenient usage compared to a [get] and [set] function. *)
 type ('s, 't, 'a, 'b) lens =
   { get : 's -> 'a;  (** Read a field from the structure. *)
     over : ('a -> 'b) -> 's -> 't  (** Modify a field in the structure. *)

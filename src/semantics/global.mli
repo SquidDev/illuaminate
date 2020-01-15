@@ -1,3 +1,5 @@
+(** Determine if an expression resolves to a specific global variable. *)
+
 open IlluaminateCore
 
 (** The name of a global variable. *)

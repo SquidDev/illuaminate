@@ -7,6 +7,3 @@
 
 (ocamllex
  (modules lex_string_escape))
-
-(ocamllex
- (modules lex_string_format))

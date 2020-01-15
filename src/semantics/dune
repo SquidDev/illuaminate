@@ -56,3 +56,6 @@
 
 (ocamllex
  (modules type_lexer))
+
+(ocamllex
+ (modules string_format))

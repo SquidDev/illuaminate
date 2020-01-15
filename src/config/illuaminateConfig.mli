@@ -1,4 +1,4 @@
-(** {!IlluaminateConfig} provides a very basic way of reading and writing configuration files. *)
+(** {!IlluaminateConfig} provides a system for reading and writing configuration files. *)
 
 module Parser = Parser
 
@@ -79,7 +79,8 @@ module Category : sig
   val add : 'a Term.t -> t -> 'a key
 end
 
-(** A schema is merely a collection of config keys. *)
+(** A schema is merely a collection of {!Category} keys. These are then parsed into store, from
+    which the key's data can be extracted. *)
 module Schema : sig
   (** Holds a collection of config items to read/write. *)
   type t

@@ -6,10 +6,14 @@
 module Linter = Linter
 module Driver = Driver
 
+(** A linter, suitable for use with the linter {!Driver} *)
 type linter = Linter.t
 
 (** The built-in linters. *)
 module Linters : sig
+  (** A list of all linters. *)
+  val all : linter list
+
   (** Finds assignments with pointless discard variables in the last position. *)
   val pointless_discard : linter
 
@@ -88,7 +92,4 @@ module Linters : sig
 
   (** Checks for calls to pcall which could be eta-reduced. *)
   val pcall_eta : linter
-
-  (** A list of all linters. *)
-  val all : linter list
 end

@@ -1,3 +1,12 @@
+(** The underlying system for declaring and reporting errors.
+
+    Every error reported by illuaminate has an associated {!Tag.t}, which defines the error level
+    (error, warning, etc...) and gives it a friendly name. Tags can then be used to enable/disable
+    particular errors or groups of errors.
+
+    Errors are then reported into an error sink ({!t}), which counts errors, sorts them into files,
+    and is used to report them (see {!display_of_files}).*)
+
 (** An error reporting level *)
 type level =
   | Critical  (** An error which cannot be recovered from *)

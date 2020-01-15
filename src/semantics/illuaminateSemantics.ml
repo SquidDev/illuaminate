@@ -12,3 +12,13 @@ end
 module Type = struct
   module Syntax = Type_syntax
 end
+
+module Stringlib = struct
+  module Format = struct
+    include String_format
+
+    type t = specifier list
+
+    let parse str = Lexing.from_string str |> format []
+  end
+end

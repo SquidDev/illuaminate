@@ -3,10 +3,8 @@
 
 (** Submit a collection of errors to GitHub.
 
-    This uses the checks API [1] and various environment variables [2] (GITHUB_REPOSITORY,
-    GITHUB_TOKEN, GITHUB_SHA) in order to determine how the request should be made.
-
-    + [1]: https://developer.github.com/v3/checks/runs/
-    + [2]:
-      https://help.github.com/en/actions/automating-your-workflow-with-github-actions/using-environment-variables *)
+    This uses the {{:https://developer.github.com/v3/checks/runs/} checks API} and
+    {{:https://help.github.com/en/actions/automating-your-workflow-with-github-actions/using-environment-variables}
+    various environment variables} ([GITHUB_REPOSITORY], [GITHUB_TOKEN], [GITHUB_SHA]) in order to
+    determine how the request should be made. *)
 val publish_errors : IlluaminateCore.Error.t -> (unit, string) result

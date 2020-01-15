@@ -5,6 +5,7 @@ open! Linter
 open struct
   module R = IlluaminateSemantics.Resolve
   module G = IlluaminateSemantics.Global
+  module F = IlluaminateSemantics.Stringlib.Format
 end
 
 let tag_format = Error.Tag.make Error.Warning "stdlib:string-format"
@@ -14,7 +15,7 @@ let tag_pattern = Error.Tag.make Error.Warning "stdlib:string-pattern"
 let plural fmt (n, word) =
   if n = 1 then Format.fprintf fmt "1 %s" word else Format.fprintf fmt "%d %ss" n word
 
-let check_format ~span : Lex_string_format.specifier -> 'a note option = function
+let check_format ~span : F.specifier -> 'a note option = function
   | Eof -> Some (note ~span ~tag:tag_format "Expected specifier after '%%'")
   | Unknown c -> Some (note ~span ~tag:tag_format "Unknown specifier '%%%c'" c)
   | Known ("", _) -> None
@@ -22,14 +23,14 @@ let check_format ~span : Lex_string_format.specifier -> 'a note option = functio
   | _ -> None
 
 let check_format_args ~span specs args =
-  let rec count n : Lex_string_format.specifier list -> int option = function
+  let rec count n : F.t -> int option = function
     | [] -> Some n
-    | Known (_, '%') :: specs -> count n specs
+    | (Raw _ | Known (_, '%')) :: specs -> count n specs
     | Known (_, _) :: specs -> count (n + 1) specs
     | (Eof | Unknown _) :: _ -> None
   in
 
-  let rec go i (specs : Lex_string_format.specifier list) (args : expr SepList0.t) =
+  let rec go i (specs : F.t) (args : expr SepList0.t) =
     match (specs, args) with
     | [], None -> []
     | [], Some args ->
@@ -39,7 +40,7 @@ let check_format_args ~span specs args =
             plural
             (SepList1.length args, "argument")
         ]
-    | Known (_, '%') :: specs, args -> (* Skip %% *) go i specs args
+    | (Raw _ | Known (_, '%')) :: specs, args -> (* Skip %% *) go i specs args
     | (Eof | Unknown _) :: _, _ ->
         (* Abort on malformed strings. Otherwise we'll give lots of spurious warnings. *) []
     | Known _ :: _, None -> (
@@ -65,8 +66,7 @@ let linter =
    fun call fmt args ->
     match Eval.eval fmt with
     | RString value ->
-        let lexbuf = Lexing.from_string value in
-        let specs = Lex_string_format.format [] lexbuf in
+        let specs = F.parse value in
         check_format_args ~span:(Spanned.call call) specs args
         @ List.filter_map (check_format ~span:(Spanned.expr fmt)) specs
     | _ -> []
