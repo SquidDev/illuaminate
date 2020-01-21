@@ -1,18 +1,6 @@
 (lang dune 2.0)
 (profile release)
 
-(context
- (opam
-  (switch 4.08.1)))
-
-;; (context
-;;  (opam
-;;   (switch 4.08.1+32bit)
-;;   (targets windows)))
-
-(context
- (opam
-  (switch 4.08.1+musl+static+flambda)
-  (env
-   (release
-   (ocamlopt_flags :standard -ccopt -static)))))
+(env
+ (release
+  (ocamlopt_flags :standard -ccopt -static)))
