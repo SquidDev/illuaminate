@@ -1,7 +1,7 @@
 (library
  (name illuaminate)
- (modules illuaminate config)
- (libraries containers cmdliner illuaminate.core illuaminate.parser
+ (modules illuaminate config loader)
+ (libraries containers cmdliner fpath illuaminate.core illuaminate.parser
    illuaminate.semantics illuaminate.lint illuaminate.config
    illuaminate.pattern illuaminate.github))
 

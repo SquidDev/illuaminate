@@ -1,81 +1,6 @@
 open IlluaminateCore
 open IlluaminateLint
 
-module LoadedFile = struct
-  type t =
-    { file : Span.filename;
-      config : Config.t;
-      parsed : Syntax.program option;
-      id : Data.Files.id option
-    }
-
-  (** Parse a file and report its errors. *)
-  let parse errs ({ Span.path; _ } as file) =
-    CCIO.with_in path (fun channel ->
-        let lexbuf = Lexing.from_channel channel in
-        match IlluaminateParser.parse file lexbuf with
-        | Error err ->
-            IlluaminateParser.Error.report errs err.span err.value;
-            None
-        | Ok tree -> Some tree)
-
-  let gather errs paths : t list * Data.Files.t =
-    let cwd = Sys.getcwd () in
-    let mk_name path =
-      let name =
-        IlluaminatePattern.Paths.make_relative ~path ~dir:cwd |> Option.value ~default:path
-      in
-      { Span.path; name }
-    in
-    let paths =
-      match paths with
-      | [] -> [ cwd ]
-      | xs -> List.map (IlluaminatePattern.Paths.to_absolute ~cwd) xs
-    in
-    (* First build a cache of config files *)
-    let config_cache = Hashtbl.create 32 in
-    let rec get_config dir =
-      match Hashtbl.find_opt config_cache dir with
-      | Some c -> c
-      | None ->
-          let config_path = Filename.concat dir "illuaminate.sexp" in
-          let parent = Filename.dirname dir in
-          let c =
-            if Sys.file_exists config_path && not (Sys.is_directory config_path) then
-              Config.of_file errs (mk_name config_path)
-            else if parent = dir then Some Config.default
-            else get_config parent
-          in
-          Hashtbl.add config_cache dir c; c
-    in
-    let get_config_for path =
-      if Sys.is_directory path then get_config path else get_config (Filename.dirname path)
-    in
-    let files = ref [] and file_store = ref (Data.Files.create ()) in
-    paths
-    |> List.filter_map (fun path -> get_config_for path |> Option.map (fun c -> (path, c)))
-    |> List.iter (fun (path, config) ->
-           let rec add is_root path =
-             if Sys.is_directory path then
-               Sys.readdir path |> Array.iter (fun child -> add false (Filename.concat path child))
-             else if is_root || Filename.extension path = ".lua" then
-               let file = mk_name path in
-               if Config.is_source config file.path then
-                 let parse = parse errs file in
-                 let id =
-                   parse
-                   |> Option.map (fun x ->
-                          let files, id = Data.Files.add x !file_store in
-                          file_store := files;
-                          id)
-                 in
-                 files := { file; config; parsed = parse; id } :: !files
-           in
-
-           add true path);
-    (!files, !file_store)
-end
-
 let uses_ansi channel =
   let dumb =
     try
@@ -89,13 +14,14 @@ let uses_ansi channel =
 
 let lint paths github =
   let errs = Error.make () in
-  let modules, file_store = LoadedFile.gather errs paths in
+  let loader = Loader.create errs in
+  let modules, file_store = List.map Fpath.v paths |> Loader.load_from_many ~loader in
   let data = Data.of_files file_store in
   modules
   |> List.iter (function
-       | { LoadedFile.parsed = None; _ } -> ()
-       | { file; config; parsed = Some parsed; _ } ->
-           let tags, store = Config.get_linters config file.path in
+       | { Loader.parsed = None; _ } -> ()
+       | { path; config; parsed = Some parsed; _ } ->
+           let tags, store = Config.get_linters config path in
            Linters.all
            |> List.iter (fun l ->
                   Driver.lint ~store ~data ~tags l parsed |> List.iter (Driver.report_note errs)));
@@ -108,22 +34,23 @@ let lint paths github =
 
 let fix paths =
   let errs = Error.make () in
-  let modules, files = LoadedFile.gather errs paths in
+  let loader = Loader.create errs in
+  let modules, files = List.map Fpath.v paths |> Loader.load_from_many ~loader in
   let modules' =
     modules
     |> List.map (function
-         | { LoadedFile.parsed = None; _ } as f -> f
-         | { file; config; parsed = Some parsed; _ } as f ->
+         | { Loader.parsed = None; _ } as f -> f
+         | { path; config; parsed = Some parsed; _ } as f ->
              (* TODO: Have a separate linter list for fixers - so we can have things which are
                 linted but not fixed? *)
-             let tags, store = Config.get_linters config file.path in
+             let tags, store = Config.get_linters config path in
              let program, _ = Driver.lint_and_fix_all ~store ~files ~tags Linters.all parsed in
              { f with parsed = Some program })
   in
   let rewrite old_module new_module =
     match (old_module, new_module) with
-    | { LoadedFile.file; parsed = Some oldm; _ }, { LoadedFile.parsed = Some newm; _ }
-      when oldm != newm -> (
+    | { Loader.file; parsed = Some oldm; _ }, { Loader.parsed = Some newm; _ } when oldm != newm
+      -> (
       try
         let ch = open_out file.path in
         let fmt = Format.formatter_of_out_channel ch in

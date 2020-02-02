@@ -32,6 +32,7 @@
     ; Core
     cmdliner
     containers
+    fpath
     menhir
     omd
     re

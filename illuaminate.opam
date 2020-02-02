@@ -23,6 +23,7 @@ depends: [
   "junit" {with-test}
   "cmdliner"
   "containers"
+  "fpath"
   "menhir"
   "omd"
   "re"

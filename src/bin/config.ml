@@ -24,7 +24,7 @@ type pat_config =
 (** The main config file. *)
 type t =
   | Config of
-      { root : string;
+      { root : Fpath.t;
         sources : Pattern.t list;  (** Patterns which include source files to load. *)
         pat_config : pat_config list
             (** Path-specific overrides. These are applied in order, so later ones will override
@@ -84,7 +84,7 @@ let of_file err (file : Span.filename) =
         IlluaminateConfig.Parser.parse_buf file lexbuf parser)
   in
   match parsed with
-  | Ok x -> Some (x (Filename.dirname file.path))
+  | Ok x -> Fpath.v file.path |> Fpath.parent |> x |> Option.some
   | Error (pos, msg) ->
       Error.report err parse_error pos msg;
       None
@@ -139,21 +139,20 @@ let apply_mod set = function
 let is_source config path =
   match config with
   | Default -> true
-  | Config { root; sources; _ } -> (
-    match Pattern.Paths.make_relative ~path ~dir:root with
-    | None -> Printf.printf "No\n"; false
-    | Some path -> List.exists (Pattern.matches path) sources )
+  | Config { root; sources; _ } ->
+      Fpath.is_rooted ~root path
+      && List.exists
+           (Fpath.relativize ~root path |> Option.get |> Fpath.to_string |> Pattern.matches)
+           sources
 
 (** Get all linters and their configuration options for a particular file. *)
 let get_linters config path =
   match config with
   | Default -> ((fun _ -> true), Schema.default linter_schema)
   | Config { root; pat_config; _ } ->
-      let path =
-        match Pattern.Paths.make_relative ~path ~dir:root with
-        | None -> failwith "Path should be a child of the config's root."
-        | Some path -> path
-      in
+      if not (Fpath.is_rooted ~root path) then
+        failwith "Path should be a child of the config's root.";
+      let path = Fpath.relativize ~root path |> Option.get |> Fpath.to_string in
       let enabled, store =
         List.fold_left
           (fun (linters, store) { pattern; tags; linter_options } ->

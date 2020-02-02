@@ -15,7 +15,7 @@ val default : t
 val generate : Format.formatter -> unit
 
 (** Determine if this file is included in the source list. *)
-val is_source : t -> string -> bool
+val is_source : t -> Fpath.t -> bool
 
 (** Get the enabled error tags and linter options from the config object. *)
-val get_linters : t -> string -> Error.Tag.filter * Schema.store
+val get_linters : t -> Fpath.t -> Error.Tag.filter * Schema.store
