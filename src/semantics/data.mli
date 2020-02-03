@@ -1,5 +1,7 @@
 (** Provides a way of associating {!Syntax} programs with metadata. *)
 
+open IlluaminateCore
+
 module Files : sig
   (** A collection of files, and their corresponding program. Unlike the main data store, this is
       immutable. *)

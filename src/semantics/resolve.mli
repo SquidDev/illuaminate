@@ -68,7 +68,7 @@ module VarTbl : Hashtbl.S with type key = var
 (** The primary store of resolution information for a program. *)
 type t
 
-val key : t IlluaminateCore.Data.key
+val key : t Data.key
 
 (** Get the definition of a variable.
 

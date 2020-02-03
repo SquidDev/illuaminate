@@ -1,11 +1,12 @@
 open IlluaminateCore.Syntax
 open IlluaminateCore
+open IlluaminateSemantics
 open! Linter
 
 open struct
-  module R = IlluaminateSemantics.Resolve
-  module G = IlluaminateSemantics.Global
-  module F = IlluaminateSemantics.Stringlib.Format
+  module R = Resolve
+  module G = Global
+  module F = Stringlib.Format
 end
 
 let tag_format = Error.Tag.make Error.Warning "stdlib:string-format"

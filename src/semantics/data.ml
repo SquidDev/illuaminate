@@ -1,3 +1,4 @@
+open IlluaminateCore
 module IntMap = Map.Make (Int)
 
 type t =

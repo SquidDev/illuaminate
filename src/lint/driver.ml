@@ -1,4 +1,5 @@
 open IlluaminateCore
+open IlluaminateSemantics
 open Linter
 module C = IlluaminateConfig
 

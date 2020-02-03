@@ -26,7 +26,7 @@ type path_item =
 
 type context =
   { path : path_item list;
-    data : Data.t;
+    data : IlluaminateSemantics.Data.t;
     program : Syntax.program
   }
 

@@ -40,7 +40,7 @@ type path_item =
 (** Information about the current node being visited. *)
 type context =
   { path : path_item list;  (** The path taken to reach this node. *)
-    data : Data.t;  (** A store for the current program data. *)
+    data : IlluaminateSemantics.Data.t;  (** A store for the current program data. *)
     program : Syntax.program
   }
 

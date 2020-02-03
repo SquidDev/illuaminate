@@ -1,4 +1,5 @@
 open IlluaminateCore
+open IlluaminateSemantics
 module FileMap = Map.Make (Fpath)
 
 type file =

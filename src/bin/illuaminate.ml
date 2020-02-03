@@ -1,5 +1,6 @@
 open IlluaminateCore
 open IlluaminateLint
+open IlluaminateSemantics
 
 let uses_ansi channel =
   let dumb =

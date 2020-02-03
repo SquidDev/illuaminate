@@ -2,6 +2,7 @@ open Omnomnom.Tests
 open IlluaminateCore
 open IlluaminateLint
 open IlluaminateConfig
+open IlluaminateSemantics
 open Lens
 
 let only =

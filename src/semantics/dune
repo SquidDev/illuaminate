@@ -2,7 +2,7 @@
  (name illuaminateSemantics)
  (public_name illuaminate.semantics)
  (synopsis "Some basic semantic analysis for Illuaminate.")
- (libraries containers illuaminate.core menhirLib omd re))
+ (libraries containers containers.data illuaminate.core menhirLib omd re))
 
 (menhir
  (modules type_grammar)

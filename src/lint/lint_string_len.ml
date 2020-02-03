@@ -1,10 +1,11 @@
 open IlluaminateCore.Syntax
 open IlluaminateCore
+open IlluaminateSemantics
 open! Linter
 
 open struct
-  module R = IlluaminateSemantics.Resolve
-  module G = IlluaminateSemantics.Global
+  module R = Resolve
+  module G = Global
 end
 
 let linter =

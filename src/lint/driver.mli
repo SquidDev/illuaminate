@@ -2,6 +2,7 @@
     fixing any and all problems they detect. *)
 
 open IlluaminateCore
+open IlluaminateSemantics
 
 (** A note at a specific node. *)
 type 'a note_at

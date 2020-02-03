@@ -1,9 +1,10 @@
 open IlluaminateCore.Syntax
 open IlluaminateCore
+open IlluaminateSemantics
 open! Linter
 
 open struct
-  module R = IlluaminateSemantics.Resolve
+  module R = Resolve
 end
 
 let linter =

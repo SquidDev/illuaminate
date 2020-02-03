@@ -1,3 +1,4 @@
+module Data = Data
 module Control = Control
 module Global = Global
 module Pure = Pure

@@ -1,4 +1,5 @@
 open IlluaminateCore
+open IlluaminateSemantics
 
 type file =
   { path : Fpath.t;

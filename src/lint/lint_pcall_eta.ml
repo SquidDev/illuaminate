@@ -1,9 +1,9 @@
 open IlluaminateCore.Syntax
 open IlluaminateCore
+open IlluaminateSemantics
 open! Linter
 
 open struct
-  open IlluaminateSemantics
   module R = Resolve
   module G = Global
   module Safe = Pure.Safe
