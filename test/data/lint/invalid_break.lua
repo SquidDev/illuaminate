@@ -1,4 +1,4 @@
--- config: (lint (only (syntax:invalid-break)))
+-- config: (lint (only syntax:invalid-break))
 
 break
 

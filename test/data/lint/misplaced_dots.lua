@@ -1,4 +1,4 @@
--- config: (lint (only (syntax:misplaced-dots)))
+-- config: (lint (only syntax:misplaced-dots))
 
 local function f(..., x) end
 local function f(x, ...) end -- ok

@@ -1,4 +1,4 @@
--- config: (lint (only (var:set-loop)))
+-- config: (lint (only var:set-loop))
 for x = 0, 10 do
   x = x + 1
 end

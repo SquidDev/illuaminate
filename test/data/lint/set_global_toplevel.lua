@@ -1,4 +1,4 @@
--- config: (lint (only (var:set-global)) (allow-toplevel-global true))
+-- config: (lint (only var:set-global) (allow-toplevel-global true))
 a = 0 -- ok
 function b() end -- ok
 if true then c = 0 end -- ok

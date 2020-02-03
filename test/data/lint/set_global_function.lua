@@ -1,4 +1,4 @@
--- config: (lint (only (var:set-global)))
+-- config: (lint (only var:set-global))
 function f() end
 
 local g

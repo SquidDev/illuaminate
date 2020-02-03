@@ -8,7 +8,7 @@ spacing_for.lua:[4:6-4:6]: Expected whitespace around "=". [format:separator-spa
    │      ^
 No errors and 2 warnings
 @@ -1,7 +1,7 @@
- -- config: (lint (only (format:op-space format:separator-space)))
+ -- config: (lint (only format:op-space format:separator-space))
  
 -for i=0, 10 do end
 -for i= 0, 10 do end

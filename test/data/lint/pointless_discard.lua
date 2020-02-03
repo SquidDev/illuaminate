@@ -1,4 +1,4 @@
--- config: (lint (only (var:pointless-discard)))
+-- config: (lint (only var:pointless-discard))
 
 local _ = 0
 local _, x = 0 -- ok

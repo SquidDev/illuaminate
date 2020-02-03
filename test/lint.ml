@@ -26,6 +26,7 @@ let process ~name contents out =
           List.fold_left
             (fun s (Linter.Linter l) -> Schema.union s (Schema.singleton l.options))
             (Schema.singleton only) Linters.all
+          |> Schema.union (Schema.singleton Doc.Extract.Config.key)
         in
         match parsed ^. Syntax.First.program with
         | Node { leading_trivia = { value = LineComment c | BlockComment (_, c); _ } :: _; _ } -> (
@@ -48,7 +49,7 @@ let process ~name contents out =
             | Some t -> t)
           only
       in
-      let context = { Data.root = Sys.getcwd () |> Fpath.v; config = Schema.(default empty) } in
+      let context = { Data.root = Sys.getcwd () |> Fpath.v; config = store } in
       let files = Data.Files.create (Fun.const context) in
       let linters =
         Linters.all

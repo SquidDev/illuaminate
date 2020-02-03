@@ -1,4 +1,4 @@
--- config: (lint (only (stdlib:pcall-eta)))
+-- config: (lint (only stdlib:pcall-eta))
 
 pcall(function() f(1, 2, 3) end)
 pcall(function() return f(1, 2, 3) end)

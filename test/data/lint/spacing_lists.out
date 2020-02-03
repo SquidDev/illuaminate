@@ -24,7 +24,7 @@ spacing_lists.lua:[8:15-8:15]: Expected whitespace around "=". [format:separator
    │               ^
 No errors and 6 warnings
 @@ -1,10 +1,10 @@
- -- config: (lint (only (format:op-space)))
+ -- config: (lint (only format:op-space))
  
 -print(0,1, 2)
 -print { x=0, 0,1, 2 }

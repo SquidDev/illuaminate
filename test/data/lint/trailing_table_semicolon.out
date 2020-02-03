@@ -4,7 +4,7 @@ trailing_table_semicolon.lua:[4:3-4:3]: Expected trailing ";" on multiline table
    │   ^
 No errors and 1 warnings
 @@ -1,6 +1,6 @@
- -- config: (lint (only (format:table-trailing)) (table-separator semicolon))
+ -- config: (lint (only format:table-trailing) (table-separator semicolon))
  
  local _ = {
 -  0

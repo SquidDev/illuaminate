@@ -1,4 +1,4 @@
--- config: (lint (only (var:unused)))
+-- config: (lint (only var:unused))
 
 local function f(x, ...) return x end
 local function g(...) end

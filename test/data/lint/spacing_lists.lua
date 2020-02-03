@@ -1,4 +1,4 @@
--- config: (lint (only (format:op-space)))
+-- config: (lint (only format:op-space))
 
 print(0,1, 2)
 print { x=0, 0,1, 2 }

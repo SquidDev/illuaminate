@@ -40,7 +40,7 @@ pointless_discard.lua:[25:10-25:10]: Pointless discard variable `_`. [var:pointl
     │          ^
 No errors and 10 warnings
 @@ -1,26 +1,14 @@
---- config: (lint (only (var:pointless-discard)))
+--- config: (lint (only var:pointless-discard))
 -
 -local _ = 0
  local _, x = 0 -- ok

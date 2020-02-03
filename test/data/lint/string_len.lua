@@ -1,4 +1,4 @@
--- config: (lint (only (stdlib:string-len)))
+-- config: (lint (only stdlib:string-len))
 
 local _ = string.len "foo"
 local _ = string.len("foo") -- Basic application

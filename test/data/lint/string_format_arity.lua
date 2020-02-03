@@ -1,4 +1,4 @@
--- config: (lint (only (stdlib:string-format)))
+-- config: (lint (only stdlib:string-format))
 
 local _ = string.format("%s %s", "a", "b") -- ok
 local _ = ("%s %s"):format("a", "b") -- ok

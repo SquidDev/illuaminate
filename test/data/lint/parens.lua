@@ -1,4 +1,4 @@
--- config: (lint (only (syntax:redundant-parens)))
+-- config: (lint (only syntax:redundant-parens))
 
 -- Redundant parenthesis around references
 do

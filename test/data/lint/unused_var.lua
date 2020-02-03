@@ -1,4 +1,4 @@
--- config: (lint (only (var:unused)))
+-- config: (lint (only var:unused))
 local x, y, z, _ = 0, 0, 0
 print(x)
 

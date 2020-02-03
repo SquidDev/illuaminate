@@ -1,4 +1,4 @@
--- config: (lint (only (syntax:redundant-semicolon)))
+-- config: (lint (only syntax:redundant-semicolon))
 local function f() end
 
 do ; end

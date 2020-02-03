@@ -1,4 +1,4 @@
--- config: (lint (only (syntax:method-name)))
+-- config: (lint (only syntax:method-name))
 
 function x:y:z() end
 function x:y.z() end

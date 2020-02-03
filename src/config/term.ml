@@ -1,17 +1,27 @@
 module Converter = struct
-  type 'a t = 'a Parser.t * ('a -> Sexp.raw)
+  type 'a t =
+    | Atom : 'a Parser.t * ('a -> Sexp.raw) -> 'a t
+    | List : 'a t -> 'a list t
 
-  let bool : bool t = (Parser.bool, fun x -> Atom (string_of_bool x))
+  let bool : bool t = Atom (Parser.bool, fun x -> Atom (string_of_bool x))
 
-  let string : string t = (Parser.string, fun x -> Atom x)
+  let string : string t = Atom (Parser.string, fun x -> Atom x)
 
-  let float : float t = (Parser.float, fun x -> Atom (string_of_float x))
+  let float : float t = Atom (Parser.float, fun x -> Atom (string_of_float x))
 
-  let int : int t = (Parser.int, fun x -> Atom (string_of_int x))
+  let int : int t = Atom (Parser.int, fun x -> Atom (string_of_int x))
 
-  let list (f, t) : 'a list t = (Parser.list f, fun x -> List (List.map t x))
+  let list x : 'a list t = List x
 
-  let atom ~ty parse print : 'a t = (Parser.atom_res ~ty parse, fun x -> Atom (print x))
+  let atom ~ty parse print : 'a t = Atom (Parser.atom_res ~ty parse, fun x -> Atom (print x))
+
+  let rec get_parser : type a. a t -> a Parser.t = function
+    | Atom (p, _) -> p
+    | List c -> get_parser c |> Parser.list
+
+  let rec get_printer : type a. a t -> a -> Sexp.raw = function
+    | Atom (_, p) -> p
+    | List x -> fun xs -> List (List.map (get_printer x) xs)
 end
 
 type 'a body =
@@ -85,9 +95,9 @@ let rec write_term : type a. Format.formatter -> a t -> int -> int =
 and write_group : 'a. Format.formatter -> 'a body -> unit =
  fun out t ->
   match t with
-  | Field { default; converter = _, t } ->
+  | Field { default; converter } ->
       Format.pp_print_space out ();
-      Sexp.pp out (t default)
+      Sexp.pp out (Converter.get_printer converter default)
   | Group g -> write_term out g 1 |> ignore
 
 let write_default out term = write_term out term 0 |> ignore
@@ -95,7 +105,12 @@ let write_default out term = write_term out term 0 |> ignore
 let rec to_parser : type a. a t -> a Parser.fields =
   let open Parser in
   function
-  | Node { name; body = Field { default; converter = parse, _ }; _ } ->
+  | Node { name; body = Field { default; converter }; _ } ->
+      let parse =
+        match converter with
+        | Atom _ -> Converter.get_parser converter
+        | List conv -> Converter.get_parser conv |> Parser.many
+      in
       let+ value = field_opt ~name parse in
       Option.value ~default value
   | Node { name; body = Group body; _ } ->
@@ -135,7 +150,12 @@ module Repr = struct
   let rec to_repr_parser : type a. a t -> a repr Parser.fields =
     let open Parser in
     function
-    | Node { name; body = Field { default; converter = parse, _ }; _ } -> (
+    | Node { name; body = Field { default; converter }; _ } -> (
+        let parse =
+          match converter with
+          | Atom _ -> Converter.get_parser converter
+          | List conv -> Converter.get_parser conv |> Parser.many
+        in
         let+ value = field_opt ~name parse in
         match value with
         | None -> ReprNode { value = default; is_default = true }

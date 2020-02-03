@@ -1,4 +1,4 @@
--- config: (lint (only (var:use-discard)))
+-- config: (lint (only var:use-discard))
 local _, x = print()
 
 print(_)

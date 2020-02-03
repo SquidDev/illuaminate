@@ -1,4 +1,4 @@
--- config: (lint (only (syntax:malformed-number)))
+-- config: (lint (only syntax:malformed-number))
 local _ = {
   2..,
   2...,

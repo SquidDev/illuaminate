@@ -1,4 +1,4 @@
--- config: (lint (only (syntax:empty-if)))
+-- config: (lint (only syntax:empty-if))
 if x then
 elseif y then
 elseif z then

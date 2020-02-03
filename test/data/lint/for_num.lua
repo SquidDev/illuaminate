@@ -1,4 +1,4 @@
--- config: (lint (only (control:for-num)))
+-- config: (lint (only control:for-num))
 
 local t, x = ...
 

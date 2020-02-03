@@ -1,4 +1,4 @@
--- config: (lint (only (var:use-arg)))
+-- config: (lint (only var:use-arg))
 
 local function f(...)
   print(arg)

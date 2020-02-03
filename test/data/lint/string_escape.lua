@@ -1,4 +1,4 @@
--- config: (lint (only (syntax:string-escape)))
+-- config: (lint (only syntax:string-escape))
 local _ = {
   "a",
   "a\nb",

@@ -8,7 +8,7 @@ unused_dots.lua:[4:18-4:20]: Unused varargs. [var:unused-arg]
    │                  ^^^
 No errors and 2 warnings
 @@ -1,7 +1,7 @@
- -- config: (lint (only (var:unused)))
+ -- config: (lint (only var:unused))
  
 -local function f(x, ...) return x end
 -local function g(...) end

@@ -1,4 +1,4 @@
--- config: (lint (only (control:unreachable)))
+-- config: (lint (only control:unreachable))
 
 local f = ...
 
