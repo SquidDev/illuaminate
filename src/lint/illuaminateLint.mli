@@ -75,6 +75,9 @@ module Linters : sig
   (** Forwards any errors from extracting doc comments. *)
   val doc_extract : linter
 
+  (** Warns on undocumented nodes. *)
+  val undocumented : linter
+
   (** Checks for whitespace around basic punctuation such as ",", ";", "=" and all binary operators. *)
   val spacing : linter
 

@@ -30,8 +30,13 @@ let process ~name contents out =
         in
         match parsed ^. Syntax.First.program with
         | Node { leading_trivia = { value = LineComment c | BlockComment (_, c); _ } :: _; _ } -> (
-            let c = String.trim c in
-            match CCString.chop_prefix ~pre:"config:" c with
+            let c =
+              c
+              |> CCString.drop_while (fun c -> c == '-')
+              |> String.trim
+              |> CCString.chop_prefix ~pre:"config:"
+            in
+            match c with
             | Some c ->
                 let buf = Lexing.from_string c in
                 Schema.to_parser schema |> Parser.fields
