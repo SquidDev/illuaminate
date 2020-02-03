@@ -889,6 +889,18 @@ module Last = struct
 
   let repeat_stmt = Repeat_stmt.repeat_test -| expr
 
+  let function_name =
+    let get = function
+      | FVar x -> var.get x
+      | FDot { field; _ } -> First.ident.get field
+      | FSelf { meth; _ } -> First.ident.get meth
+    and over f = function
+      | FVar x -> FVar (var.over f x)
+      | FDot ({ field; _ } as rest) -> FDot { rest with field = First.ident.over f field }
+      | FSelf ({ meth; _ } as rest) -> FSelf { rest with meth = First.ident.over f meth }
+    in
+    { get; over }
+
   let local_stmt =
     let get { local_vars; local_vals; _ } =
       match local_vals with
@@ -958,6 +970,8 @@ module Spanned = struct
 
   let expr = project First.expr Last.expr
 
+  let var x = First.var.get x |> Node.span
+
   let name = project First.name Last.name
 
   let stmt = project First.stmt Last.stmt
@@ -971,6 +985,8 @@ module Spanned = struct
   let call = project First.call Last.call
 
   let list1 f x = Span.of_span2 (SepList1.first.get x |> f) (SepList1.last.get x |> f)
+
+  let function_name = project First.function_name Last.function_name
 end
 
 module Precedence = struct
