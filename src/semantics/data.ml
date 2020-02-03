@@ -1,8 +1,15 @@
 open IlluaminateCore
+open IlluaminateConfig
 module IntMap = Map.Make (Int)
 
+type context =
+  { root : Fpath.t;
+    config : Schema.store
+  }
+
 type t =
-  { files : Syntax.program IntMap.t;
+  { context_supplier : Span.filename -> context;
+    files : Syntax.program IntMap.t;
     file_list : int list;
     next_id : int;
     store : CCHet.Tbl.t
@@ -21,7 +28,13 @@ module Files = struct
 
   type id = int
 
-  let create () = { files = IntMap.empty; file_list = []; next_id = 0; store = CCHet.Tbl.create () }
+  let create context_supplier =
+    { files = IntMap.empty;
+      file_list = [];
+      next_id = 0;
+      store = CCHet.Tbl.create ();
+      context_supplier
+    }
 
   let add program files =
     let id = files.next_id in
@@ -58,6 +71,10 @@ type 'a key =
 let of_files (f : Files.t) : t = f
 
 let key ~name factory = { name; factory; key = CCHet.Key.create () }
+
+let context =
+  key ~name:(__MODULE__ ^ ".context") (fun { context_supplier; _ } program ->
+      context_supplier (Syntax.Spanned.program program).filename)
 
 let get program { name; factory; key } ({ store; _ } as t) =
   let programs =

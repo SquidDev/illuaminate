@@ -2,6 +2,14 @@
 
 open IlluaminateCore
 
+(** Provides information about a given program's context. *)
+type context =
+  { root : Fpath.t;
+        (** The root directory for this project. Namely, where the root [\[illuaminate.sexp\]]
+            config is located. *)
+    config : IlluaminateConfig.Schema.store  (** Configuration options for this file. *)
+  }
+
 module Files : sig
   (** A collection of files, and their corresponding program. Unlike the main data store, this is
       immutable. *)
@@ -10,8 +18,9 @@ module Files : sig
   (** A unique identifier for a file. *)
   type id
 
-  (** Construct a new file collection. *)
-  val create : unit -> t
+  (** Construct a new file collection, supplying some function which can determine a context for the
+      given filename. *)
+  val create : (Span.filename -> context) -> t
 
   (** Add a new program to the file collection, returning the updated identifier for this file. *)
   val add : Syntax.program -> t -> t * id
@@ -36,6 +45,9 @@ type 'a key
 
     Note that the "metadata generator" function can be lazy in generating data. *)
 val key : name:string -> (t -> Syntax.program -> 'a) -> 'a key
+
+(** A key to access the given program's context. *)
+val context : context key
 
 (** Get a program's metadata from the store. *)
 val get : Syntax.program -> 'a key -> t -> 'a

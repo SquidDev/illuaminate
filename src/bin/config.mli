@@ -19,3 +19,6 @@ val is_source : t -> Fpath.t -> bool
 
 (** Get the enabled error tags and linter options from the config object. *)
 val get_linters : t -> Fpath.t -> Error.Tag.filter * Schema.store
+
+(** Get the global data store. *)
+val get_store : t -> Schema.store

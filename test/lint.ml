@@ -48,7 +48,8 @@ let process ~name contents out =
             | Some t -> t)
           only
       in
-      let files = Data.Files.create () in
+      let context = { Data.root = Sys.getcwd () |> Fpath.v; config = Schema.(default empty) } in
+      let files = Data.Files.create (Fun.const context) in
       let linters =
         Linters.all
         |> List.filter (fun (Linter.Linter l) ->

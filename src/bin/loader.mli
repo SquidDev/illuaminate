@@ -2,7 +2,8 @@ open IlluaminateCore
 open IlluaminateSemantics
 
 type file =
-  { path : Fpath.t;
+  { root : Fpath.t;
+    path : Fpath.t;
     file : Span.filename;
     file_id : Data.Files.id option;
     config : Config.t;

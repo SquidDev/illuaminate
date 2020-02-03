@@ -26,9 +26,10 @@ type t =
   | Config of
       { root : Fpath.t;
         sources : Pattern.t list;  (** Patterns which include source files to load. *)
-        pat_config : pat_config list
+        pat_config : pat_config list;
             (** Path-specific overrides. These are applied in order, so later ones will override
                 earlier ones. *)
+        store : Schema.store
       }
   | Default
 
@@ -37,6 +38,8 @@ let linter_schema =
   List.fold_left
     (fun s (Linter.Linter l) -> Schema.union s (Schema.singleton l.options))
     Schema.empty Linters.all
+
+let global_schema = Schema.empty
 
 let root_pat = Pattern.parse "/"
 
@@ -69,8 +72,10 @@ let parser =
   in
   let main =
     let+ sources = field_opt ~name:"sources" (some pattern)
-    and+ pat_config = field_repeated ~name:"at" pat_config in
-    fun root -> Config { root; sources = Option.value ~default:[ root_pat ] sources; pat_config }
+    and+ pat_config = field_repeated ~name:"at" pat_config
+    and+ store = Schema.to_parser global_schema in
+    fun root ->
+      Config { root; sources = Option.value ~default:[ root_pat ] sources; pat_config; store }
   in
 
   fields main
@@ -123,7 +128,10 @@ let generate out =
   Schema.write_default out linter_schema;
 
   pp_print_string out ")";
-  pp_close_box out ()
+  pp_close_box out ();
+
+  blank ();
+  Schema.write_default out global_schema
 
 let all_tags =
   List.fold_left
@@ -164,3 +172,7 @@ let get_linters config path =
           pat_config
       in
       (Fun.flip TagSet.mem enabled, store)
+
+let get_store = function
+  | Default -> Schema.default global_schema
+  | Config { store; _ } -> store

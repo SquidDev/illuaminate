@@ -1,9 +1,10 @@
 open IlluaminateCore
 open IlluaminateSemantics
-module FileMap = Map.Make (Fpath)
+module StringMap = Map.Make (String)
 
 type file =
-  { path : Fpath.t;
+  { root : Fpath.t;
+    path : Fpath.t;
     file : Span.filename;
     file_id : Data.Files.id option;
     config : Config.t;
@@ -11,26 +12,27 @@ type file =
   }
 
 type t =
-  { root : Fpath.t;
+  { relative : Fpath.t;
     errors : Error.t;
-    mutable configs : Config.t option FileMap.t
+    mutable configs : Config.t option StringMap.t
   }
 
 let create ?root errors =
-  let root = CCOpt.get_lazy (fun () -> Fpath.(Sys.getcwd () |> v |> normalize)) root in
-  { root; errors; configs = FileMap.empty }
+  let relative = CCOpt.get_lazy (fun () -> Fpath.(Sys.getcwd () |> v |> normalize)) root in
+  { relative; errors; configs = StringMap.empty }
 
-let mk_name ~loader:{ root; _ } path =
+let mk_name ~loader:{ relative; _ } path =
   let path_s = Fpath.to_string path in
   let name =
     Fpath.(
-      relativize ~root path |> Option.fold ~none:path_s ~some:(fun x -> normalize x |> to_string))
+      relativize ~root:relative path
+      |> Option.fold ~none:path_s ~some:(fun x -> normalize x |> to_string))
   in
   { Span.path = path_s; name }
 
 let rec get_config ~loader dir =
   let dir = Fpath.normalize dir in
-  match FileMap.find_opt dir loader.configs with
+  match StringMap.find_opt (Fpath.to_string dir) loader.configs with
   | Some c -> c
   | None ->
       let config_path = Fpath.(dir / "illuaminate.sexp") in
@@ -42,7 +44,7 @@ let rec get_config ~loader dir =
         else if Fpath.is_root dir || dir = parent then Some Config.default
         else get_config ~loader parent
       in
-      loader.configs <- FileMap.add dir c loader.configs;
+      loader.configs <- StringMap.add (Fpath.to_string dir) c loader.configs;
       c
 
 let get_config_for ~loader path =
@@ -59,35 +61,48 @@ let parse ~loader:{ errors; _ } ({ Span.path; _ } as file) =
           None
       | Ok tree -> Some tree)
 
-let do_load_from ~loader ~files ~file_store path =
-  get_config_for ~loader path
-  |> Option.map @@ fun config ->
-     let rec add is_root path =
-       let path_s = Fpath.to_string path in
-       if Sys.is_directory path_s then
-         Sys.readdir path_s |> Array.iter (fun child -> add false Fpath.(path / child))
-       else if is_root || Fpath.has_ext ".lua" path then
-         let file = mk_name ~loader path in
-         if Config.is_source config path then
-           let parse = parse ~loader file in
-           let file_id =
-             parse
-             |> Option.map (fun x ->
-                    let files, id = Data.Files.add x !file_store in
-                    file_store := files;
-                    id)
-           in
-           files := { path; file; config; parsed = parse; file_id } :: !files
-     in
+let do_load_from ~loader ~files ~file_store ~config root =
+  let rec add is_root path =
+    let path_s = Fpath.to_string path in
+    if Sys.is_directory path_s then
+      Sys.readdir path_s |> Array.iter (fun child -> add false Fpath.(path / child))
+    else if is_root || Fpath.has_ext ".lua" path then
+      let file = mk_name ~loader path in
+      if Config.is_source config path && not (StringMap.mem path_s !files) then
+        (* TODO: Warn on duplicate files. *)
+        let parse = parse ~loader file in
+        let file_id =
+          parse
+          |> Option.map (fun x ->
+                 let files, id = Data.Files.add x !file_store in
+                 file_store := files;
+                 id)
+        in
+        files := StringMap.add path_s { root; path; file; config; parsed = parse; file_id } !files
+  in
 
-     add true path; config
+  add true root
+
+let data_for files =
+  Data.Files.create @@ fun file ->
+  let { root; config; _ } = StringMap.find file.Span.path !files in
+  { Data.root; config = Config.get_store config }
+
+let keys m = StringMap.to_seq m |> Seq.map snd |> List.of_seq
 
 let load_from ~loader path =
-  let files = ref [] and file_store = ref (Data.Files.create ()) in
-  do_load_from ~loader ~files ~file_store path
-  |> Option.map (fun config -> (config, !files, !file_store))
+  get_config_for ~loader path
+  |> Option.map @@ fun config ->
+     let files = ref StringMap.empty in
+     let file_store = ref (data_for files) in
+     do_load_from ~loader ~files ~file_store ~config path;
+     (config, keys !files, !file_store)
 
 let load_from_many ~loader paths =
-  let files = ref [] and file_store = ref (Data.Files.create ()) in
-  List.iter (fun path -> do_load_from ~loader ~files ~file_store path |> ignore) paths;
-  (!files, !file_store)
+  let files = ref StringMap.empty in
+  let file_store = ref (data_for files) in
+  paths
+  |> List.iter (fun path ->
+         get_config_for ~loader path
+         |> Option.iter (fun config -> do_load_from ~loader ~files ~file_store ~config path));
+  (keys !files, !file_store)
