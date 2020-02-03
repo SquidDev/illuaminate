@@ -38,6 +38,10 @@ module Linters = struct
 
   let doc_parse = Lint_doc_parse.linter
 
+  let doc_extract = Lint_doc_extract.linter
+
+  let detached_comments = Lint_detached_comment.linter
+
   let spacing = Lint_spacing.linter
 
   let table_trailing = Lint_table_trailing.linter
@@ -56,6 +60,8 @@ module Linters = struct
     (* TODO: Find a more efficient order for these (namely group related passes together instead) *)
     [ arg_arg;
       doc_parse;
+      doc_extract;
+      detached_comments;
       empty_block;
       for_num;
       invalid_break;

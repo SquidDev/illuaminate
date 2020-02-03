@@ -7,6 +7,10 @@ type t =
 
 let manual_section sec = "https://www.lua.org/manual/5.1/manual.html#" ^ sec
 
+let to_url = function
+  | Unknown | Undocumented -> None
+  | InManual s -> Some (manual_section s)
+
 let lookup_type = function
   | "coroutine" -> InManual "5.2"
   | "string" -> InManual "5.4"

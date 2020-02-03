@@ -9,6 +9,8 @@ module Resolve = Resolve
 module Doc : sig
   module Comment = Doc_comment
   module Parser = Doc_parser
+  module Syntax = Doc_syntax
+  module Extract = Doc_extract
 end
 
 (** Type parsing and resolution. *)

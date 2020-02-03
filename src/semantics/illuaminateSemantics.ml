@@ -8,6 +8,8 @@ module Resolve = Resolve
 module Doc = struct
   module Comment = Doc_comment
   module Parser = Doc_parser
+  module Syntax = Doc_syntax
+  module Extract = Doc_extract
 end
 
 module Type = struct

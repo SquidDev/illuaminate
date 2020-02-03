@@ -62,8 +62,8 @@ let var :=
   | tbl = var ; "." ; field = name ;      { tbl ^ "." ^ field }
 
 let simple_type :=
-  | ~ = var ;                         { Named (Reference var) }
-  | FUNCTION ;                        { Named (Reference "function") }
+  | ~ = var ;                         { Named (Reference var, var) }
+  | FUNCTION ;                        { Named (Reference "function", "function") }
   | "(" ; ~ =  ty ; ")" ;             <>
   | NIL ;                             { NilTy }
   | TRUE ;                            { BoolTy true }

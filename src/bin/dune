@@ -2,8 +2,8 @@
  (name illuaminate)
  (modules illuaminate config loader)
  (libraries containers cmdliner fpath illuaminate.core illuaminate.parser
-   illuaminate.semantics illuaminate.lint illuaminate.config
-   illuaminate.pattern illuaminate.github))
+   illuaminate.semantics illuaminate.lint illuaminate.config illuaminate.html
+   illuaminate.pattern illuaminate.github illuaminate.doc_emit omd))
 
 (executable
  (name illuaminate_all)

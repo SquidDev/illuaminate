@@ -7,7 +7,7 @@ type doc_flag =
 
 let parse_description =
   let open Omd_representation in
-  let make link name = Html ("lsp:ref", [ ("link", Some link); ("name", Some name) ], []) in
+  let make link name = Html ("illuaminate:ref", [ ("link", Some link) ], [ Text name ]) in
   (* Gobble everything from | to }. *)
   let rec gobble_name link accum r p = function
     | Newlines 0 :: _ | [] -> None
@@ -230,7 +230,8 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
     | "see", flags, body ->
         List.iter (unknown "@see") flags;
         (* TODO: Split into reference and (optional) description *)
-        b.b_see <- { see_reference = Reference body; see_description = None } :: b.b_see
+        b.b_see <-
+          { see_reference = Reference body; see_label = body; see_description = None } :: b.b_see
     | "include", flags, body ->
         List.iter (unknown "@include") flags;
         b.b_includes <- Reference body :: b.b_includes
@@ -386,14 +387,14 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
         | Some { mod_name = inner_name; _ } ->
             Printf.sprintf "Duplicate @module definitions (named '%s' and '%s')" inner_name name
             |> report Tag.duplicate_definitions
-        | None -> b.b_module <- Some { mod_name = name; mod_kind = Module } )
+        | None -> b.b_module <- Some { mod_name = name } )
     | "type", flags, name -> (
         List.iter (unknown "@type") flags;
-        match b.b_module with
-        | Some { mod_name = inner_name; _ } ->
-            Printf.sprintf "Duplicate @module definitions (named '%s' and '%s')" inner_name name
+        match b.b_type with
+        | Some { type_name = inner_name; _ } ->
+            Printf.sprintf "Duplicate @type definitions (named '%s' and '%s')" inner_name name
             |> report Tag.duplicate_definitions
-        | None -> b.b_module <- Some { mod_name = name; mod_kind = Module } )
+        | None -> b.b_type <- Some { type_name = name } )
     | tag, _, _ -> b.b_unknown <- tag :: b.b_unknown
   in
   List.iter tag_worker tags;
@@ -460,11 +461,11 @@ let extract node =
     extract_comments [] (node ^. Node.trailing_trivia) |> List.rev )
 
 module Term = struct
-  type t = Wrap : 'a Node.t -> t
+  type t = Node.trivial Span.spanned list * Node.trivial Span.spanned list
 
-  let hash (Wrap x) = Hashtbl.hash x
+  let hash (x, y) = (Hashtbl.hash x * 31) + Hashtbl.hash y
 
-  let equal (Wrap a) (Wrap b) = Obj.repr a == Obj.repr b
+  let equal (al, at) (bl, bt) = al == bl && at == bt
 end
 
 module TermTbl = Hashtbl.Make (Term)
@@ -484,13 +485,14 @@ module Data = struct
 
   (** Get the comments before and after a specific node. *)
   let comment node { comments; _ } =
-    match TermTbl.find_opt comments (Term.Wrap node) with
+    let key = (Node.leading_trivia.get node, Node.trailing_trivia.get node) in
+    match TermTbl.find_opt comments key with
     | Some t -> t
     | None ->
         let t = extract node in
         ( match t with
         | [], [] -> ()
-        | _ -> TermTbl.add comments (Term.Wrap node) t );
+        | _ -> TermTbl.add comments key t );
         t
 
   let comments t =

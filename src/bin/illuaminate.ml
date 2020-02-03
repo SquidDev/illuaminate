@@ -63,6 +63,59 @@ let fix paths =
   Error.display_of_files errs;
   if Error.has_problems errs then exit 1
 
+let doc_gen path =
+  let open IlluaminateSemantics in
+  let module E = IlluaminateDocEmit in
+  let errs = Error.make () in
+  let loader = Loader.create errs in
+  ( CCOpt.get_lazy (fun () -> Sys.getcwd ()) path
+  |> Fpath.v |> Loader.load_from ~loader
+  |> Option.iter @@ fun (config, _, files) ->
+     let data = Data.of_files files in
+     let modules =
+       Doc.Extract.get_modules data
+       |> List.sort (fun a b ->
+              Doc.Syntax.(String.compare a.descriptor.mod_name b.descriptor.mod_name))
+     in
+     let emit_doc node out =
+       let fmt = Format.formatter_of_out_channel out in
+       Html.Default.emit_doc fmt node; Format.pp_print_flush fmt ()
+     in
+     let { Config.site_title; index } = Config.get_doc_options config in
+     let index =
+       let open Html.Default in
+       match index with
+       | None -> nil
+       | Some path -> (
+         match CCIO.File.read (Fpath.to_string path) with
+         | Error msg ->
+             Printf.eprintf "Cannot open documentation index '%s' (%s)\n%!" (Fpath.to_string path)
+               msg;
+             exit 1
+         | Ok contents -> (
+           match Fpath.get_ext path with
+           | ".html" | ".htm" -> raw contents
+           | ".md" | ".markdown" ->
+               let (Description x) = Doc.Parser.parse_description contents in
+               E.Html_md.md ~resolve:Fun.id x
+           | ".txt" | "" -> create_node ~tag:"pre" ~children:[ str contents ] ()
+           | ext ->
+               Printf.eprintf
+                 "Cannot handle documentation index '%s' (unknown file extension %S)\n%!"
+                 (Fpath.to_string path) ext;
+               exit 1 ) )
+     in
+     modules
+     |> List.iter (fun (modu : Doc.Syntax.module_info Doc.Syntax.documented) ->
+            let html =
+              E.Html_main.emit_module ?site_title ~resolve:(fun x -> "../" ^ x) ~modules modu
+            in
+            CCIO.with_out ("out/module/" ^ modu.descriptor.mod_name ^ ".html") (emit_doc html));
+     let html = E.Html_main.emit_modules ?site_title ~resolve:Fun.id ~modules index in
+     CCIO.with_out "out/index.html" (emit_doc html) );
+  Error.display_of_files errs;
+  if Error.has_problems errs then exit 1
+
 let init_config config force =
   if (not force) && Sys.file_exists config then (
     Printf.eprintf "File already exists";
@@ -78,6 +131,11 @@ let run () =
   let open Cmdliner.Arg in
   let files_arg =
     value & pos_all file [] & info ~docv:"FILE" ~doc:"Files and directories to check." []
+  in
+  let file_arg =
+    value
+    & pos 0 (some ~none:"current directory" dir) None
+    & info ~docv:"FILE" ~doc:"Starting directory." []
   in
   let lint_cmd =
     let doc = "Checks all files, and reports errors." in
@@ -97,6 +155,11 @@ let run () =
     let doc = "Checks all files and fixes problems in them." in
     (Term.(const fix $ files_arg), Term.info "fix" ~doc)
   in
+  let doc_gen_cmd =
+    let doc = "Generates HTML documentation" in
+    (Term.(const doc_gen $ file_arg), Term.info "doc-gen" ~doc)
+  in
+
   let init_config_cmd =
     let doc = "Generates a new config file." in
     let config_arg =
@@ -117,4 +180,4 @@ let run () =
 
   if uses_ansi Unix.stdout then Error.Style.setup_ansi Format.std_formatter;
   if uses_ansi Unix.stderr then Error.Style.setup_ansi Format.err_formatter;
-  Term.exit @@ Term.eval_choice default_cmd [ lint_cmd; fix_cmd; init_config_cmd ]
+  Term.exit @@ Term.eval_choice default_cmd [ lint_cmd; fix_cmd; doc_gen_cmd; init_config_cmd ]

@@ -21,6 +21,30 @@ type pat_config =
     linter_options : Schema.store  (** Modifications to the linter. *)
   }
 
+type doc_options =
+  { site_title : string option;
+    index : Fpath.t option
+  }
+
+let doc_options_term =
+  let open Term in
+  let option =
+    Converter.atom ~ty:"string"
+      (function
+        | ":none" -> Ok None
+        | x -> Ok (Some x))
+      (function
+        | None -> ":none"
+        | Some x -> x)
+  in
+  let+ site_title =
+    field ~name:"title" ~comment:"A title to display for the site" ~default:None option
+  and+ index = field ~name:"index" ~comment:"A path to an index file." ~default:None option in
+  let mk_path p = CCString.drop_while (fun x -> x = '/') p |> Fpath.v in
+  { site_title; index = Option.map mk_path index }
+
+let doc_options = Category.add doc_options_term IlluaminateSemantics.Doc.Extract.Config.workspace
+
 (** The main config file. *)
 type t =
   | Config of
@@ -39,7 +63,9 @@ let linter_schema =
     (fun s (Linter.Linter l) -> Schema.union s (Schema.singleton l.options))
     Schema.empty Linters.all
 
-let global_schema = Schema.empty
+let global_schema =
+  let add k s = Schema.union (Schema.singleton k) s in
+  Schema.empty |> add IlluaminateSemantics.Doc.Extract.Config.key |> add doc_options
 
 let root_pat = Pattern.parse "/"
 
@@ -172,6 +198,12 @@ let get_linters config path =
           pat_config
       in
       (Fun.flip TagSet.mem enabled, store)
+
+let get_doc_options = function
+  | Default -> Term.default doc_options_term
+  | Config { root; store; _ } ->
+      let { site_title; index } = Schema.get doc_options store in
+      { site_title; index = Option.map (Fpath.append root) index }
 
 let get_store = function
   | Default -> Schema.default global_schema

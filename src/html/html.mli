@@ -4,17 +4,7 @@ end) : sig
   type event_handler = X.event_handler
 
   (** The type of HTML nodes. *)
-  type node = private
-    | Element of
-        { tag : string;
-          attributes : (string * string) list;
-          events : (string * event_handler) list;
-          children : node list
-        }
-    | Text of string
-    | Raw of string
-    | Nil
-    | Many of node list
+  type node
 
   (** Create an element with a specific tag, attributes, event handlers and children. Indented to be
       used from Reason via the JSX processor. *)
@@ -38,8 +28,11 @@ end) : sig
   (** Merge multiple nodes into one. Easier than flattening lists. *)
   val many : node list -> node
 
-  (** Emit a node to a file *)
-  val emit : out_channel -> node -> unit
+  (** Emit a node. *)
+  val emit : Format.formatter -> node -> unit
+
+  (** Emit a document, including the DOCTYPE header. *)
+  val emit_doc : Format.formatter -> node -> unit
 end
 
 module Default : module type of Make (struct

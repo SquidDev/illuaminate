@@ -3,6 +3,8 @@
     Unlike {!Resolve}, the names here don't necessarily have any correspondence to variable names
     within Lua source code. *)
 
+open IlluaminateCore
+
 (** An unresolved variable name. *)
 type unresolved = Reference of string [@@unboxed]
 
@@ -13,7 +15,8 @@ let pp_unresolved out (Reference name) = Format.pp_print_string out name
 type resolved =
   | Internal of
       { in_module : string;  (** The module which this reference belongs to. *)
-        name : string option  (** The name within this module. *)
+        name : string option;  (** The name within this module. *)
+        definition : Span.t  (** The location of this definition. *)
       }  (** A reference to somewhere within this compilation unit. *)
   | External of
       { name : string;  (** The name of this resolved reference. *)
@@ -23,6 +26,6 @@ type resolved =
 
 (** Print an {!resolved} reference. *)
 let pp_resolved out = function
-  | Internal { in_module; name = None } -> Format.pp_print_string out in_module
-  | Internal { in_module; name = Some n } -> Format.fprintf out "%s.%s" in_module n
+  | Internal { in_module; name = None; _ } -> Format.pp_print_string out in_module
+  | Internal { in_module; name = Some n; _ } -> Format.fprintf out "%s.%s" in_module n
   | External { name; _ } | Unknown name -> Format.pp_print_string out name
