@@ -1,5 +1,5 @@
 open Html.Default;
-open IlluaminateSemantics.Doc.Syntax.Type;
+open! IlluaminateSemantics.Doc.Syntax.Type;
 open IlluaminateSemantics.Reference;
 
 let show_reference = (~resolve, x, label) =>

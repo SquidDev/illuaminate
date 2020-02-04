@@ -12,6 +12,7 @@ let store =
   List.fold_left
     (fun s (Linter.Linter l) -> Schema.union s (Schema.singleton l.options))
     Schema.empty Linters.all
+  |> Schema.union (Schema.singleton IlluaminateSemantics.Doc.Extract.Config.key)
   |> Schema.default
 
 (** Append virtual HTML node to a concrete element. *)
@@ -48,14 +49,18 @@ let render (doc : Dom_html.document Js.t) html : Dom.node Js.t =
   render_to out html;
   (out :> Dom.node Js.t)
 
+let files () =
+  let open IlluaminateSemantics in
+  let context = { Data.root = Fpath.v "/"; config = store } in
+  Data.Files.create (Fun.const context)
+
 (** Fix all errors within the program. *)
 let rec fix_all () : unit =
   let lexbuf = input##.value |> Js.to_string |> Lexing.from_string in
   match IlluaminateParser.parse { name = "input"; path = "input" } lexbuf with
   | Error _ -> ()
   | Ok parsed ->
-      let files = Data.Files.create () in
-      let program, _ = Driver.lint_and_fix_all ~store ~files Linters.all parsed in
+      let program, _ = Driver.lint_and_fix_all ~store ~files:(files ()) Linters.all parsed in
       let new_contents = Format.asprintf "%a" Emit.program program in
       input##.value := Js.string new_contents;
       lint ()
@@ -73,7 +78,7 @@ and lint () : unit =
   ( match IlluaminateParser.parse { name = "input"; path = "input" } lexbuf with
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok parsed ->
-      let data = Data.of_files (Data.Files.create ()) in
+      let data = files () |> IlluaminateSemantics.Data.of_files in
       let tags _ = true in
       Linters.all
       |> List.iter (fun l ->
