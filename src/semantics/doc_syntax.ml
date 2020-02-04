@@ -21,7 +21,8 @@ type value =
   | Function of
       { args : arg list list;
         rets : return list list;
-        throws : description list
+        throws : description list;
+        has_self : bool
       }
   | Table of (string * value documented) list
   | Expr of

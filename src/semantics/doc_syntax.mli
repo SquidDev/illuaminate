@@ -20,7 +20,8 @@ type value =
   | Function of
       { args : arg list list;  (** The arguments to this function. *)
         rets : return list list;  (** The return values of this function. *)
-        throws : description list  (** The reasons this function may throw. *)
+        throws : description list;  (** The reasons this function may throw. *)
+        has_self : bool  (** If this function has an {i implicit} self. *)
       }
   | Table of (string * value documented) list  (** An ordered set of fields this table declares. *)
   | Expr of

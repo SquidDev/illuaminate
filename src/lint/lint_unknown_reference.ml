@@ -60,7 +60,7 @@ let linter =
   in
 
   let rec value ~notes ~span = function
-    | Function { args; rets; throws } ->
+    | Function { args; rets; throws; has_self = _ } ->
         List.iter (List.iter (arg ~notes ~span)) args;
         List.iter (List.iter (return ~notes ~span)) rets;
         List.iter (description ~notes ~span) throws

@@ -67,7 +67,7 @@ module Value = struct
         let args = List.map (List.map (Lift.arg lift)) arguments
         and rets = List.map (List.map (Lift.return lift)) returns
         and throws = List.map (Lift.description lift) throws in
-        Some (Function { args; rets; throws })
+        Some (Function { args; rets; throws; has_self = false })
 
   let get_value ~state (comment : C.comment) =
     match (get_function comment, comment.type_info) with
@@ -131,9 +131,16 @@ module Merge = struct
             type_members =
               type_members
               @ ( fields
-                |> List.map (fun (name, value) ->
-                       (* TODO: Infer self parameter *)
-                       { member_name = name; member_is_method = true; member_value = value }) )
+                |> List.map (fun (member_name, value) ->
+                       let member_value, member_is_method =
+                         match value.descriptor with
+                         | Function { has_self = true; _ } -> (value, true)
+                         | Function ({ args = [ ({ arg_name = "self"; _ } :: args) ]; _ } as f) ->
+                             let v = Function { f with args = [ args ]; has_self = true } in
+                             ({ value with descriptor = v }, true)
+                         | _ -> (value, false)
+                       in
+                       { member_name; member_is_method; member_value }) )
           }
     | _ ->
         Printf.sprintf "Conflicting definitions, cannot merge `%s` and `%s`"
@@ -319,7 +326,7 @@ module Infer = struct
         infer_table state xs
 
   (** Get the descriptor for a list of arguments *)
-  and infer_fun state args body =
+  and infer_fun state ?(has_self = false) args body =
     let get_name = function
       | DotArg _ -> "..."
       | NamedArg (Var v) -> Node.contents.get v
@@ -328,7 +335,7 @@ module Infer = struct
       { arg_name = get_name arg; arg_opt = false; arg_type = None; arg_description = None }
     in
     infer_stmts state body |> ignore;
-    Function { args = [ SepList0.map' get_arg args.args_args ]; rets = []; throws = [] }
+    Function { args = [ SepList0.map' get_arg args.args_args ]; rets = []; throws = []; has_self }
 
   (** Merge a statement's definition with an (optional) doc comment and apply it to the current
       scope. *)
@@ -356,7 +363,12 @@ module Infer = struct
         |> document_stmt state s |> add_var state localf_var;
         None
     | AssignFunction { assignf_name; assignf_args; assignf_body; _ } as s ->
-        simple_documented (infer_fun state assignf_args assignf_body) (Spanned.stmt node)
+        let has_self =
+          match assignf_name with
+          | FVar _ | FDot _ -> false
+          | FSelf _ -> true
+        in
+        simple_documented (infer_fun state ~has_self assignf_args assignf_body) (Spanned.stmt node)
         |> document_stmt state s |> add_fname state assignf_name;
         None
     | Assign { assign_vars = Mono var; assign_vals = Mono def; _ } as s ->
@@ -528,11 +540,12 @@ module Resolve = struct
     }
 
   let rec go_value lift = function
-    | Function { args; rets; throws } ->
+    | Function { args; rets; throws; has_self } ->
         Function
           { args = List.map (List.map (Lift.arg lift)) args;
             rets = List.map (List.map (Lift.return lift)) rets;
-            throws = List.map (Lift.description lift) throws
+            throws = List.map (Lift.description lift) throws;
+            has_self
           }
     | Table fields ->
         Table (List.map (fun (name, field) -> (name, go_documented lift go_value field)) fields)
