@@ -141,8 +141,15 @@ module Merge = struct
         |> Error.report errs Tag.kind_mismatch pos;
         explicit
 
-  (** Merge two documents. *)
+  (** Merge two documented values. *)
   let doc_value ~errs = documented (value ~errs)
+
+  let modules ~errs span left right =
+    { mod_name = left.mod_name;
+      mod_kind = left.mod_kind;
+      mod_types = left.mod_types @ right.mod_types;
+      mod_contents = value ~errs span left.mod_contents right.mod_contents
+    }
 end
 
 module Infer = struct
@@ -416,7 +423,7 @@ module Resolve = struct
   open! Reference
 
   type state =
-    { modules : module_info documented StringMap.t;
+    { modules : module_info documented Lazy.t StringMap.t;
       current_module : module_info documented
     }
 
@@ -467,7 +474,8 @@ module Resolve = struct
         (fun { modules; _ } name is_type ->
           match StringMap.find_opt name modules with
           | _ when is_type -> None
-          | Some { definition; _ } -> Some (Internal { in_module = name; name = None; definition })
+          | Some (lazy { definition; _ }) ->
+              Some (Internal { in_module = name; name = None; definition })
           | None -> None);
         (* Finds elements within modules. This tries foo.[bar.baz], then foo.bar.[baz], etc... *)
         (fun { modules; _ } name is_type ->
@@ -477,7 +485,7 @@ module Resolve = struct
             | Some i ->
                 let mod_name = CCString.take i name and item_name = CCString.drop (i + 1) name in
                 StringMap.find_opt mod_name modules
-                |> CCOpt.flat_map (fun { descriptor = modu; _ } ->
+                |> CCOpt.flat_map (fun (lazy { descriptor = modu; _ }) ->
                        CCList.find_map (fun f -> f modu item_name is_type) in_module_finders)
                 |> CCOpt.or_lazy ~else_:(fun () -> go (i + 1))
           in
@@ -641,6 +649,12 @@ let get_unresolved_module module_path = function
            descriptor = { mod_name; mod_contents = body.descriptor; mod_types; mod_kind }
          }
 
+let crunch_modules : module_info documented list -> module_info documented = function
+  | [] -> failwith "Impossible"
+  | x :: xs ->
+      let errs = Error.make () in
+      List.fold_left Merge.(documented (modules ~errs)) x xs
+
 let get data program =
   let state, current_module = Data.get program Infer.key data in
   let this_config = Data.get program Data.context data |> Config.get in
@@ -648,15 +662,18 @@ let get data program =
     get_unresolved_module this_config current_module
     |> Option.map @@ fun current ->
        let all =
-         List.fold_right
-           (fun file modules ->
+         List.fold_left
+           (fun modules file ->
              let config = Data.get_for file Data.context data |> Config.get in
              match Data.get_for file Infer.key data |> snd |> get_unresolved_module config with
              | None -> modules
              | Some result ->
                  let name = result.descriptor.mod_name in
-                 StringMap.add name result modules)
-           (Data.files data) StringMap.empty
+                 StringMap.update name
+                   (fun x -> Some (result :: Option.value ~default:[] x))
+                   modules)
+           StringMap.empty (Data.files data)
+         |> StringMap.map (fun x -> lazy (crunch_modules x))
        in
        Resolve.go_module all current
   in
@@ -667,4 +684,14 @@ let key = Data.key ~name:__MODULE__ get
 let get_module ({ contents; _ } : t) = contents
 
 let get_modules data =
-  Data.files data |> List.filter_map (fun file -> Data.get_for file key data |> get_module)
+  List.fold_left
+    (fun modules file ->
+      match Data.get_for file key data |> get_module with
+      | None -> modules
+      | Some result ->
+          let name = result.descriptor.mod_name in
+          StringMap.update name (fun x -> Some (result :: Option.value ~default:[] x)) modules)
+    StringMap.empty (Data.files data)
+  |> StringMap.to_seq
+  |> Seq.map (fun (_, x) -> crunch_modules x)
+  |> List.of_seq
