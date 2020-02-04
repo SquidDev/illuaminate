@@ -458,7 +458,11 @@ let extract node =
       ->
         let documented = parse c |> build span in
         extract_comments (documented :: cs) xs
-    | { Span.value = Node.LineComment c; span } :: xs when String.length c > 0 && c.[0] == '-' ->
+    | { Span.value = Node.LineComment c; span } :: xs
+      when String.length c > 0
+           && c.[0] == '-'
+           && (* Skip comments which start with a line entirely composed of '-'. *)
+             (String.length c = 1 || CCString.exists (fun x -> x <> '-') c) ->
         let buffer = Buffer.create 16 in
         Buffer.add_substring buffer c 1 (String.length c - 1);
         let last, xs = extract_block buffer span span.start_line span.start_col xs in

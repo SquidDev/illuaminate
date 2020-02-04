@@ -159,6 +159,32 @@ module Merge = struct
     }
 end
 
+module DropLocal = struct
+  let rec value : value -> value = function
+    | Table xs ->
+        Table
+          (List.filter_map
+             (fun (k, v) ->
+               if v.local then None else Some (k, { v with descriptor = value v.descriptor }))
+             xs)
+    | Type t -> Type (type_info t)
+    | (Function _ | Expr _ | Unknown | Undefined) as v -> v
+
+  and type_info { type_name; type_members } : type_info =
+    { type_name;
+      type_members =
+        List.filter_map
+          (fun ({ member_value = v; _ } as m) ->
+            if v.local then None
+            else Some { m with member_value = { v with descriptor = v.descriptor } })
+          type_members
+    }
+
+  let mod_types =
+    List.filter_map (fun v ->
+        if v.local then None else Some { v with descriptor = type_info v.descriptor })
+end
+
 module Infer = struct
   (** Construct a simple documented node, which has no additional information. *)
   let simple_documented descriptor definition =
@@ -168,7 +194,7 @@ module Infer = struct
   let document state ~before ~after value =
     let add_doc comment value =
       match comment with
-      | Some comment ->
+      | Some comment when CommentCollection.mem state.unused_comments comment ->
           CommentCollection.remove state.unused_comments comment;
           Value.get_documented ~state comment |> Merge.doc_value ~errs:state.errs value
       | _ -> value
@@ -249,6 +275,11 @@ module Infer = struct
               (let def = Lazy.force def in
                simple_documented (Doc_syntax.Table [ (Node.contents.get key, def) ]) def.definition)
               )
+      | NLookup { tbl = Ref tbl; key = String { lit_value; _ }; _ } ->
+          Fun.flip go tbl
+            ( lazy
+              (let def = Lazy.force def in
+               simple_documented (Doc_syntax.Table [ (lit_value, def) ]) def.definition) )
       | _ -> ()
     in
     match var with
@@ -401,20 +432,22 @@ module Infer = struct
     in
     P.comments comments |> List.iter (fun c -> CommentCollection.add state.unused_comments c ());
 
-    let module_comment =
-      match P.comment (First.program.get program) state.comments |> fst |> CCList.last_opt with
-      | Some ({ source; module_info = Some _; _ } as c)
-        when source.start_col = 1 && source.start_line = 1 ->
-          CommentCollection.remove state.unused_comments c;
-          Some c
-      | _ -> None
-    in
     let mod_kind, body =
       match infer_stmts state program.program with
       | Some x -> (Library, x)
       | None -> (Module, !env)
     in
-    let mod_types = StringMap.bindings state.types |> List.map snd in
+    let body = { body with descriptor = DropLocal.value body.descriptor } in
+    let module_comment =
+      match P.comment (First.program.get program) state.comments |> fst |> CCList.last_opt with
+      | Some ({ source; _ } as c)
+        when source.start_col = 1 && source.start_line = 1
+             && CommentCollection.mem state.unused_comments c ->
+          CommentCollection.remove state.unused_comments c;
+          Some c
+      | _ -> None
+    in
+    let mod_types = StringMap.bindings state.types |> List.map snd |> DropLocal.mod_types in
     let result =
       match module_comment with
       | Some ({ module_info = Some { mod_name }; _ } as comment) ->
@@ -422,8 +455,11 @@ module Infer = struct
             let mod_contents = Merge.value ~errs:state.errs pos implicit body in
             { mod_name; mod_contents; mod_types; mod_kind }
           in
-          Named (Merge.documented merge (Value.get_documented ~state comment) body)
-      | _ -> Unnamed { body; mod_types; file = (Spanned.program program).filename; mod_kind }
+          Named (Value.get_documented ~state comment |> Merge.documented merge body)
+      | Some ({ module_info = None; _ } as comment) ->
+          let body = Value.get_documented ~state comment |> Merge.doc_value ~errs:state.errs body in
+          Unnamed { body; mod_types; file = (Spanned.program program).filename; mod_kind }
+      | None -> Unnamed { body; mod_types; file = (Spanned.program program).filename; mod_kind }
     in
     (state, result)
 
@@ -638,7 +674,9 @@ let errors { errors; _ } = Error.errors errors
 
 let detached_comments ({ comments; _ } : t) = CommentCollection.to_seq_keys comments |> List.of_seq
 
-let get_unresolved_module module_path = function
+let get_unresolved_module data program =
+  let module_path = Data.get program Data.context data |> Config.get in
+  match Data.get program Infer.key data |> snd with
   | Named m -> Some m
   | Unnamed { file; body; mod_types; mod_kind } ->
       let path = Fpath.v file.path in
@@ -662,6 +700,8 @@ let get_unresolved_module module_path = function
            descriptor = { mod_name; mod_contents = body.descriptor; mod_types; mod_kind }
          }
 
+let unresolved_module = Data.key ~name:(__MODULE__ ^ ".unresolved") get_unresolved_module
+
 let crunch_modules : module_info documented list -> module_info documented = function
   | [] -> failwith "Impossible"
   | x :: xs ->
@@ -670,15 +710,13 @@ let crunch_modules : module_info documented list -> module_info documented = fun
 
 let get data program =
   let state, current_module = Data.get program Infer.key data in
-  let this_config = Data.get program Data.context data |> Config.get in
   let contents =
-    get_unresolved_module this_config current_module
+    Data.get program unresolved_module data
     |> Option.map @@ fun current ->
        let all =
          List.fold_left
            (fun modules file ->
-             let config = Data.get_for file Data.context data |> Config.get in
-             match Data.get_for file Infer.key data |> snd |> get_unresolved_module config with
+             match Data.get_for file unresolved_module data with
              | None -> modules
              | Some result ->
                  let name = result.descriptor.mod_name in
