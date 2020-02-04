@@ -15,6 +15,7 @@ become more useful as it continues to develop.
    etc...) as well as several formatting linters (whitespace, redundant
    parenthesis, etc...).
  - Automatic code fixer for many of the detected problems.
+ - Documentation generation, using LDoc syntax.
  - Integration with GitHub Actions
 
 ## Building

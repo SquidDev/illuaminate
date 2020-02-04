@@ -109,7 +109,7 @@ let show_function = (~resolve, args, rets, throws) =>
 
 let show_example = (~resolve, example) =>
   switch (example) {
-  | RawExample(x) => <pre> {Html_highlight.lua(x)} </pre>
+  | RawExample(x) => <pre class_="highlight highlight-lua"> {Html_highlight.lua(x)} </pre>
   | RichExample(Description(x)) => md(~resolve, x)
   };
 
