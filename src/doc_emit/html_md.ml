@@ -31,6 +31,19 @@ let md ~resolve x =
           | _ -> ("span", [ ("class", Some "reference reference-unresolved") ])
         in
         Some [ Html (tag, attrs, label) ]
+    | Html ("illuaminate:colour", [ ("colour", Some colour) ], label) ->
+        Some
+          [ Html
+              ( "span",
+                [ ("class", Some "colour") ],
+                Html
+                  ( "span",
+                    [ ("class", Some "colour-ref");
+                      ("style", Some ("background-color: #" ^ colour))
+                    ],
+                    [] )
+                :: label )
+          ]
     | _ -> None
   in
   let format node =

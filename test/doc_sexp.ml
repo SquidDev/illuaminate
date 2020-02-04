@@ -32,7 +32,7 @@ struct
 
   let reference = X.sexp
 
-  let description (Description d) = Omd.to_text d |> atom'
+  let description (Description d) = Omd.to_markdown d |> atom'
 
   let rec type_ = function
     | Type.NilTy -> atom' "nil"

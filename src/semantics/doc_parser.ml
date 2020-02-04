@@ -29,12 +29,28 @@ let parse_description =
         gobble_name link [] r (Bar :: p) l
     | x :: l -> gobble_link (x :: accum) r (x :: p) l
   in
-  (* Register an extension which recognises @{foo} and @ foo|bar *)
+  let is_hex = function
+    | '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' -> true
+    | _ -> false
+  and is_word = function
+  | 'a'..'z' | 'A' .. 'Z' | '0' .. '9' -> true
+  | _ -> false
+  in
+  (* Register an extension which recognises [[@{ foo }]], [[@{ foo|bar }]] and hex colours
+     ([[#fff]]) *)
   let ext : extension =
     object
       method parser_extension r p =
         function
         | At :: Obrace :: l -> gobble_link [] r (Obrace :: At :: p) l
+        | Hash :: (Word w | Number w) :: l
+          when (String.length w = 3 || String.length w == 6) && CCString.for_all is_hex w ->
+            Some
+              ( Html ("illuaminate:colour", [ ("colour", Some w) ], [ Text ("#" ^ w) ]) :: r,
+                Word w :: Hash :: p,
+                l )
+        | Hash :: Word w :: _ -> Printf.printf "#%S\n" w; None
+        | Hash :: Number w :: _ -> Printf.printf "#Number %S\n" w; None
         | _ -> None
 
       method to_string = "Extension"
