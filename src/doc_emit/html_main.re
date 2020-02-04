@@ -118,6 +118,7 @@ let show_see = (~resolve, {see_reference, see_label, see_description}) =>
     <strong>
       {show_reference(~resolve, see_reference, str(see_label))}
     </strong>,
+    str(" "),
     show_desc_inline(~resolve, see_description),
   ]
   |> many;
