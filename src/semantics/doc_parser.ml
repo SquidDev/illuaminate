@@ -32,9 +32,6 @@ let parse_description =
   let is_hex = function
     | '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' -> true
     | _ -> false
-  and is_word = function
-  | 'a'..'z' | 'A' .. 'Z' | '0' .. '9' -> true
-  | _ -> false
   in
   (* Register an extension which recognises [[@{ foo }]], [[@{ foo|bar }]] and hex colours
      ([[#fff]]) *)

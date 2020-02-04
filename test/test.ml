@@ -10,5 +10,5 @@ let () =
          Lint.tests;
          Pattern.tests;
          Reprint.tests;
-         Doc_parser.tests
+         group "Documentation" [ Doc_parser.tests; Doc_extract.tests ]
        ]

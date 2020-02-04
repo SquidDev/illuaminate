@@ -32,5 +32,5 @@ let process ~name contents out =
 let process ~name contents = Format.asprintf "%t" (process ~name contents)
 
 let tests =
-  OmnomnomGolden.of_directory process ~group:"Doc comment parser" ~directory:"data/doc-parse"
+  OmnomnomGolden.of_directory process ~group:"Comment parsing" ~directory:"data/doc-parse"
     ~extension:".lua" ()
