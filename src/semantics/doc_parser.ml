@@ -227,11 +227,21 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
           | Some _ -> RichExample (parse_description ~default_lang:"lua" body)
         in
         b.b_usages <- usage :: b.b_usages
-    | "see", flags, body ->
+    | "see", flags, body -> (
         List.iter (unknown "@see") flags;
-        (* TODO: Split into reference and (optional) description *)
-        b.b_see <-
-          { see_reference = Reference body; see_label = body; see_description = None } :: b.b_see
+        match match_word body 0 with
+        | None ->
+            Printf.sprintf "Expected type name (from body %S)" (String.escaped body)
+            |> report Tag.malformed_tag
+        | Some (refr, cont) ->
+            let refr = String.trim refr in
+            let see_description =
+              match CCString.drop cont body |> String.trim with
+              | "" -> None
+              | x -> Some (parse_description x)
+            in
+            b.b_see <-
+              { see_reference = Reference refr; see_label = refr; see_description } :: b.b_see )
     | "include", flags, body ->
         List.iter (unknown "@include") flags;
         b.b_includes <- Reference body :: b.b_includes

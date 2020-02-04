@@ -3,7 +3,7 @@
  (public_name illuaminate.lint)
  (synopsis "Basic linting for Illuaminate.")
  (libraries containers illuaminate.core illuaminate.config
-   illuaminate.semantics ppx_deriving.runtime))
+   illuaminate.semantics ppx_deriving.runtime omd))
 
 (ocamllex
  (modules lex_string_escape))

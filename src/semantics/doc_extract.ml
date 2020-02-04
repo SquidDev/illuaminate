@@ -587,7 +587,7 @@ module Config = struct
           ~comment:
             "The path(s) where modules are located. This is used for guessing the module name of \
              files, it is ignored when an explicit @module annotation is provided."
-          ~default:[ ("./", ".lua"); ("./", "/init.lua") ]
+          ~default:[]
           Converter.(list (atom ~ty:"path" parse_path print_path))
       in
       { module_path }

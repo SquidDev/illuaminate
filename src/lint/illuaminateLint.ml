@@ -42,6 +42,8 @@ module Linters = struct
 
   let undocumented = Lint_undocumented.linter
 
+  let unknown_reference = Lint_unknown_reference.linter
+
   let detached_comments = Lint_detached_comment.linter
 
   let spacing = Lint_spacing.linter
@@ -64,6 +66,7 @@ module Linters = struct
       doc_parse;
       doc_extract;
       undocumented;
+      unknown_reference;
       detached_comments;
       empty_block;
       for_num;

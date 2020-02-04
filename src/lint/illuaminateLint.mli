@@ -78,6 +78,9 @@ module Linters : sig
   (** Warns on undocumented nodes. *)
   val undocumented : linter
 
+  (** Warns on unknown references within doc comments. *)
+  val unknown_reference : linter
+
   (** Checks for whitespace around basic punctuation such as ",", ";", "=" and all binary operators. *)
   val spacing : linter
 
