@@ -244,11 +244,11 @@ let template = (~title, ~site_title, ~resolve, ~modules, ~current, body) =>
             {modules
              |> List.filter(k => k.descriptor.mod_kind == Module)
              |> List.map(module_list_item(~resolve, ~current))
-             |> show_list(~tag="h2", "APIs")}
+             |> show_list(~tag="h2", "Globals")}
             {modules
              |> List.filter(k => k.descriptor.mod_kind == Library)
              |> List.map(module_list_item(~resolve, ~current))
-             |> show_list(~tag="h2", "Libraries")}
+             |> show_list(~tag="h2", "Modules")}
           </nav>
           <section id="content"> ...body </section>
         </div>
@@ -300,17 +300,10 @@ let emit_module =
       ~site_title=?,
       ~resolve,
       ~modules,
-      {descriptor: {mod_name, mod_contents, mod_types, mod_kind}, _} as self,
+      {descriptor: {mod_name, mod_contents, mod_types, _}, _} as self,
     ) => {
   let content = [
-    <h1>
-      <code> {str(mod_name)} </code>
-      {if (mod_kind == Module) {
-         str(" API");
-       } else {
-         str(" library");
-       }}
-    </h1>,
+    <h1> <code> {str(mod_name)} </code> {str(" library")} </h1>,
     show_desc(~resolve, self.description),
     show_common(~resolve, self),
     show_value(~resolve, mod_contents),

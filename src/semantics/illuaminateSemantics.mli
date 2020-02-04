@@ -7,6 +7,7 @@ module Resolve = Resolve
 
 (** Documentation comment parsing and processing *)
 module Doc : sig
+  module AbstractSyntax = Doc_abstract_syntax
   module Comment = Doc_comment
   module Parser = Doc_parser
   module Syntax = Doc_syntax
