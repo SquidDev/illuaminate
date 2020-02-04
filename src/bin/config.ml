@@ -1,3 +1,4 @@
+open Stdlib
 open IlluaminateCore
 open IlluaminateConfig
 open IlluaminateLint
@@ -23,25 +24,39 @@ type pat_config =
 
 type doc_options =
   { site_title : string option;
-    index : Fpath.t option
+    index : Fpath.t option;
+    destination : Fpath.t
   }
 
 let doc_options_term =
   let open Term in
-  let option =
-    Converter.atom ~ty:"string"
+  let option ~ty (parse, print) =
+    Converter.atom ~ty
       (function
         | ":none" -> Ok None
-        | x -> Ok (Some x))
+        | x -> parse x |> Result.map Option.some)
       (function
         | None -> ":none"
-        | Some x -> x)
+        | Some x -> print x)
+  and base ~ty (parse, print) = Converter.atom ~ty parse print
+  and string = (Result.ok, Fun.id)
+  and path =
+    ( (fun p ->
+        CCString.drop_while (fun x -> x = '/') p
+        |> Fpath.of_string
+        |> Result.map_error (fun (`Msg msg) -> msg)),
+      Fpath.to_string )
   in
   let+ site_title =
-    field ~name:"title" ~comment:"A title to display for the site" ~default:None option
-  and+ index = field ~name:"index" ~comment:"A path to an index file." ~default:None option in
-  let mk_path p = CCString.drop_while (fun x -> x = '/') p |> Fpath.v in
-  { site_title; index = Option.map mk_path index }
+    field ~name:"title" ~comment:"A title to display for the site" ~default:None
+      (option ~ty:"string" string)
+  and+ index =
+    field ~name:"index" ~comment:"A path to an index file." ~default:None (option ~ty:"path" path)
+  and+ destination =
+    field ~name:"destination" ~comment:"The folder to write to" ~default:(Fpath.v "doc")
+      (base ~ty:"path" path)
+  in
+  { site_title; index; destination }
 
 let doc_options = Category.add doc_options_term IlluaminateSemantics.Doc.Extract.Config.workspace
 
@@ -202,8 +217,11 @@ let get_linters config path =
 let get_doc_options = function
   | Default -> Term.default doc_options_term
   | Config { root; store; _ } ->
-      let { site_title; index } = Schema.get doc_options store in
-      { site_title; index = Option.map (Fpath.append root) index }
+      let { site_title; index; destination } = Schema.get doc_options store in
+      { site_title;
+        index = Option.map (Fpath.append root) index;
+        destination = Fpath.append root destination
+      }
 
 let get_store = function
   | Default -> Schema.default global_schema

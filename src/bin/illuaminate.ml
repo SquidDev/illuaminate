@@ -63,6 +63,15 @@ let fix paths =
   Error.display_of_files errs;
   if Error.has_problems errs then exit 1
 
+let mkdirs =
+  let rec go xs path =
+    let path_s = Fpath.to_string path in
+    if Sys.file_exists path_s then List.iter (fun p -> Unix.mkdir p 0o755) xs
+    else if Fpath.is_root path then failwith "Root directory doesn't exist!"
+    else go (path_s :: xs) Fpath.(parent path |> normalize)
+  in
+  go []
+
 let doc_gen path =
   let open IlluaminateSemantics in
   let module E = IlluaminateDocEmit in
@@ -81,7 +90,7 @@ let doc_gen path =
        let fmt = Format.formatter_of_out_channel out in
        Html.Default.emit_doc fmt node; Format.pp_print_flush fmt ()
      in
-     let { Config.site_title; index } = Config.get_doc_options config in
+     let { Config.site_title; index; destination } = Config.get_doc_options config in
      let index =
        let open Html.Default in
        match index with
@@ -105,14 +114,18 @@ let doc_gen path =
                  (Fpath.to_string path) ext;
                exit 1 ) )
      in
+     mkdirs Fpath.(destination / "module");
      modules
      |> List.iter (fun (modu : Doc.Syntax.module_info Doc.Syntax.documented) ->
-            let html =
-              E.Html_main.emit_module ?site_title ~resolve:(fun x -> "../" ^ x) ~modules modu
-            in
-            CCIO.with_out ("out/module/" ^ modu.descriptor.mod_name ^ ".html") (emit_doc html));
-     let html = E.Html_main.emit_modules ?site_title ~resolve:Fun.id ~modules index in
-     CCIO.with_out "out/index.html" (emit_doc html) );
+            let path = Fpath.(destination / "module" / (modu.descriptor.mod_name ^ ".html")) in
+            E.Html_main.emit_module ?site_title ~resolve:(fun x -> "../" ^ x) ~modules modu
+            |> emit_doc
+            |> CCIO.with_out (Fpath.to_string path));
+
+     let path = Fpath.(destination / "index.html") in
+     E.Html_main.emit_modules ?site_title ~resolve:Fun.id ~modules index
+     |> emit_doc
+     |> CCIO.with_out (Fpath.to_string path) );
   Error.display_of_files errs;
   if Error.has_problems errs then exit 1
 
