@@ -7,7 +7,7 @@ type doc_flag =
 
 let parse_description =
   let open Omd_representation in
-  let make link name = Html ("lsp:ref", [ ("link", Some link); ("name", Some name) ], []) in
+  let make link name = Html ("illuaminate:ref", [ ("link", Some link) ], [ Text name ]) in
   (* Gobble everything from | to }. *)
   let rec gobble_name link accum r p = function
     | Newlines 0 :: _ | [] -> None
@@ -29,12 +29,25 @@ let parse_description =
         gobble_name link [] r (Bar :: p) l
     | x :: l -> gobble_link (x :: accum) r (x :: p) l
   in
-  (* Register an extension which recognises @{foo} and @ foo|bar *)
+  let is_hex = function
+    | '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' -> true
+    | _ -> false
+  in
+  (* Register an extension which recognises [[@{ foo }]], [[@{ foo|bar }]] and hex colours
+     ([[#fff]]) *)
   let ext : extension =
     object
       method parser_extension r p =
         function
         | At :: Obrace :: l -> gobble_link [] r (Obrace :: At :: p) l
+        | Hash :: (Word w | Number w) :: l
+          when (String.length w = 3 || String.length w == 6) && CCString.for_all is_hex w ->
+            Some
+              ( Html ("illuaminate:colour", [ ("colour", Some w) ], [ Text ("#" ^ w) ]) :: r,
+                Word w :: Hash :: p,
+                l )
+        | Hash :: Word w :: _ -> Printf.printf "#%S\n" w; None
+        | Hash :: Number w :: _ -> Printf.printf "#Number %S\n" w; None
         | _ -> None
 
       method to_string = "Extension"
@@ -227,10 +240,21 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
           | Some _ -> RichExample (parse_description ~default_lang:"lua" body)
         in
         b.b_usages <- usage :: b.b_usages
-    | "see", flags, body ->
+    | "see", flags, body -> (
         List.iter (unknown "@see") flags;
-        (* TODO: Split into reference and (optional) description *)
-        b.b_see <- { see_reference = Reference body; see_description = None } :: b.b_see
+        match match_word body 0 with
+        | None ->
+            Printf.sprintf "Expected type name (from body %S)" (String.escaped body)
+            |> report Tag.malformed_tag
+        | Some (refr, cont) ->
+            let refr = String.trim refr in
+            let see_description =
+              match CCString.drop cont body |> String.trim with
+              | "" -> None
+              | x -> Some (parse_description x)
+            in
+            b.b_see <-
+              { see_reference = Reference refr; see_label = refr; see_description } :: b.b_see )
     | "include", flags, body ->
         List.iter (unknown "@include") flags;
         b.b_includes <- Reference body :: b.b_includes
@@ -386,14 +410,14 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
         | Some { mod_name = inner_name; _ } ->
             Printf.sprintf "Duplicate @module definitions (named '%s' and '%s')" inner_name name
             |> report Tag.duplicate_definitions
-        | None -> b.b_module <- Some { mod_name = name; mod_kind = Module } )
+        | None -> b.b_module <- Some { mod_name = name } )
     | "type", flags, name -> (
         List.iter (unknown "@type") flags;
-        match b.b_module with
-        | Some { mod_name = inner_name; _ } ->
-            Printf.sprintf "Duplicate @module definitions (named '%s' and '%s')" inner_name name
+        match b.b_type with
+        | Some { type_name = inner_name; _ } ->
+            Printf.sprintf "Duplicate @type definitions (named '%s' and '%s')" inner_name name
             |> report Tag.duplicate_definitions
-        | None -> b.b_module <- Some { mod_name = name; mod_kind = Module } )
+        | None -> b.b_type <- Some { type_name = name } )
     | tag, _, _ -> b.b_unknown <- tag :: b.b_unknown
   in
   List.iter tag_worker tags;
@@ -447,7 +471,11 @@ let extract node =
       ->
         let documented = parse c |> build span in
         extract_comments (documented :: cs) xs
-    | { Span.value = Node.LineComment c; span } :: xs when String.length c > 0 && c.[0] == '-' ->
+    | { Span.value = Node.LineComment c; span } :: xs
+      when String.length c > 0
+           && c.[0] == '-'
+           && (* Skip comments which start with a line entirely composed of '-'. *)
+           (String.length c = 1 || CCString.exists (fun x -> x <> '-') c) ->
         let buffer = Buffer.create 16 in
         Buffer.add_substring buffer c 1 (String.length c - 1);
         let last, xs = extract_block buffer span span.start_line span.start_col xs in
@@ -460,11 +488,11 @@ let extract node =
     extract_comments [] (node ^. Node.trailing_trivia) |> List.rev )
 
 module Term = struct
-  type t = Wrap : 'a Node.t -> t
+  type t = Node.trivial Span.spanned list * Node.trivial Span.spanned list
 
-  let hash (Wrap x) = Hashtbl.hash x
+  let hash (x, y) = (Hashtbl.hash x * 31) + Hashtbl.hash y
 
-  let equal (Wrap a) (Wrap b) = Obj.repr a == Obj.repr b
+  let equal (al, at) (bl, bt) = al == bl && at == bt
 end
 
 module TermTbl = Hashtbl.Make (Term)
@@ -484,13 +512,14 @@ module Data = struct
 
   (** Get the comments before and after a specific node. *)
   let comment node { comments; _ } =
-    match TermTbl.find_opt comments (Term.Wrap node) with
+    let key = (Node.leading_trivia.get node, Node.trailing_trivia.get node) in
+    match TermTbl.find_opt comments key with
     | Some t -> t
     | None ->
         let t = extract node in
         ( match t with
         | [], [] -> ()
-        | _ -> TermTbl.add comments (Term.Wrap node) t );
+        | _ -> TermTbl.add comments key t );
         t
 
   let comments t =

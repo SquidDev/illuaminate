@@ -52,31 +52,36 @@ struct
     loop_pure 0
 
   let emit out node =
+    let open Format in
     let rec go = function
       | Many xs -> List.iter go xs
       | Nil -> ()
-      | Raw x -> output_string out x
-      | Text x -> output_string out (html_escape x)
-      | Element { tag = ("br" | "img" | "meta") as tag; attributes; children = []; events = [] }
+      | Raw x -> pp_print_string out x
+      | Text x -> pp_print_string out (html_escape x)
+      | Element
+          { tag = ("br" | "img" | "link" | "meta") as tag; attributes; children = []; events = [] }
         -> (
         match attributes with
-        | [] -> Printf.fprintf out "<%s />" tag
+        | [] -> fprintf out "<%s />" tag
         | _ ->
-            Printf.fprintf out "<%s" tag;
-            attributes |> List.iter (fun (k, v) -> Printf.fprintf out " %s=\"%s\"" k v);
-            output_string out " />" )
+            fprintf out "<%s" tag;
+            attributes |> List.iter (fun (k, v) -> fprintf out " %s=\"%s\"" k v);
+            pp_print_string out " />" )
       | Element { tag; attributes; children; events = [] } ->
           ( match attributes with
-          | [] -> Printf.fprintf out "<%s>" tag
+          | [] -> fprintf out "<%s>" tag
           | _ ->
-              Printf.fprintf out "<%s" tag;
-              attributes |> List.iter (fun (k, v) -> Printf.fprintf out " %s=\"%s\"" k v);
-              output_string out ">" );
-          List.iter go children; Printf.fprintf out "</%s>" tag
+              fprintf out "<%s" tag;
+              attributes |> List.iter (fun (k, v) -> fprintf out " %s=\"%s\"" k v);
+              pp_print_string out ">" );
+          List.iter go children; fprintf out "</%s>" tag
       | Element { events = _ :: _; _ } -> failwith "Cannot emit event handlers to a formatter."
     in
-    output_string out "<!DOCTYPE html>";
     go node
+
+  let emit_doc out node =
+    Format.fprintf out "<!DOCTYPE html>";
+    emit out node
 end
 
 module Default = Make (struct

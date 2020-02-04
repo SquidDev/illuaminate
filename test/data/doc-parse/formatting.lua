@@ -1,0 +1,5 @@
+--- This is a long doc comment to test some formatting.
+--
+-- This @{print|is a reference to print}, and @{read.io} is a standalone reference.
+--
+-- We accept #FFF and #ff00aa colour formatting codes. #999999

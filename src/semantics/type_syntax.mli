@@ -1,5 +1,5 @@
 module type S = sig
-  type name
+  type reference
 
   type t =
     | NilTy
@@ -7,21 +7,19 @@ module type S = sig
     | IntTy of int
     | NumberTy of float
     | StringTy of string
-    | Named of name
+    | Named of reference * string
     | Function of
         { args : arg list;
           return : t list * t option
         }
     | Table of table_entry list
     | Union of t list
-  [@@deriving show]
 
   and arg =
     { name : string option;
       ty : t;
       opt : bool
     }
-  [@@deriving show]
 
   and table_entry =
     | Field of
@@ -34,9 +32,31 @@ module type S = sig
         { key : t;
           value : t
         }
-  [@@deriving show]
 end
 
-module Unresolved : S with type name = Reference.unresolved
+(** Construct an arbitrary *)
+module Make (X : sig
+  type reference
+end) : S with type reference = X.reference
 
-module Resolved : S with type name = Reference.resolved
+(** Lift a type from using one reference to using another. *)
+module Lift (L : S) (R : S) : sig
+  val t : (L.reference -> R.reference) -> L.t -> R.t
+end
+
+module Unresolved : S with type reference = Reference.unresolved
+
+module Resolved : S with type reference = Reference.resolved
+
+module Builtin : sig
+  open Resolved
+
+  (** Lua's builtin string type. *)
+  val string : t
+
+  (** Lua's builtin number type. *)
+  val number : t
+
+  (** Lua's builtin boolean type. *)
+  val boolean : t
+end

@@ -1,17 +1,20 @@
 type module_kind =
   | Module
-  | Library
+      (** A legacy module, using the "module" directive. Global variables declared in this file are
+          considered as exported by this file. *)
+  | Library  (** A standard module, which returns the term that it exports. *)
 
 module type S = sig
   type reference
 
-  module Type : Type_syntax.S
+  module Type : Type_syntax.S with type reference = reference
 
   type description = Description of Omd.t
 
   (** A link to another name. *)
   type see =
     { see_reference : reference;  (** The name this see link points to. *)
+      see_label : string;  (** Textual representation of the reference. *)
       see_description : description option  (** An optional description of this name. *)
     }
 
@@ -38,11 +41,36 @@ module type S = sig
 
   type nonrec module_kind = module_kind =
     | Module
-    | Library
+        (** A legacy module, using the "module" directive. Global variables declared in this file
+            are considered as exported by this file. *)
+    | Library  (** A standard module, which returns the term that it exports. *)
 end
 
 module Make (X : sig
   type reference
 
-  module Type : Type_syntax.S
+  module Type : Type_syntax.S with type reference = reference
 end) : S with type reference := X.reference and module Type = X.Type
+
+(** Lift a type from using one reference to using another. *)
+module Lift (L : S) (R : S) : sig
+  (** A series of functions to map between one reference kind and another. *)
+  type t =
+    { any_ref : L.reference -> R.reference;  (** Lift any kind of reference. *)
+      type_ref : L.reference -> R.reference;  (** Lift references specialised for types. *)
+      description : L.description -> R.description
+          (** Lift a description. This must handle [\[illuaminate:ref\]] HTML tags. *)
+    }
+
+  val description : t -> L.description -> R.description
+
+  val see : t -> L.see -> R.see
+
+  val example : t -> L.example -> R.example
+
+  val arg : t -> L.arg -> R.arg
+
+  val return : t -> L.return -> R.return
+
+  val ty : t -> L.Type.t -> R.Type.t
+end

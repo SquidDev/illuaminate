@@ -8,10 +8,7 @@ include Doc_abstract_syntax.Make (struct
   module Type = Type_syntax.Unresolved
 end)
 
-type module_info =
-  { mod_name : string;
-    mod_kind : module_kind
-  }
+type module_info = { mod_name : string } [@@unboxed]
 
 type type_info = { type_name : string } [@@unboxed]
 

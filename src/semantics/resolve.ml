@@ -172,6 +172,16 @@ let find_var s (S.Var var) =
         in
         Hashtbl.add s.store.globals var v; v )
 
+let use_var s name =
+  let var = find_var s name in
+  let usage = { var; node = name } in
+  var.usages <- { var; node = name } :: var.usages;
+  SVarTbl.add s.store.var_usages name usage;
+  match var.kind with
+  | Global -> ()
+  | Local sc | Loop sc | Arg sc | ImplicitArg sc ->
+      if s.active_scope.fun_id <> sc.fun_id then var.captured <- true
+
 let rec resolve_stmts scope stmts = CCList.fold_left resolve_stmt scope stmts |> ignore
 
 and resolve_exprs scope = S.SepList1.iter (resolve_expr scope)
@@ -267,12 +277,12 @@ and resolve_stmt s (stmt : S.stmt) =
 
 and resolve_function_name s = function
   | S.FVar var -> Some (find_var s var, var)
-  | FDot { tbl; _ } ->
-      resolve_function_name s tbl |> ignore;
-      None
-  | FSelf { tbl; _ } ->
-      resolve_function_name s tbl |> ignore;
-      None
+  | n ->
+      let rec go = function
+        | S.FVar var -> use_var s var
+        | FDot { tbl; _ } | FSelf { tbl; _ } -> go tbl
+      in
+      go n; None
 
 and resolve_expr s = function
   | S.Ref var -> resolve_name s var
@@ -305,15 +315,7 @@ and resolve_expr s = function
 
 and resolve_name s syntax =
   match syntax with
-  | S.NVar name -> (
-      let var = find_var s name in
-      let usage = { var; node = name } in
-      var.usages <- { var; node = name } :: var.usages;
-      SVarTbl.add s.store.var_usages name usage;
-      match var.kind with
-      | Global -> ()
-      | Local sc | Loop sc | Arg sc | ImplicitArg sc ->
-          if s.active_scope.fun_id <> sc.fun_id then var.captured <- true )
+  | S.NVar var -> use_var s var
   | NDot { tbl; _ } -> resolve_expr s tbl
   | NLookup { tbl; key; _ } -> resolve_expr s tbl; resolve_expr s key
 

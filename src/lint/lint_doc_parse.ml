@@ -1,5 +1,4 @@
 open Linter
-open IlluaminateCore
 open IlluaminateSemantics
 
 open struct

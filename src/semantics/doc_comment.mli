@@ -6,10 +6,7 @@ include
   Doc_abstract_syntax.S with type reference := reference and module Type = Type_syntax.Unresolved
 
 (** Information about this module. *)
-type module_info =
-  { mod_name : string;  (** The name of this module. *)
-    mod_kind : module_kind  (** The "kind" of this module. *)
-  }
+type module_info = { mod_name : string  (** The name of this module. *) } [@@unboxed]
 
 (** Information about this type/class. *)
 type type_info = { type_name : string } [@@unboxed]
