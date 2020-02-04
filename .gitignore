@@ -2,7 +2,6 @@
 /_*
 .merlin
 *.install
-/out
 
 # Parser files
 *.conflicts

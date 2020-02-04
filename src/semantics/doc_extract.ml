@@ -88,60 +88,62 @@ module Value = struct
     }
 end
 
-let merge_documented (merge : Span.t -> 'a -> 'b -> 'c) (implicit : 'a documented)
-    (explicit : 'b documented) =
-  { description =
-      ( match implicit.description with
-      | None -> explicit.description
-      | Some _ -> implicit.description );
-    definition = implicit.definition;
-    descriptor = merge implicit.definition implicit.descriptor explicit.descriptor;
-    examples = implicit.examples @ explicit.examples;
-    see = implicit.see @ explicit.see;
-    local = implicit.local || explicit.local
-  }
+module Merge = struct
+  let documented (merge : Span.t -> 'a -> 'b -> 'c) (implicit : 'a documented)
+      (explicit : 'b documented) =
+    { description =
+        ( match implicit.description with
+        | None -> explicit.description
+        | Some _ -> implicit.description );
+      definition = implicit.definition;
+      descriptor = merge implicit.definition implicit.descriptor explicit.descriptor;
+      examples = implicit.examples @ explicit.examples;
+      see = implicit.see @ explicit.see;
+      local = implicit.local || explicit.local
+    }
 
-let merge_documented_term { errs; _ } pos implicit explicit =
-  match (explicit, implicit) with
-  (* The trivial cases *)
-  | Unknown, x | x, Unknown -> x
-  | Undefined, _ | _, Undefined -> Undefined
-  | Table x, Table y -> Table (x @ y) (* TODO: Merge keys *)
-  | Function _, Function _ -> explicit (* TODO: Validate matching args *)
-  | Expr { ty; value }, Expr other when ty = other.ty -> (
-    (* Expressions of the same type are merged. We really need a better strategy for this - it's
-       only designed to detect constants. *)
-    match (value, other.value) with
-    | Some v, Some ov when v = ov -> Expr { value; ty }
-    | _ -> Expr { ty; value = None } )
-  | Expr { ty = NilTy; _ }, x | x, Expr { ty = NilTy; _ } ->
-      (* If someone has assigned to nil and something else, prioritise that definition. *)
-      x
-  | Table fields, Type { type_name; type_members } | Type { type_name; type_members }, Table fields
-    ->
-      (* If we've an index metafield, use that instead *)
-      let fields =
-        match List.assoc_opt "__index" fields with
-        | Some { descriptor = Table fields; _ } -> fields
-        | _ -> fields
-      in
-      Type
-        { type_name;
-          type_members =
-            type_members
-            @ ( fields
-              |> List.map (fun (name, value) ->
-                     (* TODO: Infer self parameter *)
-                     { member_name = name; member_is_method = true; member_value = value }) )
-        }
-  | _ ->
-      Printf.sprintf "Conflicting definitions, cannot merge `%s` and `%s`"
-        (Value.debug_name implicit) (Value.debug_name explicit)
-      |> Error.report errs Tag.kind_mismatch pos;
-      explicit
+  let value ~errs pos implicit explicit =
+    match (explicit, implicit) with
+    (* The trivial cases *)
+    | Unknown, x | x, Unknown -> x
+    | Undefined, _ | _, Undefined -> Undefined
+    | Table x, Table y -> Table (x @ y) (* TODO: Merge keys *)
+    | Function _, Function _ -> explicit (* TODO: Validate matching args *)
+    | Expr { ty; value }, Expr other when ty = other.ty -> (
+      (* Expressions of the same type are merged. We really need a better strategy for this - it's
+         only designed to detect constants. *)
+      match (value, other.value) with
+      | Some v, Some ov when v = ov -> Expr { value; ty }
+      | _ -> Expr { ty; value = None } )
+    | Expr { ty = NilTy; _ }, x | x, Expr { ty = NilTy; _ } ->
+        (* If someone has assigned to nil and something else, prioritise that definition. *)
+        x
+    | Table fields, Type { type_name; type_members }
+    | Type { type_name; type_members }, Table fields ->
+        (* If we've an index metafield, use that instead *)
+        let fields =
+          match List.assoc_opt "__index" fields with
+          | Some { descriptor = Table fields; _ } -> fields
+          | _ -> fields
+        in
+        Type
+          { type_name;
+            type_members =
+              type_members
+              @ ( fields
+                |> List.map (fun (name, value) ->
+                       (* TODO: Infer self parameter *)
+                       { member_name = name; member_is_method = true; member_value = value }) )
+          }
+    | _ ->
+        Printf.sprintf "Conflicting definitions, cannot merge `%s` and `%s`"
+          (Value.debug_name implicit) (Value.debug_name explicit)
+        |> Error.report errs Tag.kind_mismatch pos;
+        explicit
 
-(** Merge two documents. *)
-let merge_docs state = merge_documented (merge_documented_term state)
+  (** Merge two documents. *)
+  let doc_value ~errs = documented (value ~errs)
+end
 
 module Infer = struct
   (** Construct a simple documented node, which has no additional information. *)
@@ -154,7 +156,7 @@ module Infer = struct
       match comment with
       | Some comment ->
           CommentCollection.remove state.unused_comments comment;
-          Value.get_documented ~state comment |> merge_docs state value
+          Value.get_documented ~state comment |> Merge.doc_value ~errs:state.errs value
       | _ -> value
     in
     value |> add_doc before |> add_doc after
@@ -192,40 +194,41 @@ module Infer = struct
       (Spanned.stmt stmt) value
 
   (** Add a {!R.var} to the current scope. *)
-  let add_resolved_var scope var def =
+  let add_resolved_var state var def =
     (* Add this term to the type map. Oh boy, this is almost definitely wrong *)
     let update_type = function
       | { descriptor = Type ({ type_name; _ } as ty); _ } as def ->
-          scope.types <- StringMap.add type_name { def with descriptor = ty } scope.types
+          state.types <- StringMap.add type_name { def with descriptor = ty } state.types
       | _ -> ()
     in
-    ( if not (VarTbl.mem scope.vars var) then
-      match var.kind with
-      | Global -> (
-        match !(scope.globals) with
+    ( if not (VarTbl.mem state.vars var) then
+      match var with
+      | { kind = Global; name = "_ENV"; _ } -> VarTbl.add state.vars var state.globals
+      | { kind = Global; _ } -> (
+        match !(state.globals) with
         | { descriptor = Table fs; _ } as globals ->
-            scope.globals := { globals with descriptor = Table (fs @ [ (var.name, def) ]) }
+            state.globals := { globals with descriptor = Table (fs @ [ (var.name, def) ]) }
         | _ -> () )
       | _ -> () );
-    match VarTbl.find_opt scope.vars var with
+    match VarTbl.find_opt state.vars var with
     | None ->
-        VarTbl.add scope.vars var (ref def);
+        VarTbl.add state.vars var (ref def);
         update_type def
     | Some existing ->
-        let def = merge_docs scope !existing def in
+        let def = Merge.doc_value ~errs:state.errs !existing def in
         existing := def;
         update_type def
 
   (** Add a {!var} to the current scope. *)
-  let add_var scope var def = add_resolved_var scope (R.get_definition var scope.resolve) def
+  let add_var state var def = add_resolved_var state (R.get_definition var state.resolve) def
 
   (** Add a {!name} to the current scope. The definition is lazy, as it's not guaranteed we do
       anything with it.*)
-  let add_name scope var (def : _ Lazy.t) : unit =
+  let add_name state var (def : _ Lazy.t) : unit =
     let rec go def = function
       | NVar var ->
-          let var = R.get_usage var scope.resolve in
-          add_resolved_var scope var.var (Lazy.force def)
+          let var = R.get_usage var state.resolve in
+          add_resolved_var state var.var (Lazy.force def)
       | NDot { tbl = Ref tbl; key; _ } ->
           Fun.flip go tbl
             ( lazy
@@ -236,29 +239,29 @@ module Infer = struct
     in
     match var with
     | NVar var ->
-        let var = R.get_definition var scope.resolve in
-        add_resolved_var scope var (Lazy.force def)
+        let var = R.get_definition var state.resolve in
+        add_resolved_var state var (Lazy.force def)
     | NDot _ | NLookup _ -> go def var
 
   (** Add a {!function_name} to the current scope. *)
-  let add_fname scope var def : unit =
+  let add_fname state var def : unit =
     let rec go def = function
-      | FVar var -> add_resolved_var scope (R.get_usage var scope.resolve).var def
+      | FVar var -> add_resolved_var state (R.get_usage var state.resolve).var def
       | FDot { tbl; field; _ } | FSelf { tbl; meth = field; _ } ->
           simple_documented (Doc_syntax.Table [ (Node.contents.get field, def) ]) def.definition
           |> Fun.flip go tbl
     in
     match var with
-    | FVar var -> add_resolved_var scope (R.get_definition var scope.resolve) def
+    | FVar var -> add_resolved_var state (R.get_definition var state.resolve) def
     | FDot _ | FSelf _ -> go def var
 
   (** Infer the documented type of an expression. *)
-  let rec infer_expr scope expr =
+  let rec infer_expr state expr =
     let simp x = simple_documented x (Spanned.expr expr) in
     match expr with
-    | Fun { fun_args; fun_body; _ } -> infer_fun scope fun_args fun_body |> simp
+    | Fun { fun_args; fun_body; _ } -> infer_fun state fun_args fun_body |> simp
     | Table { table_body; _ } ->
-        let fields = infer_table scope table_body in
+        let fields = infer_table state table_body in
         Doc_syntax.Table fields |> simp
     | String { lit_value; _ } ->
         Expr
@@ -275,19 +278,22 @@ module Infer = struct
     | False _ -> Expr { ty = Type_syntax.Builtin.boolean; value = Some "false" } |> simp
     | Nil _ -> Expr { ty = Type.NilTy; value = Some "nil" } |> simp
     | Ref v -> (
-      match infer_name scope v with
+      match infer_name state v with
       | None -> simp Unknown
       | Some x -> !x )
     | _ -> simp Unknown
 
+  and infer_var state v : value documented ref option =
+    match (R.get_usage v state.resolve).var with
+    | { kind = Global; name = "_ENV"; _ } -> Some state.globals
+    | var -> VarTbl.find_opt state.vars var
+
   and infer_name state : name -> value documented ref option = function
-    | NVar v ->
-        let var = (R.get_usage v state.resolve).var in
-        VarTbl.find_opt state.vars var
+    | NVar v -> infer_var state v
     | _ -> (* TODO *) None
 
   (** Get a documented table entry *)
-  and infer_table scope = function
+  and infer_table state = function
     | [] -> []
     | ((RawPair { ident; value; _ } as p), sep) :: xs ->
         let before = First.table_item.get p
@@ -297,16 +303,16 @@ module Infer = struct
           | Some sep -> sep
         in
         let value =
-          infer_expr scope value |> document_with scope ~before ~after (Spanned.table_item p)
+          infer_expr state value |> document_with state ~before ~after (Spanned.table_item p)
         in
-        (Node.contents.get ident, value) :: infer_table scope xs
+        (Node.contents.get ident, value) :: infer_table state xs
     | _ :: xs ->
         (* For now, we just skip all other table items. In the future it might be worth adding type
            hints or something. *)
-        infer_table scope xs
+        infer_table state xs
 
   (** Get the descriptor for a list of arguments *)
-  and infer_fun scope args body =
+  and infer_fun state args body =
     let get_name = function
       | DotArg _ -> "..."
       | NamedArg (Var v) -> Node.contents.get v
@@ -314,49 +320,49 @@ module Infer = struct
     let get_arg arg =
       { arg_name = get_name arg; arg_opt = false; arg_type = None; arg_description = None }
     in
-    infer_stmts scope body |> ignore;
+    infer_stmts state body |> ignore;
     Function { args = [ SepList0.map' get_arg args.args_args ]; rets = []; throws = [] }
 
   (** Merge a statement's definition with an (optional) doc comment and apply it to the current
       scope. *)
-  and infer_stmt scope (node : stmt) =
+  and infer_stmt state (node : stmt) =
     (* Oh goodness, this is horrible. We really need an actual data-flow algorithm here, so we can
        handle various Lua idioms correctly. This works (albeit weirdly) for now. *)
     match node with
     | Local { local_vars = Mono var; local_vals = Some (_, Mono (Ref (NVar def_var) as def)); _ } as
       s ->
-        ( match (R.get_usage def_var scope.resolve).var |> VarTbl.find_opt scope.vars with
-        | None -> infer_expr scope def |> document_stmt scope s |> add_var scope var
+        ( match infer_var state def_var with
+        | None -> infer_expr state def |> document_stmt state s |> add_var state var
         | Some def ->
-            def := document_stmt scope s !def;
-            let var = R.get_definition var scope.resolve in
-            VarTbl.add scope.vars var def );
+            def := document_stmt state s !def;
+            let var = R.get_definition var state.resolve in
+            VarTbl.add state.vars var def );
         None
     | Local { local_vars = Mono var; local_vals = Some (_, Mono def); _ } as s ->
-        infer_expr scope def |> document_stmt scope s |> add_var scope var;
+        infer_expr state def |> document_stmt state s |> add_var state var;
         None
     | Local { local_vars = Mono var; local_vals = None; _ } as s ->
-        simple_documented Unknown (Spanned.stmt s) |> document_stmt scope s |> add_var scope var;
+        simple_documented Unknown (Spanned.stmt s) |> document_stmt state s |> add_var state var;
         None
     | LocalFunction { localf_var; localf_args; localf_body; _ } as s ->
-        simple_documented (infer_fun scope localf_args localf_body) (Spanned.stmt s)
-        |> document_stmt scope s |> add_var scope localf_var;
+        simple_documented (infer_fun state localf_args localf_body) (Spanned.stmt s)
+        |> document_stmt state s |> add_var state localf_var;
         None
     | AssignFunction { assignf_name; assignf_args; assignf_body; _ } as s ->
-        simple_documented (infer_fun scope assignf_args assignf_body) (Spanned.stmt node)
-        |> document_stmt scope s |> add_fname scope assignf_name;
+        simple_documented (infer_fun state assignf_args assignf_body) (Spanned.stmt node)
+        |> document_stmt state s |> add_fname state assignf_name;
         None
     | Assign { assign_vars = Mono var; assign_vals = Mono def; _ } as s ->
-        lazy (infer_expr scope def |> document_stmt scope s) |> add_name scope var;
+        lazy (infer_expr state def |> document_stmt state s) |> add_name state var;
         None
     | Return { return_vals = Some (Mono expr); _ } as s ->
-        infer_expr scope expr |> document_stmt scope s |> Option.some
+        infer_expr state expr |> document_stmt state s |> Option.some
     | _ -> None
 
-  and infer_stmts scope = function
+  and infer_stmts state = function
     | [] -> None
     | node :: xs ->
-        let docs = infer_stmt scope node and rest = infer_stmts scope xs in
+        let docs = infer_stmt state node and rest = infer_stmts state xs in
         CCOpt.( <+> ) docs rest
 
   let extract_module data program =
@@ -394,10 +400,10 @@ module Infer = struct
       match module_comment with
       | Some ({ module_info = Some { mod_name }; _ } as comment) ->
           let merge pos implicit body =
-            let mod_contents = merge_documented_term state pos implicit body in
+            let mod_contents = Merge.value ~errs:state.errs pos implicit body in
             { mod_name; mod_contents; mod_types; mod_kind }
           in
-          Named (merge_documented merge (Value.get_documented ~state comment) body)
+          Named (Merge.documented merge (Value.get_documented ~state comment) body)
       | _ -> Unnamed { body; mod_types; file = (Spanned.program program).filename; mod_kind }
     in
     (state, result)

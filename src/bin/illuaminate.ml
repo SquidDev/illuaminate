@@ -147,8 +147,8 @@ let run () =
   in
   let file_arg =
     value
-    & pos 0 (some ~none:"current directory" dir) None
-    & info ~docv:"FILE" ~doc:"Starting directory." []
+    & pos 0 (some ~none:"current directory" file) None
+    & info ~docv:"FILE" ~doc:"File/directory to generate docs for." []
   in
   let lint_cmd =
     let doc = "Checks all files, and reports errors." in
