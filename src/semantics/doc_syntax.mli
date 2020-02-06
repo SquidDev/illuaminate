@@ -65,3 +65,21 @@ and module_info =
     This is only intended to be a brief summary of the definition (such as its signature or value),
     not a complete description. *)
 val get_suffix : value -> string
+
+(** A base class for visitors over the document syntax tree. *)
+class iter :
+  object
+    method abstract_syntax : span:Span.t -> abstract_iter
+
+    method documented : 'a. (span:Span.t -> 'a -> unit) -> 'a documented -> unit
+
+    method value : span:Span.t -> value -> unit
+
+    method member : member -> unit
+
+    method type_info : span:Span.t -> type_info -> unit
+
+    method module_info : span:Span.t -> module_info -> unit
+  end
+
+val iter_of : (span:Span.t -> abstract_iter) -> iter

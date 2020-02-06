@@ -2,7 +2,7 @@ open Html.Default;
 open IlluaminateSemantics;
 
 /** Show an optional specifier if required. */
-let show_opt : (~kind: string, bool) => node;
+let show_opt: (~kind: string, bool) => node;
 
 /** Convert a type to HTML, using some resolve function to look up internal links. */
 let show_type: (~resolve: string => string, Doc.Syntax.Type.t) => node;

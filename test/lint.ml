@@ -15,7 +15,7 @@ let only =
 let process ~name contents out =
   let lexbuf = Lexing.from_string contents in
   let name = { Span.name; path = name } in
-  match IlluaminateParser.parse name lexbuf with
+  match IlluaminateParser.program name lexbuf with
   | Error err ->
       let errs = Error.make () in
       IlluaminateParser.Error.report errs err.span err.value;

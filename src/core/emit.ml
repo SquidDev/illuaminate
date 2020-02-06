@@ -267,3 +267,7 @@ and arg out = function
 let program out program =
   block out program.Syntax.program;
   node ~kind:Symbol (fun _ _ -> ()) out program.eof
+
+let repl_exprs out repl =
+  list1 expr out repl.repl_exprs;
+  node ~kind:Symbol (fun _ _ -> ()) out repl.repl_eof

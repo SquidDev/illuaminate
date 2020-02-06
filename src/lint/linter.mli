@@ -10,6 +10,7 @@ type 'a fixer =
 (** A linter message which will be attached to a specific node. *)
 type 'a note = private
   { message : string;  (** The message used within this warning. *)
+    detail : (Format.formatter -> unit) option;  (** Additional detail to the message. *)
     fix : 'a fixer;
         (** A function which will be used to fix up this warning. Note, this function should not
             make any assumptions about the form of this node. *)
@@ -21,6 +22,7 @@ type 'a note = private
 val note :
   ?fix:'a fixer ->
   ?span:Span.t ->
+  ?detail:(Format.formatter -> unit) ->
   tag:Error.Tag.t ->
   ('f, Format.formatter, unit, 'a note) format4 ->
   'f

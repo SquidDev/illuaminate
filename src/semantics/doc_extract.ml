@@ -613,7 +613,7 @@ module Resolve = struct
     in
     Description (Omd_representation.visit visit x)
 
-  let go_module modules current_module =
+  let go_module modules current_module to_resolve =
     let context = { modules; current_module } in
     let lift : Lift.t =
       { any_ref = resolve_ref context ~types_only:false;
@@ -628,7 +628,7 @@ module Resolve = struct
           mod_contents = go_value lift mod_contents;
           mod_types = List.map (go_documented lift go_type) mod_types
         })
-      current_module
+      to_resolve
 end
 
 module Config = struct
@@ -724,9 +724,15 @@ let get data program =
                    (fun x -> Some (result :: Option.value ~default:[] x))
                    modules)
            StringMap.empty (Data.files data)
-         |> StringMap.map (fun x -> lazy (crunch_modules x))
        in
-       Resolve.go_module all current
+       let current_scope =
+         (* Bring all other modules with the same name into scope if required. *)
+         match StringMap.find_opt current.descriptor.mod_name all with
+         | None -> current
+         | Some all -> crunch_modules (if List.memq current all then all else current :: all)
+       in
+       let all = StringMap.map (fun x -> lazy (crunch_modules x)) all in
+       Resolve.go_module all current_scope current
   in
   { current_module; data; contents; errors = state.errs; comments = state.unused_comments }
 

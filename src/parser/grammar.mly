@@ -35,7 +35,8 @@
 %right NOT
 %right "^"
 
-%start <IlluaminateCore.Syntax.program> main
+%start <IlluaminateCore.Syntax.program> program
+%start <IlluaminateCore.Syntax.repl_exprs> repl_exprs
 
 %type <IlluaminateCore.Syntax.name> name
 %type <IlluaminateCore.Syntax.var> var
@@ -56,7 +57,11 @@
 
 %%
 
-let main := program = stmts ; eof = EOF ; { { program; eof } }
+let program := program = stmts ; eof = EOF ; { { program; eof } }
+
+let repl_exprs :=
+  | repl_exprs = sep_list1(",", expr) ; repl_eof = EOF
+  ; { { repl_exprs; repl_eof } }
 
 let var := ~ = IDENT ; <Var>
 
@@ -164,8 +169,11 @@ let table_entry :=
 let stmts := list(stmt)
 
 let stmt :=
-  | ~ = ";" ; <Semicolon>
+  | ~ = basic_stmt ; <>
   | ~ = call ; <SCall>
+
+let basic_stmt :=
+  | ~ = ";" ; <Semicolon>
   | ~ = BREAK ; <Break>
 
   | do_do = DO ; do_body = stmts ; do_end = END

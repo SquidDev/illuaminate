@@ -55,7 +55,7 @@ let get_config_for ~loader path =
 let parse ~loader:{ errors; _ } ({ Span.path; _ } as file) =
   CCIO.with_in path (fun channel ->
       let lexbuf = Lexing.from_channel channel in
-      match IlluaminateParser.parse file lexbuf with
+      match IlluaminateParser.program file lexbuf with
       | Error err ->
           IlluaminateParser.Error.report errors err.span err.value;
           None

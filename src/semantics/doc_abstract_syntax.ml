@@ -35,6 +35,25 @@ module type S = sig
   type nonrec module_kind = module_kind =
     | Module
     | Library
+
+  class abstract_iter :
+    object
+      method reference : reference -> unit
+
+      method description : description -> unit
+
+      method omd : Omd.element -> unit
+
+      method type_ : Type.t -> unit
+
+      method see : see -> unit
+
+      method example : example -> unit
+
+      method arg : arg -> unit
+
+      method return : return -> unit
+    end
 end
 
 module Make (X : sig
@@ -74,6 +93,46 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
   type nonrec module_kind = module_kind =
     | Module
     | Library
+
+  class abstract_iter =
+    object (self)
+      method reference (_ : reference) = ()
+
+      method description (Description d) = List.iter self#omd d
+
+      method omd =
+        let open Omd in
+        function
+        | H1 x | H2 x | H3 x | H4 x | H5 x | H6 x | Paragraph x | Emph x | Bold x ->
+            List.iter self#omd x
+        | Url (_, x, _) | Blockquote x | Html (_, _, x) | Html_block (_, _, x) ->
+            List.iter self#omd x
+        | Ul xs | Ol xs | Ulp xs | Olp xs -> List.iter (List.iter self#omd) xs
+        | Ref (_, _, _, f) | Img_ref (_, _, _, f) -> List.iter self#omd f#to_t
+        | Text _ | Code _ | Code_block _ | Br | Hr | NL | Html_comment _ | Raw _ | Raw_block _
+        | Img _ ->
+            ()
+        | X f -> Option.iter (List.iter self#omd) (f#to_t [])
+
+      method type_ (_ : Type.t) = ()
+
+      method see { see_reference; see_label = _; see_description } =
+        self#reference see_reference;
+        Option.iter self#description see_description
+
+      method example =
+        function
+        | RawExample _ -> ()
+        | RichExample d -> self#description d
+
+      method arg { arg_name = _; arg_opt = _; arg_type; arg_description } =
+        Option.iter self#type_ arg_type;
+        Option.iter self#description arg_description
+
+      method return { ret_type; ret_many = _; ret_description } =
+        Option.iter self#type_ ret_type;
+        Option.iter self#description ret_description
+    end
 end
 
 module Lift (L : S) (R : S) = struct

@@ -44,6 +44,27 @@ module type S = sig
         (** A legacy module, using the "module" directive. Global variables declared in this file
             are considered as exported by this file. *)
     | Library  (** A standard module, which returns the term that it exports. *)
+
+  (** A base class for visitors over the document syntax tree. *)
+  class abstract_iter :
+    object
+      method reference : reference -> unit
+
+      method description : description -> unit
+
+      method omd : Omd.element -> unit
+
+      (** Visit a type. Note, by default this does not visit any references within this type. *)
+      method type_ : Type.t -> unit
+
+      method see : see -> unit
+
+      method example : example -> unit
+
+      method arg : arg -> unit
+
+      method return : return -> unit
+    end
 end
 
 module Make (X : sig

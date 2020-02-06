@@ -42,7 +42,9 @@ module Linters = struct
 
   let undocumented = Lint_undocumented.linter
 
-  let unknown_reference = Lint_unknown_reference.linter
+  let unknown_reference = Lint_unresolved_reference.linter
+
+  let malformed_example = Lint_malformed_example.linter
 
   let detached_comments = Lint_detached_comment.linter
 
@@ -67,6 +69,7 @@ module Linters = struct
       doc_extract;
       undocumented;
       unknown_reference;
+      malformed_example;
       detached_comments;
       empty_block;
       for_num;

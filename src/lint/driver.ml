@@ -29,7 +29,10 @@ let report_note_at (type a) err ({ note; source; witness } : a note_at) =
         Node.span n
     | AtProgram -> Syntax.Spanned.program source
   in
-  Error.report err note.tag (Option.value note.span ~default:span) note.message
+  match note.detail with
+  | None -> Error.report err note.tag (Option.value note.span ~default:span) note.message
+  | Some detail ->
+      Error.report_detailed err note.tag (Option.value note.span ~default:span) note.message detail
 
 type any_note = Note : 'a note_at -> any_note
 

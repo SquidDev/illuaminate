@@ -31,3 +31,6 @@ val block : Format.formatter -> block -> unit
 
 (** Write a program to a formatter. *)
 val program : Format.formatter -> program -> unit
+
+(** Write a repl input to a formatter. *)
+val repl_exprs : Format.formatter -> repl_exprs -> unit

@@ -7,13 +7,14 @@ type 'a fixer =
 
 type 'a note =
   { message : string;
+    detail : (Format.formatter -> unit) option;
     fix : 'a fixer;
     tag : Error.Tag.t;
     span : Span.t option
   }
 
-let note ?(fix = FixNothing) ?span ~tag message =
-  Format.kasprintf (fun message -> { fix; message; span; tag }) message
+let note ?(fix = FixNothing) ?span ?detail ~tag message =
+  Format.kasprintf (fun message -> { fix; message; detail; span; tag }) message
 
 type path_item =
   | Expr of Syntax.expr

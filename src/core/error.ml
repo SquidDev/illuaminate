@@ -162,7 +162,7 @@ let summary out t =
 
 let each_error f store = store.errors |> List.sort Error.span_compare |> List.iter f
 
-let display_of_files ?(out = Format.err_formatter) store =
+let display_of_files ?(out = Format.err_formatter) ?(with_summary = true) store =
   let last = ref None in
   let get_channel name : in_channel =
     match !last with
@@ -186,9 +186,9 @@ let display_of_files ?(out = Format.err_formatter) store =
   ( match !last with
   | Some (_, ch) -> close_in ch
   | _ -> () );
-  summary out store
+  if with_summary then summary out store
 
-let display_of_string ?(out = Format.err_formatter) getter store =
+let display_of_string ?(out = Format.err_formatter) ?(with_summary = true) getter store =
   store
   |> each_error (fun ({ span; _ } as err) ->
          match getter span.filename with
@@ -202,4 +202,5 @@ let display_of_string ?(out = Format.err_formatter) getter store =
                  - span.start_bol )
              in
              display_line out line err);
-  summary out store
+
+  if with_summary then summary out store

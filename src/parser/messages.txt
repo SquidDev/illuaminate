@@ -1,4 +1,4 @@
-main: DO SEMICOLON ELSEIF
+program: DO SEMICOLON ELSEIF
 ##
 ## Ends in an error in state: 113.
 ##
@@ -18,7 +18,7 @@ main: DO SEMICOLON ELSEIF
 
 Expected `end` to terminate `do` block
 
-main: DO UNTIL
+program: DO UNTIL
 ##
 ## Ends in an error in state: 111.
 ##
@@ -30,7 +30,7 @@ main: DO UNTIL
 
 Expected statement within `do` block
 
-main: FOR IDENT COMMA IDENT WHILE
+program: FOR IDENT COMMA IDENT WHILE
 ##
 ## Ends in an error in state: 143.
 ##
@@ -49,7 +49,7 @@ main: FOR IDENT COMMA IDENT WHILE
 
 Expected `in` after for loop variables
 
-main: FOR IDENT EQUALS TRUE COMMA TRUE COMMA TRUE WHILE
+program: FOR IDENT EQUALS TRUE COMMA TRUE COMMA TRUE WHILE
 ##
 ## Ends in an error in state: 108.
 ##
@@ -83,7 +83,7 @@ Expected `do` after for loop initialisation
 We should have something of the form
  - for i = 1, 10, 1 do ... end
 
-main: FOR IDENT EQUALS TRUE COMMA TRUE COMMA WHILE
+program: FOR IDENT EQUALS TRUE COMMA TRUE COMMA WHILE
 ##
 ## Ends in an error in state: 107.
 ##
@@ -95,7 +95,7 @@ main: FOR IDENT EQUALS TRUE COMMA TRUE COMMA WHILE
 
 Expected expression for for loop step
 
-main: FOR IDENT EQUALS TRUE COMMA TRUE DO SEMICOLON ELSEIF
+program: FOR IDENT EQUALS TRUE COMMA TRUE DO SEMICOLON ELSEIF
 ##
 ## Ends in an error in state: 138.
 ##
@@ -115,7 +115,7 @@ main: FOR IDENT EQUALS TRUE COMMA TRUE DO SEMICOLON ELSEIF
 
 Expected `end` in order to close for loop
 
-main: FOR IDENT EQUALS TRUE COMMA TRUE DO UNTIL
+program: FOR IDENT EQUALS TRUE COMMA TRUE DO UNTIL
 ##
 ## Ends in an error in state: 110.
 ##
@@ -127,7 +127,7 @@ main: FOR IDENT EQUALS TRUE COMMA TRUE DO UNTIL
 
 Expected `end` in order to close for loop
 
-main: FOR IDENT EQUALS TRUE COMMA TRUE WHILE
+program: FOR IDENT EQUALS TRUE COMMA TRUE WHILE
 ##
 ## Ends in an error in state: 106.
 ##
@@ -162,7 +162,7 @@ We expect something of the form
  - for i = 1, 10 do end or
  - for i = 1, 10, 1 do end
 
-main: FOR IDENT EQUALS TRUE COMMA WHILE
+program: FOR IDENT EQUALS TRUE COMMA WHILE
 ##
 ## Ends in an error in state: 105.
 ##
@@ -174,7 +174,7 @@ main: FOR IDENT EQUALS TRUE COMMA WHILE
 
 Expected expression for for loop limit
 
-main: FOR IDENT EQUALS TRUE WHILE
+program: FOR IDENT EQUALS TRUE WHILE
 ##
 ## Ends in an error in state: 104.
 ##
@@ -206,7 +206,7 @@ main: FOR IDENT EQUALS TRUE WHILE
 
 Expected comma after for loop start
 
-main: FOR IDENT EQUALS WHILE
+program: FOR IDENT EQUALS WHILE
 ##
 ## Ends in an error in state: 103.
 ##
@@ -220,7 +220,7 @@ Expected for loop start and limit.
 You should have something like
  - for i = 1, 10 do ... end
 
-main: FOR IDENT IN TRUE DO SEMICOLON ELSEIF
+program: FOR IDENT IN TRUE DO SEMICOLON ELSEIF
 ##
 ## Ends in an error in state: 147.
 ##
@@ -240,7 +240,7 @@ main: FOR IDENT IN TRUE DO SEMICOLON ELSEIF
 
 Expected `end` to close for loop.
 
-main: FOR IDENT IN TRUE DO UNTIL
+program: FOR IDENT IN TRUE DO UNTIL
 ##
 ## Ends in an error in state: 146.
 ##
@@ -252,7 +252,7 @@ main: FOR IDENT IN TRUE DO UNTIL
 
 Expected `end` in order to close for loop
 
-main: FOR IDENT IN TRUE WHILE
+program: FOR IDENT IN TRUE WHILE
 ##
 ## Ends in an error in state: 145.
 ##
@@ -271,7 +271,7 @@ main: FOR IDENT IN TRUE WHILE
 
 Expected `end` after for loop initialiser
 
-main: FOR IDENT IN WHILE
+program: FOR IDENT IN WHILE
 ##
 ## Ends in an error in state: 144.
 ##
@@ -283,7 +283,7 @@ main: FOR IDENT IN WHILE
 
 Expected generator expression in for loop
 
-main: FOR IDENT WHILE
+program: FOR IDENT WHILE
 ##
 ## Ends in an error in state: 102.
 ##
@@ -297,7 +297,7 @@ main: FOR IDENT WHILE
 
 Expected `=` or `in` after `for` loop variables
 
-main: FOR WHILE
+program: FOR WHILE
 ##
 ## Ends in an error in state: 101.
 ##
@@ -310,7 +310,7 @@ main: FOR WHILE
 
 Expected loop variabliables within `for` loop
 
-main: FUNCTION IDENT COLON WHILE
+program: FUNCTION IDENT COLON WHILE
 ##
 ## Ends in an error in state: 98.
 ##
@@ -322,7 +322,7 @@ main: FUNCTION IDENT COLON WHILE
 
 Expected method name after `:`.
 
-main: FUNCTION IDENT DOT WHILE
+program: FUNCTION IDENT DOT WHILE
 ##
 ## Ends in an error in state: 96.
 ##
@@ -334,7 +334,7 @@ main: FUNCTION IDENT DOT WHILE
 
 Expected function name after `.`.
 
-main: FUNCTION IDENT OPAREN CPAREN SEMICOLON ELSEIF
+program: FUNCTION IDENT OPAREN CPAREN SEMICOLON ELSEIF
 ##
 ## Ends in an error in state: 149.
 ##
@@ -354,7 +354,7 @@ main: FUNCTION IDENT OPAREN CPAREN SEMICOLON ELSEIF
 
 Expected `end` to terminate function definition.
 
-main: FUNCTION IDENT OPAREN CPAREN UNTIL
+program: FUNCTION IDENT OPAREN CPAREN UNTIL
 ##
 ## Ends in an error in state: 100.
 ##
@@ -366,7 +366,7 @@ main: FUNCTION IDENT OPAREN CPAREN UNTIL
 
 Expected statement within function body.
 
-main: FUNCTION IDENT WHILE
+program: FUNCTION IDENT WHILE
 ##
 ## Ends in an error in state: 95.
 ##
@@ -380,7 +380,7 @@ main: FUNCTION IDENT WHILE
 
 Expected `(` to start this function's argument list.
 
-main: FUNCTION WHILE
+program: FUNCTION WHILE
 ##
 ## Ends in an error in state: 93.
 ##
@@ -393,7 +393,7 @@ main: FUNCTION WHILE
 Expected function name in function definition.
 You cannot have an anonymous functions at the top level!
 
-main: IDENT COLON IDENT WHILE
+program: IDENT COLON IDENT WHILE
 ##
 ## Ends in an error in state: 80.
 ##
@@ -405,7 +405,7 @@ main: IDENT COLON IDENT WHILE
 
 Expected argument in self-call.
 
-main: IDENT COLON WHILE
+program: IDENT COLON WHILE
 ##
 ## Ends in an error in state: 79.
 ##
@@ -417,7 +417,7 @@ main: IDENT COLON WHILE
 
 Expected method name in self-call.
 
-main: IDENT COMMA WHILE
+program: IDENT COMMA WHILE
 ##
 ## Ends in an error in state: 121.
 ##
@@ -429,7 +429,7 @@ main: IDENT COMMA WHILE
 
 Expected another variable in assignment list.
 
-main: IDENT DOT WHILE
+program: IDENT DOT WHILE
 ##
 ## Ends in an error in state: 77.
 ##
@@ -441,7 +441,7 @@ main: IDENT DOT WHILE
 
 Expected table key after `.`.
 
-main: IDENT EQUALS WHILE
+program: IDENT EQUALS WHILE
 ##
 ## Ends in an error in state: 118.
 ##
@@ -453,7 +453,7 @@ main: IDENT EQUALS WHILE
 
 Expected expressions on right hand side of an assignment.
 
-main: IDENT OPAREN TRUE BREAK
+program: IDENT OPAREN TRUE BREAK
 ##
 ## Ends in an error in state: 72.
 ##
@@ -473,7 +473,7 @@ main: IDENT OPAREN TRUE BREAK
 
 Expecting `)` to close opening `(`.
 
-main: IDENT OPAREN WHILE
+program: IDENT OPAREN WHILE
 ##
 ## Ends in an error in state: 70.
 ##
@@ -485,7 +485,7 @@ main: IDENT OPAREN WHILE
 
 Expected expression after `(`.
 
-main: IDENT OSQUARE TRUE WHILE
+program: IDENT OSQUARE TRUE WHILE
 ##
 ## Ends in an error in state: 40.
 ##
@@ -517,7 +517,7 @@ main: IDENT OSQUARE TRUE WHILE
 
 Expected `]` to close table index.
 
-main: IDENT OSQUARE WHILE
+program: IDENT OSQUARE WHILE
 ##
 ## Ends in an error in state: 33.
 ##
@@ -529,7 +529,7 @@ main: IDENT OSQUARE WHILE
 
 Expected expression within table index.
 
-main: IDENT STRING TRUE
+program: IDENT STRING TRUE
 ##
 ## Ends in an error in state: 130.
 ##
@@ -542,7 +542,7 @@ main: IDENT STRING TRUE
 
 Unexpected token after function call
 
-main: IDENT WHILE
+program: IDENT WHILE
 ##
 ## Ends in an error in state: 120.
 ##
@@ -556,7 +556,7 @@ main: IDENT WHILE
 
 Unexpected token after variable.
 
-main: IF TRUE THEN BREAK UNTIL
+program: IF TRUE THEN BREAK UNTIL
 ##
 ## Ends in an error in state: 124.
 ##
@@ -577,7 +577,7 @@ main: IF TRUE THEN BREAK UNTIL
 
 Expected `end` to terminate this if block.
 
-main: IF TRUE THEN ELSE SEMICOLON UNTIL
+program: IF TRUE THEN ELSE SEMICOLON UNTIL
 ##
 ## Ends in an error in state: 134.
 ##
@@ -598,7 +598,7 @@ main: IF TRUE THEN ELSE SEMICOLON UNTIL
 
 Expected `end` to terminate this if block.
 
-main: IF TRUE THEN ELSE UNTIL
+program: IF TRUE THEN ELSE UNTIL
 ##
 ## Ends in an error in state: 132.
 ##
@@ -610,7 +610,7 @@ main: IF TRUE THEN ELSE UNTIL
 
 Expected statement within `else` body.
 
-main: IF TRUE THEN ELSEIF TRUE THEN BREAK UNTIL
+program: IF TRUE THEN ELSEIF TRUE THEN BREAK UNTIL
 ##
 ## Ends in an error in state: 136.
 ##
@@ -631,7 +631,7 @@ main: IF TRUE THEN ELSEIF TRUE THEN BREAK UNTIL
 
 Expected `end` to terminate this if block.
 
-main: IF TRUE THEN ELSEIF TRUE THEN UNTIL
+program: IF TRUE THEN ELSEIF TRUE THEN UNTIL
 ##
 ## Ends in an error in state: 127.
 ##
@@ -644,7 +644,7 @@ main: IF TRUE THEN ELSEIF TRUE THEN UNTIL
 Expected statement within `elseif` body.
 
 
-main: IF TRUE THEN ELSEIF TRUE WHILE
+program: IF TRUE THEN ELSEIF TRUE WHILE
 ##
 ## Ends in an error in state: 126.
 ##
@@ -676,7 +676,7 @@ main: IF TRUE THEN ELSEIF TRUE WHILE
 
 Expected `then` within `elseif` condition.
 
-main: IF TRUE THEN ELSEIF WHILE
+program: IF TRUE THEN ELSEIF WHILE
 ##
 ## Ends in an error in state: 125.
 ##
@@ -688,7 +688,7 @@ main: IF TRUE THEN ELSEIF WHILE
 
 Expected condition after `elseif`.
 
-main: IF TRUE THEN UNTIL
+program: IF TRUE THEN UNTIL
 ##
 ## Ends in an error in state: 92.
 ##
@@ -700,7 +700,7 @@ main: IF TRUE THEN UNTIL
 
 Expected `end` to close `if` block
 
-main: IF TRUE WHILE
+program: IF TRUE WHILE
 ##
 ## Ends in an error in state: 91.
 ##
@@ -732,7 +732,7 @@ main: IF TRUE WHILE
 
 Expected `then` after `if` condition.
 
-main: IF WHILE
+program: IF WHILE
 ##
 ## Ends in an error in state: 90.
 ##
@@ -744,7 +744,7 @@ main: IF WHILE
 
 Expected `condition` after `if`
 
-main: LOCAL FUNCTION IDENT OPAREN CPAREN SEMICOLON ELSEIF
+program: LOCAL FUNCTION IDENT OPAREN CPAREN SEMICOLON ELSEIF
 ##
 ## Ends in an error in state: 152.
 ##
@@ -764,7 +764,7 @@ main: LOCAL FUNCTION IDENT OPAREN CPAREN SEMICOLON ELSEIF
 
 Expected `end` to close function definition.
 
-main: LOCAL FUNCTION IDENT OPAREN CPAREN UNTIL
+program: LOCAL FUNCTION IDENT OPAREN CPAREN UNTIL
 ##
 ## Ends in an error in state: 89.
 ##
@@ -776,7 +776,7 @@ main: LOCAL FUNCTION IDENT OPAREN CPAREN UNTIL
 
 Expected statement within function definition.
 
-main: LOCAL FUNCTION IDENT WHILE
+program: LOCAL FUNCTION IDENT WHILE
 ##
 ## Ends in an error in state: 88.
 ##
@@ -788,7 +788,7 @@ main: LOCAL FUNCTION IDENT WHILE
 
 Expected `(` to start this function's argument list.
 
-main: LOCAL FUNCTION WHILE
+program: LOCAL FUNCTION WHILE
 ##
 ## Ends in an error in state: 87.
 ##
@@ -800,7 +800,7 @@ main: LOCAL FUNCTION WHILE
 
 Expected local function name.
 
-main: LOCAL IDENT COMMA WHILE
+program: LOCAL IDENT COMMA WHILE
 ##
 ## Ends in an error in state: 140.
 ##
@@ -812,7 +812,7 @@ main: LOCAL IDENT COMMA WHILE
 
 Expected another identifier in function's argument list.
 
-main: LOCAL IDENT EQUALS WHILE
+program: LOCAL IDENT EQUALS WHILE
 ##
 ## Ends in an error in state: 155.
 ##
@@ -824,7 +824,7 @@ main: LOCAL IDENT EQUALS WHILE
 
 Expected an expression on the right hand side of a `local` declaration.
 
-main: LOCAL IDENT IN
+program: LOCAL IDENT IN
 ##
 ## Ends in an error in state: 154.
 ##
@@ -842,7 +842,7 @@ main: LOCAL IDENT IN
 
 Expected statement or `=` after a `local` declaration
 
-main: LOCAL IDENT TRUE
+program: LOCAL IDENT TRUE
 ##
 ## Ends in an error in state: 141.
 ##
@@ -855,7 +855,7 @@ main: LOCAL IDENT TRUE
 
 Unexpected token after identifier.
 
-main: LOCAL WHILE
+program: LOCAL WHILE
 ##
 ## Ends in an error in state: 86.
 ##
@@ -868,7 +868,7 @@ main: LOCAL WHILE
 
 Expected identifier after `local`.
 
-main: OPAREN TRUE CPAREN CBRACE
+program: OPAREN TRUE CPAREN CBRACE
 ##
 ## Ends in an error in state: 116.
 ##
@@ -883,7 +883,7 @@ main: OPAREN TRUE CPAREN CBRACE
 
 We've just finished parsing a simple expression.
 
-main: OPAREN TRUE WHILE
+program: OPAREN TRUE WHILE
 ##
 ## Ends in an error in state: 180.
 ##
@@ -915,7 +915,7 @@ main: OPAREN TRUE WHILE
 
 Expected `)` to close opening parenthesis.
 
-main: OPAREN WHILE
+program: OPAREN WHILE
 ##
 ## Ends in an error in state: 5.
 ##
@@ -927,7 +927,7 @@ main: OPAREN WHILE
 
 Expected expression after `(`.
 
-main: REPEAT SEMICOLON EOF
+program: REPEAT SEMICOLON EOF
 ##
 ## Ends in an error in state: 158.
 ##
@@ -947,7 +947,7 @@ main: REPEAT SEMICOLON EOF
 
 Expected `until` to terminate repeat loop.
 
-main: REPEAT TRUE
+program: REPEAT TRUE
 ##
 ## Ends in an error in state: 85.
 ##
@@ -959,7 +959,7 @@ main: REPEAT TRUE
 
 Expected `until` to termiante `repeat` block
 
-main: REPEAT UNTIL TRUE THEN
+program: REPEAT UNTIL TRUE THEN
 ##
 ## Ends in an error in state: 160.
 ##
@@ -991,7 +991,7 @@ main: REPEAT UNTIL TRUE THEN
 
 This is unexpected after a `repeat` block.
 
-main: REPEAT UNTIL WHILE
+program: REPEAT UNTIL WHILE
 ##
 ## Ends in an error in state: 159.
 ##
@@ -1003,7 +1003,7 @@ main: REPEAT UNTIL WHILE
 
 Expected expression for `repeat` condition.
 
-main: RETURN FUNCTION OPAREN CPAREN SEMICOLON ELSEIF
+program: RETURN FUNCTION OPAREN CPAREN SEMICOLON ELSEIF
 ##
 ## Ends in an error in state: 161.
 ##
@@ -1023,7 +1023,7 @@ main: RETURN FUNCTION OPAREN CPAREN SEMICOLON ELSEIF
 
 Expected `end` to terminate function body.
 
-main: RETURN FUNCTION OPAREN CPAREN UNTIL
+program: RETURN FUNCTION OPAREN CPAREN UNTIL
 ##
 ## Ends in an error in state: 24.
 ##
@@ -1035,7 +1035,7 @@ main: RETURN FUNCTION OPAREN CPAREN UNTIL
 
 Expected `end` to close function expression.
 
-main: RETURN FUNCTION OPAREN IDENT COMMA WHILE
+program: RETURN FUNCTION OPAREN IDENT COMMA WHILE
 ##
 ## Ends in an error in state: 22.
 ##
@@ -1047,7 +1047,7 @@ main: RETURN FUNCTION OPAREN IDENT COMMA WHILE
 
 Expected another function argument within argument list.
 
-main: RETURN FUNCTION OPAREN IDENT WHILE
+program: RETURN FUNCTION OPAREN IDENT WHILE
 ##
 ## Ends in an error in state: 21.
 ##
@@ -1060,7 +1060,7 @@ main: RETURN FUNCTION OPAREN IDENT WHILE
 
 Expected another argument or `)` within argument list.
 
-main: RETURN FUNCTION OPAREN WHILE
+program: RETURN FUNCTION OPAREN WHILE
 ##
 ## Ends in an error in state: 15.
 ##
@@ -1072,7 +1072,7 @@ main: RETURN FUNCTION OPAREN WHILE
 
 Expected another argument or `)` within argument list.
 
-main: RETURN FUNCTION WHILE
+program: RETURN FUNCTION WHILE
 ##
 ## Ends in an error in state: 14.
 ##
@@ -1084,7 +1084,7 @@ main: RETURN FUNCTION WHILE
 
 Expected `(` to start function's argument list.
 
-main: RETURN IDENT TRUE
+program: RETURN IDENT TRUE
 ##
 ## Ends in an error in state: 31.
 ##
@@ -1100,7 +1100,7 @@ main: RETURN IDENT TRUE
 
 This is unexpected after a a simple expression.
 
-main: RETURN LEN WHILE
+program: RETURN LEN WHILE
 ##
 ## Ends in an error in state: 11.
 ##
@@ -1112,7 +1112,7 @@ main: RETURN LEN WHILE
 
 Expected an expression after `#`.
 
-main: RETURN NOT WHILE
+program: RETURN NOT WHILE
 ##
 ## Ends in an error in state: 9.
 ##
@@ -1124,7 +1124,7 @@ main: RETURN NOT WHILE
 
 Expected an expression after `not`
 
-main: RETURN OBRACE IDENT EQUALS TRUE WHILE
+program: RETURN OBRACE IDENT EQUALS TRUE WHILE
 ##
 ## Ends in an error in state: 171.
 ##
@@ -1156,7 +1156,7 @@ main: RETURN OBRACE IDENT EQUALS TRUE WHILE
 
 Expected `}` to close table.
 
-main: RETURN OBRACE IDENT EQUALS WHILE
+program: RETURN OBRACE IDENT EQUALS WHILE
 ##
 ## Ends in an error in state: 170.
 ##
@@ -1168,7 +1168,7 @@ main: RETURN OBRACE IDENT EQUALS WHILE
 
 Expected expression after `=` in table entry.
 
-main: RETURN OBRACE OSQUARE TRUE CSQUARE EQUALS TRUE WHILE
+program: RETURN OBRACE OSQUARE TRUE CSQUARE EQUALS TRUE WHILE
 ##
 ## Ends in an error in state: 168.
 ##
@@ -1200,7 +1200,7 @@ main: RETURN OBRACE OSQUARE TRUE CSQUARE EQUALS TRUE WHILE
 
 Expected `,` or `}` after table entry.
 
-main: RETURN OBRACE OSQUARE TRUE CSQUARE EQUALS WHILE
+program: RETURN OBRACE OSQUARE TRUE CSQUARE EQUALS WHILE
 ##
 ## Ends in an error in state: 167.
 ##
@@ -1212,7 +1212,7 @@ main: RETURN OBRACE OSQUARE TRUE CSQUARE EQUALS WHILE
 
 Expected expression after `=` in table entry.
 
-main: RETURN OBRACE OSQUARE TRUE CSQUARE WHILE
+program: RETURN OBRACE OSQUARE TRUE CSQUARE WHILE
 ##
 ## Ends in an error in state: 166.
 ##
@@ -1224,7 +1224,7 @@ main: RETURN OBRACE OSQUARE TRUE CSQUARE WHILE
 
 Expected `=` after table key.
 
-main: RETURN OBRACE OSQUARE TRUE WHILE
+program: RETURN OBRACE OSQUARE TRUE WHILE
 ##
 ## Ends in an error in state: 165.
 ##
@@ -1256,7 +1256,7 @@ main: RETURN OBRACE OSQUARE TRUE WHILE
 
 Expected `]` to close `[` in table key.
 
-main: RETURN OBRACE OSQUARE WHILE
+program: RETURN OBRACE OSQUARE WHILE
 ##
 ## Ends in an error in state: 7.
 ##
@@ -1268,7 +1268,7 @@ main: RETURN OBRACE OSQUARE WHILE
 
 Expected expression after opening table key.
 
-main: RETURN OBRACE TRUE SEMICOLON WHILE
+program: RETURN OBRACE TRUE SEMICOLON WHILE
 ##
 ## Ends in an error in state: 175.
 ##
@@ -1280,7 +1280,7 @@ main: RETURN OBRACE TRUE SEMICOLON WHILE
 
 Expected `}` or table entry.
 
-main: RETURN OBRACE TRUE WHILE
+program: RETURN OBRACE TRUE WHILE
 ##
 ## Ends in an error in state: 177.
 ##
@@ -1312,7 +1312,7 @@ main: RETURN OBRACE TRUE WHILE
 
 This is unexpected after an expression.
 
-main: RETURN OBRACE WHILE
+program: RETURN OBRACE WHILE
 ##
 ## Ends in an error in state: 6.
 ##
@@ -1327,7 +1327,7 @@ Expected some table entry:
   - key = expr
   - [key] = expr
 
-main: RETURN SUB WHILE
+program: RETURN SUB WHILE
 ##
 ## Ends in an error in state: 3.
 ##
@@ -1339,7 +1339,7 @@ main: RETURN SUB WHILE
 
 Expected expression after operator
 
-main: RETURN THEN
+program: RETURN THEN
 ##
 ## Ends in an error in state: 26.
 ##
@@ -1351,7 +1351,7 @@ main: RETURN THEN
 
 Expected an expression or end of block after `return`.
 
-main: RETURN TRUE ADD WHILE
+program: RETURN TRUE ADD WHILE
 ##
 ## Ends in an error in state: 63.
 ##
@@ -1363,7 +1363,7 @@ main: RETURN TRUE ADD WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE AND WHILE
+program: RETURN TRUE AND WHILE
 ##
 ## Ends in an error in state: 47.
 ##
@@ -1375,7 +1375,7 @@ main: RETURN TRUE AND WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE COMMA WHILE
+program: RETURN TRUE COMMA WHILE
 ##
 ## Ends in an error in state: 75.
 ##
@@ -1388,7 +1388,7 @@ main: RETURN TRUE COMMA WHILE
 # TODO: We should improve this to disambiguate between returns and calls
 Expected expression after comma
 
-main: RETURN TRUE CONCAT WHILE
+program: RETURN TRUE CONCAT WHILE
 ##
 ## Ends in an error in state: 59.
 ##
@@ -1400,7 +1400,7 @@ main: RETURN TRUE CONCAT WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE DIV WHILE
+program: RETURN TRUE DIV WHILE
 ##
 ## Ends in an error in state: 67.
 ##
@@ -1412,7 +1412,7 @@ main: RETURN TRUE DIV WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE EQ WHILE
+program: RETURN TRUE EQ WHILE
 ##
 ## Ends in an error in state: 57.
 ##
@@ -1424,7 +1424,7 @@ main: RETURN TRUE EQ WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE GE WHILE
+program: RETURN TRUE GE WHILE
 ##
 ## Ends in an error in state: 55.
 ##
@@ -1436,7 +1436,7 @@ main: RETURN TRUE GE WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE GT WHILE
+program: RETURN TRUE GT WHILE
 ##
 ## Ends in an error in state: 53.
 ##
@@ -1448,7 +1448,7 @@ main: RETURN TRUE GT WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE LE WHILE
+program: RETURN TRUE LE WHILE
 ##
 ## Ends in an error in state: 51.
 ##
@@ -1460,7 +1460,7 @@ main: RETURN TRUE LE WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE LT WHILE
+program: RETURN TRUE LT WHILE
 ##
 ## Ends in an error in state: 49.
 ##
@@ -1472,7 +1472,7 @@ main: RETURN TRUE LT WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE MOD WHILE
+program: RETURN TRUE MOD WHILE
 ##
 ## Ends in an error in state: 65.
 ##
@@ -1484,7 +1484,7 @@ main: RETURN TRUE MOD WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE MUL WHILE
+program: RETURN TRUE MUL WHILE
 ##
 ## Ends in an error in state: 61.
 ##
@@ -1496,7 +1496,7 @@ main: RETURN TRUE MUL WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE NE WHILE
+program: RETURN TRUE NE WHILE
 ##
 ## Ends in an error in state: 45.
 ##
@@ -1508,7 +1508,7 @@ main: RETURN TRUE NE WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE OR WHILE
+program: RETURN TRUE OR WHILE
 ##
 ## Ends in an error in state: 43.
 ##
@@ -1520,7 +1520,7 @@ main: RETURN TRUE OR WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE POW WHILE
+program: RETURN TRUE POW WHILE
 ##
 ## Ends in an error in state: 36.
 ##
@@ -1532,7 +1532,7 @@ main: RETURN TRUE POW WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE SUB WHILE
+program: RETURN TRUE SUB WHILE
 ##
 ## Ends in an error in state: 41.
 ##
@@ -1544,7 +1544,7 @@ main: RETURN TRUE SUB WHILE
 
 Expected expression after operator
 
-main: RETURN TRUE THEN
+program: RETURN TRUE THEN
 ##
 ## Ends in an error in state: 74.
 ##
@@ -1577,7 +1577,7 @@ main: RETURN TRUE THEN
 
 Unexpected symbol after expression.
 
-main: RETURN TRUE TRUE
+program: RETURN TRUE TRUE
 ##
 ## Ends in an error in state: 35.
 ##
@@ -1590,7 +1590,7 @@ main: RETURN TRUE TRUE
 
 Unexpected symbol after expression.
 
-main: SEMICOLON TRUE
+program: SEMICOLON TRUE
 ##
 ## Ends in an error in state: 115.
 ##
@@ -1602,11 +1602,11 @@ main: SEMICOLON TRUE
 
 Expected another statement or end of block.
 
-main: SEMICOLON UNTIL
+program: SEMICOLON UNTIL
 ##
 ## Ends in an error in state: 187.
 ##
-## main -> stmts . EOF [ # ]
+## program -> stmts . EOF [ # ]
 ##
 ## The known suffix of the stack is as follows:
 ## stmts
@@ -1622,11 +1622,11 @@ main: SEMICOLON UNTIL
 
 Expected another statement or end of file.
 
-main: UNTIL
+program: UNTIL
 ##
 ## Ends in an error in state: 0.
 ##
-## main' -> . main [ # ]
+## program' -> . program [ # ]
 ##
 ## The known suffix of the stack is as follows:
 ##
@@ -1634,7 +1634,7 @@ main: UNTIL
 
 Expected the end of file.
 
-main: WHILE TRUE DO SEMICOLON ELSEIF
+program: WHILE TRUE DO SEMICOLON ELSEIF
 ##
 ## Ends in an error in state: 185.
 ##
@@ -1655,7 +1655,7 @@ main: WHILE TRUE DO SEMICOLON ELSEIF
 Expected `end` to terminate while loop.
 
 
-main: WHILE TRUE DO UNTIL
+program: WHILE TRUE DO UNTIL
 ##
 ## Ends in an error in state: 184.
 ##
@@ -1667,7 +1667,7 @@ main: WHILE TRUE DO UNTIL
 
 Expected `end` to close `while` loop
 
-main: WHILE TRUE WHILE
+program: WHILE TRUE WHILE
 ##
 ## Ends in an error in state: 183.
 ##
@@ -1699,7 +1699,7 @@ main: WHILE TRUE WHILE
 
 Expected `do` after `while` loop condition.
 
-main: WHILE WHILE
+program: WHILE WHILE
 ##
 ## Ends in an error in state: 1.
 ##
@@ -1710,3 +1710,34 @@ main: WHILE WHILE
 ##
 
 Expected condition for `while` loop
+
+repl_exprs: WHILE
+##
+## Ends in an error in state: 192.
+##
+## repl_exprs' -> . repl_exprs [ # ]
+##
+## The known suffix of the stack is as follows:
+##
+##
+
+Expected an expression
+
+repl_exprs: TRUE WHILE
+##
+## Ends in an error in state: 193.
+##
+## repl_exprs -> sep_list1(COMMA,expr) . EOF [ # ]
+##
+## The known suffix of the stack is as follows:
+## sep_list1(COMMA,expr)
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 36, spurious reduction of production expr -> expr_pow
+## In state 75, spurious reduction of production sep_list1(COMMA,expr) -> expr
+##
+
+Expected eof after an expression.

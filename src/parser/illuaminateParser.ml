@@ -44,7 +44,7 @@ let lex_token file lexbuf (next : lexer_token Span.spanned) =
       let trailing, next = lex_trailing file lexbuf tok_span in
       (Token.make_token leading trailing tok_span token, next)
 
-let parse (file : Span.filename) (lexbuf : Lexing.lexbuf) =
+let parse start (file : Span.filename) (lexbuf : Lexing.lexbuf) =
   let rec go last next checkpoint =
     match checkpoint with
     | I.InputNeeded _ ->
@@ -67,9 +67,13 @@ let parse (file : Span.filename) (lexbuf : Lexing.lexbuf) =
   try
     lexbuf.lex_curr_p <- { Lexing.pos_fname = file.path; pos_lnum = 1; pos_cnum = 0; pos_bol = 0 };
     let first = lex_one file lexbuf in
-    Grammar.Incremental.main Lexing.dummy_pos |> go None first
+    start Lexing.dummy_pos |> go None first
   with Lexer.Error (err, start, fin) ->
     Error { Span.span = Span.of_pos2 file start fin; value = err }
+
+let program = parse Grammar.Incremental.program
+
+let repl_exprs = parse Grammar.Incremental.repl_exprs
 
 module Lexer = struct
   type token = lexer_token =

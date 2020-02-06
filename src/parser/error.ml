@@ -6,13 +6,13 @@ type t =
   | SyntaxError of string
   | UnexpectedToken of Grammar.token * string
 
-let show_error = function
-  | UnexpectedCharacter c -> Printf.sprintf "Unexpected character \"%s\"" (String.escaped c)
-  | UnterminatedString -> "Unterminated string"
-  | SyntaxError m -> m
+let pp out = function
+  | UnexpectedCharacter c -> Format.fprintf out "Unexpected character \"%s\"" (String.escaped c)
+  | UnterminatedString -> Format.fprintf out "Unterminated string"
+  | SyntaxError m -> Format.fprintf out "%s" m
   | UnexpectedToken (tok, m) ->
-      Printf.sprintf "Unexpected `%s`: %s" (Token.get_token tok |> IlluaminateCore.Token.show) m
+      Format.fprintf out "Unexpected `%a`: %s" IlluaminateCore.Token.pp (Token.get_token tok) m
 
 let syntax_error = E.Tag.make E.Critical "parse:syntax-error"
 
-let report errs pos err = E.report errs syntax_error pos (show_error err)
+let report errs pos err = Format.asprintf "%a" pp err |> E.report errs syntax_error pos

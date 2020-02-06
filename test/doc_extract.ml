@@ -8,7 +8,7 @@ let process ~name contents out =
   let lexbuf = Lexing.from_string contents in
   let name = { Span.name; path = name } in
   let errs = Error.make () in
-  ( match IlluaminateParser.parse name lexbuf with
+  ( match IlluaminateParser.program name lexbuf with
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok parsed ->
       let context =
@@ -24,17 +24,7 @@ let process ~name contents out =
       |> List.iter (fun (e : Error.Error.t) -> Error.report errs e.tag e.span e.message);
       D.get_module data
       |> Option.iter (fun m ->
-             Doc_sexp.Syntax.(documented (Doc_sexp.one' % module_info) m) |> CCSexp.pp out)
-      (* D.comments comments
-       * |> List.sort (fun a b -> Span.compare a.source b.source)
-       * |> List.iter @@ fun comment ->
-       *    Doc_sexp.Comment.to_sexp comment |> CCSexp.pp out;
-       *    Format.pp_print_newline out ();
-       *    match comment.errors with
-       *    | [] -> ()
-       *    | _ :: _ as errors ->
-       *        List.iter (fun (tag, msg) -> Format.fprintf out "%s: %s" tag.Error.Tag.name msg) errors
-       * ) *) );
+             Doc_sexp.Syntax.(documented (Doc_sexp.one' % module_info) m) |> CCSexp.pp out) );
 
   Error.display_of_string ~out (fun _ -> Some contents) errs
 

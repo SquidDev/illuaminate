@@ -73,10 +73,11 @@ val errors : t -> Error.t list
 
 (** Display any errors which occurred. This assumes files exist on disk - use {!display_of_string}
     if this is not the case. *)
-val display_of_files : ?out:Format.formatter -> t -> unit
+val display_of_files : ?out:Format.formatter -> ?with_summary:bool -> t -> unit
 
 (** Display any errors which occurred, with a function which maps file names to strings *)
-val display_of_string : ?out:Format.formatter -> (Span.filename -> string option) -> t -> unit
+val display_of_string :
+  ?out:Format.formatter -> ?with_summary:bool -> (Span.filename -> string option) -> t -> unit
 
 (** Provides a mechanism for formatting strings, allowing displaying richer error messages. *)
 module Style : sig

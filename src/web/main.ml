@@ -57,7 +57,7 @@ let files () =
 (** Fix all errors within the program. *)
 let rec fix_all () : unit =
   let lexbuf = input##.value |> Js.to_string |> Lexing.from_string in
-  match IlluaminateParser.parse { name = "input"; path = "input" } lexbuf with
+  match IlluaminateParser.program { name = "input"; path = "input" } lexbuf with
   | Error _ -> ()
   | Ok parsed ->
       let program, _ = Driver.lint_and_fix_all ~store ~files:(files ()) Linters.all parsed in
@@ -75,7 +75,7 @@ and lint () : unit =
   let errs = Error.make () in
   let input = Js.to_string input##.value in
   let lexbuf = Lexing.from_string input in
-  ( match IlluaminateParser.parse { name = "input"; path = "input" } lexbuf with
+  ( match IlluaminateParser.program { name = "input"; path = "input" } lexbuf with
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok parsed ->
       let data = files () |> IlluaminateSemantics.Data.of_files in

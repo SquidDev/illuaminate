@@ -19,7 +19,6 @@ let linter =
     Printf.sprintf "Argument `%s` is missing a description" arg_name
     |> check ~notes ~span ~tag:arg_tag arg_description
   in
-
   let return ~notes ~span { ret_description; _ } =
     check ~notes ~span ~tag:return_tag ret_description "@return tag is missing a description"
   in

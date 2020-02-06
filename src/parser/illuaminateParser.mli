@@ -9,6 +9,8 @@ module Error : sig
     | UnexpectedToken of Grammar.token * string
 
   val report : Error.t -> Span.t -> t -> unit
+
+  val pp : Format.formatter -> t -> unit
 end
 
 module Lexer : sig
@@ -23,4 +25,7 @@ module Lexer : sig
 end
 
 (** Parse a file, either producing a program or some syntax error. *)
-val parse : Span.filename -> Lexing.lexbuf -> (Syntax.program, Error.t Span.spanned) result
+val program : Span.filename -> Lexing.lexbuf -> (Syntax.program, Error.t Span.spanned) result
+
+(** Parse a list of expressions. *)
+val repl_exprs : Span.filename -> Lexing.lexbuf -> (Syntax.repl_exprs, Error.t Span.spanned) result

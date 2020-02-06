@@ -4,7 +4,7 @@ let parse ~name contents =
   let lexbuf = Lexing.from_string contents in
   let errs = Error.make () in
   let name = { Span.name; path = name } in
-  match IlluaminateParser.parse name lexbuf with
+  match IlluaminateParser.program name lexbuf with
   | Error err ->
       let buffer = Buffer.create 128 in
       IlluaminateParser.Error.report errs err.span err.value;

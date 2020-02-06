@@ -457,6 +457,11 @@ and program =
   { program : block;
     eof : token
   }
+
+and repl_exprs =
+  { repl_exprs : expr SepList1.t;
+    repl_eof : token
+  }
 [@@deriving show, illuaminateDeriving_traverse { prefix = "_" }, illuaminateDeriving_lens]
 
 class iter =
