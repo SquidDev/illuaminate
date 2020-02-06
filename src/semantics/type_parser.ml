@@ -12,6 +12,7 @@ let show_token = function
   | EQUALS -> "="
   | SEMICOLON -> ";"
   | PIPE -> "|"
+  | ASKING -> "?"
   | OPAREN -> "("
   | CPAREN -> ")"
   | OBRACE -> "{"

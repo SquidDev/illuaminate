@@ -38,8 +38,8 @@ let linter =
     | Table xs -> List.iter (table_entry ~notes ~span) xs
     | Union xs -> List.iter (type_ ~notes ~span) xs
   and table_entry ~notes ~span = function
-    | Type.Field { value = x; key = _ } | Item x | Many x -> type_ ~notes ~span x
-    | Hash { key; value } -> type_ ~notes ~span key; type_ ~notes ~span value
+    | Type.Field { value = x; optional = _; key = _ } | Item x | Many x -> type_ ~notes ~span x
+    | Hash { key; optional = _; value } -> type_ ~notes ~span key; type_ ~notes ~span value
   in
 
   let arg ~notes ~span { arg_description; arg_type; _ } =

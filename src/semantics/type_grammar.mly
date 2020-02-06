@@ -7,6 +7,7 @@
 %token EQUALS "="
 %token SEMICOLON ";"
 %token PIPE "|"
+%token ASKING "?"
 
 %token OPAREN "(" CPAREN ")"
 %token OBRACE "{" CBRACE "}"
@@ -96,7 +97,14 @@ let table_body :=
   | x = table_entry ; { [x] }
   | x = table_entry ; table_sep ; xs = table_body ; { x :: xs }
 
+let optional :=
+  |                                    { false }
+  | "?" ;                              { true }
+
 let table_entry :=
-  | (many, ty) = var_ty ;                     { if many then Many ty else Item ty }
-  | key = IDENT ; "=" ; value = ty ;          { Field { key; value } }
-  | "[" ; key = ty ; "]" ; "=" ; value = ty ; { Hash { key; value } }
+  | (many, ty) = var_ty ;
+    { if many then Many ty else Item ty }
+  | key = IDENT ; ~ = optional ; "=" ; value = ty ;
+    { Field { key; optional; value } }
+  | "[" ; key = ty ; "]" ; ~ = optional ;"=" ; value = ty ;
+    { Hash { key; optional; value } }

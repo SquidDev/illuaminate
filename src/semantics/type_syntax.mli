@@ -24,12 +24,14 @@ module type S = sig
   and table_entry =
     | Field of
         { key : string;
+          optional : bool;
           value : t
         }
     | Item of t
     | Many of t
     | Hash of
         { key : t;
+          optional : bool;
           value : t
         }
 end

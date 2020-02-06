@@ -2,6 +2,16 @@ open Html.Default;
 open! IlluaminateSemantics.Doc.Syntax.Type;
 open IlluaminateSemantics.Reference;
 
+let show_opt = (~kind, optional) =>
+  if (optional) {
+    <span
+      class_="optional" title={Printf.sprintf("This %s is optional", kind)}>
+      {str("?")}
+    </span>;
+  } else {
+    nil;
+  };
+
 let show_reference = (~resolve, x, label) =>
   switch (x) {
   | Internal({in_module, name: None, _}) =>
@@ -107,15 +117,23 @@ and show_type_arg = (~resolve, (i, o, b), {name, opt, ty}) => {
 
 and show_type_table_entry = (~resolve, x) =>
   switch (x) {
-  | Field({key, value}) =>
-    [str(key), str(" = "), show_type(~resolve, value)] |> many
+  | Field({key, optional, value}) =>
+    [
+      str(key),
+      show_opt(~kind="field", optional),
+      str(" = "),
+      show_type(~resolve, value),
+    ]
+    |> many
   | Item(ty) => show_type(~resolve, ty)
   | Many(ty) => [show_type(~resolve, ty), str("...")] |> many
-  | Hash({key, value}) =>
+  | Hash({key, optional, value}) =>
     [
       str("["),
       show_type(~resolve, key),
-      str("] = "),
+      str("]"),
+      show_opt(~kind="field", optional),
+      str(" = "),
       show_type(~resolve, value),
     ]
     |> many

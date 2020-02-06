@@ -35,6 +35,7 @@ rule token = parse
 | "..."      { DOTS }
 | "="        { EQUALS }
 | "|"        { PIPE }
+| "?"        { ASKING }
 
 | '(' { OPAREN } | ')' { CPAREN }
 | '{' { OBRACE } | '}' { CBRACE }

@@ -26,12 +26,14 @@ module type S = sig
   and table_entry =
     | Field of
         { key : string;
+          optional : bool;
           value : t
         }
     | Item of t
     | Many of t
     | Hash of
         { key : t;
+          optional : bool;
           value : t
         }
   [@@deriving show]
@@ -67,12 +69,14 @@ end) : S with type reference = X.reference = struct
   and table_entry =
     | Field of
         { key : string;
+          optional : bool;
           value : t
         }
     | Item of t
     | Many of t
     | Hash of
         { key : t;
+          optional : bool;
           value : t
         }
   [@@deriving show]
@@ -101,10 +105,10 @@ module Lift (L : S) (R : S) = struct
       | Union ts -> Union (List.map ty ts)
     and arg { L.name; ty = t; opt } = { R.name; ty = ty t; opt }
     and table_entry : L.table_entry -> R.table_entry = function
-      | Field { key; value } -> Field { key; value = ty value }
+      | Field { key; optional; value } -> Field { key; optional; value = ty value }
       | Item t -> Item (ty t)
       | Many t -> Many (ty t)
-      | Hash { key; value } -> Hash { key = ty key; value = ty value }
+      | Hash { key; optional; value } -> Hash { key = ty key; optional; value = ty value }
     in
     ty
 end

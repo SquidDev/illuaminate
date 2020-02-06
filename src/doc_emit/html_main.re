@@ -24,13 +24,7 @@ let show_arg = (~resolve, {arg_name, arg_opt, arg_type, arg_description}) =>
   <li>
     <span class_="parameter">
       {str(arg_name)}
-      {if (arg_opt) {
-         <span class_="optional" title="This argument is optional">
-           {str("?")}
-         </span>;
-       } else {
-         nil;
-       }}
+      {show_opt(~kind="argument", arg_opt)}
     </span>
     {str(" ")}
     {show_type_opt(~resolve, arg_type)}
@@ -288,7 +282,7 @@ let template = (~title, ~site_title, ~resolve, ~modules, ~current, body) =>
 let emit_modules = (~site_title=?, ~resolve, ~modules, contents) => {
   let content = [
     contents,
-    <table class_="definition_list">
+    <table class_="definition-list">
       ...{
            modules
            |> CCList.map(m =>
