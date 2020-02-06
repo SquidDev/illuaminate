@@ -429,6 +429,30 @@ main: OBRACE OSQUARE TRUE CSQUARE TRUE
 
 Expected "=" after table key.
 
+main: OBRACE OSQUARE TRUE CSQUARE ASKING TRUE
+##
+## Ends in an error in state: 55.
+##
+## table_entry -> OSQUARE ty CSQUARE optional . EQUALS ty [ SEMICOLON COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## OSQUARE ty CSQUARE optional
+##
+
+Expected "=" after table key.
+
+main: OBRACE IDENT ASKING TRUE
+##
+## Ends in an error in state: 59.
+##
+## table_entry -> IDENT optional . EQUALS ty [ SEMICOLON COMMA CBRACE ]
+##
+## The known suffix of the stack is as follows:
+## IDENT optional
+##
+
+iExpected "=" after table key.
+
 main: OBRACE OSQUARE TRUE SEMICOLON
 ##
 ## Ends in an error in state: 52.
