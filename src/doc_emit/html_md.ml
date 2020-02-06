@@ -18,12 +18,12 @@ let md ~resolve x =
           match attrs with
           | [ ("module", Some modu) ] ->
               ( "a",
-                [ ("href", Some ("module/" ^ modu ^ ".html" |> resolve));
+                [ ("href", Some (resolve ("module/" ^ modu ^ ".html")));
                   ("class", Some "reference")
                 ] )
           | [ ("module", Some modu); ("sec", Some sec) ] ->
               ( "a",
-                [ ("href", Some ("module/" ^ modu ^ ".html#sec:" ^ sec |> resolve));
+                [ ("href", Some (resolve ("module/" ^ modu ^ ".html") ^ "#sec:" ^ sec));
                   ("class", Some "reference")
                 ] )
           | [ ("href", Some href) ] -> ("a", [ ("href", Some href); ("class", Some "reference") ])

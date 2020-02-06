@@ -1,7 +1,13 @@
 open Html.Default;
 open Html_md;
 open Html_type;
+open IlluaminateCore;
 open IlluaminateSemantics.Doc.Syntax;
+
+type t = {
+  resolve: string => string,
+  source_link: Span.t => option(string),
+};
 
 let show_list = (~tag="h3", title, xs) =>
   switch (xs) {
@@ -109,7 +115,8 @@ let show_function = (~resolve, args, rets, throws) =>
 
 let show_example = (~resolve, example) =>
   switch (example) {
-  | RawExample(x) => <pre class_="highlight highlight-lua"> {Html_highlight.lua(x)} </pre>
+  | RawExample(x) =>
+    <pre class_="highlight highlight-lua"> {Html_highlight.lua(x)} </pre>
   | RichExample(Description(x)) => md(~resolve, x)
   };
 
@@ -123,49 +130,61 @@ let show_see = (~resolve, {see_reference, see_label, see_description}) =>
   ]
   |> many;
 
-let show_common = (~resolve, {examples, see, _}) =>
+let show_common = (~resolve, {examples, see, _}) => {
   [
     show_list("Usage", List.map(show_example(~resolve), examples)),
     show_list("See also", List.map(show_see(~resolve), see)),
   ]
   |> many;
+};
 
-let rec show_named_value = (~resolve, link, field, value) =>
+let show_pos = (~source_link, {definition, _}) => {
+  switch (source_link(definition)) {
+  | None => nil
+  | Some(link) => <a href=link class_="source-link"> {str("Source")} </a>
+  };
+};
+
+let rec show_named_value =
+        (~options as {source_link, _} as options, link, field, value) =>
   [
     <dt>
       <a name={"sec:" ++ link} href={"#sec:" ++ link} />
-      {str(" ")}
-      <span> {str(field)} {value.descriptor |> get_suffix |> str} </span>
+      <span class_="definition-name">
+        {str(field)}
+        {value.descriptor |> get_suffix |> str}
+      </span>
+      {show_pos(~source_link, value)}
     </dt>,
-    <dd> {show_documented_term(~resolve, value)} </dd>,
+    <dd> {show_documented_term(~options, value)} </dd>,
   ]
   |> many
 
 and show_member =
-    (~resolve, type_name, {member_name, member_is_method, member_value}) => {
+    (~options, type_name, {member_name, member_is_method, member_value}) => {
   let name =
     type_name ++ (if (member_is_method) {":"} else {"."}) ++ member_name;
-  show_named_value(~resolve, "ty-" ++ name, name, member_value);
+  show_named_value(~options, "ty-" ++ name, name, member_value);
 }
 
-and show_documented_term = (~resolve, value) =>
+and show_documented_term = (~options as {resolve, _} as options, value) =>
   [
     show_desc(~resolve, value.description),
-    show_value(~resolve, value.descriptor),
+    show_value(~options, value.descriptor),
     show_common(~resolve, value),
   ]
   |> many
 
-and show_value = (~resolve, value) => {
+and show_value = (~options as {resolve, _} as options, value) => {
   switch (value) {
   | Table([_, ..._] as fs) =>
     [
-      <table class_="definition_list">
+      <table class_="definition-list">
         ...{
              fs
              |> List.map(((field, value)) =>
                   <tr>
-                    <th>
+                    <th class_="definition-name">
                       <a href={"#sec:" ++ field}>
                         {str(field)}
                         {value.descriptor |> get_suffix |> str}
@@ -180,7 +199,7 @@ and show_value = (~resolve, value) => {
         ...{
              fs
              |> List.map(((field, value)) =>
-                  show_named_value(~resolve, field, field, value)
+                  show_named_value(~options, field, field, value)
                 )
            }
       </dl>,
@@ -201,7 +220,7 @@ and show_value = (~resolve, value) => {
 
 let show_type =
     (
-      ~resolve,
+      ~options as {resolve, _} as options,
       {description, descriptor: {type_name, type_members}, _} as desc,
     ) =>
   [
@@ -213,7 +232,7 @@ let show_type =
     show_desc(~resolve, description),
     show_common(~resolve, desc),
     <dl class_="definition">
-      ...{List.map(show_member(~resolve, type_name), type_members)}
+      ...{List.map(show_member(~options, type_name), type_members)}
     </dl>,
   ]
   |> many;
@@ -299,19 +318,21 @@ let emit_module =
     (
       ~site_title=?,
       ~resolve,
+      ~source_link,
       ~modules,
       {descriptor: {mod_name, mod_contents, mod_types, _}, _} as self,
     ) => {
+  let options = {resolve, source_link};
   let content = [
     <h1> <code> {str(mod_name)} </code> {str(" library")} </h1>,
     show_desc(~resolve, self.description),
     show_common(~resolve, self),
-    show_value(~resolve, mod_contents),
+    show_value(~options, mod_contents),
     ...switch (mod_types) {
        | [] => []
        | tys => [
            <h2> {str("Types")} </h2>,
-           ...List.map(show_type(~resolve), tys),
+           ...List.map(show_type(~options), tys),
          ]
        },
   ];

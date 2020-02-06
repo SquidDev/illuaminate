@@ -5,12 +5,12 @@ open IlluaminateSemantics.Reference;
 let show_reference = (~resolve, x, label) =>
   switch (x) {
   | Internal({in_module, name: None, _}) =>
-    <a href={"module/" ++ in_module ++ ".html" |> resolve} class_="reference">
+    <a href={resolve("module/" ++ in_module ++ ".html")} class_="reference">
       label
     </a>
   | Internal({in_module, name: Some(name), _}) =>
     <a
-      href={"module/" ++ in_module ++ ".html#sec:" ++ name |> resolve}
+      href={resolve("module/" ++ in_module ++ ".html") ++ "#sec:" ++ name}
       class_="reference">
       label
     </a>

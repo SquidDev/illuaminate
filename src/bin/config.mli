@@ -9,7 +9,9 @@ type doc_options =
   { site_title : string option;  (** A title to be displayed on every page. *)
     index : Fpath.t option;
         (** A path to a [\[.html\]] or [\[.md\]] file to use on the index page. *)
-    destination : Fpath.t  (** Destination folder to write to. *)
+    destination : Fpath.t;  (** Destination folder to write to. *)
+    source_link : Span.t -> string option
+        (** Resolve a position in source code to an online file host (such as GitHub). *)
   }
 
 (** Read config from a file, either accepting some options or producing a warning. *)

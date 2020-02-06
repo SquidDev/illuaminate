@@ -90,7 +90,7 @@ let doc_gen path =
        let fmt = Format.formatter_of_out_channel out in
        Html.Default.emit_doc fmt node; Format.pp_print_flush fmt ()
      in
-     let { Config.site_title; index; destination } = Config.get_doc_options config in
+     let { Config.site_title; index; destination; source_link } = Config.get_doc_options config in
      let index =
        let open Html.Default in
        match index with
@@ -115,10 +115,15 @@ let doc_gen path =
                exit 1 ) )
      in
      mkdirs Fpath.(destination / "module");
+     let module_dir = Fpath.v "module" in
      modules
      |> List.iter (fun (modu : Doc.Syntax.module_info Doc.Syntax.documented) ->
             let path = Fpath.(destination / "module" / (modu.descriptor.mod_name ^ ".html")) in
-            E.Html_main.emit_module ?site_title ~resolve:(fun x -> "../" ^ x) ~modules modu
+            let resolve x =
+              let open Fpath in
+              v x |> relativize ~root:module_dir |> Option.fold ~none:("../" ^ x) ~some:to_string
+            in
+            E.Html_main.emit_module ?site_title ~resolve ~source_link ~modules modu
             |> emit_doc
             |> CCIO.with_out (Fpath.to_string path));
 

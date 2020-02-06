@@ -1,9 +1,12 @@
 (library
  (name illuaminate)
- (modules illuaminate config loader)
+ (modules illuaminate config loader lex_template)
  (libraries containers cmdliner fpath illuaminate.core illuaminate.parser
    illuaminate.semantics illuaminate.lint illuaminate.config illuaminate.html
    illuaminate.pattern illuaminate.github illuaminate.doc_emit omd result))
+
+(ocamllex
+ (modules lex_template))
 
 (executable
  (name illuaminate_all)

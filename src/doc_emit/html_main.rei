@@ -1,3 +1,4 @@
+open IlluaminateCore;
 open IlluaminateSemantics.Doc.Syntax;
 
 /** Emit an index file from a list of modules.  */
@@ -15,6 +16,7 @@ let emit_module:
   (
     ~site_title: string=?,
     ~resolve: string => string,
+    ~source_link: Span.t => option(string),
     ~modules: list(documented(module_info)),
     documented(module_info)
   ) =>

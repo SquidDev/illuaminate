@@ -2,6 +2,6 @@
  (name illuaminateDocEmit)
  (public_name illuaminate.doc_emit)
  (libraries containers illuaminate.html illuaminate.core
-   illuaminate.semantics illuaminate.parser omd yojson)
+   illuaminate.semantics illuaminate.parser fpath omd)
  (preprocess
   (pps jsx)))

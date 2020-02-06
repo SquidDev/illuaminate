@@ -25,8 +25,40 @@ type pat_config =
 type doc_options =
   { site_title : string option;
     index : Fpath.t option;
-    destination : Fpath.t
+    destination : Fpath.t;
+    source_link : Span.t -> string option
   }
+
+module Process = struct
+  let rec waitpid_non_intr pid =
+    try Unix.waitpid [] pid |> snd with Unix.Unix_error (EINTR, _, _) -> waitpid_non_intr pid
+
+  let capture cmd args =
+    let out_read, out_write = Unix.pipe ~cloexec:true () in
+    try
+      let outchan = Unix.in_channel_of_descr out_read in
+      let pid = Unix.create_process cmd args Unix.stdin out_write Unix.stderr in
+      Unix.close out_write;
+      let result = waitpid_non_intr pid in
+      let contents = CCIO.read_all outchan in
+      Ok (contents, result)
+    with Unix.Unix_error (err, _, _) ->
+      Unix.close out_read;
+      Unix.close out_write;
+      Unix.error_message err |> Printf.sprintf "%s exited with error '%s'" cmd |> Result.error
+
+  let check_status cmd = function
+    | Unix.WEXITED 0 -> Ok ()
+    | WEXITED 127 -> Printf.sprintf "%s is not installed" cmd |> Result.error
+    | WEXITED x -> Printf.sprintf "%s exited with %d" cmd x |> Result.error
+    | WSIGNALED x -> Printf.sprintf "%s was signaled with code %d" cmd x |> Result.error
+    | WSTOPPED x -> Printf.sprintf "%s was stopped with %d" cmd x |> Result.error
+
+  let capture_check cmd args =
+    capture cmd args
+    |> CCResult.flat_map @@ fun (line, result) ->
+       check_status cmd result |> Result.map (fun () -> line)
+end
 
 let doc_options_term =
   let open Term in
@@ -46,6 +78,19 @@ let doc_options_term =
         |> Fpath.of_string
         |> Result.map_error (fun (`Msg msg) -> msg)),
       Fpath.to_string )
+  and template =
+    ( (fun p ->
+        Lexing.from_string p
+        |> Lex_template.main (Buffer.create 8) []
+        |> CCResult.flat_map @@ fun r ->
+           let rec go = function
+             | [] -> Ok r
+             | Lex_template.Raw _ :: xs -> go xs
+             | Key ("path" | "line" | "sline" | "eline" | "commit") :: xs -> go xs
+             | Key k :: _ -> Error (Printf.sprintf "Unknown key %S" k)
+           in
+           go r),
+      Format.asprintf "%a" (fun out -> List.iter (Lex_template.pp out)) )
   in
   let+ site_title =
     field ~name:"title" ~comment:"A title to display for the site" ~default:None
@@ -55,8 +100,61 @@ let doc_options_term =
   and+ destination =
     field ~name:"destination" ~comment:"The folder to write to" ~default:(Fpath.v "doc")
       (base ~ty:"path" path)
+  and+ source_link =
+    field ~name:"source-link"
+      ~comment:
+        "A link to an website containing hosting code. The URL is a templated string, where \
+         `${foo}` is replaced by the contents of `foo` variable.\n\n\
+         This accepts the following variables:\n\
+        \ - path: The documented source's path, relative to the project root.\n\
+        \ - sline/eline: The start and end line of the variable's definition.\n\
+        \ - commit: The current commit hash, as returned by git rev-parse HEAD." ~default:None
+      (option ~ty:"template" template)
   in
-  { site_title; index; destination }
+  fun root ->
+    let git_commit =
+      lazy
+        ( match
+            Process.capture_check "git" [| "git"; "-C"; Fpath.to_string root; "rev-parse"; "HEAD" |]
+          with
+        | Error e ->
+            Printf.eprintf "Cannot find git commit (%s)\n%!" e;
+            None
+        | Ok l -> Some (String.trim l) )
+    in
+    let source_link (span : Span.t) =
+      source_link
+      |> CCOpt.flat_map @@ fun template ->
+         let out = Buffer.create 32 in
+         let rec go = function
+           | [] -> Some (Buffer.contents out)
+           | Lex_template.Raw x :: xs -> Buffer.add_string out x; go xs
+           | Key "path" :: xs -> (
+             match Fpath.(v span.filename.path |> relativize ~root) with
+             | None -> None
+             | Some x ->
+                 Fpath.to_string x |> Buffer.add_string out;
+                 go xs )
+           | Key ("line" | "sline") :: xs ->
+               string_of_int span.start_line |> Buffer.add_string out;
+               go xs
+           | Key "eline" :: xs ->
+               string_of_int span.finish_line |> Buffer.add_string out;
+               go xs
+           | Key "commit" :: xs -> (
+             match Lazy.force git_commit with
+             | None -> None
+             | Some commit -> Buffer.add_string out commit; go xs )
+           | Key _ :: _ -> None
+         in
+
+         go template
+    in
+    { site_title;
+      index = Option.map (Fpath.append root) index;
+      destination = Fpath.append root destination;
+      source_link
+    }
 
 let doc_options = Category.add doc_options_term IlluaminateSemantics.Doc.Extract.Config.workspace
 
@@ -215,13 +313,10 @@ let get_linters config path =
       (Fun.flip TagSet.mem enabled, store)
 
 let get_doc_options = function
-  | Default -> Term.default doc_options_term
-  | Config { root; store; _ } ->
-      let { site_title; index; destination } = Schema.get doc_options store in
-      { site_title;
-        index = Option.map (Fpath.append root) index;
-        destination = Fpath.append root destination
-      }
+  | Default ->
+      (* TODO: Better handling of the root when there is no config present. *)
+      Term.default doc_options_term Fpath.(v (Sys.getcwd ()) / "out")
+  | Config { root; store; _ } -> (Schema.get doc_options store) root
 
 let get_store = function
   | Default -> Schema.default global_schema
