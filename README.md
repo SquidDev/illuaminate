@@ -19,6 +19,12 @@ become more useful as it continues to develop.
  - Integration with GitHub Actions
 
 ## Building
+
+**Note:** use the [upx][] executable packer in order to make the compiled
+files a reasonable size (it reduces them by 4x). It should be included in most
+package managers.
+
+### Using Opam
  - Install [opam][] and set up a OCaml 4.08.1 switch (`opam switch create
    4.08.1`). Later versions may work, but haven't been tested.
  - Insall [omnomnom][] using `opam pin add omnomnom https://github.com/SquidDev/omnomnom.git`.
@@ -26,6 +32,11 @@ become more useful as it continues to develop.
  - Build using Dune: `dune build @install @runtest`
  - You may either install illuaminate into opam using `dune install`, or use the
    files in the `_build/install/default/bin` directory.
+
+### Using Esy
+ - Install [esy][]
+ - Run `esy` in the repository's root.
+ - Illuaminate can now be run using `esy x illuaminate`
 
 ## Usage
  - Either build Illuaminate as above, or download a pre-built version:
@@ -84,3 +95,4 @@ jobs:
 [opam]: https://opam.ocaml.org/doc/Install.html
 [omnomnom]: https://github.com/SquidDev/omnomnom
 [actions]: https://github.com/features/actions
+[esy]: https://esy.sh/
