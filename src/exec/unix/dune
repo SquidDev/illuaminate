@@ -1,0 +1,6 @@
+(library
+ (name iluaminateExec_unix)
+ (public_name illuaminate.exec.unix)
+ (implements illuaminate.exec)
+ (libraries containers)
+ (variant unix))
