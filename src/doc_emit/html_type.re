@@ -14,16 +14,17 @@ let show_opt = (~kind, optional) =>
 
 let show_reference = (~resolve, x, label) =>
   switch (x) {
-  | Internal({in_module, name: None, _}) =>
-    <a href={resolve("module/" ++ in_module ++ ".html")} class_="reference">
-      label
-    </a>
-  | Internal({in_module, name: Some(name), _}) =>
+  | Internal({in_module, name, _}) =>
+    let section =
+      switch (section_of_name(name)) {
+      | None => ""
+      | Some(x) => "#" ++ x
+      };
     <a
-      href={resolve("module/" ++ in_module ++ ".html") ++ "#sec:" ++ name}
+      href={resolve("module/" ++ in_module ++ ".html" ++ section)}
       class_="reference">
       label
-    </a>
+    </a>;
   | External({url: Some(url), _}) =>
     <a href=url class_="reference"> label </a>
   | External({url: None, _}) => <span class_="reference"> label </span>

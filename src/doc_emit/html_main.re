@@ -2,7 +2,8 @@ open Html.Default;
 open Html_md;
 open Html_type;
 open IlluaminateCore;
-open IlluaminateSemantics.Doc.Syntax;
+open IlluaminateSemantics.Reference;
+open! IlluaminateSemantics.Doc.Syntax;
 
 type t = {
   resolve: string => string,
@@ -140,10 +141,11 @@ let show_pos = (~source_link, {definition, _}) => {
 };
 
 let rec show_named_value =
-        (~options as {source_link, _} as options, link, field, value) =>
+        (~options as {source_link, _} as options, name, field, value) => {
+  let sec = Option.get(section_of_name(name));
   [
     <dt>
-      <a name={"sec:" ++ link} href={"#sec:" ++ link} />
+      <a name=sec href={"#" ++ sec} />
       <span class_="definition-name">
         {str(field)}
         {value.descriptor |> get_suffix |> str}
@@ -152,13 +154,19 @@ let rec show_named_value =
     </dt>,
     <dd> {show_documented_term(~options, value)} </dd>,
   ]
-  |> many
+  |> many;
+}
 
 and show_member =
     (~options, type_name, {member_name, member_is_method, member_value}) => {
   let name =
     type_name ++ (if (member_is_method) {":"} else {"."}) ++ member_name;
-  show_named_value(~options, "ty-" ++ name, name, member_value);
+  show_named_value(
+    ~options,
+    Member(type_name, member_name),
+    name,
+    member_value,
+  );
 }
 
 and show_documented_term = (~options as {resolve, _} as options, value) =>
@@ -179,7 +187,10 @@ and show_value = (~options as {resolve, _} as options, value) => {
              |> List.map(((field, value)) =>
                   <tr>
                     <th class_="definition-name">
-                      <a href={"#sec:" ++ field}>
+                      <a
+                        href={
+                          "#" ++ Option.get(section_of_name(Value(field)))
+                        }>
                         {str(field)}
                         {value.descriptor |> get_suffix |> str}
                       </a>
@@ -193,7 +204,7 @@ and show_value = (~options as {resolve, _} as options, value) => {
         ...{
              fs
              |> List.map(((field, value)) =>
-                  show_named_value(~options, field, field, value)
+                  show_named_value(~options, Value(field), field, value)
                 )
            }
       </dl>,
@@ -216,10 +227,11 @@ let show_type =
     (
       ~options as {resolve, _} as options,
       {description, descriptor: {type_name, type_members}, _} as desc,
-    ) =>
+    ) => {
+  let sec = Option.get(section_of_name(Type(type_name)));
   [
     <h3>
-      <a name={"sec:ty-" ++ type_name} href={"#sec:ty-" ++ type_name} />
+      <a name=sec href={"#" ++ sec} />
       {str(" ")}
       <span> {str(type_name)} </span>
     </h3>,
@@ -230,6 +242,7 @@ let show_type =
     </dl>,
   ]
   |> many;
+};
 
 let module_list_item =
     (~resolve, ~current, {descriptor: {mod_name: name, _}, _}) =>

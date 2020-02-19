@@ -485,13 +485,13 @@ module Resolve = struct
             | Table fields ->
                 List.find_opt (fun (k, _) -> k = name) fields
                 |> Option.map (fun (_, { definition; _ }) ->
-                       Internal { in_module = mod_name; name = Some name; definition })
+                       Internal { in_module = mod_name; name = Value name; definition })
             | _ -> None);
         (* Look up types within a module *)
         (fun { mod_name; mod_types; _ } name _ ->
           List.find_opt (fun ty -> ty.descriptor.type_name = name) mod_types
           |> Option.map (fun { definition; _ } ->
-                 Internal { in_module = mod_name; name = Some ("ty-" ^ name); definition }));
+                 Internal { in_module = mod_name; name = Type name; definition }));
         (* Look up methods within a module *)
         (fun { mod_name; mod_types; _ } name is_type ->
           if is_type then None
@@ -509,7 +509,7 @@ module Resolve = struct
                 |> Option.map (fun { member_name; member_value; _ } ->
                        Internal
                          { in_module = mod_name;
-                           name = Some ("ty-" ^ type_name ^ ":" ^ member_name);
+                           name = Member (type_name, member_name);
                            definition = member_value.definition
                          }))
       ]
@@ -523,7 +523,7 @@ module Resolve = struct
           match StringMap.find_opt name modules with
           | _ when is_type -> None
           | Some (lazy { definition; _ }) ->
-              Some (Internal { in_module = name; name = None; definition })
+              Some (Internal { in_module = name; name = Module; definition })
           | None -> None);
         (* Finds elements within modules. This tries foo.[bar.baz], then foo.bar.[baz], etc... *)
         (fun { modules; _ } name is_type ->
@@ -600,10 +600,12 @@ module Resolve = struct
       | Html ("illuaminate:ref", [ ("link", Some link) ], label) ->
           Some
             [ ( match resolve context ~types_only:false link with
-              | Internal { in_module; name = None; _ } ->
-                  Html ("illuaminate:ref", [ ("module", Some in_module) ], label)
-              | Internal { in_module; name = Some name; _ } ->
-                  Html ("illuaminate:ref", [ ("module", Some in_module); ("sec", Some name) ], label)
+              | Internal { in_module; name; _ } -> (
+                match Reference.section_of_name name with
+                | None -> Html ("illuaminate:ref", [ ("module", Some in_module) ], label)
+                | Some s ->
+                    Html ("illuaminate:ref", [ ("module", Some in_module); ("sec", Some s) ], label)
+                )
               | External { url = Some url; _ } ->
                   Html ("illuaminate:ref", [ ("href", Some url) ], label)
               | External { url = None; _ } -> Html ("illuaminate:ref", [], label)

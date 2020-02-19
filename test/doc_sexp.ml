@@ -107,7 +107,10 @@ module Syntax = struct
 
     let sexp = function
       | Internal { in_module; name; _ } ->
-          [] |> field "in-module" (atom' in_module) |> field' "name" atom' name |> record
+          []
+          |> field "in-module" (atom' in_module)
+          |> field' "name" atom' (section_of_name name)
+          |> record
       | External { name; url } ->
           [] |> field "name" (atom' name) |> field' "url" atom' url |> record
       | Unknown x -> atom x

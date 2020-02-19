@@ -11,11 +11,18 @@ type unresolved = Reference of string [@@unboxed]
 (** Print an {!unresolved} reference. *)
 let pp_unresolved out (Reference name) = Format.pp_print_string out name
 
+(** The kind of term this value points to. *)
+type name_of =
+  | Module
+  | Value of string
+  | Type of string
+  | Member of string * string
+
 (** A name which has been resolved to a known location. *)
 type resolved =
   | Internal of
       { in_module : string;  (** The module which this reference belongs to. *)
-        name : string option;  (** The name within this module. *)
+        name : name_of;  (** The name within this module. *)
         definition : Span.t  (** The location of this definition. *)
       }  (** A reference to somewhere within this compilation unit. *)
   | External of
@@ -26,6 +33,14 @@ type resolved =
 
 (** Print an {!resolved} reference. *)
 let pp_resolved out = function
-  | Internal { in_module; name = None; _ } -> Format.pp_print_string out in_module
-  | Internal { in_module; name = Some n; _ } -> Format.fprintf out "%s.%s" in_module n
+  | Internal { in_module; name = Module; _ } -> Format.pp_print_string out in_module
+  | Internal { in_module; name = Value n | Type n; _ } -> Format.fprintf out "%s.%s" in_module n
+  | Internal { in_module; name = Member (ty, n); _ } -> Format.fprintf out "%s.%s.%s" in_module ty n
   | External { name; _ } | Unknown name -> Format.pp_print_string out name
+
+(** Get the name of a section for a specific reference. *)
+let section_of_name = function
+  | Module -> None
+  | Value n -> Printf.sprintf "v:%s" n |> Option.some
+  | Type n -> Printf.sprintf "ty:%s" n |> Option.some
+  | Member (ty, n) -> Printf.sprintf "ty:%s:%s" ty n |> Option.some
