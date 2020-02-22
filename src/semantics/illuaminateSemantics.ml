@@ -4,6 +4,7 @@ module Global = Global
 module Pure = Pure
 module Reference = Reference
 module Resolve = Resolve
+module Module_resolve = Module_resolve
 
 module Doc = struct
   module AbstractSyntax = Doc_abstract_syntax

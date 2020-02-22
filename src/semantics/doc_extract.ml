@@ -743,14 +743,13 @@ let key = Data.key ~name:__MODULE__ get
 let get_module ({ contents; _ } : t) = contents
 
 let get_modules data =
-  List.fold_left
-    (fun modules file ->
-      match Data.get_for file key data |> get_module with
-      | None -> modules
-      | Some result ->
-          let name = result.descriptor.mod_name in
-          StringMap.update name (fun x -> Some (result :: Option.value ~default:[] x)) modules)
-    StringMap.empty (Data.files data)
-  |> StringMap.to_seq
-  |> Seq.map (fun (_, x) -> crunch_modules x)
-  |> List.of_seq
+  Data.files data
+  |> List.fold_left
+       (fun modules file ->
+         match Data.get_for file key data |> get_module with
+         | None -> modules
+         | Some result ->
+             let name = result.descriptor.mod_name in
+             StringMap.update name (fun x -> Some (result :: Option.value ~default:[] x)) modules)
+       StringMap.empty
+  |> StringMap.map crunch_modules

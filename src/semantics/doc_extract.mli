@@ -3,6 +3,8 @@
 open IlluaminateCore
 open Doc_syntax
 
+module StringMap := Map.Make(String)
+
 module Tag : sig
   (** All errors which may be reported as part of documentation extraction.
 
@@ -48,4 +50,4 @@ val detached_comments : t -> Doc_comment.comment list
 val get_module : t -> module_info documented option
 
 (** Get all available modules. *)
-val get_modules : Data.t -> module_info documented list
+val get_modules : Data.t -> module_info documented Map.Make(String).t
