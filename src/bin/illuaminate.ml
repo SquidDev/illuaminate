@@ -1,6 +1,7 @@
 open IlluaminateCore
 open IlluaminateLint
 open IlluaminateSemantics
+module StringMap = Map.Make (String)
 
 let uses_ansi channel =
   let dumb =
@@ -82,7 +83,9 @@ let doc_gen path =
   |> Option.iter @@ fun (config, _, files) ->
      let data = Data.of_files files in
      let modules =
-       Doc.Extract.get_modules data
+       Doc.Extract.get_modules data |> StringMap.to_seq
+       |> Seq.map (fun (_, x) -> x)
+       |> List.of_seq
        |> List.sort (fun a b ->
               Doc.Syntax.(String.compare a.descriptor.mod_name b.descriptor.mod_name))
      in

@@ -2,7 +2,6 @@
 
 open IlluaminateCore
 open Doc_syntax
-
 module StringMap := Map.Make(String)
 
 module Tag : sig
