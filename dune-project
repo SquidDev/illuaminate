@@ -33,6 +33,7 @@
     cmdliner
     containers
     fpath
+    logs
     menhir
     omd
     re

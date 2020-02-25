@@ -2,6 +2,10 @@ open IlluaminateCore
 open IlluaminateSemantics
 module StringMap = Map.Make (String)
 
+let src = Logs.Src.create ~doc:"Loads files from directories." __MODULE__
+
+module Log = (val Logs.src_log src)
+
 type file =
   { root : Fpath.t;
     path : Fpath.t;
@@ -39,8 +43,9 @@ let rec get_config ~loader dir =
       let config_path_s = Fpath.to_string config_path in
       let parent = Fpath.parent dir in
       let c =
-        if Sys.file_exists config_path_s && not (Sys.is_directory config_path_s) then
-          Config.of_file loader.errors (mk_name ~loader config_path)
+        if Sys.file_exists config_path_s && not (Sys.is_directory config_path_s) then (
+          Log.info (fun f -> f "Loading config from %S" config_path_s);
+          Config.of_file loader.errors (mk_name ~loader config_path) )
         else if Fpath.is_root dir || dir = parent then Some Config.default
         else get_config ~loader parent
       in
@@ -64,11 +69,13 @@ let parse ~loader:{ errors; _ } ({ Span.path; _ } as file) =
 let do_load_from ~loader ~files ~file_store ~config root =
   let rec add is_root path =
     let path_s = Fpath.to_string path in
-    if Sys.is_directory path_s then
-      Sys.readdir path_s |> Array.iter (fun child -> add false Fpath.(path / child))
+    if Sys.is_directory path_s then (
+      Log.debug (fun f -> f "Loading sources from %S" path_s);
+      Sys.readdir path_s |> Array.iter (fun child -> add false Fpath.(path / child)) )
     else if is_root || Fpath.has_ext ".lua" path then
       let file = mk_name ~loader path in
       if Config.is_source config path && not (StringMap.mem path_s !files) then
+        Log.debug (fun f -> f "Using source file %S" path_s);
         (* TODO: Warn on duplicate files. *)
         let parse = parse ~loader file in
         let file_id =

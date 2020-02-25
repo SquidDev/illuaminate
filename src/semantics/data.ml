@@ -2,6 +2,10 @@ open IlluaminateCore
 open IlluaminateConfig
 module IntMap = Map.Make (Int)
 
+let src = Logs.Src.create ~doc:"Computes and caches programs for Lua files." __MODULE__
+
+module Log = (val Logs.src_log src)
+
 type context =
   { root : Fpath.t;
     config : Schema.store
@@ -86,11 +90,18 @@ let get program { name; factory; key } ({ store; _ } as t) =
   in
   match Cache.find_opt programs program with
   | Some (Loaded x) -> x
-  | Some Loading -> failwith (Printf.sprintf "Loop loading %S." name)
+  | Some Loading ->
+      Log.err (fun f -> f "Loop loading %S" name);
+      failwith (Printf.sprintf "Loop loading %S." name)
   | None ->
+      Log.debug (fun f -> f "Loading %S for %S" name (Node.span program.eof).filename.path);
       Cache.add programs program Loading;
+      let time = Sys.time () in
       let built = factory t program in
+      let delta = Sys.time () -. time in
       Cache.replace programs program (Loaded built);
+      Log.info (fun f ->
+          f "Loaded %S for %S in %.4fs" name (Node.span program.eof).filename.path delta);
       built
 
 let files f = f.file_list

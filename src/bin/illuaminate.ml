@@ -14,6 +14,31 @@ let uses_ansi channel =
   let isatty = try Unix.isatty channel with Unix.Unix_error _ -> false in
   (not dumb) && isatty
 
+let reporter () =
+  let open Error.Style in
+  let app_name =
+    match Array.length Sys.argv with
+    | 0 -> Filename.basename Sys.executable_name
+    | _ -> Filename.basename Sys.argv.(0)
+  in
+  let pp_with out style h =
+    Format.fprintf out "%s: [" app_name;
+    printf style out "%s" h;
+    Format.fprintf out "] "
+  in
+  let pp_header out (level, header) =
+    let style, default =
+      match level with
+      | Logs.App -> (DullColor Cyan, "APP")
+      | Logs.Error -> (DullColor Red, "ERROR")
+      | Logs.Warning -> (DullColor Yellow, "WARN")
+      | Logs.Info -> (DullColor Blue, "INFO")
+      | Logs.Debug -> (DullColor Green, "DEBUG")
+    in
+    pp_with out style (Option.value ~default header)
+  in
+  Logs.format_reporter ~pp_header ()
+
 let lint paths github =
   let errs = Error.make () in
   let loader = Loader.create errs in
@@ -147,58 +172,107 @@ let init_config config force =
   Format.pp_print_flush formatter ();
   close_out out
 
-let run () =
-  let open Cmdliner in
-  let open Cmdliner.Arg in
+module Args = struct
+  include Cmdliner
+  include Cmdliner.Arg
+
+  let ( let+ ) x f = Term.(const f $ x)
+
+  let ( and+ ) a b = Term.(const (fun x y -> (x, y)) $ a $ b)
+
+  let common =
+    value & flag_all
+    & info ~docs:Cmdliner.Manpage.s_common_options ~doc:"With verbose messages" [ "verbose"; "v" ]
+
+  let common_docs : Cmdliner.Manpage.block list =
+    [ `S Cmdliner.Manpage.s_common_options;
+      `P
+        "These options are common to all commands. Note that they must be passed after the \
+         sub-command, not before."
+    ]
+
+  let setup_common verbose =
+    let l =
+      match verbose with
+      | [] -> None
+      | [ _ ] -> Some Logs.Info
+      | _ :: _ :: _ -> Some Logs.Debug
+    in
+    Logs.(set_level ~all:true l);
+    reporter () |> Logs.set_reporter
+
   let files_arg =
     value & pos_all file [] & info ~docv:"FILE" ~doc:"Files and directories to check." []
-  in
+
   let file_arg =
     value
     & pos 0 (some ~none:"current directory" file) None
     & info ~docv:"FILE" ~doc:"File/directory to generate docs for." []
-  in
+end
+
+let run () =
+  let open Args in
   let lint_cmd =
     let doc = "Checks all files, and reports errors." in
-    let github =
-      value & flag
-      & info
-          ~doc:
-            "Annotate your code with any warnings using GitHub's Checks API. This is designed to \
-             be run under GitHub actions, and so will search for appropriate information from the \
-             $(b,GITHUB_TOKEN), $(b,GITHUB_SHA) and $(b,GITHUB_REPOSITORY) environment variables."
-          [ "github" ]
+    let term =
+      let+ common = common
+      and+ github =
+        value & flag
+        & info
+            ~doc:
+              "Annotate your code with any warnings using GitHub's Checks API. This is designed to \
+               be run under GitHub actions, and so will search for appropriate information from \
+               the $(b,GITHUB_TOKEN), $(b,GITHUB_SHA) and $(b,GITHUB_REPOSITORY) environment \
+               variables."
+            [ "github" ]
+      and+ files = files_arg in
+      setup_common common; lint files github
     in
-
-    (Term.(const lint $ files_arg $ github), Term.info "lint" ~doc)
+    (term, Term.info "lint" ~doc ~man:[ `Blocks common_docs ])
   in
   let fix_cmd =
     let doc = "Checks all files and fixes problems in them." in
-    (Term.(const fix $ files_arg), Term.info "fix" ~doc)
+    let term =
+      let+ common = common and+ files = files_arg in
+      setup_common common; fix files
+    in
+    (term, Term.info "fix" ~doc ~man:[ `Blocks common_docs ])
   in
   let doc_gen_cmd =
     let doc = "Generates HTML documentation" in
-    (Term.(const doc_gen $ file_arg), Term.info "doc-gen" ~doc)
+    let term =
+      let+ common = common and+ file = file_arg in
+      setup_common common; doc_gen file
+    in
+    (term, Term.info "doc-gen" ~doc ~man:[ `Blocks common_docs ])
   in
 
   let init_config_cmd =
     let doc = "Generates a new config file." in
-    let config_arg =
-      required & pos 0 (some string) None & info ~doc:"The config to generate." ~docv:"CONFIG" []
+    let term =
+      let+ common = common
+      and+ config =
+        required & pos 0 (some string) None & info ~doc:"The config to generate." ~docv:"CONFIG" []
+      and+ force =
+        value & flag
+        & info ~doc:"Always write the config file, even if it already exists." [ "f"; "force" ]
+      in
+      setup_common common; init_config config force
     in
-    let force =
-      value & flag
-      & info ~doc:"Always write the config file, even if it already exists." [ "f"; "force" ]
-    in
-    (Term.(const init_config $ config_arg $ force), Term.info "init-config" ~doc)
+    (term, Term.info "init-config" ~doc ~man:[ `Blocks common_docs ])
   in
 
   let default_cmd =
     let doc = "Provides basic source code analysis of Lua projects." in
-    ( Term.(ret (const (`Help (`Pager, None)))),
-      Term.info "illuaminate" ~doc ~exits:Term.default_exits )
+    let term =
+      let+ common = common in
+      setup_common common;
+      `Help (`Pager, None)
+    in
+    (Term.(ret term), Term.info "illuaminate" ~doc ~exits:Term.default_exits)
   in
 
   if uses_ansi Unix.stdout then Error.Style.setup_ansi Format.std_formatter;
   if uses_ansi Unix.stderr then Error.Style.setup_ansi Format.err_formatter;
+
   Term.exit @@ Term.eval_choice default_cmd [ lint_cmd; fix_cmd; doc_gen_cmd; init_config_cmd ]
