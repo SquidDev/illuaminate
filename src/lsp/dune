@@ -1,0 +1,17 @@
+(executable
+ (name illuaminate_lsp)
+ (libraries containers containers.data cmdliner fpath illuaminate.core
+   illuaminate.parser illuaminate.semantics illuaminate.lint
+   illuaminate.config lsp omd result yojson))
+
+(rule
+ (target illuaminate_lsp.min.exe)
+ (deps illuaminate_lsp.exe)
+ (action
+  (run upx -o %{target} %{deps})))
+
+(install
+ (section bin)
+ (package illuaminate)
+ (files
+  (illuaminate_lsp.min.exe as illuaminate-lsp)))
