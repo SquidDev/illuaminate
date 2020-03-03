@@ -2,7 +2,6 @@
     fixing any and all problems they detect. *)
 
 open IlluaminateCore
-open IlluaminateSemantics
 
 (** A note at a specific node. *)
 type 'a note_at
@@ -19,7 +18,7 @@ val report_note : Error.t -> any_note -> unit
 (** Gather all errors from a specific linter. *)
 val lint :
   store:IlluaminateConfig.Schema.store ->
-  data:Data.t ->
+  data:IlluaminateData.t ->
   ?tags:Error.Tag.filter ->
   Linter.t ->
   Syntax.program ->
@@ -36,8 +35,8 @@ val fix : Syntax.program -> any_note list -> Syntax.program
     Returns the updated program, and all notes (irregardless of whether fixed or not). *)
 val lint_and_fix_all :
   store:IlluaminateConfig.Schema.store ->
-  files:Data.Files.t ->
-  ?id:Data.Files.id ->
+  data:IlluaminateData.t ->
+  ?id:IlluaminateData.Programs.Files.id ->
   ?tags:Error.Tag.filter ->
   Linter.t list ->
   Syntax.program ->

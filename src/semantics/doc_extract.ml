@@ -7,6 +7,7 @@ module R = Resolve
 module C = Doc_comment
 module P = Doc_parser.Data
 module VarTbl = R.VarTbl
+module D = IlluaminateData
 
 module CommentCollection = Hashtbl.Make (struct
   type t = C.comment
@@ -417,8 +418,8 @@ module Infer = struct
 
   let extract_module data program =
     let errs = Error.make () in
-    let comments = Data.get program P.key data in
-    let resolve = Data.get program R.key data in
+    let comments = D.need data P.key program in
+    let resolve = D.need data R.key program in
     let env = ref (simple_documented (Doc_syntax.Table []) (Spanned.program program)) in
     let state =
       { errs;
@@ -463,7 +464,7 @@ module Infer = struct
     in
     (state, result)
 
-  let key = Data.key ~name:(__MODULE__ ^ ".Infer") extract_module
+  let key = D.Programs.key ~name:(__MODULE__ ^ ".Infer") extract_module
 end
 
 module Resolve = struct
@@ -659,7 +660,7 @@ module Config = struct
     in
     Category.add term workspace
 
-  let get { Data.root; config } =
+  let get { D.Programs.Context.root; config } =
     let { module_path } = Schema.get key config in
     List.map (fun (p, ext) -> (Fpath.(root // v p), ext)) module_path
 end
@@ -668,7 +669,6 @@ type t =
   { current_module : result;
     errors : Error.t;
     comments : unit CommentCollection.t;
-    data : Data.t;
     contents : module_info documented option
   }
 
@@ -677,8 +677,10 @@ let errors { errors; _ } = Error.errors errors
 let detached_comments ({ comments; _ } : t) = CommentCollection.to_seq_keys comments |> List.of_seq
 
 let get_unresolved_module data program =
-  let module_path = Data.get program Data.context data |> Config.get in
-  match Data.get program Infer.key data |> snd with
+  let module_path =
+    D.need data D.Programs.Context.key (Spanned.program program).filename |> Config.get
+  in
+  match D.need data Infer.key program |> snd with
   | Named m -> Some m
   | Unnamed { file; body; mod_types; mod_kind } ->
       let path = Fpath.v file.path in
@@ -702,7 +704,7 @@ let get_unresolved_module data program =
            descriptor = { mod_name; mod_contents = body.descriptor; mod_types; mod_kind }
          }
 
-let unresolved_module = Data.key ~name:(__MODULE__ ^ ".unresolved") get_unresolved_module
+let unresolved_module = D.Programs.key ~name:(__MODULE__ ^ ".unresolved") get_unresolved_module
 
 let crunch_modules : module_info documented list -> module_info documented = function
   | [] -> failwith "Impossible"
@@ -710,22 +712,25 @@ let crunch_modules : module_info documented list -> module_info documented = fun
       let errs = Error.make () in
       List.fold_left Merge.(documented (modules ~errs)) x xs
 
+let need_for data key file = D.need data D.Programs.Files.file file |> D.need data key
+
 let get data program =
-  let state, current_module = Data.get program Infer.key data in
+  let state, current_module = D.need data Infer.key program in
   let contents =
-    Data.get program unresolved_module data
+    D.need data unresolved_module program
     |> Option.map @@ fun current ->
        let all =
          List.fold_left
            (fun modules file ->
-             match Data.get_for file unresolved_module data with
+             match need_for data unresolved_module file with
              | None -> modules
              | Some result ->
                  let name = result.descriptor.mod_name in
                  StringMap.update name
                    (fun x -> Some (result :: Option.value ~default:[] x))
                    modules)
-           StringMap.empty (Data.files data)
+           StringMap.empty
+           (D.need data D.Programs.Files.files ())
        in
        let current_scope =
          (* Bring all other modules with the same name into scope if required. *)
@@ -736,17 +741,18 @@ let get data program =
        let all = StringMap.map (fun x -> lazy (crunch_modules x)) all in
        Resolve.go_module all current_scope current
   in
-  { current_module; data; contents; errors = state.errs; comments = state.unused_comments }
+  { current_module; contents; errors = state.errs; comments = state.unused_comments }
 
-let key = Data.key ~name:__MODULE__ get
+let key = D.Programs.key ~name:__MODULE__ get
 
 let get_module ({ contents; _ } : t) = contents
 
-let get_modules data =
-  Data.files data
+let get_modules =
+  D.Key.key ~name:(__MODULE__ ^ "get_modules") @@ fun data () ->
+  D.need data D.Programs.Files.files ()
   |> List.fold_left
        (fun modules file ->
-         match Data.get_for file key data |> get_module with
+         match need_for data key file |> get_module with
          | None -> modules
          | Some result ->
              let name = result.descriptor.mod_name in

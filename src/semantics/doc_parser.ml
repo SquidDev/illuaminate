@@ -504,7 +504,7 @@ module Data = struct
     }
 
   let key =
-    Data.key ~name:__MODULE__ (fun _ program ->
+    IlluaminateData.Programs.key ~name:__MODULE__ (fun _ program ->
         { (* Technically a memory leak here! *)
           all_comments = Error program;
           comments = TermTbl.create 32

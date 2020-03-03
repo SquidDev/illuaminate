@@ -48,7 +48,7 @@ and func = private
 type t
 
 (** A data key, used to look up control flow information. *)
-val key : t Data.key
+val key : t IlluaminateData.Programs.key
 
 (** Get the top-level function. *)
 val get_program : t -> func

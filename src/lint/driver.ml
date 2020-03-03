@@ -1,5 +1,4 @@
 open IlluaminateCore
-open IlluaminateSemantics
 open Linter
 module C = IlluaminateConfig
 
@@ -379,19 +378,15 @@ let fix prog fixes =
     end)
       #program prog
 
-let lint_and_fix_all ~store ~files ?id ?tags linters program =
-  let program, notes, _ =
-    List.fold_left
-      (fun (program, msgs, files) linter ->
-        let msgs' = lint ~store ~data:(Data.of_files files) ?tags linter program in
-        let program = fix program msgs' in
-        let files =
-          match id with
-          | None -> files
-          | Some id -> Data.Files.update id program files
-        in
-        (program, msgs' @ msgs, files))
-      (program, [], files) linters
-  in
-
-  (program, notes)
+let lint_and_fix_all ~store ~data ?id ?tags linters program =
+  List.fold_left
+    (fun (program, msgs) linter ->
+      let msgs' = lint ~store ~data ?tags linter program in
+      let program = fix program msgs' in
+      Option.iter
+        (fun id ->
+          IlluaminateData.Programs.Files.update id program;
+          IlluaminateData.refresh data)
+        id;
+      (program, msgs' @ msgs))
+    (program, []) linters

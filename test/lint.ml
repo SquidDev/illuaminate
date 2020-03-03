@@ -4,6 +4,7 @@ open IlluaminateLint
 open IlluaminateConfig
 open IlluaminateSemantics
 open Lens
+module D = IlluaminateData
 
 let only =
   let field =
@@ -54,8 +55,14 @@ let process ~name contents out =
             | Some t -> t)
           only
       in
-      let context = { Data.root = Sys.getcwd () |> Fpath.v; config = store } in
-      let files = Data.Files.create (Fun.const context) in
+      let context = { D.Programs.Context.root = Sys.getcwd () |> Fpath.v; config = store } in
+      let data =
+        let open D.Builder in
+        empty
+        |> D.Programs.Files.(create () |> builder)
+        |> oracle D.Programs.Context.key (Fun.const context)
+        |> build
+      in
       let linters =
         Linters.all
         |> List.filter (fun (Linter.Linter l) ->
@@ -63,7 +70,7 @@ let process ~name contents out =
                | [] -> true
                | _ -> List.exists (fun x -> List.mem x l.tags) only)
       in
-      let program, notes = Driver.lint_and_fix_all ~store ~files linters parsed in
+      let program, notes = Driver.lint_and_fix_all ~store ~data linters parsed in
       let errs = Error.make () in
       List.iter (Driver.report_note errs) notes;
       Error.display_of_string ~out (fun _ -> Some contents) errs;

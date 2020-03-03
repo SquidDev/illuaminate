@@ -1,7 +1,8 @@
 open IlluaminateCore
 open IlluaminateSemantics
 open IlluaminateConfig
-module D = Doc.Extract
+module Doc = Doc.Extract
+module D = IlluaminateData
 open CCFun
 
 let process ~name contents out =
@@ -12,17 +13,22 @@ let process ~name contents out =
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok parsed ->
       let context =
-        { Data.root = Sys.getcwd () |> Fpath.v;
-          config = Schema.(singleton D.Config.key |> default)
+        { D.Programs.Context.root = Sys.getcwd () |> Fpath.v;
+          config = Schema.(singleton Doc.Config.key |> default)
         }
       in
+      let files = D.Programs.Files.create () in
+      D.Programs.Files.add parsed files |> ignore;
       let data =
-        Data.Files.create (Fun.const context) |> Data.Files.add parsed |> fst |> Data.of_files
+        let open D.Builder in
+        empty |> D.Programs.Files.builder files
+        |> oracle D.Programs.Context.key (Fun.const context)
+        |> build
       in
-      let data = Data.get parsed D.key data in
-      D.errors data
+      let data = D.get data Doc.key parsed in
+      Doc.errors data
       |> List.iter (fun (e : Error.Error.t) -> Error.report errs e.tag e.span e.message);
-      D.get_module data
+      Doc.get_module data
       |> Option.iter (fun m ->
              Doc_sexp.Syntax.(documented (Doc_sexp.one' % module_info) m) |> CCSexp.pp out) );
 

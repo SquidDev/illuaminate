@@ -20,9 +20,10 @@ type t =
   }
 
 let key =
-  Data.key ~name:__MODULE__ @@ fun data prog ->
-  { resolved = Data.get prog Resolve.key data;
-    docs = Doc_extract.get_modules data;
+  let open IlluaminateData in
+  Programs.key ~name:__MODULE__ @@ fun data prog ->
+  { resolved = need data Resolve.key prog;
+    docs = need data Doc_extract.get_modules ();
     cache = VarCache.create 16
   }
 

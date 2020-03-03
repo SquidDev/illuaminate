@@ -1,6 +1,5 @@
 open IlluaminateCore
 open IlluaminateLint
-open IlluaminateSemantics
 module StringMap = Map.Make (String)
 
 let uses_ansi channel =
@@ -42,8 +41,8 @@ let reporter () =
 let lint paths github =
   let errs = Error.make () in
   let loader = Loader.create errs in
-  let modules, file_store = List.map Fpath.v paths |> Loader.load_from_many ~loader in
-  let data = Data.of_files file_store in
+  let modules, builder = List.map Fpath.v paths |> Loader.load_from_many ~loader in
+  let data = IlluaminateData.Builder.(empty |> builder |> build) in
   modules
   |> List.iter (function
        | { Loader.parsed = None; _ } -> ()
@@ -62,7 +61,8 @@ let lint paths github =
 let fix paths =
   let errs = Error.make () in
   let loader = Loader.create errs in
-  let modules, files = List.map Fpath.v paths |> Loader.load_from_many ~loader in
+  let modules, builder = List.map Fpath.v paths |> Loader.load_from_many ~loader in
+  let data = IlluaminateData.Builder.(empty |> builder |> build) in
   let modules' =
     modules
     |> List.map (function
@@ -71,7 +71,7 @@ let fix paths =
              (* TODO: Have a separate linter list for fixers - so we can have things which are
                 linted but not fixed? *)
              let tags, store = Config.get_linters config path in
-             let program, _ = Driver.lint_and_fix_all ~store ~files ~tags Linters.all parsed in
+             let program, _ = Driver.lint_and_fix_all ~store ~data ~tags Linters.all parsed in
              { f with parsed = Some program })
   in
   let rewrite old_module new_module =
@@ -105,10 +105,11 @@ let doc_gen path =
   let loader = Loader.create errs in
   ( CCOpt.get_lazy (fun () -> Sys.getcwd ()) path
   |> Fpath.v |> Loader.load_from ~loader
-  |> Option.iter @@ fun (config, _, files) ->
-     let data = Data.of_files files in
+  |> Option.iter @@ fun (config, _, builder) ->
+     let data = IlluaminateData.Builder.(empty |> builder |> build) in
      let modules =
-       Doc.Extract.get_modules data |> StringMap.to_seq
+       IlluaminateData.get data Doc.Extract.get_modules ()
+       |> StringMap.to_seq
        |> Seq.map (fun (_, x) -> x)
        |> List.of_seq
        |> List.sort (fun a b ->

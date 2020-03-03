@@ -12,7 +12,7 @@ let linter =
   let msg = [ note ~tag "Using implicit vararg variable \"arg\"." ] in
   let name () (context : context) = function
     | NVar (Var name as var) when Node.contents.get name = "arg" -> (
-        let resolve = Data.get context.program R.key context.data in
+        let resolve = IlluaminateData.get context.data R.key context.program in
         let var =
           match context.path with
           | Bind :: _ -> R.get_definition var resolve

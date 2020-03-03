@@ -216,7 +216,7 @@ let analyse _ prog =
     #program prog;
   t
 
-let key = Data.key ~name:__MODULE__ analyse
+let key = IlluaminateData.Programs.key ~name:__MODULE__ analyse
 
 let get_program t = Lazy.force t.entry_func
 

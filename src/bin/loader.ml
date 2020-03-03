@@ -1,5 +1,5 @@
 open IlluaminateCore
-open IlluaminateSemantics
+module Files = IlluaminateData.Programs.Files
 module StringMap = Map.Make (String)
 
 let src = Logs.Src.create ~doc:"Loads files from directories." __MODULE__
@@ -10,7 +10,7 @@ type file =
   { root : Fpath.t;
     path : Fpath.t;
     file : Span.filename;
-    file_id : Data.Files.id option;
+    file_id : Files.id option;
     config : Config.t;
     parsed : Syntax.program option
   }
@@ -74,26 +74,22 @@ let do_load_from ~loader ~files ~file_store ~config root =
       Sys.readdir path_s |> Array.iter (fun child -> add false Fpath.(path / child)) )
     else if is_root || Fpath.has_ext ".lua" path then
       let file = mk_name ~loader path in
-      if Config.is_source config path && not (StringMap.mem path_s !files) then
+      if Config.is_source config path && not (StringMap.mem path_s !files) then (
         Log.debug (fun f -> f "Using source file %S" path_s);
         (* TODO: Warn on duplicate files. *)
         let parse = parse ~loader file in
-        let file_id =
-          parse
-          |> Option.map (fun x ->
-                 let files, id = Data.Files.add x !file_store in
-                 file_store := files;
-                 id)
-        in
-        files := StringMap.add path_s { root; path; file; config; parsed = parse; file_id } !files
+        let file_id = parse |> Option.map (fun x -> Files.add x file_store) in
+        files := StringMap.add path_s { root; path; file; config; parsed = parse; file_id } !files )
   in
 
   add true root
 
-let data_for files =
-  Data.Files.create @@ fun file ->
-  let { root; config; _ } = StringMap.find file.Span.path !files in
-  { Data.root; config = Config.get_store config }
+let builder files file_store builder =
+  builder
+  |> IlluaminateData.Builder.oracle IlluaminateData.Programs.Context.key (fun file ->
+         let { root; config; _ } = StringMap.find file.Span.path files in
+         { root; config = Config.get_store config })
+  |> Files.builder file_store
 
 let keys m = StringMap.to_seq m |> Seq.map snd |> List.of_seq
 
@@ -101,15 +97,15 @@ let load_from ~loader path =
   get_config_for ~loader path
   |> Option.map @@ fun config ->
      let files = ref StringMap.empty in
-     let file_store = ref (data_for files) in
+     let file_store = Files.create () in
      do_load_from ~loader ~files ~file_store ~config path;
-     (config, keys !files, !file_store)
+     (config, keys !files, builder !files file_store)
 
 let load_from_many ~loader paths =
   let files = ref StringMap.empty in
-  let file_store = ref (data_for files) in
+  let file_store = Files.create () in
   paths
   |> List.iter (fun path ->
          get_config_for ~loader path
          |> Option.iter (fun config -> do_load_from ~loader ~files ~file_store ~config path));
-  (keys !files, !file_store)
+  (keys !files, builder !files file_store)

@@ -1,9 +1,9 @@
 (test
  (name test)
  (libraries omnomnom omnomnom.golden omnomnom.junit containers
-   containers.sexp illuaminate.core illuaminate.config illuaminate.parser
-   illuaminate.lint omd patience_diff fpath illuaminate.semantics
-   illuaminate.pattern)
+   containers.sexp illuaminate.core illuaminate.config illuaminate.data
+   illuaminate.parser illuaminate.lint omd patience_diff fpath
+   illuaminate.semantics illuaminate.pattern logs cmdliner)
  (deps
   (source_tree data))
  (preprocess

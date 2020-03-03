@@ -27,7 +27,7 @@ module Data : sig
   type t
 
   (** The key to query the data cache with. *)
-  val key : t Data.key
+  val key : t IlluaminateData.Programs.key
 
   (** Get the comments before and after a specific node. *)
   val comment : 'a Node.t -> t -> comment list * comment list

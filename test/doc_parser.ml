@@ -1,8 +1,9 @@
 open IlluaminateCore
 open IlluaminateSemantics
 open IlluaminateConfig
-module D = Doc.Parser.Data
 open Doc.Comment
+module Doc = Doc.Parser.Data
+module D = IlluaminateData
 
 let process ~name contents out =
   let lexbuf = Lexing.from_string contents in
@@ -13,12 +14,18 @@ let process ~name contents out =
       IlluaminateParser.Error.report errs err.span err.value;
       Error.display_of_string ~out (fun _ -> Some contents) errs
   | Ok parsed -> (
-      let context = { Data.root = Sys.getcwd () |> Fpath.v; config = Schema.(default empty) } in
-      let data =
-        Data.Files.create (Fun.const context) |> Data.Files.add parsed |> fst |> Data.of_files
+      let context =
+        { D.Programs.Context.root = Sys.getcwd () |> Fpath.v; config = Schema.(default empty) }
       in
-      let comments = Data.get parsed D.key data in
-      D.comments comments
+      let data =
+        let open D.Builder in
+        empty
+        |> D.Programs.Files.(create () |> builder)
+        |> oracle D.Programs.Context.key (Fun.const context)
+        |> build
+      in
+      let comments = D.get data Doc.key parsed in
+      Doc.comments comments
       |> List.sort (fun a b -> Span.compare a.source b.source)
       |> List.iter @@ fun comment ->
          Doc_sexp.Comment.to_sexp comment |> CCSexp.pp out;

@@ -75,7 +75,7 @@ let linter =
 
   let check ~(context : context) = function
     | Call { fn; args } as c -> (
-        let resolve = Data.get context.program R.key context.data in
+        let resolve = IlluaminateData.get context.data R.key context.program in
         match G.of_expr resolve fn with
         | Some g when g = string_format -> (
           match Helpers.get_call_args args with

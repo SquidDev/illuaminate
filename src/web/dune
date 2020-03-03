@@ -1,7 +1,8 @@
 (executable
  (name main)
  (libraries js_of_ocaml containers fpath illuaminate.core illuaminate.parser
-   illuaminate.semantics illuaminate.lint illuaminate.config illuaminate.html)
+   illuaminate.semantics illuaminate.lint illuaminate.config illuaminate.html
+   illuaminate.data)
  (modes js)
  (variants js)
  (js_of_ocaml

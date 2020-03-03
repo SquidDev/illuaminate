@@ -49,10 +49,14 @@ let render (doc : Dom_html.document Js.t) html : Dom.node Js.t =
   render_to out html;
   (out :> Dom.node Js.t)
 
-let files () =
-  let open IlluaminateSemantics in
-  let context = { Data.root = Fpath.v "/"; config = store } in
-  Data.Files.create (Fun.const context)
+let data () =
+  let open IlluaminateData in
+  let open Builder in
+  let context = { Programs.Context.root = Fpath.v "/"; config = store } in
+  empty
+  |> Programs.Files.(create () |> builder)
+  |> oracle Programs.Context.key (Fun.const context)
+  |> build
 
 (** Fix all errors within the program. *)
 let rec fix_all () : unit =
@@ -60,7 +64,7 @@ let rec fix_all () : unit =
   match IlluaminateParser.program { name = "input"; path = "input" } lexbuf with
   | Error _ -> ()
   | Ok parsed ->
-      let program, _ = Driver.lint_and_fix_all ~store ~files:(files ()) Linters.all parsed in
+      let program, _ = Driver.lint_and_fix_all ~store ~data:(data ()) Linters.all parsed in
       let new_contents = Format.asprintf "%a" Emit.program program in
       input##.value := Js.string new_contents;
       lint ()
@@ -78,7 +82,7 @@ and lint () : unit =
   ( match IlluaminateParser.program { name = "input"; path = "input" } lexbuf with
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok parsed ->
-      let data = files () |> IlluaminateSemantics.Data.of_files in
+      let data = data () in
       let tags _ = true in
       Linters.all
       |> List.iter (fun l ->

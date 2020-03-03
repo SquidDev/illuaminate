@@ -34,7 +34,7 @@ let linter =
     CCList.flat_map check_block func.blocks
   in
   let check_args (context : context) args =
-    let control = Data.get context.program C.key context.data in
+    let control = IlluaminateData.get context.data C.key context.program in
     let func = C.get_func args control in
     check_func func
   in
@@ -46,7 +46,7 @@ let linter =
     | Fun { fun_args = args; _ } -> check_args context args
     | _ -> []
   and program () (context : context) (_ : program) =
-    let control = Data.get context.program C.key context.data in
+    let control = IlluaminateData.get context.data C.key context.program in
     check_func (C.get_program control)
   in
   make_no_opt ~tags:[ tag_unreach; tag_loop ] ~expr ~stmt ~program ()

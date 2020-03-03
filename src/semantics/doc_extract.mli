@@ -36,7 +36,7 @@ end
 type t
 
 (** The key to query the data cache with. *)
-val key : t Data.key
+val key : t IlluaminateData.Programs.key
 
 (** Get any errors which occurred as part of documentation extraction. These errors are guaranteed
     to have a tag in {!Tags.all} *)
@@ -49,4 +49,4 @@ val detached_comments : t -> Doc_comment.comment list
 val get_module : t -> module_info documented option
 
 (** Get all available modules. *)
-val get_modules : Data.t -> module_info documented Map.Make(String).t
+val get_modules : (unit, module_info documented Map.Make(String).t) IlluaminateData.Key.t

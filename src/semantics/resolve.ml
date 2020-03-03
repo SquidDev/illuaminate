@@ -349,7 +349,7 @@ let resolve _ { S.program; _ } =
   in
   resolve_stmts context program; store
 
-let key = Data.key ~name:__MODULE__ resolve
+let key = IlluaminateData.Programs.key ~name:__MODULE__ resolve
 
 let get_definition var { var_defs; _ } = SVarTbl.find var_defs var
 

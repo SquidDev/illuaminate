@@ -1,0 +1,5 @@
+(library
+ (name illuaminateData)
+ (public_name illuaminate.data)
+ (synopsis "Data storage and computation for Illuaminate.")
+ (libraries containers fpath logs illuaminate.core illuaminate.config))
