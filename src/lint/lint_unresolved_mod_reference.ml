@@ -11,7 +11,7 @@ let linter =
   let tag = Error.Tag.make Error.Warning "var:unknown-module-member" in
   let expr () { data; program; _ } = function
     | Ref (NDot { tbl = Ref tbl; key; _ } as whole) -> (
-        let data = IlluaminateData.get data R.key program in
+        let data = IlluaminateData.need data R.key program in
         (* Find nodes tbl.whole where tbl is resolved by whole isn't *)
         match (R.get_name data tbl, lazy (R.get_name data whole)) with
         | None, _ | Some _, (lazy (Some _)) -> []

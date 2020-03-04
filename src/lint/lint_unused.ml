@@ -43,7 +43,7 @@ let linter =
   let check_args (context : context) fix { args_args; _ } =
     match SepList0.last args_args with
     | Some (DotArg dot) -> (
-        let resolve = IlluaminateData.get context.data R.key context.program in
+        let resolve = IlluaminateData.need context.data R.key context.program in
         (* If the list argument is a dot, and both it and the implicit {!arg} is unused, then warn. *)
         match R.get_dots_definition dot resolve with
         | { R.dot_usages = []; dot_implicit = Some { usages = []; _ }; _ } ->
@@ -57,7 +57,7 @@ let linter =
     else
       match context.path with
       | Bind :: _ | Name (NVar _) :: Bind :: _ | FunctionName (FVar _) :: Bind :: _ -> (
-          let resolve = IlluaminateData.get context.data R.key context.program in
+          let resolve = IlluaminateData.need context.data R.key context.program in
           match R.get_definition var resolve with
           | { R.usages = []; kind; _ } ->
               let tag =

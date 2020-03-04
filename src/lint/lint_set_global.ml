@@ -38,7 +38,7 @@ let linter =
   let stmt opts (context : context) = function
     | AssignFunction { assignf_name = FVar (Var name as var); _ } when unallowed opts context.path
       -> (
-        let resolve = IlluaminateData.get context.data R.key context.program in
+        let resolve = IlluaminateData.need context.data R.key context.program in
         match R.get_definition var resolve with
         | { kind = Global; _ } ->
             [ note ~tag "Setting unknown global function %S." (Node.contents.get name) ]
@@ -47,7 +47,7 @@ let linter =
   and name opts context name =
     match (context.path, name) with
     | Bind :: Stmt (Assign _) :: path, NVar (Var name as var) when unallowed opts path -> (
-        let resolve = IlluaminateData.get context.data R.key context.program in
+        let resolve = IlluaminateData.need context.data R.key context.program in
         match R.get_definition var resolve with
         | { kind = Global; _ } ->
             [ note ~tag "Setting unknown global variable %S." (Node.contents.get name) ]

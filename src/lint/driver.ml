@@ -241,8 +241,11 @@ let worker ~store ~data ~tags (Linter linter : t) program =
   token context program.eof;
   !messages
 
-let lint ~store ~data ?(tags = always) (Linter l as linter : t) program =
+let need_lint ~store ~data ?(tags = always) (Linter l as linter : t) program =
   if List.exists tags l.tags then worker ~store ~data ~tags linter program else []
+
+let lint ~store ~data ?tags l program =
+  IlluaminateData.compute (fun data -> need_lint ~store ~data ?tags l program) data
 
 let fix_some ~original node note =
   if note.NoteAt.source != original then node

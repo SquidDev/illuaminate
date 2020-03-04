@@ -46,7 +46,7 @@ let linter =
 
   make_no_opt ~tags:[ tag ]
     ~program:(fun () context prog ->
-      match IlluaminateData.get context.data E.key prog |> E.get_module with
+      match IlluaminateData.need context.data E.key prog |> E.get_module with
       | None -> []
       | Some m ->
           let notes = ref [] in

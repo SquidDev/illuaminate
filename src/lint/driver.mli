@@ -24,6 +24,15 @@ type any_note = private Note : 'a NoteAt.t -> any_note
 val report_note : Error.t -> any_note -> unit
 
 (** Gather all errors from a specific linter. *)
+val need_lint :
+  store:IlluaminateConfig.Schema.store ->
+  data:IlluaminateData.context ->
+  ?tags:Error.Tag.filter ->
+  Linter.t ->
+  Syntax.program ->
+  any_note list
+
+(** Gather all errors from a specific linter. *)
 val lint :
   store:IlluaminateConfig.Schema.store ->
   data:IlluaminateData.t ->
@@ -31,6 +40,7 @@ val lint :
   Linter.t ->
   Syntax.program ->
   any_note list
+
 
 (** Fix one or more notes.
 

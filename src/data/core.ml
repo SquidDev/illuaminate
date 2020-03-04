@@ -105,6 +105,7 @@ type t =
 
 type context =
   { store : t;
+    tracing : bool;
     mutable active : bool;
     mutable trace : result KeyTbl.container list
   }
@@ -201,7 +202,7 @@ let build_result store (Mk ((module K), key) : BoxedKey.t) previous : result =
         (* The use of magic here is terribly ugly, but it's not clear how else to convert from the
            abstract store to the concrete one without introducing another open union. There's only
            one possible type here, so our use of magic shouldn't ever be incorrect. *)
-        let t = { trace = []; active = true; store } in
+        let t = { tracing = true; trace = []; active = true; store } in
         let res = f (Obj.magic t) key in
         t.active <- false;
         (res, Depends t.trace)
@@ -282,5 +283,11 @@ let need (type k v) ({ store; _ } as context) (key : (k, v) Key.t) (k : k) : v =
   if not context.active then failwith "Calling need after computing the result.";
   let module K = (val key) in
   let container, result = rebuild store (BoxedKey.Mk ((module K), k)) in
-  context.trace <- container :: context.trace;
+  if context.tracing then context.trace <- container :: context.trace;
   Key.value key result.contents
+
+let compute f store =
+  let t = { tracing = false; trace = []; active = true; store } in
+  let res = f t in
+  t.active <- false;
+  res

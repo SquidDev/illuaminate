@@ -38,7 +38,7 @@ let linter =
                 _
               }
         } -> (
-        let resolve = IlluaminateData.get context.data R.key context.program in
+        let resolve = IlluaminateData.need context.data R.key context.program in
         match G.of_expr resolve fn with
         | Some g when g = string_len && safe_args call.args ->
             [ note ~fix ~tag
