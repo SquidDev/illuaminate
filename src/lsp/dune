@@ -1,7 +1,7 @@
 (executable
  (name illuaminate_lsp)
  (libraries containers containers.data cmdliner fpath illuaminate.core
-   illuaminate.parser illuaminate.semantics illuaminate.lint
+   illuaminate.data illuaminate.parser illuaminate.semantics illuaminate.lint
    illuaminate.config lsp omd result yojson))
 
 (rule

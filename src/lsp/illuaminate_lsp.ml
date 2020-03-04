@@ -46,17 +46,19 @@ let run f =
 let on_notification rps store cap : Lsp.Client_notification.t -> (Store.t, string) result =
   let open Lsp in
   function
-  (* | TextDocumentDidOpen { textDocument }->
-   *    (\* let doc = ~uri:textDocument.uri ~text:textDocument.text ()
-   *     *           } in *\)
-   *     Document_store.put store doc; send_diagnostics rpc doc; Ok store
-   * | TextDocumentDidChange { textDocument = { uri; version }; contentChanges } ->
-   *     Document_store.get store uri >>= fun prev_doc ->
-   *     let doc =
-   *       let f doc change = Document.update_text ~version change doc in
-   *       List.fold_left ~f ~init:prev_doc contentChanges
-   *     in
-   *     Document_store.put store doc; send_diagnostics rpc doc; Ok store *)
+  | TextDocumentDidOpen { textDocument = { uri; version; text; languageId } } ->
+      ( if languageId = "lua" then
+        let _ = Store.create_file store (Lsp.Text_document.make ~version uri text) in
+        (* TODO: send_diagnostics rpc doc *)
+        () );
+      Ok store
+  | TextDocumentDidChange { textDocument = { uri; version }; contentChanges } ->
+      Document_store.get store uri >>= fun prev_doc ->
+      let doc =
+        let f doc change = Document.update_text ~version change doc in
+        List.fold_left ~f ~init:prev_doc contentChanges
+      in
+      Document_store.put store doc; send_diagnostics rpc doc; Ok store
   | _ -> Error "NYI"
 
 let main () =

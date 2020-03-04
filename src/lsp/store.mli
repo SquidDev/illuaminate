@@ -1,10 +1,6 @@
 open IlluaminateSemantics
 open IlluaminateCore
 
-module Table : Hashtbl.S with type key = Lsp.Uri.t
-
-module UriSet : CCHashSet.S with type elt = Lsp.Uri.t
-
 type document = private
   { name : Span.filename;
     uri : Lsp.Uri.t;
@@ -12,14 +8,19 @@ type document = private
         (** The file's contents, if it is open in an editor. *)
     mutable program : (Syntax.program, IlluaminateParser.Error.t Span.spanned) result;
         (** The result of parsing the file, or nil if not available. *)
-    mutable file : Data.Files.id option;  (** The current file's ID *)
-    context : Data.context
+    mutable file : IlluaminateData.Programs.Files.id option;  (** The current file's ID *)
+    context : IlluaminateData.Programs.Context.t
   }
 
 type t
+
+val data : t -> IlluaminateData.t
 
 (** Create a new store. *)
 val create : unit -> t
 
 (** Create a new file and load it.*)
 val create_file : t -> Lsp.Text_document.t -> document
+
+(** Reload a file from an updated contents. *)
+val update_file : t -> document -> unit

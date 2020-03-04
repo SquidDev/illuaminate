@@ -203,7 +203,7 @@ let build_result store (Mk ((module K), key) : BoxedKey.t) previous : result =
            one possible type here, so our use of magic shouldn't ever be incorrect. *)
         let t = { trace = []; active = true; store } in
         let res = f (Obj.magic t) key in
-        t.active <-false;
+        t.active <- false;
         (res, Depends t.trace)
     | None ->
         let oracle =

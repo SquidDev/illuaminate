@@ -4,13 +4,21 @@
 open IlluaminateCore
 
 (** A note at a specific node. *)
-type 'a note_at
+module NoteAt : sig
+  type 'a t
 
-(** Report a note to an error sink. *)
-val report_note_at : Error.t -> 'a note_at -> unit
+  (** Get the note of a note_at. *)
+  val note : 'a t -> 'a Linter.note
+
+  (** Get the span of a note_at. *)
+  val span : 'a t -> Span.t
+
+  (** Report a note to an error sink. *)
+  val report : Error.t -> 'a t -> unit
+end
 
 (** A note of any type. *)
-type any_note = private Note : 'a note_at -> any_note
+type any_note = private Note : 'a NoteAt.t -> any_note
 
 (** Report a note to an error sink. *)
 val report_note : Error.t -> any_note -> unit
