@@ -28,7 +28,7 @@ type var =
     kind : kind;
     shadows : var option;
     mutable usages : var_usage list;
-    mutable definitions : definition list;
+    mutable definitions : (Syntax.var option * definition) list;
     mutable captured : bool;
     mutable upvalue_mutated : bool
   }
@@ -104,7 +104,7 @@ let mk_local kind context (S.Var name as syntax) =
   (context, (var, syntax))
 
 let add_def context (var, node) def =
-  var.definitions <- def :: var.definitions;
+  var.definitions <- (Some node, def) :: var.definitions;
   SVarTbl.add context.store.var_defs node var;
   match var.kind with
   | Global -> ()
@@ -120,7 +120,7 @@ let mk_arg context (arg : S.arg) =
       add_def context var Declare; context
   | S.DotArg dot ->
       let context, arg = mk_local' (ImplicitArg context.active_scope) context "arg" in
-      arg.definitions <- Declare :: arg.definitions;
+      arg.definitions <- (None, Declare) :: arg.definitions;
       let var =
         { dot_scope = context.active_scope;
           dot_node = Some dot;
@@ -355,9 +355,20 @@ let get_definition var { var_defs; _ } = SVarTbl.find var_defs var
 
 let get_usage var { var_usages; _ } = SVarTbl.find var_usages var
 
-let get_dots dot { dots_defs; _ } = TokenTbl.find dots_defs dot
+let get_var var { var_defs; var_usages; _ } =
+  match SVarTbl.find_opt var_usages var with
+  | Some v -> v.var
+  | None -> SVarTbl.find var_defs var
+
+let get_dots_definition dot { dots_defs; _ } = TokenTbl.find dots_defs dot
 
 let get_dots_usage dot { dots_usages; _ } = TokenTbl.find dots_usages dot
+
+let get_dots dots { dots_defs; dots_usages; _ } =
+  match TokenTbl.find_opt dots_usages dots with
+  | Some IllegalDots -> None
+  | Some (BoundDots { dots; _ }) -> Some dots
+  | None -> Some (TokenTbl.find dots_defs dots)
 
 module VarTbl = Hashtbl.Make (struct
   type t = var

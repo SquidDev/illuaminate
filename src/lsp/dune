@@ -2,7 +2,7 @@
  (name illuaminate_lsp)
  (libraries containers containers.data cmdliner fpath illuaminate.core
    illuaminate.data illuaminate.parser illuaminate.semantics illuaminate.lint
-   illuaminate.config lsp omd result yojson))
+   illuaminate.config lsp omd result yojson logs))
 
 (rule
  (target illuaminate_lsp.min.exe)

@@ -992,6 +992,8 @@ module Spanned = struct
   let list1 f x = Span.of_span2 (SepList1.first.get x |> f) (SepList1.last.get x |> f)
 
   let function_name = project First.function_name Last.function_name
+
+  let arg = project First.arg Last.arg
 end
 
 module Precedence = struct

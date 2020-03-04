@@ -268,8 +268,8 @@ module Infer = struct
   let add_name state var (def : _ Lazy.t) : unit =
     let rec go def = function
       | NVar var ->
-          let var = R.get_usage var state.resolve in
-          add_resolved_var state var.var (Lazy.force def)
+          let var = R.get_var var state.resolve in
+          add_resolved_var state var (Lazy.force def)
       | NDot { tbl = Ref tbl; key; _ } ->
           Fun.flip go tbl
             ( lazy
@@ -290,16 +290,12 @@ module Infer = struct
     | NDot _ | NLookup _ -> go def var
 
   (** Add a {!function_name} to the current scope. *)
-  let add_fname state var def : unit =
-    let rec go def = function
-      | FVar var -> add_resolved_var state (R.get_usage var state.resolve).var def
-      | FDot { tbl; field; _ } | FSelf { tbl; meth = field; _ } ->
-          simple_documented (Doc_syntax.Table [ (Node.contents.get field, def) ]) def.definition
-          |> Fun.flip go tbl
-    in
+  let rec add_fname state var def =
     match var with
-    | FVar var -> add_resolved_var state (R.get_definition var state.resolve) def
-    | FDot _ | FSelf _ -> go def var
+    | FVar var -> add_resolved_var state (R.get_var var state.resolve) def
+    | FDot { tbl; field; _ } | FSelf { tbl; meth = field; _ } ->
+        simple_documented (Doc_syntax.Table [ (Node.contents.get field, def) ]) def.definition
+        |> add_fname state tbl
 
   (** Infer the documented type of an expression. *)
   let rec infer_expr state expr =
@@ -330,7 +326,7 @@ module Infer = struct
     | _ -> simp Unknown
 
   and infer_var state v : value documented ref option =
-    match (R.get_usage v state.resolve).var with
+    match R.get_var v state.resolve with
     | { kind = Global; name = "_ENV"; _ } -> Some state.globals
     | var -> VarTbl.find_opt state.vars var
 

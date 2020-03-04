@@ -6,9 +6,9 @@ type t = string list
 let parse x = x |> String.split_on_char '.'
 
 let rec of_var_wk store xs var =
-  match (Resolve.get_usage var store).var with
+  match Resolve.get_var var store with
   | { kind = Global; name; _ } -> Some (name :: xs)
-  | { kind = Local _; definitions = [ OfExpr e ]; _ } -> of_expr_wk store xs e
+  | { kind = Local _; definitions = [ (_, OfExpr e) ]; _ } -> of_expr_wk store xs e
   | _ -> None
 
 and of_name_wk store xs = function

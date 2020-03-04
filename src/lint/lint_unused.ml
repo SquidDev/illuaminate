@@ -45,7 +45,7 @@ let linter =
     | Some (DotArg dot) -> (
         let resolve = IlluaminateData.get context.data R.key context.program in
         (* If the list argument is a dot, and both it and the implicit {!arg} is unused, then warn. *)
-        match R.get_dots dot resolve with
+        match R.get_dots_definition dot resolve with
         | { R.dot_usages = []; dot_implicit = Some { usages = []; _ }; _ } ->
             [ note ~tag:tag_arg ~fix ~span:(Node.span dot) "Unused varargs." ]
         | _ -> [] )

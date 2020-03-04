@@ -1,4 +1,3 @@
-open IlluaminateSemantics
 open IlluaminateCore
 
 type document = private
@@ -19,8 +18,11 @@ val data : t -> IlluaminateData.t
 (** Create a new store. *)
 val create : unit -> t
 
-(** Create a new file and load it.*)
-val create_file : t -> Lsp.Text_document.t -> document
+(** Get a document if it is open. *)
+val get_file : t -> Lsp.Protocol.documentUri -> document option
 
-(** Reload a file from an updated contents. *)
-val update_file : t -> document -> unit
+(** Create or open a file. *)
+val open_file : t -> Lsp.Text_document.t -> document
+
+(** Update the contents of a file. *)
+val update_file : t -> document -> Lsp.Text_document.t -> unit

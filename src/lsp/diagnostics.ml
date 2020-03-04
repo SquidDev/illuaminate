@@ -1,21 +1,7 @@
-open IlluaminateCore
 open IlluaminateLint
 open Lsp.Protocol
 open! PublishDiagnostics
-
-let range { Span.start_line; start_col; finish_line; finish_col; _ } : Range.t =
-  { start_ = { line = start_line; character = start_col };
-    end_ = { line = finish_line; character = finish_col }
-  }
-
-let severity : Error.level -> diagnosticSeverity = function
-  | Critical | Error -> Error
-  | Warning -> Warning
-  | Note -> Hint
-
-let tag_severity x = Some (severity x.Error.Tag.level)
-
-let tag_code x = StringCode x.Error.Tag.name
+open Lsp_convert
 
 let diagnostic ~tag ~span ?(relatedInformation = []) ?(tags = []) message =
   { range = range span;
