@@ -16,14 +16,14 @@ let init_info : Lsp.Initialize.Result.t =
         documentHighlightProvider = true;
         documentSymbolProvider = false;
         workspaceSymbolProvider = false;
-        codeActionProvider = Bool false;
+        codeActionProvider = Bool true;
         codeLensProvider = None;
         documentFormattingProvider = false;
         documentRangeFormattingProvider = false;
         documentOnTypeFormattingProvider = None;
         renameProvider = false;
         documentLinkProvider = None;
-        executeCommandProvider = None;
+        executeCommandProvider = Some { commands = ["illuaminate/fix"] };
         typeCoverageProvider = false;
         foldingRangeProvider = Bool false
       };

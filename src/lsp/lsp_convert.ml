@@ -19,3 +19,17 @@ let severity : Error.level -> PublishDiagnostics.diagnosticSeverity = function
 let tag_severity t = Some (severity t.Error.Tag.level)
 
 let tag_code t = PublishDiagnostics.StringCode t.Error.Tag.name
+
+module Pos = struct
+  open Position
+
+  let ( <= ) (l : t) (r : t) =
+    if l.line == r.line then l.character <= r.character else l.line < r.line
+
+  (** Returns true if [pos] occurs within [span] *)
+  let contains pos span = span_start span <= pos && pos <= span_finish span
+
+  (** Returns true if [span] and [range] overlap at all. *)
+  let overlaps { Range.start_; end_ } span =
+    span_start span <= end_ && start_ <= span_finish span;
+end

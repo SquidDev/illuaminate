@@ -1,5 +1,13 @@
 open IlluaminateCore
 
+module Filename : sig
+  val of_uri : Lsp.Uri.t -> Span.filename
+
+  val to_uri : Span.filename -> Lsp.Uri.t
+
+  val to_uri_json : Span.filename -> Yojson.Safe.t
+end
+
 type document = private
   { name : Span.filename;
     uri : Lsp.Uri.t;

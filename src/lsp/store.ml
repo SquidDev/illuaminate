@@ -8,6 +8,7 @@ module Filename = struct
   let of_uri uri =
     let name = Uri.to_string uri in
     { Span.name; path = name }
+    let to_uri_json { Span.path; _ } = `String path
 
   let to_uri { Span.path; _ } = Uri.t_of_yojson (`String path)
 end

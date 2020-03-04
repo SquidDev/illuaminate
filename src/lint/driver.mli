@@ -5,10 +5,19 @@ open IlluaminateCore
 
 (** A note at a specific node. *)
 module NoteAt : sig
-  type 'a t
+  type 'a witness =
+    | AtExpr : Syntax.expr witness
+    | AtStmt : Syntax.stmt witness
+    | AtProgram : Syntax.program witness
+    | AtToken : Syntax.token witness
+    | AtName : Syntax.name witness
+    | AtVar : Syntax.var witness
 
-  (** Get the note of a note_at. *)
-  val note : 'a t -> 'a Linter.note
+  type 'a t = private
+    { note : 'a Linter.note;
+      source : 'a;
+      witness : 'a witness
+    }
 
   (** Get the span of a note_at. *)
   val span : 'a t -> Span.t
@@ -40,7 +49,6 @@ val lint :
   Linter.t ->
   Syntax.program ->
   any_note list
-
 
 (** Fix one or more notes.
 

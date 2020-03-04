@@ -1,13 +1,13 @@
+open Lsp
+
 let src = Logs.Src.create ~doc:"Notification handler" __MODULE__
 
 module Log = (val Logs.src_log src)
 
 let send_diagnostics rpc store doc ~version =
-  let diagnostics = Diagnostics.lint store doc in
-  Lsp.Rpc.send_notification rpc
+  let diagnostics = Lint.diagnostics store doc in
+  Rpc.send_notification rpc
     (PublishDiagnostics { uri = doc.uri; version = Some version; diagnostics })
-
-open Lsp
 
 let worker rpc store : Client_notification.t -> (Store.t, string) result = function
   | TextDocumentDidOpen { textDocument = { uri; version; text; languageId } } ->

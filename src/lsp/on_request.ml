@@ -23,6 +23,16 @@ let dots_range = function
   | Resolve.IllegalDots -> assert false
   | BoundDots { node; _ } -> Node.span node
 
+let make_edit ~uri ~version edits =
+  Server_request.WorkspaceApplyEdit
+    { label = None;
+      edit =
+        [ { changes = [];
+            documentChanges = [ TextDocumentEdit { textDocument = { uri; version }; edits } ]
+          }
+        ]
+    }
+
 (** Get the initial assignment to a variable. *)
 module Declarations = struct
   open Locations
@@ -158,7 +168,7 @@ module Highlights = struct
         []
 end
 
-let worker (type res) (_ : Rpc.t) store (_ : Initialize.ClientCapabilities.t) :
+let worker (type res) rpc store (_ : Initialize.ClientCapabilities.t) :
     res Client_request.t -> (Store.t * res, Jsonrpc.Response.Error.t) result = function
   | Shutdown -> Ok (store, ())
   | TextDocumentDeclaration { textDocument = { uri }; position } ->
@@ -169,6 +179,24 @@ let worker (type res) (_ : Rpc.t) store (_ : Initialize.ClientCapabilities.t) :
       on_program ~default:[] store ~uri (References.find ~store ~position ~uri)
   | TextDocumentHighlight { textDocument = { uri }; position; _ } ->
       on_program ~default:[] store ~uri (Highlights.find ~store ~position)
+  | CodeAction { textDocument = { uri }; range; _ } ->
+      on_program ~default:[] store ~uri (fun p -> Lint.code_actions store p range)
+  | ExecuteCommand { command = "illuaminate/fix"; arguments } -> (
+    match arguments with
+    | Some [ uri; `Int id ] -> (
+        let uri = Uri.t_of_yojson uri in
+
+        match Store.get_file store uri with
+        | Some { program = Ok prog; contents = Some contents; _ } -> (
+            let fixed = Lint.fix store prog id in
+            match fixed with
+            | Error msg -> Error { code = ContentModified; message = msg; data = None }
+            | Ok edit ->
+                make_edit ~uri ~version:(Text_document.version contents) [ edit ]
+                |> Ugly_hacks.send_request rpc;
+                Ok (store, None) )
+        | _ -> Ok (store, None) )
+    | _ -> Error { code = InternalError; message = "Invalid arguments"; data = None } )
   | _ ->
       Log.err (fun f -> f "Unknown message (not implemented)");
       Error { code = InternalError; message = "Not implemented"; data = None }

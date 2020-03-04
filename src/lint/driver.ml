@@ -2,22 +2,20 @@ open IlluaminateCore
 open Linter
 module C = IlluaminateConfig
 
-type 'a witness =
-  | AtExpr : Syntax.expr witness
-  | AtStmt : Syntax.stmt witness
-  | AtProgram : Syntax.program witness
-  | AtToken : Syntax.token witness
-  | AtName : Syntax.name witness
-  | AtVar : Syntax.var witness
-
 module NoteAt = struct
+  type 'a witness =
+    | AtExpr : Syntax.expr witness
+    | AtStmt : Syntax.stmt witness
+    | AtProgram : Syntax.program witness
+    | AtToken : Syntax.token witness
+    | AtName : Syntax.name witness
+    | AtVar : Syntax.var witness
+
   type 'a t =
     { note : 'a note;
       source : 'a;
       witness : 'a witness
     }
-
-  let note { note; _ } = note
 
   let span (type a) : a t -> Span.t = function
     | { note = { span = Some span; _ }; _ } -> span

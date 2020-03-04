@@ -34,15 +34,6 @@ let node_kind : node -> string = function
 
 let pp_node_short out f = Format.fprintf out "%s" (node_kind f)
 
-module P = struct
-  open Lsp.Protocol.Position
-
-  let ( <= ) (l : t) (r : t) =
-    if l.line == r.line then l.character <= r.character else l.line < r.line
-
-  let contains pos span = span_start span <= pos && pos <= span_finish span
-end
-
 let ( <|> ) x d = Option.value ~default:d x [@@inline]
 
 (** Use let-syntax to provide a way to write lazy option chains without noisy syntax. *)
@@ -59,9 +50,9 @@ let ( let* ) x d =
   [@@inline]
 
 let rec seplist1 span f pos = function
-  | SepList1.Mono x -> if P.contains pos (span x) then Some (f pos x) else None
+  | SepList1.Mono x -> if Pos.contains pos (span x) then Some (f pos x) else None
   | SepList1.Cons1 (x, _, xs) ->
-      if P.contains pos (span x) then Some (f pos x) else seplist1 span f pos xs
+      if Pos.contains pos (span x) then Some (f pos x) else seplist1 span f pos xs
 
 let seplist0 span f pos = function
   | None -> None
@@ -69,12 +60,12 @@ let seplist0 span f pos = function
 
 let rec list span f pos = function
   | [] -> None
-  | x :: xs -> if P.contains pos (span x) then Some (f pos x) else list span f pos xs
+  | x :: xs -> if Pos.contains pos (span x) then Some (f pos x) else list span f pos xs
 
 let rec block pos = function
   | [] -> None
   | x :: xs ->
-      if P.contains pos (Spanned.stmt x) then (
+      if Pos.contains pos (Spanned.stmt x) then (
         Logs.info (fun f ->
             f "%d:%d within %a (%a)" pos.line pos.character Span.pp (Spanned.stmt x) Emit.stmt x);
         Some (stmt pos x) )
@@ -111,7 +102,7 @@ and stmt pos stmt : node =
       let+ () = args pos localf_args in
       block pos localf_body <|> Stmt stmt
   | AssignFunction { assignf_name; assignf_args; assignf_body; _ } ->
-      if P.contains pos (Spanned.function_name assignf_name) then function_name pos assignf_name
+      if Pos.contains pos (Spanned.function_name assignf_name) then function_name pos assignf_name
       else
         let+ () = args pos assignf_args in
         block pos assignf_body <|> Stmt stmt
@@ -125,7 +116,7 @@ and stmt pos stmt : node =
         | [] -> (
           match if_else with
           | Some (e, xs)
-            when P.(span_start (Node.span e) <= pos && pos <= span_finish (Node.span if_end)) ->
+            when Pos.(span_start (Node.span e) <= pos && pos <= span_finish (Node.span if_end)) ->
               block pos xs <|> Stmt stmt
           | _ -> Stmt stmt )
         | x :: y :: _ as xs ->
@@ -146,7 +137,7 @@ and stmt pos stmt : node =
   | Semicolon _ | Break _ -> Stmt stmt
 
 and if_clause pos { clause_if; clause_test; clause_body; _ } next : node option =
-  if P.(span_start (Node.span clause_if) <= pos && pos <= span_finish (Node.span next)) then
+  if Pos.(span_start (Node.span clause_if) <= pos && pos <= span_finish (Node.span next)) then
     let* () = expr_opt pos clause_test in
     block pos clause_body
   else None
@@ -163,13 +154,13 @@ and function_name pos name : node =
   match name with
   | FVar v -> Var v
   | FDot { tbl; _ } | FSelf { tbl; _ } ->
-      if P.contains pos (Spanned.function_name tbl) then function_name pos tbl
+      if Pos.contains pos (Spanned.function_name tbl) then function_name pos tbl
       else FunctionName name
 
 and var _ v = Var v
 
 and var_opt pos var : node option =
-  if P.contains pos (Spanned.var var) then Some (Var var) else None
+  if Pos.contains pos (Spanned.var var) then Some (Var var) else None
 
 and table_items p = list (fun (x, _) -> Spanned.table_item x) table_item p
 
@@ -196,7 +187,7 @@ and expr pos e : node =
       expr_opt pos binop_rhs <|> Expr e
   | Parens { paren_expr; _ } -> expr_opt pos paren_expr <|> Expr e
 
-and expr_opt pos e = if P.contains pos (Spanned.expr e) then Some (expr pos e) else None
+and expr_opt pos e = if Pos.contains pos (Spanned.expr e) then Some (expr pos e) else None
 
 and call pos : call -> node option = function
   | Call { fn; args } | Invoke { obj = fn; args; _ } ->
