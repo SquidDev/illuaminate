@@ -30,6 +30,5 @@ module Pos = struct
   let contains pos span = span_start span <= pos && pos <= span_finish span
 
   (** Returns true if [span] and [range] overlap at all. *)
-  let overlaps { Range.start_; end_ } span =
-    span_start span <= end_ && start_ <= span_finish span;
+  let overlaps { Range.start_; end_ } span = span_start span <= end_ && start_ <= span_finish span
 end

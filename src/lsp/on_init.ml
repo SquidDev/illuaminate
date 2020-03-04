@@ -23,7 +23,7 @@ let init_info : Lsp.Initialize.Result.t =
         documentOnTypeFormattingProvider = None;
         renameProvider = false;
         documentLinkProvider = None;
-        executeCommandProvider = Some { commands = ["illuaminate/fix"] };
+        executeCommandProvider = Some { commands = [ "illuaminate/fix" ] };
         typeCoverageProvider = false;
         foldingRangeProvider = Bool false
       };

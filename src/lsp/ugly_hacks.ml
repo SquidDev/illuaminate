@@ -12,21 +12,7 @@ let send (_ : Rpc.t) json =
 
 let next_id = ref 0
 
-let send_request (type t) rpc (request : t Server_request.t) =
+let send_request rpc request =
   let id = Lsp.Import.Either.Right !next_id in
   incr next_id;
-  let r = Server_request.to_jsonrpc_request request ~id in
-  let r =
-    match request with
-    | WorkspaceApplyEdit { label; edit = [ edit ]; _ } ->
-        let bnds = [ ("edit", Protocol.WorkspaceEdit.yojson_of_t edit) ] in
-        let bnds =
-          match label with
-          | None -> bnds
-          | Some v -> ("label", `String v) :: bnds
-        in
-        { r with params = Some (`Assoc bnds) }
-    | WorkspaceApplyEdit { edit = _; _ } -> assert false
-    | _ -> r
-  in
-  Jsonrpc.Request.yojson_of_t r |> send rpc
+  Server_request.to_jsonrpc_request request ~id |> Jsonrpc.Request.yojson_of_t |> send rpc

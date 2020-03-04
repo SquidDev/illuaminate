@@ -27,10 +27,9 @@ let make_edit ~uri ~version edits =
   Server_request.WorkspaceApplyEdit
     { label = None;
       edit =
-        [ { changes = [];
-            documentChanges = [ TextDocumentEdit { textDocument = { uri; version }; edits } ]
-          }
-        ]
+        { changes = [];
+          documentChanges = [ TextDocumentEdit { textDocument = { uri; version }; edits } ]
+        }
     }
 
 (** Get the initial assignment to a variable. *)
