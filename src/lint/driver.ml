@@ -2,40 +2,44 @@ open IlluaminateCore
 open Linter
 module C = IlluaminateConfig
 
-type 'a witness =
-  | AtExpr : Syntax.expr witness
-  | AtStmt : Syntax.stmt witness
-  | AtProgram : Syntax.program witness
-  | AtToken : Syntax.token witness
-  | AtName : Syntax.name witness
-  | AtVar : Syntax.var witness
+module NoteAt = struct
+  type 'a witness =
+    | AtExpr : Syntax.expr witness
+    | AtStmt : Syntax.stmt witness
+    | AtProgram : Syntax.program witness
+    | AtToken : Syntax.token witness
+    | AtName : Syntax.name witness
+    | AtVar : Syntax.var witness
 
-type 'a note_at =
-  { note : 'a note;
-    source : 'a;
-    witness : 'a witness
-  }
+  type 'a t =
+    { note : 'a note;
+      source : 'a;
+      witness : 'a witness
+    }
 
-let report_note_at (type a) err ({ note; source; witness } : a note_at) =
-  let span =
-    match witness with
-    | AtExpr -> Syntax.Spanned.expr source
-    | AtStmt -> Syntax.Spanned.stmt source
-    | AtToken -> Node.span source
-    | AtName -> Syntax.Spanned.name source
-    | AtVar ->
-        let (Var n) = source in
-        Node.span n
-    | AtProgram -> Syntax.Spanned.program source
-  in
-  match note.detail with
-  | None -> Error.report err note.tag (Option.value note.span ~default:span) note.message
-  | Some detail ->
-      Error.report_detailed err note.tag (Option.value note.span ~default:span) note.message detail
+  let span (type a) : a t -> Span.t = function
+    | { note = { span = Some span; _ }; _ } -> span
+    | { witness; source; _ } -> (
+      match witness with
+      | AtExpr -> Syntax.Spanned.expr source
+      | AtStmt -> Syntax.Spanned.stmt source
+      | AtToken -> Node.span source
+      | AtName -> Syntax.Spanned.name source
+      | AtVar ->
+          let (Var n) = source in
+          Node.span n
+      | AtProgram -> Syntax.Spanned.program source )
 
-type any_note = Note : 'a note_at -> any_note
+  let report err ({ note; _ } as n) =
+    let span = span n in
+    match note.detail with
+    | None -> Error.report err note.tag span note.message
+    | Some detail -> Error.report_detailed err note.tag span note.message detail
+end
 
-let report_note err (Note n) = report_note_at err n
+type any_note = Note : 'a NoteAt.t -> any_note
+
+let report_note err (Note n) = NoteAt.report err n
 
 let always : Error.Tag.filter = fun _ -> true
 
@@ -235,11 +239,14 @@ let worker ~store ~data ~tags (Linter linter : t) program =
   token context program.eof;
   !messages
 
-let lint ~store ~data ?(tags = always) (Linter l as linter : t) program =
+let need_lint ~store ~data ?(tags = always) (Linter l as linter : t) program =
   if List.exists tags l.tags then worker ~store ~data ~tags linter program else []
 
+let lint ~store ~data ?tags l program =
+  IlluaminateData.compute (fun data -> need_lint ~store ~data ?tags l program) data
+
 let fix_some ~original node note =
-  if note.source != original then node
+  if note.NoteAt.source != original then node
   else
     match note.note.fix with
     | FixOne f -> Result.value ~default:node (f node)
@@ -258,7 +265,7 @@ let fix prog fixes =
        inherit Syntax.map as super
 
        method! token (tok : token) =
-         let visit (type a) (x : token) (note : a note_at) : token =
+         let visit (type a) (x : token) (note : a NoteAt.t) : token =
            match note with
            | { witness = AtToken; _ } -> fix_some ~original:tok x note
            | _ -> x
@@ -266,7 +273,7 @@ let fix prog fixes =
          List.fold_left (fun x (Note note) -> visit x note) tok fixes
 
        method! stmt stmt =
-         let visit (type a) (x : stmt) (note : a note_at) : stmt =
+         let visit (type a) (x : stmt) (note : a NoteAt.t) : stmt =
            match note with
            | { witness = AtStmt; _ } -> fix_some ~original:stmt x note
            | _ -> x
@@ -274,7 +281,7 @@ let fix prog fixes =
          List.fold_left (fun x (Note note) -> visit x note) stmt fixes |> super#stmt
 
        method! block stmts =
-         let visit (type a) (original : stmt) (x : stmt) (note : a note_at) : stmt list option =
+         let visit (type a) (original : stmt) (x : stmt) (note : a NoteAt.t) : stmt list option =
            match note with
            | { witness = AtStmt; source; note = { fix = FixBlock f; _ }; _ } when source == original
              ->
@@ -296,7 +303,7 @@ let fix prog fixes =
            stmts []
 
        method! program program =
-         let visit (type a) (x : program) (note : a note_at) : program =
+         let visit (type a) (x : program) (note : a NoteAt.t) : program =
            match note with
            | { witness = AtProgram; _ } -> fix_some ~original:program x note
            | _ -> x
@@ -304,7 +311,7 @@ let fix prog fixes =
          List.fold_left (fun x (Note note) -> visit x note) program fixes |> super#program
 
        method! expr expr =
-         let visit (type a) (x : expr) (note : a note_at) : expr =
+         let visit (type a) (x : expr) (note : a NoteAt.t) : expr =
            match note with
            | { witness = AtExpr; _ } -> fix_some ~original:expr x note
            | _ -> x
@@ -361,7 +368,7 @@ let fix prog fixes =
          super#call_args args
 
        method! name name =
-         let visit (type a) (x : name) (note : a note_at) : name =
+         let visit (type a) (x : name) (note : a NoteAt.t) : name =
            match note with
            | { witness = AtName; _ } -> fix_some ~original:name x note
            | _ -> x
@@ -369,7 +376,7 @@ let fix prog fixes =
          List.fold_left (fun x (Note note) -> visit x note) name fixes |> super#name
 
        method! var var =
-         let visit (type a) (x : var) (note : a note_at) : var =
+         let visit (type a) (x : var) (note : a NoteAt.t) : var =
            match note with
            | { witness = AtVar; _ } -> fix_some ~original:var x note
            | _ -> x

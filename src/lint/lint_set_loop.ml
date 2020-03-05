@@ -11,7 +11,7 @@ let linter =
   let tag = Error.Tag.make Error.Warning "var:set-loop" in
   let stmt () (context : context) =
     let check (Var name as var) =
-      let resolve = IlluaminateData.get context.data R.key context.program in
+      let resolve = IlluaminateData.need context.data R.key context.program in
       match R.get_definition var resolve with
       | { kind = Loop _; _ } ->
           [ note ~tag ~span:(Node.span name) "Mutating loop variable %S." (Node.contents.get name) ]

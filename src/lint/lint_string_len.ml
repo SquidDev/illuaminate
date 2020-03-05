@@ -13,7 +13,7 @@ let linter =
   let tag = Error.Tag.make Error.Warning "stdlib:string-len" in
 
   let check ~(context : context) ?fix f =
-    let resolve = IlluaminateData.get context.data R.key context.program in
+    let resolve = IlluaminateData.need context.data R.key context.program in
     match G.of_expr resolve f with
     | Some g when g = string_len -> [ note ?fix ~tag "Prefer `#` over string.len" ]
     | _ -> []

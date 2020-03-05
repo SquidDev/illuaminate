@@ -20,6 +20,12 @@ type Format.stag += Token of token_kind
 (** Write a trivial term to the formatter. *)
 val trivial : Format.formatter -> Node.trivial -> unit
 
+val var : Format.formatter -> var -> unit
+
+val name : Format.formatter -> name -> unit
+
+val token : kind:token_kind -> Format.formatter -> token -> unit
+
 (** Write an expression to a formatter. *)
 val expr : Format.formatter -> expr -> unit
 

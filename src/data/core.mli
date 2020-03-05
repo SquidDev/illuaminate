@@ -57,6 +57,10 @@ val need : context -> ('k, 'v) Key.t -> 'k -> 'v
 (** Query the store for a value, computing it if required. *)
 val get : t -> ('k, 'v) Key.t -> 'k -> 'v
 
+(** Run an arbitrary action within a context. This isn't generally recommended, but may be useful if
+    you have functions which use {!need} instead of {!get} *)
+val compute : (context -> 'a) -> t -> 'a
+
 (** Increment the internal version number. This causes oracles to be re-queried. This should have no
     effect if oracles have not changed. *)
 val refresh : t -> unit

@@ -35,7 +35,8 @@ type var = private
     kind : kind;  (** The kind of this variable. *)
     shadows : var option;  (** The variable we shadow. *)
     mutable usages : var_usage list;
-    mutable definitions : definition list;  (** The list of all definitions. *)
+    mutable definitions : (Syntax.var option * definition) list;
+        (** The list of all definitions. *)
     mutable captured : bool;  (** Whether this variable is captured in a closure. *)
     mutable upvalue_mutated : bool  (** Whether this variable is mutated in a closure. *)
   }
@@ -81,8 +82,14 @@ val get_definition : Syntax.var -> t -> var
     Note, this {i must} be used on a variable expression. *)
 val get_usage : Syntax.var -> t -> var_usage
 
+(** Get the underlying variable. This may be used on usages or definitions. *)
+val get_var : Syntax.var -> t -> var
+
 (** Get the definition of an dots argument. *)
-val get_dots : Syntax.token -> t -> dots
+val get_dots_definition : Syntax.token -> t -> dots
 
 (** Get the usage of a dots argument. *)
 val get_dots_usage : Syntax.token -> t -> dots_usage
+
+(** Get the underlying dots instance. *)
+val get_dots : Syntax.token -> t -> dots option

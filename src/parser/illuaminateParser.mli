@@ -2,15 +2,13 @@ open IlluaminateCore
 
 (** An error which may occur when parsing. *)
 module Error : sig
-  type t =
-    | UnexpectedCharacter of string
-    | UnterminatedString
-    | SyntaxError of string
-    | UnexpectedToken of Grammar.token * string
+  type t
 
   val report : Error.t -> Span.t -> t -> unit
 
   val pp : Format.formatter -> t -> unit
+
+  val tag : Error.Tag.t
 end
 
 module Lexer : sig

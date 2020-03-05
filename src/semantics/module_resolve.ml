@@ -36,12 +36,12 @@ let mk_module ({ descriptor = { mod_name; mod_contents; _ }; definition; _ } as 
 
 let rec get_var ({ cache; resolved; docs } as store) var =
   let go () =
-    match (Resolve.get_usage var resolved).var with
+    match Resolve.get_var var resolved with
     | { kind = Global; name; _ } -> (
       match StringMap.find_opt name docs with
       | Some ({ descriptor = { mod_kind = Module; _ }; _ } as d) -> mk_module d
       | _ -> None )
-    | { kind = Local _; definitions = [ OfExpr e ]; _ } -> get_expr store e
+    | { kind = Local _; definitions = [ (_, OfExpr e) ]; _ } -> get_expr store e
     | _ -> None
   in
   match VarCache.find_opt cache var with
