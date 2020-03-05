@@ -32,9 +32,9 @@ depends: [
   "re"
   "result"
   "yojson"
-  "lwt" {os-type != "windows"}
-  "cohttp-lwt-unix" {os-type != "windows"}
-  "tls" {os-type != "windows"}
+  "lwt" {os-family != "windows"}
+  "cohttp-lwt-unix" {os-family != "windows"}
+  "tls" {os-family != "windows"}
 ]
 build: [
   ["dune" "subst"] {pinned}

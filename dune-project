@@ -43,7 +43,7 @@
     yojson
     ; GitHub integration (HTTP support mostly)
     ; We disable this on Windows for now, as it's not easy to build the an SSL library.
-    (lwt (<> :os-type windows))
-    (cohttp-lwt-unix (<> :os-type windows))
-    (tls (<> :os-type windows))
+    (lwt (<> :os-family windows))
+    (cohttp-lwt-unix (<> :os-family windows))
+    (tls (<> :os-family windows))
     ))

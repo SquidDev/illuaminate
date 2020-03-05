@@ -32,7 +32,7 @@ let dep_of_value ~os : value -> dep_kind * string * string = function
           match version with
           | Some _ -> Printf.sprintf "Multiple versions for '%s'" p |> failwith
           | None -> build (kind, Some (OpamPrinter.relop op ^ " " ^ v)) xs )
-        | Relop (_, `Neq, Ident (_, "os-type"), String (_, this_os)) :: xs ->
+        | Relop (_, `Neq, Ident (_, "os-family"), String (_, this_os)) :: xs ->
             if this_os <> os then build (kind, version) xs else (Skip, version)
         | c :: _ ->
             Printf.sprintf "Unknown constraint '%s' for '%s'" (OpamPrinter.value c) p |> failwith
