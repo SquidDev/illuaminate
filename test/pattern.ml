@@ -45,7 +45,7 @@ let tests =
   test_cases
   |> List.map (fun (pat, dir, expected) ->
          test (Printf.sprintf "%S → %S" pat dir) (fun () ->
-             let actual = parse pat |> matches dir in
+             let actual = parse pat |> matches (Fpath.v dir) in
              if actual = expected then result Pass
              else
                let msg =

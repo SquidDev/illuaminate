@@ -17,4 +17,10 @@ type t
 val parse : string -> t
 
 (** Determine if this directory matches a given pattern. *)
-val matches : string -> t -> bool
+val matches : Fpath.t -> t -> bool
+
+(** Locate all files matching a glob within a folder, calling the accepting function on them. *)
+val iter : (Fpath.t -> unit) -> ?path:Fpath.t -> root:Fpath.t -> t -> unit
+
+(** A version of {!iter}, which may accept multiple overlapping globs. *)
+val iter_all : (Fpath.t -> unit) -> ?path:Fpath.t -> root:Fpath.t -> t list -> unit

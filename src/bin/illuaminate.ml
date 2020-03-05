@@ -41,7 +41,7 @@ let reporter () =
 let lint paths github =
   let errs = Error.make () in
   let loader = Loader.create errs in
-  let modules, builder = List.map Fpath.v paths |> Loader.load_from_many ~loader in
+  let modules, builder = Loader.load_from_many ~loader paths in
   let data = IlluaminateData.Builder.(empty |> builder |> build) in
   modules
   |> List.iter (function
@@ -61,7 +61,7 @@ let lint paths github =
 let fix paths =
   let errs = Error.make () in
   let loader = Loader.create errs in
-  let modules, builder = List.map Fpath.v paths |> Loader.load_from_many ~loader in
+  let modules, builder = Loader.load_from_many ~loader paths in
   let data = IlluaminateData.Builder.(empty |> builder |> build) in
   let modules' =
     modules
@@ -103,8 +103,8 @@ let doc_gen path =
   let module E = IlluaminateDocEmit in
   let errs = Error.make () in
   let loader = Loader.create errs in
-  ( CCOpt.get_lazy (fun () -> Sys.getcwd ()) path
-  |> Fpath.v |> Loader.load_from ~loader
+  ( CCOpt.get_lazy (fun () -> Sys.getcwd () |> Fpath.v) path
+  |> Loader.load_from ~loader
   |> Option.iter @@ fun (config, _, builder) ->
      let data = IlluaminateData.Builder.(empty |> builder |> build) in
      let modules =
@@ -202,13 +202,26 @@ module Args = struct
     Logs.(set_level ~all:true l);
     reporter () |> Logs.set_reporter
 
-  let files_arg =
-    value & pos_all file [] & info ~docv:"FILE" ~doc:"Files and directories to check." []
+  let file =
+    let parse s =
+      let open CCResult.Infix in
+      Fpath.of_string s >>= fun path ->
+      (* There's a strange bug on Windows where "foo\\" will not exist, but "foo" will. In order to
+         avoid this, we remove the trailing path segment. *)
+      let path = Fpath.rem_empty_seg path in
+      let s = Fpath.to_string path in
+      match Sys.file_exists s with
+      | true -> Ok path
+      | false -> Error (`Msg ("no file or directory " ^ s))
+    in
+    conv ~docv:"FILE" (parse, Fpath.pp)
+
+  let files_arg = value & pos_all file [] & info ~doc:"Files and directories to check." []
 
   let file_arg =
     value
     & pos 0 (some ~none:"current directory" file) None
-    & info ~docv:"FILE" ~doc:"File/directory to generate docs for." []
+    & info ~doc:"File/directory to generate docs for." []
 end
 
 let run () =

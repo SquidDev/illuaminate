@@ -67,22 +67,21 @@ let parse ~loader:{ errors; _ } ({ Span.path; _ } as file) =
       | Ok tree -> Some tree)
 
 let do_load_from ~loader ~files ~file_store ~config root =
-  let rec add is_root path =
+  (* TODO: The behaviour of this is technically incorrect. What we really need to do is load all
+     files within this project, and then only display lints/fixes for the selected ones.*)
+  Log.info (fun f -> f "Loading files from %a" Fpath.pp root);
+  let add path =
     let path_s = Fpath.to_string path in
-    if Sys.is_directory path_s then (
-      Log.debug (fun f -> f "Loading sources from %S" path_s);
-      Sys.readdir path_s |> Array.iter (fun child -> add false Fpath.(path / child)) )
-    else if is_root || Fpath.has_ext ".lua" path then
+    if not (StringMap.mem path_s !files) then (
+      Log.debug (fun f -> f "Using source file %S" path_s);
+      (* TODO: Warn on duplicate files. *)
       let file = mk_name ~loader path in
-      if Config.is_source config path && not (StringMap.mem path_s !files) then (
-        Log.debug (fun f -> f "Using source file %S" path_s);
-        (* TODO: Warn on duplicate files. *)
-        let parse = parse ~loader file in
-        let file_id = parse |> Option.map (fun x -> Files.add x file_store) in
-        files := StringMap.add path_s { root; path; file; config; parsed = parse; file_id } !files )
+      let parse = parse ~loader file in
+      let file_id = parse |> Option.map (fun x -> Files.add x file_store) in
+      files := StringMap.add path_s { root; path; file; config; parsed = parse; file_id } !files )
   in
 
-  add true root
+  Config.files add config root
 
 let builder files file_store builder =
   builder
