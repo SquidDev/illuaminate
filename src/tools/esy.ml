@@ -17,29 +17,30 @@ let dep_of_value : value -> bool * string * string = function
   | String (_, p) -> (false, p, "*")
   | Option (_, String (_, p), [ Ident (_, ("with-test" | "with-doc" | "build")) ]) -> (true, p, "*")
   | Option (_, String (_, p), [ Prefix_relop (_, op, String (_, v)) ]) ->
-      (true, p, OpamPrinter.relop op ^ " " ^ v)
+      (false, p, OpamPrinter.relop op ^ " " ^ v)
   | p -> Printf.sprintf "Unknown package '%s'" (OpamPrinter.value p) |> failwith
 
-type result =
-  { fields : (string * J.t) list;
-    dependencies : (string * J.t) list;
-    devDependencies : (string * J.t) list
-  }
-
-let to_json result : opamfile_item -> result =
-  let add_field k v = { result with fields = (k, json_of_value v) :: result.fields } in
+let to_json fields : opamfile_item -> (string * J.t) list =
+  let add_field k v = (k, json_of_value v) :: fields in
   function
   | Variable (_, (("version" | "license" | "homepage") as k), v) -> add_field k v
   | Variable (_, "synopsis", x) -> add_field "description" x
   | Variable (_, "depends", List (_, depends)) ->
-      let add r v =
+      let add (main, dev) v =
         let is_dev, name, version = dep_of_value v in
-        let dep = ("@opam/" ^ name, `String version) in
-        if is_dev then { r with devDependencies = dep :: r.devDependencies }
-        else { r with dependencies = dep :: r.dependencies }
+        let name =
+          match name with
+          | "ocaml" -> name
+          | _ -> "@opam/" ^ name
+        in
+        let dep = (name, `String version) in
+        if is_dev then (main, dep :: dev) else (dep :: main, dev)
       in
-      List.fold_left add result depends
-  | _ -> result
+      let main, dev = List.fold_left add ([], []) depends in
+      ("devDependencies", `Assoc (List.rev dev))
+      :: ("dependencies", `Assoc (List.rev main))
+      :: fields
+  | _ -> fields
 
 let () =
   let { file_contents; _ } =
@@ -50,9 +51,7 @@ let () =
         Printf.eprintf "%s: [FILE]\n%!" Sys.executable_name;
         exit 1
   in
-  let { fields; dependencies; devDependencies } =
-    List.fold_left to_json { fields = []; dependencies = []; devDependencies = [] } file_contents
-  in
+  let fields = List.fold_left to_json [] file_contents in
   let json : J.t =
     `Assoc
       ( (("name", `String "illuaminate") :: List.rev fields)
@@ -61,8 +60,6 @@ let () =
               [ ("build", `String "dune build -p #{self.name}");
                 ("release", `Assoc [ ("includePackages", `List [ `String "root" ]) ])
               ] );
-          ("dependencies", `Assoc (("ocaml", `String ">= 4.08") :: List.rev dependencies));
-          ("devDependencies", `Assoc (List.rev devDependencies));
           ( "resolutions",
             `Assoc
               [ ( "@opam/omnomnom",

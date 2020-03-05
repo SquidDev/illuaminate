@@ -16,7 +16,7 @@
   (synopsis "Source code analysis for Lua")
   (description "Provides various tools for parsing, processing and producing Lua source code. Currently does very little, but will hopefully grow in the future.")
   (depends
-    (ocaml (>= 4.06))
+    (ocaml (>= 4.08))
     ; Build-time (:build)
     (dune (>= 2.0))
     (ppxlib :build)
