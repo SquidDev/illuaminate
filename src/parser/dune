@@ -50,8 +50,7 @@
 (rule
  (targets "grammar.conflicts" "grammar.automaton")
  (deps "grammar.mly")
- (mode
-  (promote (until-clean)))
+ (mode promote)
  (action
   (run menhir --table --explain --dump %{deps})))
 

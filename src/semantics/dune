@@ -50,8 +50,7 @@
 (rule
  (targets "type_grammar.conflicts" "type_grammar.automaton")
  (deps "type_grammar.mly")
- (mode
-  (promote (until-clean)))
+ (mode promote)
  (action
   (run menhir --table --explain --dump %{deps})))
 

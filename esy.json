@@ -1,52 +1,49 @@
 {
   "name": "illuaminate",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Source code analysis for Lua",
   "license": "BSD-3-Clause",
+  "homepage": "https://github.com/squiddev/illuaminate",
   "esy": {
     "build": "dune build -p #{self.name}",
-    "release": {
-      "includePackages": [
-        "root"
-      ]
-    }
+    "release": { "includePackages": [ "root" ] }
   },
   "dependencies": {
     "ocaml": ">= 4.08",
-
     "@opam/cmdliner": "*",
+    "@opam/containers": "*",
+    "@opam/fpath": "*",
+    "@opam/logs": "*",
+    "@opam/menhir": "*",
+    "@opam/omd": "*",
+    "@opam/re": "*",
+    "@opam/js_of_ocaml": "*",
     "@opam/cohttp": "*",
     "@opam/cohttp-lwt": "*",
     "@opam/cohttp-lwt-unix": "*",
-    "@opam/containers": "*",
-    "@opam/fpath": "*",
-    "@opam/js_of_ocaml": "*",
     "@opam/lwt": "*",
     "@opam/lwt_ssl": "*",
-    "@opam/menhir": "*",
-    "@opam/omd": "*",
     "@opam/ppx_deriving_yojson": "*",
-    "@opam/re": "*",
     "@opam/result": "*",
     "@opam/ssl": "*",
     "@opam/yojson": "*"
   },
   "devDependencies": {
+    "@opam/ocaml": ">= 4.06",
     "@opam/dune": ">= 2.0",
     "@opam/ppxlib": "*",
     "@opam/reason": "*",
     "@opam/ppx_deriving": "*",
-    "@opam/ocamlformat": "*",
     "@opam/js_of_ocaml-ppx": "*",
     "@opam/js_of_ocaml-compiler": "*",
     "@opam/odoc": "*",
-
     "@opam/omnomnom": "*",
     "@opam/patience_diff": "*",
     "@opam/junit": "*"
   },
   "resolutions": {
-    "@opam/omnomnom": "git://github.com/SquidDev/omnomnom:omnomnom.opam#6b6d503d45f41a8a4f6af042e19d9278aa403c25"
+    "@opam/omnomnom":
+      "git://github.com/SquidDev/omnomnom:omnomnom.opam#6b6d503d45f41a8a4f6af042e19d9278aa403c25"
   },
   "scripts": {
     "test": "dune build @runtest -f",

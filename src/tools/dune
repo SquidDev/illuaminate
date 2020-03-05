@@ -4,6 +4,14 @@
 (executable
  (name genTree)
  (libraries ppxlib ppxlib.ast base ocaml-migrate-parsetree)
+ (modules genTree syntax)
+ (preprocess
+  (pps ppxlib.metaquot)))
+
+(executable
+ (name esy)
+ (modules esy)
+ (libraries opam-file-format yojson)
  (preprocess
   (pps ppxlib.metaquot)))
 
