@@ -1,4 +1,4 @@
-(lang dune 2.0)
+(lang dune 2.3)
 (using menhir 2.0)
 (using library_variants 0.2)
 (implicit_transitive_deps false)
@@ -33,19 +33,17 @@
     cmdliner
     containers
     fpath
+    js_of_ocaml
     logs
     menhir
     omd
-    re
-    js_of_ocaml
-    ; GitHub integration (HTTP support mostly)
-    cohttp
-    cohttp-lwt
-    cohttp-lwt-unix
-    lwt
-    lwt_ssl
     ppx_deriving_yojson
+    re
     result
-    ssl
     yojson
+    ; GitHub integration (HTTP support mostly)
+    ; We disable this on Windows for now, as it's not easy to build the an SSL library.
+    (lwt (<> :os-type windows))
+    (cohttp-lwt-unix (<> :os-type windows))
+    (tls (<> :os-type windows))
     ))

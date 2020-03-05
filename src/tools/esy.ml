@@ -13,28 +13,52 @@ let rec json_of_value : value -> J.t = function
   | (Pfxop _ | Option _ | Relop _ | Prefix_relop _ | Group _ | Logop _ | Env_binding _) as x ->
       `String (OpamPrinter.value x)
 
-let dep_of_value : value -> bool * string * string = function
-  | String (_, p) -> (false, p, "*")
-  | Option (_, String (_, p), [ Ident (_, ("with-test" | "with-doc" | "build")) ]) -> (true, p, "*")
-  | Option (_, String (_, p), [ Prefix_relop (_, op, String (_, v)) ]) ->
-      (false, p, OpamPrinter.relop op ^ " " ^ v)
+type dep_kind =
+  | Main
+  | Dev
+  | Skip
+
+let dep_of_value ~os : value -> dep_kind * string * string = function
+  | String (_, p) -> (Main, p, "*")
+  | Option (_, String (_, p), constraints) ->
+      let rec flat xs = function
+        | Logop (_, `And, l, r) -> flat (flat xs l) r
+        | x -> x :: xs
+      in
+      let rec build (kind, version) = function
+        | [] -> (kind, version)
+        | Ident (_, ("with-test" | "with-doc" | "build")) :: xs -> build (Dev, version) xs
+        | Prefix_relop (_, op, String (_, v)) :: xs -> (
+          match version with
+          | Some _ -> Printf.sprintf "Multiple versions for '%s'" p |> failwith
+          | None -> build (kind, Some (OpamPrinter.relop op ^ " " ^ v)) xs )
+        | Relop (_, `Neq, Ident (_, "os-type"), String (_, this_os)) :: xs ->
+            if this_os <> os then build (kind, version) xs else (Skip, version)
+        | c :: _ ->
+            Printf.sprintf "Unknown constraint '%s' for '%s'" (OpamPrinter.value c) p |> failwith
+      in
+      let kind, version = List.fold_left flat [] constraints |> build (Main, None) in
+      (kind, p, Option.value ~default:"*" version)
   | p -> Printf.sprintf "Unknown package '%s'" (OpamPrinter.value p) |> failwith
 
-let to_json fields : opamfile_item -> (string * J.t) list =
+let to_json ~os fields : opamfile_item -> (string * J.t) list =
   let add_field k v = (k, json_of_value v) :: fields in
   function
   | Variable (_, (("version" | "license" | "homepage") as k), v) -> add_field k v
   | Variable (_, "synopsis", x) -> add_field "description" x
   | Variable (_, "depends", List (_, depends)) ->
       let add (main, dev) v =
-        let is_dev, name, version = dep_of_value v in
+        let kind, name, version = dep_of_value ~os v in
         let name =
           match name with
           | "ocaml" -> name
           | _ -> "@opam/" ^ name
         in
         let dep = (name, `String version) in
-        if is_dev then (main, dep :: dev) else (dep :: main, dev)
+        match kind with
+        | Main -> (dep :: main, dev)
+        | Dev -> (main, dep :: dev)
+        | Skip -> (main, dev)
       in
       let main, dev = List.fold_left add ([], []) depends in
       ("devDependencies", `Assoc (List.rev dev))
@@ -43,22 +67,31 @@ let to_json fields : opamfile_item -> (string * J.t) list =
   | _ -> fields
 
 let () =
-  let { file_contents; _ } =
-    match Sys.argv with
-    | [| _; x |] -> OpamParser.file x
-    | [| _ |] -> OpamParser.channel stdin "=stdin"
-    | _ ->
-        Printf.eprintf "%s: [FILE]\n%!" Sys.executable_name;
-        exit 1
+  let os =
+    match Sys.os_type |> String.lowercase_ascii with
+    | "win32" | "cygwin" -> "windows"
+    | "freebsd" | "openbsd" | "netbsd" | "dragonfly" -> "bsd"
+    | x -> x
   in
-  let fields = List.fold_left to_json [] file_contents in
+  let os = ref os and file = ref None in
+  Arg.parse
+    [ ("-o", Set_string os, "The operating system to generate for") ]
+    (fun x -> file := Some x)
+    "";
+  let { file_contents; _ } =
+    match !file with
+    | Some x -> OpamParser.file x
+    | None -> OpamParser.channel stdin "=stdin"
+  in
+  let fields = List.fold_left (to_json ~os:!os) [] file_contents in
   let json : J.t =
     `Assoc
       ( (("name", `String "illuaminate") :: List.rev fields)
       @ [ ( "esy",
             `Assoc
               [ ("build", `String "dune build -p #{self.name}");
-                ("release", `Assoc [ ("includePackages", `List [ `String "root" ]) ])
+                ("release", `Assoc [ ("includePackages", `List [ `String "root" ]) ]);
+                ("buildEnv", `Assoc [ ("PATH", `String "#{self.root / '_build_tools' : $PATH}") ])
               ] );
           ( "resolutions",
             `Assoc

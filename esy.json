@@ -10,20 +10,17 @@
     "@opam/cmdliner": "*",
     "@opam/containers": "*",
     "@opam/fpath": "*",
+    "@opam/js_of_ocaml": "*",
     "@opam/logs": "*",
     "@opam/menhir": "*",
     "@opam/omd": "*",
-    "@opam/re": "*",
-    "@opam/js_of_ocaml": "*",
-    "@opam/cohttp": "*",
-    "@opam/cohttp-lwt": "*",
-    "@opam/cohttp-lwt-unix": "*",
-    "@opam/lwt": "*",
-    "@opam/lwt_ssl": "*",
     "@opam/ppx_deriving_yojson": "*",
+    "@opam/re": "*",
     "@opam/result": "*",
-    "@opam/ssl": "*",
-    "@opam/yojson": "*"
+    "@opam/yojson": "*",
+    "@opam/lwt": "*",
+    "@opam/cohttp-lwt-unix": "*",
+    "@opam/tls": "*"
   },
   "devDependencies": {
     "@opam/ppxlib": "*",
@@ -38,7 +35,8 @@
   },
   "esy": {
     "build": "dune build -p #{self.name}",
-    "release": { "includePackages": [ "root" ] }
+    "release": { "includePackages": [ "root" ] },
+    "buildEnv": { "PATH": "#{self.root / '_build_tools' : $PATH}" }
   },
   "resolutions": {
     "@opam/omnomnom":

@@ -3,5 +3,5 @@
  (public_name illuaminate.github.unix)
  (implements illuaminate.github)
  (libraries result lwt lwt.unix cohttp cohttp-lwt-unix cohttp-lwt uri yojson
-   illuaminate.core ppx_deriving_yojson.runtime)
+   tls illuaminate.core ppx_deriving_yojson.runtime)
  (variant unix))

@@ -24,20 +24,17 @@ depends: [
   "cmdliner"
   "containers"
   "fpath"
+  "js_of_ocaml"
   "logs"
   "menhir"
   "omd"
-  "re"
-  "js_of_ocaml"
-  "cohttp"
-  "cohttp-lwt"
-  "cohttp-lwt-unix"
-  "lwt"
-  "lwt_ssl"
   "ppx_deriving_yojson"
+  "re"
   "result"
-  "ssl"
   "yojson"
+  "lwt" {os-type != "windows"}
+  "cohttp-lwt-unix" {os-type != "windows"}
+  "tls" {os-type != "windows"}
 ]
 build: [
   ["dune" "subst"] {pinned}
