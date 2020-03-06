@@ -2,4 +2,4 @@
  (name iluaminateGithub_default)
  (public_name illuaminate.github.default)
  (implements illuaminate.github)
- (libraries illuaminate.core))
+ (libraries illuaminate.core yojson result containers uri ppx_deriving_yojson.runtime logs))

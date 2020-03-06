@@ -35,13 +35,8 @@ package managers.
 
 ### Using Esy
  - Install [esy][]
- - Copy `doc/esy.unix.json` or `doc/esy.windows.json` to `esy.json`. This is only needed as an initial step: it can
-   later be regenerated with `esy dune build @opam`.
  - Run `esy` in the repository's root.
  - Illuaminate can now be run using `esy x illuaminate`
-
-**Note:** When building on windows, you must delete the `src/github/unix/dune` file. Some packages are excluded on
-Windows thus not all functionality works.
 
 ## Usage
  - Either build Illuaminate as above, or download a pre-built version:
