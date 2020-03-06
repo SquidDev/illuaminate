@@ -23,7 +23,7 @@ jobs:
         esy i
 
     - name: Build
-      run: esy b
+      run: esy b --install
 
   build_windows:
     name: Windows
@@ -50,4 +50,14 @@ jobs:
         esy i
 
     - name: Build
-      run: esy b
+      run: esy b --install
+
+    - name: Extract executable
+      run: |
+        Copy-Item ((esy status | ConvertFrom-Json | Select-Object).rootInstallPath + "\bin\illuaminate.exe") illuaminate.exe
+
+    - name: Publish executable
+      uses: actions/upload-artifact@v1
+      with:
+        name: illuaminate
+        path: illuaminate.exe
