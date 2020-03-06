@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push: { branches: [ master ] }
+  pull_request:
+
+jobs:
+  build_linux:
+    name: Linux
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Node
+      uses: actions/setup-node@v1
+      with: { node-version: 12.x }
+    - name: Install esy
+      run: npm install -g esy
+
+    - name: Setup dependencies
+      run: |
+        cp doc/esy.unix.json esy.json
+        esy i
+
+    - name: Build
+      run: esy b
+
+  build_windows:
+    name: Windows
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Node
+      uses: actions/setup-node@v1
+      with: { node-version: 12.x }
+    - name: Install esy
+      run: npm install -g esy
+
+    - name: Setup dependencies
+      run: |
+        cp doc/esy.windows.json esy.json
+        rm src/github/unix/dune
+        esy i
+
+    - name: Build
+      run: esy b
