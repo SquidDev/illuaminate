@@ -39,8 +39,14 @@ jobs:
 
     - name: Setup dependencies
       run: |
-        cp doc/esy.windows.json esy.json
-        rm src/github/unix/dune
+        # Fetch UPX
+        mkdir _build_tools
+        Invoke-WebRequest -Uri https://github.com/upx/upx/releases/download/v3.96/upx-3.96-win64.zip -OutFile upx.zip
+        Expand-Archive -Path upx.zip -DestinationPath upx
+        Copy-Item upx\upx-3.96-win64\upx.exe _build_tools
+        # Setup esy
+        Copy-Item doc/esy.windows.json esy.json
+        Remove-Item src/github/unix/dune
         esy i
 
     - name: Build
