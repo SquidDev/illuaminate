@@ -43,6 +43,8 @@ let iter_all iter ?path ~root pats =
     then iter path
   in
 
-  visit (Option.value ~default:root path)
+  let path = Option.value ~default:root path in
+  Log.info (fun f -> f "Listing files from %a" Fpath.pp path);
+  visit path
 
 let iter iter ?path ~root p = iter_all iter ?path ~root [ p ]

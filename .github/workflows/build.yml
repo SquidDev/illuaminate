@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push: { branches: [ master ] }
+  pull_request:
+
+jobs:
+  build_linux:
+    name: Linux
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Node
+      uses: actions/setup-node@v1
+      with: { node-version: 12.x }
+    - name: Install esy
+      run: npm install -g esy
+
+    - name: Setup dependencies
+      run: esy i
+
+    - name: Build
+      run: esy b --install
+
+  build_windows:
+    name: Windows
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Node
+      uses: actions/setup-node@v1
+      with: { node-version: 12.x }
+    - name: Install esy
+      run: npm install -g esy
+
+    - name: Install UPX
+      run: |
+        mkdir _build_tools
+        Invoke-WebRequest -Uri https://github.com/upx/upx/releases/download/v3.96/upx-3.96-win64.zip -OutFile upx.zip
+        Expand-Archive -Path upx.zip -DestinationPath upx
+        Copy-Item upx\upx-3.96-win64\upx.exe _build_tools
+
+    - name: Setup dependencies
+      run: esy i
+
+    - name: Build
+      run: esy b --install
+
+    - name: Extract executable
+      run: |
+        mkdir bin
+        Copy-Item ((esy status | ConvertFrom-Json | Select-Object).rootInstallPath + "\bin\*.exe") bin
+
+    - name: Publish executable
+      uses: actions/upload-artifact@v1
+      with:
+        name: illuaminate-windows-x86-64
+        path: bin/
+
+  upload_archives:
+    name: Upload archives
+    runs-on: ubuntu-latest
+    needs: build_windows
+    if: github.ref == 'master'
+
+    steps:
+      - name: Download executable
+        uses: actions/download-artifact@v1
+        with:
+          name: illuaminate-windows-x86-64
+          path: bin/
+
+      - name: Upload
+        run: .github/workflows/deploy.sh
+        env:
+          SSH_KEY: "${secrets.SSH_KEY}"
+          SSH_USER: "${secrets.SSH_USER}"
+          SSH_HOST: "${secrets.SSH_HOST}"
+          SSH_PORT: "${secrets.SSH_PORT}"

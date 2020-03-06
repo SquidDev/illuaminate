@@ -11,7 +11,8 @@ empty_if.lua:[6:1-6:4]: Empty else clause [syntax:empty-if]
  6 │ else
    │ ^^^^
 No errors and 3 warnings
-@@ -3,6 +3,5 @@
+ -- config: (lint (only syntax:empty-if))
+ if x then
  elseif y then
  elseif z then
    print()

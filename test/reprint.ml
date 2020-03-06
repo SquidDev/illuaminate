@@ -14,7 +14,7 @@ let process name =
       let new_contents = Format.asprintf "%a" Emit.program program in
       if contents <> new_contents then
         result
-          ~message:(Some (fun out -> Helpers.diff out contents new_contents))
+          ~message:(fun out -> Helpers.diff out contents new_contents)
           (Failed { backtrace = None })
       else result Pass
 

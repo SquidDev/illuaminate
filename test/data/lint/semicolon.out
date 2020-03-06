@@ -15,7 +15,6 @@ semicolon.lua:[13:7-13:7]: Redundant semicolon. [syntax:redundant-semicolon]
  13 │ do f(); f() end
     │       ^
 No errors and 4 warnings
-@@ -1,14 +1,14 @@
  -- config: (lint (only syntax:redundant-semicolon))
  local function f() end
  
