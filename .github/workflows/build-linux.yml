@@ -1,6 +1,8 @@
 name: CI (windows)
 
-on: [push, pull_request]
+on:
+  push: { branches: [ master ] }
+  pull_request:
 
 jobs:
   build:
@@ -18,7 +20,9 @@ jobs:
 
     - name: Install esy
       run: npm install -g esy
+
     - name: Setup dependencies
-      run: esy i
+      run: cp doc/esy.unix.json esy.json && esy i
+
     - name: Build
       run: esy b
