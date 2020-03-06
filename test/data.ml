@@ -20,7 +20,7 @@ let assert_eq ~pp exp actual =
   if exp == actual then result Pass
   else
     result
-      ~message:(Some (fun f -> Format.fprintf f "Expected %a, got %a" pp exp pp actual))
+      ~message:(fun f -> Format.fprintf f "Expected %a, got %a" pp exp pp actual)
       (Failed { backtrace = Some (Printexc.get_raw_backtrace ()) })
 
 let pp_int f = Format.fprintf f "%d"

@@ -11,6 +11,7 @@
 
 .#*
 
-# Esy lock folder. Probably shouldn't ignore this, but it's also bit large and
-# I'd rather not include it.
+# We ignore the esy lock and esy.json file. These change depending on the
+# platform (see README).
 /esy.lock/
+/esy.json

@@ -15,7 +15,6 @@ spacing_local.lua:[6:9-6:9]: Expected whitespace around "=". [format:separator-s
  6 │ local x =0
    │         ^
 No errors and 4 warnings
-@@ -1,9 +1,9 @@
  -- config: (lint (only format:op-space format:separator-space))
  
 -local x,y, z
@@ -29,3 +28,6 @@ No errors and 4 warnings
  local x = 0 -- ok
  
  local x -- dubious, but ok
+ =
+ 0
+ 

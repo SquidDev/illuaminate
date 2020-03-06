@@ -2,7 +2,7 @@ open OpamParserTypes
 module J = Yojson.Safe
 
 module Versions = struct
-  let omnomnom = "6b6d503d45f41a8a4f6af042e19d9278aa403c25"
+  let omnomnom = "a0620d42b2ac94fcc4617e87709d6bda9188362c"
 end
 
 let rec json_of_value : value -> J.t = function
@@ -27,7 +27,7 @@ let dep_of_value ~os : value -> dep_kind * string * string = function
       in
       let rec build (kind, version) = function
         | [] -> (kind, version)
-        | Ident (_, ("with-test" | "with-doc" | "build")) :: xs -> build (Dev, version) xs
+        | Ident (_, ("with-test" | "with-doc" | "build" | "dev")) :: xs -> build (Dev, version) xs
         | Prefix_relop (_, op, String (_, v)) :: xs -> (
           match version with
           | Some _ -> Printf.sprintf "Multiple versions for '%s'" p |> failwith

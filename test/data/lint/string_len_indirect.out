@@ -11,7 +11,9 @@ string_len_indirect.lua:[9:11-9:17]: Prefer `#` over string.len [stdlib:string-l
  9 │ local _ = z "foo"
    │           ^^^^^^^
 No errors and 3 warnings
-@@ -4,7 +4,7 @@
+ -- config: (lint (only stdlib:string-len))
+ 
+ local x = string
  local y = string.len
  local z = x.len
  

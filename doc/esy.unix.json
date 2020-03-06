@@ -1,0 +1,50 @@
+{
+  "name": "illuaminate",
+  "version": "0.1.0",
+  "description": "Source code analysis for Lua",
+  "license": "BSD-3-Clause",
+  "homepage": "https://github.com/squiddev/illuaminate",
+  "dependencies": {
+    "ocaml": ">= 4.08",
+    "@opam/dune": ">= 2.3",
+    "@opam/cmdliner": "*",
+    "@opam/containers": "*",
+    "@opam/fpath": "*",
+    "@opam/js_of_ocaml": "*",
+    "@opam/logs": "*",
+    "@opam/menhir": "*",
+    "@opam/omd": "*",
+    "@opam/ppx_deriving_yojson": "*",
+    "@opam/re": "*",
+    "@opam/result": "*",
+    "@opam/yojson": "*",
+    "@opam/lwt": "*",
+    "@opam/cohttp-lwt-unix": "*",
+    "@opam/tls": "*"
+  },
+  "devDependencies": {
+    "@opam/js_of_ocaml-compiler": "*",
+    "@opam/js_of_ocaml-ppx": "*",
+    "@opam/ppx_deriving": "*",
+    "@opam/ppxlib": "*",
+    "@opam/reason": "*",
+    "@opam/junit": "*",
+    "@opam/omnomnom": "*",
+    "@opam/odoc": "*",
+    "@opam/ocamlformat": "*",
+    "@opam/opam-file-format": "*"
+  },
+  "esy": {
+    "build": "dune build -p #{self.name}",
+    "release": { "includePackages": [ "root" ] },
+    "buildEnv": { "PATH": "#{self.root / '_build_tools' : $PATH}" }
+  },
+  "resolutions": {
+    "@opam/omnomnom":
+      "git://github.com/SquidDev/omnomnom:omnomnom.opam#a0620d42b2ac94fcc4617e87709d6bda9188362c"
+  },
+  "scripts": {
+    "test": "dune build @runtest -f",
+    "format": "dune build @fmt --auto-promote"
+  }
+}

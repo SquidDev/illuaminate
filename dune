@@ -22,6 +22,7 @@
 
 (rule
  (targets esy.json)
+ (alias opam)
  (deps
   (:opam illuaminate.opam)
   (:exe src/tools/esy.exe))
@@ -30,3 +31,7 @@
   (with-stdout-to
    %{targets}
    (run %{exe} %{opam}))))
+
+(alias
+ (name opam)
+ (deps illuaminate.opam))

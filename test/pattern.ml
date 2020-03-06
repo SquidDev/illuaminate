@@ -54,6 +54,6 @@ let tests =
                  else Printf.sprintf "Expected pattern %S to not match %S, but it did" pat dir
                in
                result
-                 ~message:(Some (fun fmt -> Format.pp_print_string fmt msg))
+                 ~message:(fun fmt -> Format.pp_print_string fmt msg)
                  (Failed { backtrace = None })))
   |> group "Patterns"

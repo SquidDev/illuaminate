@@ -23,7 +23,6 @@ string_len.lua:[10:11-10:29]: Prefer `#` over string.len [stdlib:string-len]
  10 │ local _ = string.len( "foo" ) + 2
     │           ^^^^^^^^^^^^^^^^^^^
 No errors and 6 warnings
-@@ -1,13 +1,13 @@
  -- config: (lint (only stdlib:string-len))
  
 -local _ = string.len "foo"
@@ -42,3 +41,6 @@ No errors and 6 warnings
  
  -- All of these fine
  local _ = #"foo"
+ local _ = string.lens("foo")
+ local _ = strings.len("foo")
+ 

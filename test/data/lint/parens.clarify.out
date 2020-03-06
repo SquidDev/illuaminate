@@ -19,7 +19,6 @@ parens.clarify.lua:[15:11-15:19]: Unnecessary parenthesis. [syntax:redundant-par
  15 │ local _ = ((2 + 2)) + 2
     │           ^^^^^^^^^
 No errors and 5 warnings
-@@ -1,6 +1,6 @@
  -- config: (lint (only syntax:redundant-parens) (allow-clarifying-parens true))
  
 -local _ = (2 + 2)
@@ -27,7 +26,8 @@ No errors and 5 warnings
  local _ = (2 + 2)() -- ok
  local _ = (2 + 2)[1] -- ok
  
-@@ -9,8 +9,8 @@
+ local _ = (2 + 2) * 2 -- ok
+ local _ = 2 + (2 * 2) -- ok
  local _ = 2 + (2 + 2) -- ok
  local _ = (2 + 2) + 2 -- ok
  
