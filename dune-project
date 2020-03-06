@@ -48,7 +48,10 @@
     ppx_deriving_yojson
     re
     result
-    yojson)
+    yojson
+
+    ;; Language server
+    lsp)
   (depopts
     ; GitHub integration (HTTP support mostly). This is not required, as
     ; we shell out to curl by default.

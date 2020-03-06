@@ -1,5 +1,5 @@
- ;; Uncomment the next section if you want to use cohttp with illuaminate. Sadly
- ;; optional and variant do not play well together.
+;; Uncomment the next section if you want to use cohttp with illuaminate. Sadly
+;; optional and variant do not play well together.
 
 ; (library
 ;  (name iluaminateGithub_unix)
