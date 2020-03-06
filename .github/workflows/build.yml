@@ -55,5 +55,5 @@ jobs:
     - name: Publish executable
       uses: actions/upload-artifact@v1
       with:
-        name: illuaminate
+        name: illuaminate-windows-x86-64
         path: illuaminate.exe
