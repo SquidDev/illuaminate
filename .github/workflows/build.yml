@@ -50,10 +50,32 @@ jobs:
 
     - name: Extract executable
       run: |
-        Copy-Item ((esy status | ConvertFrom-Json | Select-Object).rootInstallPath + "\bin\illuaminate.exe") illuaminate.exe
+        mkdir bin
+        Copy-Item ((esy status | ConvertFrom-Json | Select-Object).rootInstallPath + "\bin\*.exe") bin
 
     - name: Publish executable
       uses: actions/upload-artifact@v1
       with:
         name: illuaminate-windows-x86-64
-        path: illuaminate.exe
+        path: bin/
+
+  upload_archives:
+    name: Upload archives
+    runs-on: ubuntu-latest
+    needs: build_windows
+    if: github.ref == 'master'
+
+    steps:
+      - name: Download executable
+        uses: actions/download-artifact@v1
+        with:
+          name: illuaminate-windows-x86-64
+          path: bin/
+
+      - name: Upload
+        run: .github/workflows/deploy.sh
+        env:
+          SSH_KEY: "${secrets.SSH_KEY}"
+          SSH_USER: "${secrets.SSH_USER}"
+          SSH_HOST: "${secrets.SSH_HOST}"
+          SSH_PORT: "${secrets.SSH_PORT}"
