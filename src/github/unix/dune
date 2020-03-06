@@ -1,7 +1,10 @@
-(library
- (name iluaminateGithub_unix)
- (public_name illuaminate.github.unix)
- (implements illuaminate.github)
- (libraries result lwt lwt.unix cohttp cohttp-lwt-unix cohttp-lwt uri yojson
-   illuaminate.core ppx_deriving_yojson.runtime)
- (variant unix))
+ ;; Uncomment the next section if you want to use cohttp with illuaminate. Sadly
+ ;; optional and variant do not play well together.
+
+; (library
+;  (name iluaminateGithub_unix)
+;  (public_name illuaminate.github.unix)
+;  (implements illuaminate.github)
+;  (variant unix)
+;  (libraries result lwt lwt.unix cohttp cohttp-lwt-unix cohttp-lwt uri yojson
+;    tls illuaminate.core ppx_deriving_yojson.runtime))

@@ -5,4 +5,4 @@
   (:standard -safe-string))
  (libraries ppxlib ppxlib.ast base)
  (preprocess
-  (pps ppxlib.metaquot ppxlib.runner)))
+  (pps ppxlib.metaquot)))

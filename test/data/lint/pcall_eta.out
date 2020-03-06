@@ -15,7 +15,6 @@ pcall_eta.lua:[19:12-19:43]: Prefer passing function arguments to pcall, rather 
  19 │ local ok = pcall(function() f(1, 2, 3) end)
     │            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 No errors and 4 warnings
-@@ -1,7 +1,7 @@
  -- config: (lint (only stdlib:pcall-eta))
  
 -pcall(function() f(1, 2, 3) end)
@@ -25,7 +24,14 @@ No errors and 4 warnings
  
  pcall(function() return f(f()) end) -- skip: side effect in args
  pcall(function(x) return f(x) end) -- skip: function arguments
-@@ -16,5 +16,5 @@
+ pcall(function() f(1, 2, 3) end, 1) -- skip: applying additional arguments
+ pcall(function() f() g() end) -- skip: complex block
+ 
+ -- Warns but doesn't fix.
+ -- TODO: Handle this correctly
+ pcall(function()
+   return f(
+       1
    )
  end)
  

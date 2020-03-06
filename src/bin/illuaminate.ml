@@ -2,17 +2,6 @@ open IlluaminateCore
 open IlluaminateLint
 module StringMap = Map.Make (String)
 
-let uses_ansi channel =
-  let dumb =
-    try
-      match Sys.getenv "TERM" with
-      | "dumb" | "" -> true
-      | _ -> false
-    with Not_found -> true
-  in
-  let isatty = try Unix.isatty channel with Unix.Unix_error _ -> false in
-  (not dumb) && isatty
-
 let reporter () =
   let open Error.Style in
   let app_name =
@@ -41,7 +30,7 @@ let reporter () =
 let lint paths github =
   let errs = Error.make () in
   let loader = Loader.create errs in
-  let modules, builder = List.map Fpath.v paths |> Loader.load_from_many ~loader in
+  let modules, builder = Loader.load_from_many ~loader paths in
   let data = IlluaminateData.Builder.(empty |> builder |> build) in
   modules
   |> List.iter (function
@@ -61,7 +50,7 @@ let lint paths github =
 let fix paths =
   let errs = Error.make () in
   let loader = Loader.create errs in
-  let modules, builder = List.map Fpath.v paths |> Loader.load_from_many ~loader in
+  let modules, builder = Loader.load_from_many ~loader paths in
   let data = IlluaminateData.Builder.(empty |> builder |> build) in
   let modules' =
     modules
@@ -103,8 +92,8 @@ let doc_gen path =
   let module E = IlluaminateDocEmit in
   let errs = Error.make () in
   let loader = Loader.create errs in
-  ( CCOpt.get_lazy (fun () -> Sys.getcwd ()) path
-  |> Fpath.v |> Loader.load_from ~loader
+  ( CCOpt.get_lazy (fun () -> Sys.getcwd () |> Fpath.v) path
+  |> Loader.load_from ~loader
   |> Option.iter @@ fun (config, _, builder) ->
      let data = IlluaminateData.Builder.(empty |> builder |> build) in
      let modules =
@@ -181,9 +170,29 @@ module Args = struct
 
   let ( and+ ) a b = Term.(const (fun x y -> (x, y)) $ a $ b)
 
+  type common =
+    { verbose : bool list;
+      colour : bool option
+    }
+
   let common =
-    value & flag_all
-    & info ~docs:Cmdliner.Manpage.s_common_options ~doc:"With verbose messages" [ "verbose"; "v" ]
+    let+ verbose =
+      value & flag_all
+      & info ~docs:Cmdliner.Manpage.s_common_options
+          ~doc:
+            "Show log messages. One $(b,-v) shows errors, warnings and information messages. \
+             Additional usages will also show debug messages."
+          [ "verbose"; "v" ]
+    and+ colour =
+      value
+      & opt ~vopt:(Some true)
+          (enum [ ("never", Some false); ("always", Some true); ("auto", None) ])
+          None
+      & info ~docv:"when" ~docs:Cmdliner.Manpage.s_common_options
+          ~doc:"Show coloured messages. When auto, we attempt to determine if the output is a TTY."
+          [ "color"; "colour" ]
+    in
+    { verbose; colour }
 
   let common_docs : Cmdliner.Manpage.block list =
     [ `S Cmdliner.Manpage.s_common_options;
@@ -192,7 +201,22 @@ module Args = struct
          sub-command, not before."
     ]
 
-  let setup_common verbose =
+  let uses_ansi force channel =
+    match force with
+    | Some x -> x
+    | None ->
+        let dumb =
+          match Sys.getenv_opt "TERM" with
+          | Some ("dumb" | "") | None -> true
+          | Some _ -> false
+        in
+        let isatty = try Unix.isatty channel with Unix.Unix_error _ -> false in
+        (not dumb) && isatty
+
+  let setup_common { verbose; colour } =
+    if uses_ansi colour Unix.stdout then Error.Style.setup_ansi Format.std_formatter;
+    if uses_ansi colour Unix.stderr then Error.Style.setup_ansi Format.err_formatter;
+
     let l =
       match verbose with
       | [] -> None
@@ -202,13 +226,26 @@ module Args = struct
     Logs.(set_level ~all:true l);
     reporter () |> Logs.set_reporter
 
-  let files_arg =
-    value & pos_all file [] & info ~docv:"FILE" ~doc:"Files and directories to check." []
+  let file =
+    let parse s =
+      let open CCResult.Infix in
+      Fpath.of_string s >>= fun path ->
+      (* There's a strange bug on Windows where "foo\\" will not exist, but "foo" will. In order to
+         avoid this, we remove the trailing path segment. *)
+      let path = Fpath.rem_empty_seg path in
+      let s = Fpath.to_string path in
+      match Sys.file_exists s with
+      | true -> Ok path
+      | false -> Error (`Msg ("no file or directory " ^ s))
+    in
+    conv ~docv:"FILE" (parse, Fpath.pp)
+
+  let files_arg = value & pos_all file [] & info ~doc:"Files and directories to check." []
 
   let file_arg =
     value
     & pos 0 (some ~none:"current directory" file) None
-    & info ~docv:"FILE" ~doc:"File/directory to generate docs for." []
+    & info ~doc:"File/directory to generate docs for." []
 end
 
 let run () =
@@ -272,8 +309,5 @@ let run () =
     in
     (Term.(ret term), Term.info "illuaminate" ~doc ~exits:Term.default_exits)
   in
-
-  if uses_ansi Unix.stdout then Error.Style.setup_ansi Format.std_formatter;
-  if uses_ansi Unix.stderr then Error.Style.setup_ansi Format.err_formatter;
 
   Term.exit @@ Term.eval_choice default_cmd [ lint_cmd; fix_cmd; doc_gen_cmd; init_config_cmd ]

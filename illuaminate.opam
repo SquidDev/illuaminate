@@ -10,35 +10,31 @@ license: "BSD-3-Clause"
 homepage: "https://github.com/squiddev/illuaminate"
 bug-reports: "https://github.com/squiddev/illuaminate/issues"
 depends: [
-  "ocaml" {>= "4.06"}
-  "dune" {>= "2.0"}
+  "ocaml" {>= "4.08"}
+  "dune" {>= "2.3"}
+  "js_of_ocaml-compiler" {build}
+  "js_of_ocaml-ppx" {build}
+  "ppx_deriving" {build}
   "ppxlib" {build}
   "reason" {build}
-  "ppx_deriving" {build}
-  "js_of_ocaml-ppx" {build}
-  "js_of_ocaml-compiler" {build}
-  "odoc" {with-doc}
-  "omnomnom" {with-test}
-  "patience_diff" {with-test}
   "junit" {with-test}
+  "omnomnom" {with-test}
+  "odoc" {with-doc}
+  "ocamlformat" {dev}
+  "opam-file-format" {dev}
   "cmdliner"
   "containers"
   "fpath"
+  "js_of_ocaml"
   "logs"
   "menhir"
   "omd"
-  "re"
-  "js_of_ocaml"
-  "cohttp"
-  "cohttp-lwt"
-  "cohttp-lwt-unix"
-  "lwt"
-  "lwt_ssl"
   "ppx_deriving_yojson"
+  "re"
   "result"
-  "ssl"
   "yojson"
 ]
+depopts: ["lwt" "cohttp-lwt-unix" "tls"]
 build: [
   ["dune" "subst"] {pinned}
   [

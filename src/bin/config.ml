@@ -252,14 +252,13 @@ let apply_mod set = function
   | Exclude All -> TagSet.empty
   | Exclude (Tag t) -> TagSet.remove t set
 
-let is_source config path =
+let always_pattern = Pattern.parse "*"
+
+let files iter config path =
+  let iter x = if Fpath.has_ext ".lua" x then iter x in
   match config with
-  | Default -> true
-  | Config { root; sources; _ } ->
-      Fpath.is_rooted ~root path
-      && List.exists
-           (Fpath.relativize ~root path |> Option.get |> Fpath.to_string |> Pattern.matches)
-           sources
+  | Default -> Pattern.iter iter ~root:path always_pattern
+  | Config { root; sources; _ } -> Pattern.iter_all iter ~path ~root sources
 
 (** Get all linters and their configuration options for a particular file. *)
 let get_linters config path =
@@ -268,7 +267,7 @@ let get_linters config path =
   | Config { root; pat_config; _ } ->
       if not (Fpath.is_rooted ~root path) then
         failwith "Path should be a child of the config's root.";
-      let path = Fpath.relativize ~root path |> Option.get |> Fpath.to_string in
+      let path = Fpath.relativize ~root path |> Option.get in
       let enabled, store =
         List.fold_left
           (fun (linters, store) { pattern; tags; linter_options } ->

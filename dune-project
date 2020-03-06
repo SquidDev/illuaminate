@@ -1,9 +1,9 @@
-(lang dune 2.0)
+(lang dune 2.3)
 (using menhir 2.0)
 (using library_variants 0.2)
 (implicit_transitive_deps false)
-
 (generate_opam_files true)
+
 (name illuaminate)
 (version 0.1.0)
 (authors "Jonathan Coates")
@@ -16,36 +16,42 @@
   (synopsis "Source code analysis for Lua")
   (description "Provides various tools for parsing, processing and producing Lua source code. Currently does very little, but will hopefully grow in the future.")
   (depends
-    (ocaml (>= 4.06))
-    ; Build-time (:build)
-    (dune (>= 2.0))
+    (ocaml (>= 4.08))
+
+    ;; Build-time
+    (dune (>= 2.3)) ; While a build-tool, dune shouldn't be build-time only
+    (js_of_ocaml-compiler :build)
+    (js_of_ocaml-ppx :build)
+    (ppx_deriving :build)
     (ppxlib :build)
     (reason :build)
-    (ppx_deriving :build)
-    (js_of_ocaml-ppx :build)
-    (js_of_ocaml-compiler :build)
-    (odoc :with-doc)
-    ; Test (:with-test)
-    (omnomnom :with-test)
-    (patience_diff :with-test)
+
+    ; Test
     (junit :with-test)
+    (omnomnom :with-test)
+
+    ; Documentation generation
+    (odoc :with-doc)
+
+    ; Dev-only dependencies. We mark them as with-test for convenience's sake.
+    (ocamlformat :dev)
+    (opam-file-format :dev)
+
     ; Core
     cmdliner
     containers
     fpath
+    js_of_ocaml
     logs
     menhir
     omd
-    re
-    js_of_ocaml
-    ; GitHub integration (HTTP support mostly)
-    cohttp
-    cohttp-lwt
-    cohttp-lwt-unix
-    lwt
-    lwt_ssl
     ppx_deriving_yojson
+    re
     result
-    ssl
-    yojson
-    ))
+    yojson)
+  (depopts
+    ; GitHub integration (HTTP support mostly). This is not required, as
+    ; we shell out to curl by default.
+    lwt
+    cohttp-lwt-unix
+    tls))

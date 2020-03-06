@@ -17,12 +17,6 @@
  (variants unix))
 
 (executable
- (name illuaminate_small)
- (libraries illuaminate)
- (modules illuaminate_small)
- (modes exe))
-
-(executable
  (name illuaminate_js)
  (modules illuaminate_js)
  (libraries illuaminate)
@@ -38,16 +32,9 @@
  (action
   (run upx -o %{target} %{deps})))
 
-(rule
- (target illuaminate_small.min.exe)
- (deps illuaminate_small.exe)
- (action
-  (run upx -o %{target} %{deps})))
-
 (install
  (section bin)
  (package illuaminate)
  (files
   (illuaminate_all.min.exe as illuaminate)
-  (illuaminate_small.min.exe as illuaminate.min)
   (illuaminate_js.bc.js as illuaminate.js)))

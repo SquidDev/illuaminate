@@ -11,7 +11,6 @@ spacing_assign.lua:[5:3-5:3]: Expected whitespace around "=". [format:separator-
  5 │ x =0
    │   ^
 No errors and 3 warnings
-@@ -1,7 +1,7 @@
  -- config: (lint (only format:op-space format:separator-space))
  
 -x = 0,1, 2
