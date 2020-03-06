@@ -1,4 +1,4 @@
-name: CI (Linux)
+name: CI (Windows)
 
 on:
   push: { branches: [ master ] }
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     strategy:
       matrix:
@@ -22,7 +22,8 @@ jobs:
 
     - name: Setup dependencies
       run: |
-        cp doc/esy.unix.json esy.json
+        cp doc/esy.windows.json esy.json
+        rm src/github/unix/dune
         esy i
 
     - name: Build
