@@ -3,7 +3,7 @@ type segment =
   | Literal of string  (** A segment which must have exactly this contents. *)
   | Regex of Re.re  (** A segment which must match this regex. *)
 
-let rec pp_segment out = function
+let pp_segment out = function
   | Anything -> Format.fprintf out "**"
   | Literal l -> Format.fprintf out "%s" l
   | Regex _ -> Format.fprintf out "[Regex]"

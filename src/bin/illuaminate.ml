@@ -80,7 +80,7 @@ let fix paths =
 
 let mkdirs =
   let rec go xs path =
-    let path_s = Fpath.to_string path in
+    let path_s = Fpath.(rem_empty_seg path |> to_string) in
     if Sys.file_exists path_s then List.iter (fun p -> Unix.mkdir p 0o755) xs
     else if Fpath.is_root path then failwith "Root directory doesn't exist!"
     else go (path_s :: xs) Fpath.(parent path |> normalize)
