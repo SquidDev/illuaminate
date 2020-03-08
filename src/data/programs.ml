@@ -25,7 +25,13 @@ module Files = struct
   let file : (id, Syntax.program) Core.Key.t = Core.Key.oracle ~name:(__MODULE__ ^ ".Files.file") ()
 
   let files : (unit, id list) Core.Key.t =
-    Core.Key.oracle ~eq_v:( = ) ~name:(__MODULE__ ^ ".Files.files") ()
+    let rec eq_v xs ys =
+      match (xs, ys) with
+      | [], [] -> true
+      | { id = x; _ } :: xs, { id = y; _ } :: ys when x = y -> eq_v xs ys
+      | _ -> false
+    in
+    Core.Key.oracle ~eq_v ~name:(__MODULE__ ^ ".Files.files") ()
 
   let builder store builder =
     let get_file { id; store = this_store } =
