@@ -323,7 +323,24 @@ module Infer = struct
       match infer_name state v with
       | None -> simp Unknown
       | Some x -> !x )
-    | _ -> simp Unknown
+    | Parens { paren_expr; _ } -> infer_expr state paren_expr
+    (* Visit children and return nothing. *)
+    | Dots _ -> simp Unknown
+    | ECall c -> visit_call state c; simp Unknown
+    | UnOp { unop_rhs; _ } -> visit_expr state unop_rhs; simp Unknown
+    | BinOp { binop_lhs; binop_rhs; _ } ->
+        visit_expr state binop_lhs; visit_expr state binop_rhs; simp Unknown
+
+  and visit_expr state v : unit = infer_expr state v |> ignore
+
+  and visit_call state =
+    let visit_args = function
+      | CallArgs { args; _ } -> SepList0.iter (visit_expr state) args
+      | CallString _ -> ()
+      | CallTable { table_body; _ } -> infer_table state table_body |> ignore
+    in
+    function
+    | Call { fn = e; args } | Invoke { obj = e; args; _ } -> visit_expr state e; visit_args args
 
   and infer_var state v : value documented ref option =
     match R.get_var v state.resolve with
@@ -332,7 +349,9 @@ module Infer = struct
 
   and infer_name state : name -> value documented ref option = function
     | NVar v -> infer_var state v
-    | _ -> (* TODO *) None
+    (* TODO: Would be good to do NDot, somehow. *)
+    | NDot { tbl; _ } -> visit_expr state tbl; None
+    | NLookup { tbl; key; _ } -> visit_expr state tbl; visit_expr state key; None
 
   (** Get a documented table entry *)
   and infer_table state = function
@@ -348,10 +367,11 @@ module Infer = struct
           infer_expr state value |> document_with state ~before ~after (Spanned.table_item p)
         in
         (Node.contents.get ident, value) :: infer_table state xs
-    | _ :: xs ->
-        (* For now, we just skip all other table items. In the future it might be worth adding type
-           hints or something. *)
-        infer_table state xs
+    (* For now, we just skip all other table items. In the future it might be worth adding type
+       hints or something. *)
+    | (Array e, _) :: xs -> visit_expr state e; infer_table state xs
+    | (ExprPair { key; value; _ }, _) :: xs ->
+        visit_expr state key; visit_expr state value; infer_table state xs
 
   (** Get the descriptor for a list of arguments *)
   and infer_fun state ?(has_self = false) args body =
@@ -404,7 +424,23 @@ module Infer = struct
         None
     | Return { return_vals = Some (Mono expr); _ } as s ->
         infer_expr state expr |> document_stmt state s |> Option.some
-    | _ -> None
+    (* Visit children and return nothing. *)
+    | SCall c -> visit_call state c; None
+    | Break _ | Semicolon _ -> None
+    | stmt ->
+        (* For any other node, just visit any child expressions/blocks. This is very lazy, but
+           works. If we ever get a more sane type inference algorithm, obviously this'll be
+           revisited. *)
+        let c =
+          object
+            inherit Syntax.iter
+
+            method! block x = infer_stmts state x |> ignore
+
+            method! expr x = infer_expr state x |> ignore
+          end
+        in
+        c#stmt stmt; None
 
   and infer_stmts state = function
     | [] -> None
