@@ -24,7 +24,8 @@ module Files = struct
 
   let file : (id, Syntax.program) Core.Key.t = Core.Key.oracle ~name:(__MODULE__ ^ ".Files.file") ()
 
-  let files : (unit, id list) Core.Key.t = Core.Key.oracle ~name:(__MODULE__ ^ ".Files.files") ()
+  let files : (unit, id list) Core.Key.t =
+    Core.Key.oracle ~eq_v:( = ) ~name:(__MODULE__ ^ ".Files.files") ()
 
   let builder store builder =
     let get_file { id; store = this_store } =

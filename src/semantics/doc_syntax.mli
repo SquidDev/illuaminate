@@ -66,6 +66,9 @@ and module_info =
     not a complete description. *)
 val get_suffix : value -> string
 
+(** Determine if a documented term actually has a doc comment. *)
+val is_documented : 'a documented -> bool
+
 (** A base class for visitors over the document syntax tree. *)
 class iter :
   object

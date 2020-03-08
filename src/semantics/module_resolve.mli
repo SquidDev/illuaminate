@@ -26,3 +26,7 @@ val get_var : t -> Syntax.var -> (Reference.t * value documented) option
 
 (** Get the reference this name is pointing to. *)
 val get_name : t -> Syntax.name -> (Reference.t * value documented) option
+
+(** Determine if a documented node is "interesting". Something is interesting, if it comes from
+    another module or it has a doc comment. *)
+val is_interesting : Reference.t -> value documented -> bool

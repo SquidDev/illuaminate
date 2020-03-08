@@ -63,12 +63,14 @@ let lex_file name doc =
 let get_file { files; _ } = Table.find_opt files
 
 (** Update the {!Data.Programs.Files.t} store. *)
-let sync_file store = function
+let sync_file store file =
+  ( match file with
   | { program = Error _; _ } -> ()
   | { program = Ok p; file = None; _ } as file ->
       let id = Data.Programs.Files.add p store.file_store in
       file.file <- Some id
-  | { program = Ok p; file = Some id; _ } -> Data.Programs.Files.update id p
+  | { program = Ok p; file = Some id; _ } -> Data.Programs.Files.update id p );
+  Data.refresh store.data
 
 let update_file store (doc : document) contents =
   doc.contents <- Some contents;

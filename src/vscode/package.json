@@ -43,7 +43,7 @@
   "devDependencies": {
     "@types/node": "^12.11.7",
     "@types/vscode": "^1.42.0",
-    "typescript": "^3.6.4"
+    "typescript": "^3.8.2"
   },
   "dependencies": {
     "vscode-languageclient": "^6.1.1"
