@@ -102,6 +102,6 @@ module Linters : sig
   (** Checks for calls to pcall which could be eta-reduced. *)
   val pcall_eta : linter
 
-  (** Warn when using an unresolved name within a module. *)
-  val unknown_module_member : linter
+  (** Warn when using an unresolved member of a module or table *)
+  val unresolved_member : linter
 end

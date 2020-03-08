@@ -465,11 +465,20 @@ end
 
 module Resolve = struct
   module Lift = Doc_abstract_syntax.Lift (Doc_syntax) (Doc_syntax)
+
+  module DocTbl = Hashtbl.Make (struct
+    type t = Doc_syntax.value documented
+
+    let hash = Hashtbl.hash
+
+    let equal = ( == )
+  end)
+
   open! Reference
 
   type state =
     { modules : module_info documented Lazy.t StringMap.t;
-      current_module : module_info documented
+      current_module : module_info documented option
     }
 
   let resolve =
@@ -514,6 +523,7 @@ module Resolve = struct
     let finders =
       [ (* Find a term in this mod *)
         (fun { current_module; _ } name is_type ->
+          Option.bind current_module @@ fun current_module ->
           CCList.find_map (fun f -> f current_module.descriptor name is_type) in_module_finders);
         (* Find a module with this name *)
         (fun { modules; _ } name is_type ->
@@ -572,7 +582,7 @@ module Resolve = struct
       local
     }
 
-  let rec go_value lift = function
+  let rec go_value ~cache lift = function
     | Function { args; rets; throws; has_self } ->
         Function
           { args = List.map (List.map (Lift.arg lift)) args;
@@ -581,13 +591,20 @@ module Resolve = struct
             has_self
           }
     | Table fields ->
-        Table (List.map (fun (name, field) -> (name, go_documented lift go_value field)) fields)
+        Table (List.map (fun (name, field) -> (name, go_value_doc ~cache lift field)) fields)
     | (Expr _ | Unknown | Undefined) as e -> e
-    | Type _ -> failwith "Illegal nested type"
+    | Type t -> Type (go_type ~cache lift t)
 
-  let go_type lift { type_name; type_members } =
+  and go_value_doc ~cache lift value =
+    match DocTbl.find_opt cache value with
+    | Some x -> x
+    | None ->
+        let x = go_documented lift (go_value ~cache) value in
+        DocTbl.add cache value x; x
+
+  and go_type ~cache lift { type_name; type_members } =
     let go_member { member_name; member_is_method; member_value } =
-      { member_name; member_is_method; member_value = go_documented lift go_value member_value }
+      { member_name; member_is_method; member_value = go_value_doc ~cache lift member_value }
     in
     { type_name; type_members = List.map go_member type_members }
 
@@ -612,7 +629,7 @@ module Resolve = struct
     in
     Description (Omd_representation.visit visit x)
 
-  let go_module modules current_module to_resolve =
+  let context modules current_module =
     let context = { modules; current_module } in
     let lift : Lift.t =
       { any_ref = resolve_ref context ~types_only:false;
@@ -620,12 +637,15 @@ module Resolve = struct
         description = go_desc context
       }
     in
+    (DocTbl.create 16, lift)
+
+  let go_module ~cache lift to_resolve =
     go_documented lift
       (fun lift { mod_name; mod_kind; mod_contents; mod_types } ->
         { mod_name;
           mod_kind;
-          mod_contents = go_value lift mod_contents;
-          mod_types = List.map (go_documented lift go_type) mod_types
+          mod_contents = go_value ~cache lift mod_contents;
+          mod_types = List.map (go_documented lift (go_type ~cache)) mod_types
         })
       to_resolve
 end
@@ -665,7 +685,8 @@ type t =
   { current_module : result;
     errors : Error.t;
     comments : unit CommentCollection.t;
-    contents : module_info documented option
+    contents : module_info documented option;
+    vars : value documented VarTbl.t
   }
 
 let errors { errors; _ } = Error.errors errors
@@ -712,39 +733,46 @@ let need_for data key file = D.need data D.Programs.Files.file file |> D.need da
 
 let get data program =
   let state, current_module = D.need data Infer.key program in
-  let contents =
-    D.need data unresolved_module program
-    |> Option.map @@ fun current ->
-       let all =
-         List.fold_left
-           (fun modules file ->
-             match need_for data unresolved_module file with
-             | None -> modules
-             | Some result ->
-                 let name = result.descriptor.mod_name in
-                 StringMap.update name
-                   (fun x -> Some (result :: Option.value ~default:[] x))
-                   modules)
-           StringMap.empty
-           (D.need data D.Programs.Files.files ())
-       in
-       let current_scope =
+  let contents = D.need data unresolved_module program in
+  let cache, lift =
+    let all =
+      List.fold_left
+        (fun modules file ->
+          match need_for data unresolved_module file with
+          | None -> modules
+          | Some result ->
+              let name = result.descriptor.mod_name in
+              StringMap.update name (fun x -> Some (result :: Option.value ~default:[] x)) modules)
+        StringMap.empty
+        (D.need data D.Programs.Files.files ())
+    in
+    let current_scope =
+      contents
+      |> Option.map @@ fun current ->
          (* Bring all other modules with the same name into scope if required. *)
          match StringMap.find_opt current.descriptor.mod_name all with
          | None -> current
          | Some all -> crunch_modules (if List.memq current all then all else current :: all)
-       in
-       let all = StringMap.map (fun x -> lazy (crunch_modules x)) all in
-       Resolve.go_module all current_scope current
+    in
+    let all = StringMap.map (fun x -> lazy (crunch_modules x)) all in
+    Resolve.context all current_scope
   in
-  { current_module; contents; errors = state.errs; comments = state.unused_comments }
+  let contents = Option.map (Resolve.go_module ~cache lift) contents in
+  let vars =
+    VarTbl.to_seq state.vars
+    |> Seq.map (fun (k, v) -> (k, Resolve.go_value_doc ~cache lift !v))
+    |> VarTbl.of_seq
+  in
+  { current_module; contents; errors = state.errs; comments = state.unused_comments; vars }
 
 let key = D.Programs.key ~name:__MODULE__ get
 
 let get_module ({ contents; _ } : t) = contents
 
+let get_var ({ vars; _ } : t) var = VarTbl.find_opt vars var
+
 let get_modules =
-  D.Key.key ~name:(__MODULE__ ^ "get_modules") @@ fun data () ->
+  D.Key.key ~name:(__MODULE__ ^ ".get_modules") @@ fun data () ->
   D.need data D.Programs.Files.files ()
   |> List.fold_left
        (fun modules file ->

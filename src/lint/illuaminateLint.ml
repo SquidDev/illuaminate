@@ -62,7 +62,7 @@ module Linters = struct
 
   let pcall_eta = Lint_pcall_eta.linter
 
-  let unknown_module_member = Lint_unresolved_mod_reference.linter
+  let unresolved_member = Lint_unresolved_member.linter
 
   let all =
     (* TODO: Find a more efficient order for these (namely group related passes together instead) *)
@@ -97,6 +97,6 @@ module Linters = struct
       pointless_discard;
       use_arg;
       use_discard;
-      unknown_module_member
+      unresolved_member
     ]
 end
