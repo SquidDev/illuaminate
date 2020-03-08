@@ -45,6 +45,9 @@ val errors : t -> Error.Error.t list
 (** Comments which were not attached to any node, and thus not processed. *)
 val detached_comments : t -> Doc_comment.comment list
 
+(** Get the documented node for this variable. *)
+val get_var : t -> Resolve.var -> value documented option
+
 (** Get the documented module for this program. *)
 val get_module : t -> module_info documented option
 

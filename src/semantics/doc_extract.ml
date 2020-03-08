@@ -323,7 +323,24 @@ module Infer = struct
       match infer_name state v with
       | None -> simp Unknown
       | Some x -> !x )
-    | _ -> simp Unknown
+    | Parens { paren_expr; _ } -> infer_expr state paren_expr
+    (* Visit children and return nothing. *)
+    | Dots _ -> simp Unknown
+    | ECall c -> visit_call state c; simp Unknown
+    | UnOp { unop_rhs; _ } -> visit_expr state unop_rhs; simp Unknown
+    | BinOp { binop_lhs; binop_rhs; _ } ->
+        visit_expr state binop_lhs; visit_expr state binop_rhs; simp Unknown
+
+  and visit_expr state v : unit = infer_expr state v |> ignore
+
+  and visit_call state =
+    let visit_args = function
+      | CallArgs { args; _ } -> SepList0.iter (visit_expr state) args
+      | CallString _ -> ()
+      | CallTable { table_body; _ } -> infer_table state table_body |> ignore
+    in
+    function
+    | Call { fn = e; args } | Invoke { obj = e; args; _ } -> visit_expr state e; visit_args args
 
   and infer_var state v : value documented ref option =
     match R.get_var v state.resolve with
@@ -332,7 +349,9 @@ module Infer = struct
 
   and infer_name state : name -> value documented ref option = function
     | NVar v -> infer_var state v
-    | _ -> (* TODO *) None
+    (* TODO: Would be good to do NDot, somehow. *)
+    | NDot { tbl; _ } -> visit_expr state tbl; None
+    | NLookup { tbl; key; _ } -> visit_expr state tbl; visit_expr state key; None
 
   (** Get a documented table entry *)
   and infer_table state = function
@@ -348,10 +367,11 @@ module Infer = struct
           infer_expr state value |> document_with state ~before ~after (Spanned.table_item p)
         in
         (Node.contents.get ident, value) :: infer_table state xs
-    | _ :: xs ->
-        (* For now, we just skip all other table items. In the future it might be worth adding type
-           hints or something. *)
-        infer_table state xs
+    (* For now, we just skip all other table items. In the future it might be worth adding type
+       hints or something. *)
+    | (Array e, _) :: xs -> visit_expr state e; infer_table state xs
+    | (ExprPair { key; value; _ }, _) :: xs ->
+        visit_expr state key; visit_expr state value; infer_table state xs
 
   (** Get the descriptor for a list of arguments *)
   and infer_fun state ?(has_self = false) args body =
@@ -404,7 +424,23 @@ module Infer = struct
         None
     | Return { return_vals = Some (Mono expr); _ } as s ->
         infer_expr state expr |> document_stmt state s |> Option.some
-    | _ -> None
+    (* Visit children and return nothing. *)
+    | SCall c -> visit_call state c; None
+    | Break _ | Semicolon _ -> None
+    | stmt ->
+        (* For any other node, just visit any child expressions/blocks. This is very lazy, but
+           works. If we ever get a more sane type inference algorithm, obviously this'll be
+           revisited. *)
+        let c =
+          object
+            inherit Syntax.iter
+
+            method! block x = infer_stmts state x |> ignore
+
+            method! expr x = infer_expr state x |> ignore
+          end
+        in
+        c#stmt stmt; None
 
   and infer_stmts state = function
     | [] -> None
@@ -465,11 +501,20 @@ end
 
 module Resolve = struct
   module Lift = Doc_abstract_syntax.Lift (Doc_syntax) (Doc_syntax)
+
+  module DocTbl = Hashtbl.Make (struct
+    type t = Doc_syntax.value documented
+
+    let hash = Hashtbl.hash
+
+    let equal = ( == )
+  end)
+
   open! Reference
 
   type state =
     { modules : module_info documented Lazy.t StringMap.t;
-      current_module : module_info documented
+      current_module : module_info documented option
     }
 
   let resolve =
@@ -514,6 +559,7 @@ module Resolve = struct
     let finders =
       [ (* Find a term in this mod *)
         (fun { current_module; _ } name is_type ->
+          Option.bind current_module @@ fun current_module ->
           CCList.find_map (fun f -> f current_module.descriptor name is_type) in_module_finders);
         (* Find a module with this name *)
         (fun { modules; _ } name is_type ->
@@ -572,7 +618,7 @@ module Resolve = struct
       local
     }
 
-  let rec go_value lift = function
+  let rec go_value ~cache lift = function
     | Function { args; rets; throws; has_self } ->
         Function
           { args = List.map (List.map (Lift.arg lift)) args;
@@ -581,13 +627,20 @@ module Resolve = struct
             has_self
           }
     | Table fields ->
-        Table (List.map (fun (name, field) -> (name, go_documented lift go_value field)) fields)
+        Table (List.map (fun (name, field) -> (name, go_value_doc ~cache lift field)) fields)
     | (Expr _ | Unknown | Undefined) as e -> e
-    | Type _ -> failwith "Illegal nested type"
+    | Type t -> Type (go_type ~cache lift t)
 
-  let go_type lift { type_name; type_members } =
+  and go_value_doc ~cache lift value =
+    match DocTbl.find_opt cache value with
+    | Some x -> x
+    | None ->
+        let x = go_documented lift (go_value ~cache) value in
+        DocTbl.add cache value x; x
+
+  and go_type ~cache lift { type_name; type_members } =
     let go_member { member_name; member_is_method; member_value } =
-      { member_name; member_is_method; member_value = go_documented lift go_value member_value }
+      { member_name; member_is_method; member_value = go_value_doc ~cache lift member_value }
     in
     { type_name; type_members = List.map go_member type_members }
 
@@ -612,7 +665,7 @@ module Resolve = struct
     in
     Description (Omd_representation.visit visit x)
 
-  let go_module modules current_module to_resolve =
+  let context modules current_module =
     let context = { modules; current_module } in
     let lift : Lift.t =
       { any_ref = resolve_ref context ~types_only:false;
@@ -620,12 +673,15 @@ module Resolve = struct
         description = go_desc context
       }
     in
+    (DocTbl.create 16, lift)
+
+  let go_module ~cache lift to_resolve =
     go_documented lift
       (fun lift { mod_name; mod_kind; mod_contents; mod_types } ->
         { mod_name;
           mod_kind;
-          mod_contents = go_value lift mod_contents;
-          mod_types = List.map (go_documented lift go_type) mod_types
+          mod_contents = go_value ~cache lift mod_contents;
+          mod_types = List.map (go_documented lift (go_type ~cache)) mod_types
         })
       to_resolve
 end
@@ -665,7 +721,8 @@ type t =
   { current_module : result;
     errors : Error.t;
     comments : unit CommentCollection.t;
-    contents : module_info documented option
+    contents : module_info documented option;
+    vars : value documented VarTbl.t
   }
 
 let errors { errors; _ } = Error.errors errors
@@ -712,39 +769,46 @@ let need_for data key file = D.need data D.Programs.Files.file file |> D.need da
 
 let get data program =
   let state, current_module = D.need data Infer.key program in
-  let contents =
-    D.need data unresolved_module program
-    |> Option.map @@ fun current ->
-       let all =
-         List.fold_left
-           (fun modules file ->
-             match need_for data unresolved_module file with
-             | None -> modules
-             | Some result ->
-                 let name = result.descriptor.mod_name in
-                 StringMap.update name
-                   (fun x -> Some (result :: Option.value ~default:[] x))
-                   modules)
-           StringMap.empty
-           (D.need data D.Programs.Files.files ())
-       in
-       let current_scope =
+  let contents = D.need data unresolved_module program in
+  let cache, lift =
+    let all =
+      List.fold_left
+        (fun modules file ->
+          match need_for data unresolved_module file with
+          | None -> modules
+          | Some result ->
+              let name = result.descriptor.mod_name in
+              StringMap.update name (fun x -> Some (result :: Option.value ~default:[] x)) modules)
+        StringMap.empty
+        (D.need data D.Programs.Files.files ())
+    in
+    let current_scope =
+      contents
+      |> Option.map @@ fun current ->
          (* Bring all other modules with the same name into scope if required. *)
          match StringMap.find_opt current.descriptor.mod_name all with
          | None -> current
          | Some all -> crunch_modules (if List.memq current all then all else current :: all)
-       in
-       let all = StringMap.map (fun x -> lazy (crunch_modules x)) all in
-       Resolve.go_module all current_scope current
+    in
+    let all = StringMap.map (fun x -> lazy (crunch_modules x)) all in
+    Resolve.context all current_scope
   in
-  { current_module; contents; errors = state.errs; comments = state.unused_comments }
+  let contents = Option.map (Resolve.go_module ~cache lift) contents in
+  let vars =
+    VarTbl.to_seq state.vars
+    |> Seq.map (fun (k, v) -> (k, Resolve.go_value_doc ~cache lift !v))
+    |> VarTbl.of_seq
+  in
+  { current_module; contents; errors = state.errs; comments = state.unused_comments; vars }
 
 let key = D.Programs.key ~name:__MODULE__ get
 
 let get_module ({ contents; _ } : t) = contents
 
+let get_var ({ vars; _ } : t) var = VarTbl.find_opt vars var
+
 let get_modules =
-  D.Key.key ~name:(__MODULE__ ^ "get_modules") @@ fun data () ->
+  D.Key.key ~name:(__MODULE__ ^ ".get_modules") @@ fun data () ->
   D.need data D.Programs.Files.files ()
   |> List.fold_left
        (fun modules file ->

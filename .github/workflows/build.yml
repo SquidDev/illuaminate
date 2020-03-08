@@ -16,6 +16,8 @@ jobs:
       with: { node-version: 12.x }
     - name: Install esy
       run: npm install -g esy
+    - name: Log
+      run: echo $GITHUB_REF
 
     - name: Setup dependencies
       run: esy i
@@ -63,19 +65,20 @@ jobs:
     name: Upload archives
     runs-on: ubuntu-latest
     needs: build_windows
-    if: github.ref == 'master'
+    if: github.ref == 'refs/heads/master'
 
     steps:
-      - name: Download executable
-        uses: actions/download-artifact@v1
-        with:
-          name: illuaminate-windows-x86-64
-          path: bin/
+    - uses: actions/checkout@v2
+    - name: Download executable
+      uses: actions/download-artifact@v1
+      with:
+        name: illuaminate-windows-x86-64
+        path: bin/
 
-      - name: Upload
-        run: .github/workflows/deploy.sh
-        env:
-          SSH_KEY: "${secrets.SSH_KEY}"
-          SSH_USER: "${secrets.SSH_USER}"
-          SSH_HOST: "${secrets.SSH_HOST}"
-          SSH_PORT: "${secrets.SSH_PORT}"
+    - name: Upload
+      run: .github/workflows/deploy.sh 2> /dev/null
+      env:
+        SSH_KEY:  ${{ secrets.SSH_KEY  }}
+        SSH_USER: ${{ secrets.SSH_USER }}
+        SSH_HOST: ${{ secrets.SSH_HOST }}
+        SSH_PORT: ${{ secrets.SSH_PORT }}

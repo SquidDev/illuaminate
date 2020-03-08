@@ -1,0 +1,13 @@
+unresolved_member.lua:[12:16-12:22]: Unknown field y in tbl_1 [var:unresolved-member]
+    │
+ 12 │ print(tbl_1.x, tbl_1.y)
+    │                ^^^^^^^
+unresolved_member.lua:[19:9-19:15]: Unknown field y in tbl_3 [var:unresolved-member]
+    │
+ 19 │   print(tbl_3.y)
+    │         ^^^^^^^
+unresolved_member.lua:[24:9-24:15]: Unknown field y in tbl_4 [var:unresolved-member]
+    │
+ 24 │   print(tbl_4.y)
+    │         ^^^^^^^
+No errors and 3 warnings
