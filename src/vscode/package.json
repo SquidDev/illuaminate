@@ -1,0 +1,51 @@
+{
+  "name": "illuaminate",
+  "displayName": "illuaminate",
+  "description": "Language server support for Lua, powered by illuaminate",
+  "version": "0.0.1",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.42.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:lua",
+    "onCommand:illuaminate.restartServer"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "illuaminate.restartServer",
+        "title": "Illuaminate: Restart"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Configuration for illuaminate",
+      "properties": {
+        "illuaminate.executable": {
+          "scope": "window",
+          "type": "string",
+          "default": "illuaminate-lsp",
+          "description": "The name or path to the illuaminate Language Server executable"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^12.11.7",
+    "@types/vscode": "^1.42.0",
+    "typescript": "^3.6.4"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^6.1.1"
+  }
+}
