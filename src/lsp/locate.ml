@@ -62,16 +62,8 @@ let rec list span f pos = function
   | [] -> None
   | x :: xs -> if Pos.contains pos (span x) then Some (f pos x) else list span f pos xs
 
-let rec block pos = function
-  | [] -> None
-  | x :: xs ->
-      if Pos.contains pos (Spanned.stmt x) then (
-        Logs.info (fun f ->
-            f "%d:%d within %a (%a)" pos.line pos.character Span.pp (Spanned.stmt x) Emit.stmt x);
-        Some (stmt pos x) )
-      else block pos xs
+let rec block p = list Spanned.stmt stmt p
 
-(* list Spanned.stmt stmt p *)
 and stmt pos stmt : node =
   match stmt with
   | Do { do_body; _ } -> block pos do_body <|> Stmt stmt
