@@ -4,12 +4,23 @@
   "description": "Language server support for Lua, powered by illuaminate",
   "version": "0.0.1",
   "license": "BSD-3-Clause",
+  "publisher": "squiddev",
+  "displayName": "illuaminate: Lua linter and code fixer",
+  "repository": {
+     "type" : "git",
+     "url" : "https://github.com/SquidDev/illuaminate.git"
+  },
   "engines": {
     "vscode": "^1.42.0"
   },
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Linters"
   ],
+  "keywords": [
+    "Lua"
+  ],
+  "preview": true,
   "activationEvents": [
     "onLanguage:lua",
     "onCommand:illuaminate.restartServer"
@@ -36,14 +47,16 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "vscode:prepublish": "npm run build:tsc",
+    "build:tsc": "tsc -p ./",
+    "build:package": "vsce package",
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
     "@types/node": "^12.11.7",
     "@types/vscode": "^1.42.0",
-    "typescript": "^3.8.2"
+    "typescript": "^3.8.2",
+    "vsce": "^1.74.0"
   },
   "dependencies": {
     "vscode-languageclient": "^6.1.1"

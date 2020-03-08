@@ -2,3 +2,4 @@
 **/tsconfig.json
 **/*.map
 **/*.ts
+*.vsix

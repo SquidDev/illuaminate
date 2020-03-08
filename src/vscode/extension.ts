@@ -6,7 +6,7 @@ let client: LanguageClient | undefined;
 const startServer = () => {
   // Spin up a new server
   const command = workspace.getConfiguration("illuaminate").get<string>("executable", "illuaminate-lsp");
-  const serverOptions: ServerOptions = { command, args: ["--log=out.log"] };
+  const serverOptions: ServerOptions = { command };
   const clientOptions: LanguageClientOptions = {
     documentSelector: [{ language: "lua" }],
     synchronize: {
