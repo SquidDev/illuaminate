@@ -32,6 +32,38 @@ let make_edit ~uri ~version edits =
         }
     }
 
+(** Get documentation of a node. *)
+module Hover = struct
+  open! Hover
+  open Doc.Syntax
+
+  let of_name ~store program name =
+    let modules = D.get (Store.data store) Module_resolve.key program in
+    Module_resolve.get_name modules name
+    |> Option.map @@ fun (refr, { description; descriptor; _ }) ->
+       (* For now, we just print the summary (for instance, foo(a, b, c)) and description. *)
+       let title =
+         Format.asprintf "### %a%s" Module_resolve.Reference.pp refr (get_suffix descriptor)
+       in
+       { range = Some (range (Syntax.Spanned.name name));
+         contents =
+           { value =
+               ( match description with
+               | None -> title
+               | Some (Description d) -> Printf.sprintf "%s\n%s" title (Omd.to_markdown d) );
+             kind = Markdown
+           }
+       }
+
+  let find ~store ~position program : Hover.result =
+    match Locate.locate position program with
+    | Var v -> of_name ~store program (NVar v)
+    | Name n -> of_name ~store program n
+    | n ->
+        Log.debug (fun f -> f "Not a variable node (%a)" Locate.pp_node_short n);
+        None
+end
+
 (** Get the initial assignment to a variable. *)
 module Declarations = struct
   open Locations
@@ -170,6 +202,8 @@ end
 let worker (type res) rpc store (_ : Initialize.ClientCapabilities.t) :
     res Client_request.t -> (Store.t * res, Jsonrpc.Response.Error.t) result = function
   | Shutdown -> Ok (store, ())
+  | TextDocumentHover { textDocument = { uri }; position } ->
+      on_program ~default:None store ~uri (Hover.find ~store ~position)
   | TextDocumentDeclaration { textDocument = { uri }; position } ->
       on_program ~default:None store ~uri (Declarations.find ~store ~position ~uri)
   | TextDocumentDefinition { textDocument = { uri }; position } ->

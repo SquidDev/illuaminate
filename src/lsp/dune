@@ -1,10 +1,18 @@
-(executable
- (name illuaminate_lsp)
+(library
+ (name illuaminate_lsp_core)
  (modes native)
+ (modules
+  (:standard \ illuaminate_lsp))
  (libraries containers containers.data cmdliner fpath illuaminate.core
    illuaminate.data illuaminate.parser illuaminate.semantics illuaminate.lint
    illuaminate.config str lsp omd result yojson logs lsp.stdune
    ppx_yojson_conv_lib))
+
+(executable
+ (name illuaminate_lsp)
+ (modes native)
+ (modules illuaminate_lsp)
+ (libraries illuaminate_lsp_core cmdliner lsp logs))
 
 (rule
  (target illuaminate_lsp.min.exe)

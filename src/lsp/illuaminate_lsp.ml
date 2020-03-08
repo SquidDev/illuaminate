@@ -1,18 +1,3 @@
-let src = Logs.Src.create ~doc:"The main server loop" "illuaminate-lsp"
-
-module Log = (val Logs.src_log src)
-
-let main () =
-  Log.info (fun f -> f "Starting server");
-
-  Lsp.Rpc.start (Store.create ())
-    { on_initialize = On_init.handle;
-      on_request = On_request.handle;
-      on_notification = On_notification.handle
-    }
-    stdin stdout;
-  Log.info (fun f -> f "Stopping server")
-
 let () =
   let open Cmdliner in
   let open Term in
@@ -40,7 +25,7 @@ let () =
     if Option.is_some log_file then (
       Logs.set_level ~all:true (Some Debug);
       Logs.set_reporter reporter );
-    Lsp.Logger.with_log_file log_file main
+    Lsp.Logger.with_log_file log_file Illuaminate_lsp_core.main
   in
 
   let cmd =

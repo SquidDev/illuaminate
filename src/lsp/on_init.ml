@@ -7,7 +7,7 @@ let init_info : Lsp.Initialize.Result.t =
             willSaveWaitUntil = false;
             save = None
           };
-        hoverProvider = false;
+        hoverProvider = true;
         completionProvider = None;
         signatureHelpProvider = None;
         definitionProvider = true;

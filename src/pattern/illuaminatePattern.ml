@@ -20,7 +20,10 @@ let matches path { absolute; pattern } =
   Re.execp pattern str || ((not absolute) && match_at 0)
 
 (** A set of files we'll always skip over. Just saves us iterating over VCS directories and whatnot. *)
-let ignored_files = List.to_seq [ ".git"; ".svn" ] |> Seq.map (fun x -> (x, ())) |> Hashtbl.of_seq
+let ignored_files =
+  List.to_seq [ ".git"; ".svn"; "_build"; "_opam"; "_esy"; "node_modules" ]
+  |> Seq.map (fun x -> (x, ()))
+  |> Hashtbl.of_seq
 
 let iter_all iter ?path ~root pats =
   (* TODO: We should really be smarter about this. For instance, if we have a pattern /foo/bar/baz/,
