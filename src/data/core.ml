@@ -194,7 +194,7 @@ let refresh x = x.version <- x.version + 1
     update the store. *)
 let build_result store (Mk ((module K), key) : BoxedKey.t) previous : result =
   let start = Sys.time () in
-  Log.info (fun f -> f "Building %s" K.name);
+  Log.debug (fun f -> f "Building %s" K.name);
   let version = store.version in
   let contents, trace =
     match K.factory with

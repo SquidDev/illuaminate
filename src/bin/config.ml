@@ -17,7 +17,7 @@ type tag_set_mod =
 
 (** Configuration for a specific file pattern. *)
 type pat_config =
-  { pattern : Pattern.t list;
+  { pattern : Pattern.Union.t;
     tags : tag_set_mod list;  (** Modifications to apply to the tag set. *)
     linter_options : Schema.store  (** Modifications to the linter. *)
   }
@@ -131,7 +131,7 @@ let doc_options = Category.add doc_options_term IlluaminateSemantics.Doc.Extract
 type t =
   | Config of
       { root : Fpath.t;
-        sources : Pattern.t list;  (** Patterns which include source files to load. *)
+        sources : Pattern.Union.t;  (** Patterns which include source files to load. *)
         pat_config : pat_config list;
             (** Path-specific overrides. These are applied in order, so later ones will override
                 earlier ones. *)
@@ -176,14 +176,19 @@ let parser =
   in
   let pat_config =
     let+ pattern = list_or_one pattern and+ linter_options, tags = fields pat_config_fields in
-    { pattern; linter_options; tags }
+    { pattern = Pattern.Union.of_list pattern; linter_options; tags }
   in
   let main =
     let+ sources = field_opt ~name:"sources" (some pattern)
     and+ pat_config = field_repeated ~name:"at" pat_config
     and+ store = Schema.to_parser global_schema in
     fun root ->
-      Config { root; sources = Option.value ~default:[ root_pat ] sources; pat_config; store }
+      Config
+        { root;
+          sources = Option.value ~default:[ root_pat ] sources |> Pattern.Union.of_list;
+          pat_config;
+          store
+        }
   in
 
   fields main
@@ -258,7 +263,7 @@ let files iter config path =
   let iter x = if Fpath.has_ext ".lua" x then iter x in
   match config with
   | Default -> Pattern.iter iter ~root:path always_pattern
-  | Config { root; sources; _ } -> Pattern.iter_all iter ~path ~root sources
+  | Config { root; sources; _ } -> Pattern.Union.iter iter ~path ~root sources
 
 (** Get all linters and their configuration options for a particular file. *)
 let get_linters config path =
@@ -271,7 +276,7 @@ let get_linters config path =
       let enabled, store =
         List.fold_left
           (fun (linters, store) { pattern; tags; linter_options } ->
-            if List.exists (Pattern.matches path) pattern then
+            if Pattern.Union.matches path pattern then
               let linters = List.fold_left apply_mod linters tags in
               (linters, Schema.merge store linter_options)
             else (linters, store))

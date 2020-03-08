@@ -4,27 +4,35 @@ let src = Logs.Src.create ~doc:"File pattern parsing and matching" __MODULE__
 
 module Log = (val Logs.src_log src)
 
-type nonrec t = t
+type t = Pattern.segment list
 
-let parse = Parse.parse
+let pp = Pattern.pp
 
-let matches path { absolute; pattern } =
-  let str = Fpath.to_string path |> CCString.replace ~sub:Fpath.dir_sep ~by:"/" in
-  let rec match_at idx =
-    if idx >= String.length str then false
-    else
-      match String.index_from_opt str idx '/' with
-      | None -> false
-      | Some idx -> Re.execp ~pos:(idx + 1) pattern str || match_at (idx + 1)
-  in
-  Re.execp pattern str || ((not absolute) && match_at 0)
+let parse str = Lexing.from_string ~with_positions:false str |> Parse.main
+
+let matches_seg p = function
+  | Literal l -> p = l
+  | Regex r -> Re.execp r p
+  | Anything -> true
+
+let rec matches_pat paths pats =
+  match (paths, pats) with
+  (* Trivial cases: Empty patterns accept anything, empty paths fail *)
+  | _, [ Anything ] | _, [] -> true
+  | [], _ :: _ -> false
+  (* Simple literals just consume immediately *)
+  | path :: paths, ((Literal _ | Regex _) as pat) :: pats ->
+      if matches_seg path pat then matches_pat paths pats else false
+  (* Otherwise, we've got a/b/c vs **/d/e. Try a/b/c ~ d/e and then b/c ~ **/d/e. Note, this is
+     technically backtracking: it'd be good to optimise this in the future. *)
+  | _ :: paths', Anything :: pats' -> matches_pat paths pats' || matches_pat paths' pats
+
+let matches path pattern = matches_pat (Fpath.segs path) pattern
 
 (** A set of files we'll always skip over. Just saves us iterating over VCS directories and whatnot. *)
 let ignored_files = List.to_seq [ ".git"; ".svn" ] |> Seq.map (fun x -> (x, ())) |> Hashtbl.of_seq
 
-let iter_all iter ?path ~root pats =
-  (* TODO: We should really be smarter about this. For instance, if we have a pattern /foo/bar/baz/,
-     then we can start looking in foo/bar/baz instead. *)
+let iter_pats iter ~root path pats =
   let rec visit path =
     let path_s = Fpath.to_string path in
     if not (Sys.file_exists path_s) then
@@ -43,8 +51,86 @@ let iter_all iter ?path ~root pats =
     then iter path
   in
 
-  let path = Option.value ~default:root path in
-  Log.info (fun f -> f "Listing files from %a" Fpath.pp path);
+  Log.info (fun f -> f "Listing all files from %a" Fpath.pp path);
   visit path
 
-let iter iter ?path ~root p = iter_all iter ?path ~root [ p ]
+module Union = struct
+  type pattern = t
+
+  module StringMap = Map.Make (String)
+
+  type t =
+    | Empty
+    | Always
+    | Any of pattern list
+    | Branch of
+        { literals : t StringMap.t;
+          regexes : (Re.re * t) list
+        }
+
+  let rec of_pattern = function
+    | [] -> Always
+    | Literal l :: xs -> Branch { literals = StringMap.singleton l (of_pattern xs); regexes = [] }
+    | Regex r :: xs -> Branch { literals = StringMap.empty; regexes = [ (r, of_pattern xs) ] }
+    | Anything :: _ as xs -> Any [ xs ]
+
+  let rec union left right =
+    match (left, right) with
+    | Empty, x | x, Empty -> x
+    | Always, _ | _, Always -> Always
+    | Any l, Any r -> Any (CCList.union ~eq:( == ) l r)
+    | Any ps, (Branch _ as b) | (Branch _ as b), Any ps ->
+        List.fold_left (fun b p -> union b (of_pattern p)) b ps
+    | Branch l, Branch r ->
+        Branch
+          { literals = StringMap.union (fun _ l r -> Some (union l r)) l.literals r.literals;
+            regexes = l.regexes @ r.regexes
+          }
+
+  let of_list = List.fold_left (fun b p -> union b (of_pattern p)) Empty
+
+  let rec matches_union paths = function
+    | Empty -> false
+    | Always -> true
+    | Any ps -> List.exists (matches_pat paths) ps
+    | Branch { literals; regexes } -> (
+      match paths with
+      | [] -> false
+      | path :: paths ->
+          ( match StringMap.find_opt path literals with
+          | None -> false
+          | Some u -> matches_union paths u )
+          || List.exists (fun (re, u) -> Re.execp re path && matches_union paths u) regexes )
+
+  let matches p = matches_union (Fpath.segs p)
+
+  let iter_union iter ~root =
+    let rec visit path = function
+      | Empty -> ()
+      | Always -> iter_pats iter ~root path [ [] ]
+      | Any xs -> iter_pats iter ~root path xs
+      | Branch { literals; regexes = []; _ } ->
+          StringMap.iter (fun child v -> visit Fpath.(path / child) v) literals
+      | Branch { literals; regexes; _ } -> (
+        match Sys.readdir (Fpath.to_string path) with
+        | children ->
+            children
+            |> Array.iter @@ fun child ->
+               let base = StringMap.find_opt child literals |> Option.value ~default:Empty in
+               List.fold_left
+                 (fun matching (re, this) ->
+                   if Re.execp re child then union matching this else matching)
+                 base regexes
+               |> visit Fpath.(path / child)
+        | exception Sys_error e -> Log.err (fun f -> f "Cannot read %a: %s" Fpath.pp path e) )
+    in
+    visit
+
+  let iter iter ?path ~root p =
+    match path with
+    | None -> iter_union iter ~root root p
+    | Some path ->
+        if Fpath.is_rooted ~root (Fpath.to_dir_path path) then iter_union iter ~root path p
+end
+
+let iter iter ?path ~root p = Union.of_list [ p ] |> Union.iter iter ?path ~root

@@ -1,31 +1,28 @@
 {
   open Pattern
-  let mk re has_sep =
-    let re = List.rev re |> Re.seq in
-    { pattern = Re.(seq [ start; re; stop ] |> compile); absolute = has_sep }
-
-  let not_sep = Re.(diff any (char '/'))
-
-  (* This terrible regex allows for any number of directory entries after this one. *)
-  (* ((^|/).* )? *)
-  let more_dirs = Re.(opt (seq [ alt [ start; char '/' ] ; rep any ]))
+  open Builder
 }
 
-rule main = parse
-  | '/'               { glob [] true  lexbuf }
-  | ""                { glob [] false lexbuf }
+rule main  = parse
+  (* The initial rule is just used to handle leading **s. *)
+  | "**" eof          { [] }
+  | "**" '/'          { glob [Anything] true Empty lexbuf }
+  | ""                { glob [] false Empty lexbuf }
 
-and glob out has_sep = parse
-  | eof               { mk (more_dirs :: out)              has_sep }
-  | '/' eof           { mk Re.(rep any :: char '/' :: out) has_sep } (* /.* *)
+and glob segments has_sep current = parse
+  (* If we're at the end of the file, just append our trailing segment.
+     We (somewhat incorrectly) treat f f/ and f/** the same - we treat
+     them all as including this file/folder and everything inside. *)
+  | eof               { mk (current **: segments) ~has_sep }
+  | '/' eof           { mk (current **: segments) ~has_sep }
+  | '/' "**" eof      { mk (current **: segments) ~has_sep }
 
-  | '\\' (_ as c)     { glob (Re.char c         :: out) has_sep lexbuf }
-  | "**"              { glob (Re.(rep any)      :: out) has_sep lexbuf }
-  | '*'               { glob (Re.rep not_sep    :: out) has_sep lexbuf }
-  | '?'               { glob (not_sep           :: out) has_sep lexbuf }
-  | '/'               { glob (Re.char '/'       :: out) true    lexbuf }
-  | (_ as c)          { glob (Re.char c         :: out) has_sep lexbuf }
+  (* Directory separators: finish off the current node and continue. *)
+  | '/'               { glob (current **: segments)             true Empty lexbuf }
+  | '/' "**" '/'      { glob (Anything :: current **: segments) true Empty lexbuf }
 
-{
-  let parse str : t = Lexing.from_string ~with_positions:false str |> main
-}
+  (* Otherwise, append to our current segment. *)
+  | '\\' (_ as c)     { glob segments has_sep (add_char c current)              lexbuf }
+  | '*'               { glob segments has_sep (add_re (Re.rep not_sep) current) lexbuf }
+  | '?'               { glob segments has_sep (add_re not_sep current)          lexbuf }
+  | (_ as c)          { glob segments has_sep (add_char c current)              lexbuf }

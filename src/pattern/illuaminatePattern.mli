@@ -13,6 +13,8 @@
 
 type t
 
+val pp : Format.formatter -> t -> unit
+
 (** Parse a glob, converting it to a pattern. *)
 val parse : string -> t
 
@@ -22,5 +24,20 @@ val matches : Fpath.t -> t -> bool
 (** Locate all files matching a glob within a folder, calling the accepting function on them. *)
 val iter : (Fpath.t -> unit) -> ?path:Fpath.t -> root:Fpath.t -> t -> unit
 
-(** A version of {!iter}, which may accept multiple overlapping globs. *)
-val iter_all : (Fpath.t -> unit) -> ?path:Fpath.t -> root:Fpath.t -> t list -> unit
+module Union : sig
+  type pattern := t
+
+  (** A collection representing a union of multiple patterns. *)
+  type t
+
+  val of_list : pattern list -> t
+
+  (** Append two globs together. *)
+  val union : t -> t -> t
+
+  (** Determine if this directory matches any given pattern. *)
+  val matches : Fpath.t -> t -> bool
+
+  (** A version of {!iter}, which may accept multiple overlapping globs. *)
+  val iter : (Fpath.t -> unit) -> ?path:Fpath.t -> root:Fpath.t -> t -> unit
+end
