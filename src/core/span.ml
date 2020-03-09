@@ -108,11 +108,11 @@ module Lines = struct
     let line, bol = find_line ~offset lines in
     let col = offset - bol + 1 in
     let col' = f col in
-    let offset' = offset - col + col' in
-    let line', _ = find_line ~offset:offset' lines in
+    let offset' = bol + col' - 1 in
+    let line', bol' = find_line ~offset:offset' lines in
     if line' <> line then
-      Printf.sprintf "Column modification changes line (from %d=>%d:%d to %d=>%d:%d)." offset col
-        line offset' col' line'
+      Printf.sprintf "Column modification changes line, from %d=>%d(%d):%d to %d=>%d(%d):%d." offset
+        line bol col offset' line' bol' col'
       |> failwith;
     offset'
 end

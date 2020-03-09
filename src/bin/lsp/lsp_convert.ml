@@ -11,7 +11,9 @@ let span_finish span : Position.t =
 let range span = Range.create ~start:(span_start span) ~end_:(span_finish span)
 
 let location (span : Span.t) =
-  Location.create ~uri:(Span.filename span |> Store.Filename.to_uri |> Uri.to_string) ~range:(range span)
+  Location.create
+    ~uri:(Span.filename span |> Store.Filename.to_uri |> Uri.to_string)
+    ~range:(range span)
 
 let severity : Error.level -> DiagnosticSeverity.t = function
   | Critical | Error -> Error

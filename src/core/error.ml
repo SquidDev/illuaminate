@@ -189,7 +189,8 @@ let display_of_files ?(out = Format.err_formatter) ?(with_summary = true) store 
            | None -> ""
            | Some path ->
                let ch = get_channel (Fpath.to_string path) in
-               seek_in ch (Span.start_bol span); input_line ch
+               seek_in ch (Span.start_bol span);
+               input_line ch
          in
          display_line out line err);
   ( match !last with

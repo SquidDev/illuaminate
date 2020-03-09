@@ -41,6 +41,7 @@ let () =
          Pattern.tests;
          Reprint.tests;
          Data.tests;
+         Span.tests;
          group "Documentation" [ Doc_parser.tests; Doc_extract.tests ];
          group "Language server"
            [ Lsp_diagnostic.tests;
