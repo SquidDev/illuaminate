@@ -155,10 +155,10 @@ module Consts = struct
 
   (** Convert an error into an annotation. *)
   let to_annotation ({ span; message; tag; details } : Error.Error.t) : annotation =
-    let same_line = Span.start_line.get span = Span.finish_line.get span in
+    let same_line = Span.start_line span = Span.finish_line span in
     { path = (Span.filename span).name;
-      start_line = Span.start_line.get span;
-      end_line = Span.finish_line.get span;
+      start_line = Span.start_line span;
+      end_line = Span.finish_line span;
       start_column = (if same_line then Some (Span.start_col.get span) else None);
       end_column = (if same_line then Some (Span.finish_col.get span) else None);
       annotation_level =

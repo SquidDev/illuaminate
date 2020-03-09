@@ -68,7 +68,7 @@ let linter =
               }
         }
       when let span = Spanned.call (Call call) in
-           Span.(start_line.get span = finish_line.get span) ->
+           Span.(start_line span = finish_line span) ->
         let args = Helpers.get_call_args call.args in
         let args =
           match args with

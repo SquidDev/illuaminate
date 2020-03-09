@@ -106,10 +106,10 @@ let doc_options_term =
                       Fpath.to_string x |> Buffer.add_string out;
                       go xs)
            | Key ("line" | "sline") :: xs ->
-               Span.start_line.get span |> string_of_int |> Buffer.add_string out;
+               Span.start_line span |> string_of_int |> Buffer.add_string out;
                go xs
            | Key "eline" :: xs ->
-               Span.finish_line.get span |> string_of_int |> Buffer.add_string out;
+               Span.finish_line span |> string_of_int |> Buffer.add_string out;
                go xs
            | Key "commit" :: xs -> (
              match Lazy.force git_commit with

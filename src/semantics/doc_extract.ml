@@ -206,23 +206,23 @@ module Infer = struct
   let documenting state ~before ~after (span : Span.t) value : value documented =
     (* Limit comments to ones directly before/after the current node and appropriately aligned with
        it. *)
-    let start_line = Span.start_line.get span
-    and finish_line = Span.finish_line.get span
+    let start_line = Span.start_line span
+    and finish_line = Span.finish_line span
     and start_col = Span.start_col.get span in
     let before =
       match before with
       | ({ C.source; _ } as c) :: _
-        when Span.start_line.get source = start_line
-             || Span.finish_line.get source = start_line - 1
-                && Span.start_col.get source = start_col ->
+        when Span.start_line source = start_line
+             || (Span.finish_line source = start_line - 1 && Span.start_col.get source = start_col)
+        ->
           Some c
       | _ -> None
     and after =
       match after with
       | ({ C.source; _ } as c) :: _
-        when Span.finish_line.get source = finish_line
-             || Span.start_line.get source = finish_line + 1
-                && Span.start_col.get source = start_col ->
+        when Span.finish_line source = finish_line
+             || (Span.start_line source = finish_line + 1 && Span.start_col.get source = start_col)
+        ->
           Some c
       | _ -> None
     in
@@ -480,7 +480,7 @@ module Infer = struct
       match P.comment (First.program.get program) state.comments |> fst |> CCList.last_opt with
       | Some ({ source; _ } as c)
         when Span.start_col.get source = 1
-             && Span.start_line.get source = 1
+             && Span.start_line source = 1
              && CommentCollection.mem state.unused_comments c ->
           CommentCollection.remove state.unused_comments c;
           Some c

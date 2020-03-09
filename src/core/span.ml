@@ -80,16 +80,13 @@ module Lines = struct
     | { store = Map (xs, _); _ } ->
         find ~offset (Fun.flip IntMap.find xs) 0 (IntMap.max_binding xs |> fst)
 
-  let find_offset ~line = function
+  let get_length line = function
     | { store = Array xs; _ } ->
-        let len = Array.length xs in
-        if line < 0 then 0 else if line >= len then xs.(len - 1) else xs.(line)
-    | { store = Map (xs, _); _ } -> (
-        if line < 0 then 0
-        else
-          match IntMap.find_opt line xs with
-          | Some l -> l
-          | None -> IntMap.max_binding xs |> snd )
+        let last = Array.length xs - 1 in
+        if line >= last then 0 else xs.(line + 1) - xs.(line)
+    | { store = Map (xs, _); _ } ->
+        let last, _ = IntMap.max_binding xs in
+        if line >= last then Int.max_int else IntMap.find (line + 1) xs - IntMap.find line xs
 
   let get_line lines offset =
     let line, _ = find_line ~offset lines in
@@ -99,22 +96,27 @@ module Lines = struct
     let _, bol = find_line ~offset lines in
     offset - bol + 1
 
-  let over_line f lines offset =
+  let get_pos lines offset =
     let line, bol = find_line ~offset lines in
-    let line = f (line + 1) - 1 in
-    find_offset ~line lines + (offset - bol)
+    (line + 1, offset - bol + 1)
 
-  let over_col f lines offset =
+  let fail_len kind ~line ~col ~max =
+    Printf.sprintf "%s invalid for %d:%d: 0 < %s <= %d" kind line col kind max |> invalid_arg
+
+  let over_pos f lines offset =
     let line, bol = find_line ~offset lines in
-    let col = offset - bol + 1 in
-    let col' = f col in
-    let offset' = bol + col' - 1 in
-    let line', bol' = find_line ~offset:offset' lines in
-    if line' <> line then
-      Printf.sprintf "Column modification changes line, from %d=>%d(%d):%d to %d=>%d(%d):%d." offset
-        line bol col offset' line' bol' col'
-      |> failwith;
-    offset'
+    let line', col' = f (line + 1, offset - bol + 1) in
+    let line_off = line' - 1 in
+
+    if line' < 0 then fail_len "line" ~line:line' ~col:col' ~max:line';
+    let length = get_length line_off lines in
+    if col' <= 0 || col' > length then fail_len "col" ~line:line' ~col:col' ~max:length;
+
+    match lines with
+    | { store = Array xs; _ } -> xs.(line_off) + col' - 1
+    | { store = Map (xs, _); _ } -> IntMap.find line_off xs + col' - 1
+
+  let over_col f = over_pos (Lens.Lenses.snd.over f)
 end
 
 type t =
@@ -125,31 +127,35 @@ type t =
 
 let filename x = x.lines.file
 
-let start_line =
-  { Lens.get = (fun { lines; start; _ } -> Lines.get_line lines start);
-    over = (fun f ({ lines; start; _ } as l) -> { l with start = Lines.over_line f lines start })
-  }
+let start_line { lines; start; _ } = Lines.get_line lines start
+
+let start_bol { lines; start; _ } = Lines.find_line ~offset:start lines |> snd
 
 let start_col =
   { Lens.get = (fun { lines; start; _ } -> Lines.get_col lines start);
     over = (fun f ({ lines; start; _ } as l) -> { l with start = Lines.over_col f lines start })
   }
 
-let start_bol { lines; start; _ } = Lines.find_line ~offset:start lines |> snd
-
-let finish_line =
-  { Lens.get = (fun { lines; finish; _ } -> Lines.get_line lines finish);
-    over = (fun f ({ lines; finish; _ } as l) -> { l with finish = Lines.over_line f lines finish })
+let start_pos =
+  { Lens.get = (fun { lines; start; _ } -> Lines.get_pos lines start);
+    over = (fun f ({ lines; start; _ } as l) -> { l with start = Lines.over_pos f lines start })
   }
+
+let finish_line { lines; finish; _ } = Lines.get_line lines finish
 
 let finish_col =
   { Lens.get = (fun { lines; finish; _ } -> Lines.get_col lines finish);
     over = (fun f ({ lines; finish; _ } as l) -> { l with finish = Lines.over_col f lines finish })
   }
 
+let finish_pos =
+  { Lens.get = (fun { lines; finish; _ } -> Lines.get_pos lines finish);
+    over = (fun f ({ lines; finish; _ } as l) -> { l with finish = Lines.over_pos f lines finish })
+  }
+
 let pp out span =
-  Format.fprintf out "%s[%d:%d-%d:%d]" (filename span).name (start_line.get span)
-    (start_col.get span) (finish_line.get span) (finish_col.get span)
+  Format.fprintf out "%s[%d:%d-%d:%d]" (filename span).name (start_line span) (start_col.get span)
+    (finish_line span) (finish_col.get span)
 
 let show = Format.asprintf "%a" pp
 

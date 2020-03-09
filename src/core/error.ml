@@ -129,9 +129,9 @@ let error_ansi = function
   | Note -> Style.Blue
 
 let display_line out line { Error.tag; span; message; details } =
-  let start_l = Span.start_line.get span
+  let start_l = Span.start_line span
   and start_c = Span.start_col.get span
-  and finish_l = Span.finish_line.get span
+  and finish_l = Span.finish_line span
   and finish_c = Span.finish_col.get span in
   let line_no = start_l |> string_of_int in
 

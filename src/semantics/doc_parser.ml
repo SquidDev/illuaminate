@@ -100,7 +100,7 @@ let match_string terminate str start =
     else
       match (str.[pos], closes) with
       (* Close bracket *)
-      | x, c :: cs when x == c -> worker (pos + 1) cs
+      | x, c :: cs when x = c -> worker (pos + 1) cs
       | '(', _ -> worker (pos + 1) (')' :: closes)
       | '{', _ -> worker (pos + 1) ('}' :: closes)
       | '[', _ -> worker (pos + 1) (']' :: closes)
@@ -456,11 +456,11 @@ let extract node =
         (* Skip whitespace *)
         extract_block buffer last line column xs
     | { Span.value = Node.LineComment c; span } :: xs
-      when Span.start_line.get span = line + 1 && Span.start_col.get span = column ->
+      when Span.start_line span = line + 1 && Span.start_col.get span = column ->
         (* Comments aligned with this one on successive lines are included *)
         Buffer.add_char buffer '\n';
         add_trimmed buffer c 0;
-        extract_block buffer span (Span.start_line.get span) column xs
+        extract_block buffer span (Span.start_line span) column xs
     | xs -> (last, xs)
   in
   (* Extract all comments before this token *)
@@ -478,7 +478,7 @@ let extract node =
         let buffer = Buffer.create 16 in
         Buffer.add_substring buffer c 1 (String.length c - 1);
         let last, xs =
-          extract_block buffer span (Span.start_line.get span) (Span.start_col.get span) xs
+          extract_block buffer span (Span.start_line span) (Span.start_col.get span) xs
         in
         let documented = Buffer.contents buffer |> parse |> build (Span.of_span2 span last) in
         extract_comments (documented :: cs) xs

@@ -3,10 +3,10 @@ open Lsp
 open Lsp.Types
 
 let span_start span : Position.t =
-  { line = Span.start_line.get span - 1; character = Span.start_col.get span - 1 }
+  { line = Span.start_line span - 1; character = Span.start_col.get span - 1 }
 
 let span_finish span : Position.t =
-  { line = Span.finish_line.get span - 1; character = Span.finish_col.get span }
+  { line = Span.finish_line span - 1; character = Span.finish_col.get span }
 
 let range span = Range.create ~start:(span_start span) ~end_:(span_finish span)
 

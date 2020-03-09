@@ -48,20 +48,26 @@ type t
 (** Get the filename for this span. *)
 val filename : t -> filename
 
-(** A lens over the starting line of this span. *)
-val start_line : (t, int) Lens.lens'
-
-(** A lens over the starting column of this span. *)
-val start_col : (t, int) Lens.lens'
+(** Get the start line of this span.*)
+val start_line : t -> int
 
 (** Get the beginning of the starting line for this span. *)
 val start_bol : t -> int
 
-(** A lens over the last column of this span. *)
-val finish_line : (t, int) Lens.lens'
+(** A lens over the starting column of this span. *)
+val start_col : (t, int) Lens.lens'
 
-(** A lens over the last line of this span. *)
+(** A lens over the starting line and column of this span. *)
+val start_pos : (t, int * int) Lens.lens'
+
+(** Get the end line this span. *)
+val finish_line : t -> int
+
+(** A lens over the end column of this span. *)
 val finish_col : (t, int) Lens.lens'
+
+(** A lens over the end line and column of this span. *)
+val finish_pos : (t, int * int) Lens.lens'
 
 val show : t -> string
 

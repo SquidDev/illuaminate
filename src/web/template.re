@@ -37,9 +37,9 @@ let partition_string = (start, length, str) => {
 };
 
 let error = (line, ~fix=?, {Error.Error.span, message, tag, _}) => {
-  let start_line = Span.start_line.get(span);
+  let start_line = Span.start_line(span);
   let start_col = Span.start_col.get(span);
-  let finish_line = Span.finish_line.get(span);
+  let finish_line = Span.finish_line(span);
   let finish_col = Span.finish_col.get(span);
 
   let length =
