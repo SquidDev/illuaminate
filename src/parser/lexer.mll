@@ -4,6 +4,7 @@
   open Token
   open IlluaminateCore.Node
   open IlluaminateCore.Token
+  let new_line = IlluaminateCore.Span.Lines.new_line
 
   exception Error of (Error.t * Lexing.position * Lexing.position)
   let lexeme_spanned lexbuf x = (x, Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)
@@ -34,10 +35,10 @@ let number = digit | ['E' 'e'] ['+' '-']? | '.'
 let ident_head = ['a'-'z' 'A'-'Z' '_']
 let ident_tail = ident_head | '_' | digit
 
-rule token = parse
+rule token l = parse
 | white+ as x           { Trivial (Whitespace x) }
-| '\n'                  { Lexing.new_line lexbuf; Trivial (Whitespace "\n") }
-| "--[" ('='* as x) '[' { long_string (Buffer.create 16) (String.length x) mk_long_comment lexbuf }
+| '\n'                  { new_line l; Trivial (Whitespace "\n") }
+| "--[" ('='* as x) '[' { long_string (Buffer.create 16) (String.length x) mk_long_comment l lexbuf }
 (* We split line comments into two parts. Otherwise "--[^\n]*" would match "--[[foo]]". *)
 | "--"                  { line_comment lexbuf }
 
@@ -100,7 +101,7 @@ rule token = parse
 
 | '\"'          { string (buffer_with 17 '\"') (Buffer.create 17) '\"' lexbuf }
 | '\''          { string (buffer_with 17 '\'') (Buffer.create 17) '\'' lexbuf }
-| '[' ('='* as x) '[' { long_string (Buffer.create 16) (String.length x) mk_long_string lexbuf }
+| '[' ('='* as x) '[' { long_string (Buffer.create 16) (String.length x) mk_long_string l lexbuf }
 
 | eof { Token EoF }
 
@@ -145,13 +146,13 @@ and string contents value c = parse
 | '\n' { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
 | _ { raise (Error (lexeme_spanned lexbuf (UnexpectedCharacter (Lexing.lexeme lexbuf)))) }
 
-and long_string buf eqs term = parse
-| [^']' '\n']+ as x { Buffer.add_string buf x; long_string buf eqs term lexbuf }
+and long_string buf eqs term l = parse
+| [^']' '\n']+ as x { Buffer.add_string buf x;              long_string buf eqs term l lexbuf }
 | ']' '='* ']' as x { if String.length x == eqs + 2
                       then term eqs (Buffer.contents buf)
-                      else (Buffer.add_string buf x; long_string buf eqs term lexbuf) }
-| ']'               { Buffer.add_char buf ']'; long_string buf eqs term lexbuf }
-| '\n'              { Buffer.add_char buf '\n'; Lexing.new_line lexbuf; long_string buf eqs term lexbuf }
+                      else (Buffer.add_string buf x;        long_string buf eqs term l lexbuf) }
+| ']'               { Buffer.add_char buf ']';              long_string buf eqs term l lexbuf }
+| '\n'              { Buffer.add_char buf '\n'; new_line l; long_string buf eqs term l lexbuf }
 | eof               { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
 
 and line_comment = parse

@@ -4,36 +4,40 @@ open Error
 module I = Grammar.MenhirInterpreter
 module Error = Error
 
-let lex_one file (lexbuf : Lexing.lexbuf) =
-  let start = lexbuf.lex_curr_p in
-  let token = Lexer.token lexbuf in
-  { Span.value = token; span = Span.of_pos2 file start lexbuf.lex_curr_p }
+type 'a located =
+  { span : Span.t;
+    token : 'a;
+    line : int
+  }
 
-let lex_leading file lexbuf =
+let lex_one lines (lexbuf : Lexing.lexbuf) =
+  let start = lexbuf.lex_curr_p in
+  let token = Lexer.token lines lexbuf in
+  { token; span = Span.of_pos2 lines start lexbuf.lex_curr_p; line = start.pos_lnum }
+
+let lex_leading lines lexbuf =
   let rec go xs =
-    match lex_one file lexbuf with
-    | { Span.value = Trivial value; span } -> go ({ Span.value; span } :: xs)
-    | { Span.value = Token value; span } -> (List.rev xs, { Span.value; span })
+    match lex_one lines lexbuf with
+    | { token = Trivial value; span; _ } -> go ({ Span.value; span } :: xs)
+    | { token = Token token; span; line } -> (List.rev xs, { token; span; line })
   in
   go []
 
-let lex_trailing file lexbuf tok_span =
+let lex_trailing file lexbuf prev_line =
   let rec go xs =
     match lex_one file lexbuf with
-    | { Span.value = Trivial value; span }
-      when Span.start_line.get span = Span.start_line.get tok_span ->
-        go ({ Span.value; span } :: xs)
+    | { token = Trivial value; span; line } when line = prev_line -> go ({ Span.value; span } :: xs)
     | t -> (List.rev xs, t)
   in
   go []
 
-let lex_token file lexbuf (next : lexer_token Span.spanned) =
-  let leading, { Span.value = token; span = tok_span } =
+let lex_token file lexbuf (next : lexer_token located) =
+  let leading, { token; span = tok_span; line = tok_line } =
     match next with
-    | { Span.value = Trivial value; span } ->
+    | { token = Trivial value; span; _ } ->
         let leading, t = lex_leading file lexbuf in
         ({ Span.value; span } :: leading, t)
-    | { Span.value = Token value; span } -> ([], { Span.value; span })
+    | { token = Token token; span; line } -> ([], { token; span; line })
   in
   match token with
   | EoF ->
@@ -41,14 +45,15 @@ let lex_token file lexbuf (next : lexer_token Span.spanned) =
          no trailing data. *)
       (Token.make_token leading [] tok_span token, next)
   | _ ->
-      let trailing, next = lex_trailing file lexbuf tok_span in
+      let trailing, next = lex_trailing file lexbuf tok_line in
       (Token.make_token leading trailing tok_span token, next)
 
 let parse start (file : Span.filename) (lexbuf : Lexing.lexbuf) =
+  Span.Lines.using file lexbuf @@ fun lines ->
   let rec go last next checkpoint =
     match checkpoint with
     | I.InputNeeded _ ->
-        let tok, next = lex_token file lexbuf next in
+        let tok, next = lex_token lines lexbuf next in
         I.offer checkpoint (tok, Lexing.dummy_pos, Lexing.dummy_pos) |> go (Some tok) next
     | I.Shifting _ | I.AboutToReduce _ -> go last next (I.resume checkpoint)
     | I.HandlingError env -> (
@@ -65,11 +70,10 @@ let parse start (file : Span.filename) (lexbuf : Lexing.lexbuf) =
     | I.Rejected -> assert false
   in
   try
-    lexbuf.lex_curr_p <- { Lexing.pos_fname = file.name; pos_lnum = 1; pos_cnum = 0; pos_bol = 0 };
-    let first = lex_one file lexbuf in
+    let first = lex_one lines lexbuf in
     start Lexing.dummy_pos |> go None first
   with Lexer.Error (err, start, fin) ->
-    Error { Span.span = Span.of_pos2 file start fin; value = err }
+    Error { Span.span = Span.of_pos2 lines start fin; value = err }
 
 let program = parse Grammar.Incremental.program
 
@@ -82,15 +86,16 @@ module Lexer = struct
 
   let lex (file : Span.filename) (lexbuf : Lexing.lexbuf) :
       (token Span.spanned array, Error.t Span.spanned) result =
+    Span.Lines.using file lexbuf @@ fun lines ->
     try
-      lexbuf.lex_curr_p <- { Lexing.pos_fname = file.name; pos_lnum = 1; pos_cnum = 0; pos_bol = 0 };
       let rec go xs =
-        let token = lex_one file lexbuf in
+        let { token; span; _ } = lex_one lines lexbuf in
+        let xs = { Span.value = token; span } :: xs in
         match token with
-        | { value = Token EoF; _ } -> token :: xs
-        | _ -> go (token :: xs)
+        | Token EoF -> xs
+        | _ -> go xs
       in
       go [] |> List.rev |> Array.of_list |> Result.ok
     with Lexer.Error (err, start, fin) ->
-      Error { Span.span = Span.of_pos2 file start fin; value = err }
+      Error { Span.span = Span.of_pos2 lines start fin; value = err }
 end

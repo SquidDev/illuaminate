@@ -29,6 +29,19 @@ type filename = Filename.t = private
     hash : int
   }
 
+(** A builder, which tracks the start position of newlines, allowing you to map between the two. *)
+module Lines : sig
+  type t
+
+  (** Lex using this line builder. This sets up the lexer with the appropriate positions and then
+      passes the lines builder to the given lexing/parsing function. This object may then be used to
+      construct positions, using {!of_pos2}. *)
+  val using : filename -> Lexing.lexbuf -> (t -> 'a) -> 'a
+
+  (** Wraps {!Lexing.new_line}, also tracking it within the context. *)
+  val new_line : t -> unit
+end
+
 (** A span in a file or other source program *)
 type t
 
@@ -50,13 +63,15 @@ val finish_line : (t, int) Lens.lens'
 (** A lens over the last line of this span. *)
 val finish_col : (t, int) Lens.lens'
 
+val show : t -> string
+
 val pp : Format.formatter -> t -> unit
 
 (** Compare two spans given their filename and position in the file. *)
 val compare : t -> t -> int
 
 (** Make a source span from a pair of lexing positions *)
-val of_pos2 : filename -> Lexing.position -> Lexing.position -> t
+val of_pos2 : Lines.t -> Lexing.position -> Lexing.position -> t
 
 (** Make a source span from a pair of two other spans *)
 val of_span2 : t -> t -> t
