@@ -23,13 +23,19 @@ let gen_position =
        { pos_bol = 0; pos_lnum = 1; pos_cnum = 1; pos_fname = "" }
 
 let tests =
-  let change lens (xs, pos) =
+  let incr_self lens (xs, pos) =
     QCheck.assume (xs <> [] && List.hd xs <> 0);
     (pos |> lens %= ( + ) 1) ^. lens = (pos ^. lens) + 1
+  and incr_other lens other (xs, pos) =
+    QCheck.assume (xs <> [] && List.hd xs <> 0);
+    (pos |> lens %= ( + ) 1) ^. other = pos ^. other
   in
-  [ QCheck.Test.make ~count:1000 ~name:"Modifying start line" gen_position (change start_line);
-    QCheck.Test.make ~count:1000 ~name:"Modifying start column" gen_position (change start_col);
-    QCheck.Test.make ~count:1000 ~name:"Modifying finish line" gen_position (change finish_line);
-    QCheck.Test.make ~count:1000 ~name:"Modifying finish column" gen_position (change finish_col)
+  let mk ~name ?count = QCheck.Test.make ~name ?count gen_position in
+  [ mk ~count:1000 ~name:"Can increment start line" (incr_self start_line);
+    mk ~count:1000 ~name:"Can increment start column" (incr_self start_col);
+    mk ~count:1000 ~name:"Can increment finish line" (incr_self finish_line);
+    mk ~count:1000 ~name:"Can increment finish column" (incr_self finish_col);
+    mk ~count:1000 ~name:"Changing line preserves column" (incr_other start_line start_col);
+    mk ~count:1000 ~name:"Changing column preserves line" (incr_other start_col start_line)
   ]
   |> List.map of_qcheck |> group "Spans"
