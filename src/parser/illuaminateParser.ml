@@ -20,8 +20,8 @@ let lex_leading file lexbuf =
 let lex_trailing file lexbuf tok_span =
   let rec go xs =
     match lex_one file lexbuf with
-    | { Span.value = Trivial value; span = { start_line; _ } as span }
-      when start_line = tok_span.Span.start_line ->
+    | { Span.value = Trivial value; span }
+      when Span.start_line.get span = Span.start_line.get tok_span ->
         go ({ Span.value; span } :: xs)
     | t -> (List.rev xs, t)
   in

@@ -30,17 +30,25 @@ type filename = Filename.t = private
   }
 
 (** A span in a file or other source program *)
-type t =
-  { filename : filename;
-    start_line : int;
-    start_col : int;
-    start_bol : int;
-    finish_line : int;
-    finish_col : int;
-    finish_bol : int
-  }
+type t
 
-val show : t -> string
+(** Get the filename for this span. *)
+val filename : t -> filename
+
+(** A lens over the starting line of this span. *)
+val start_line : (t, int) Lens.lens'
+
+(** A lens over the starting column of this span. *)
+val start_col : (t, int) Lens.lens'
+
+(** Get the beginning of the starting line for this span. *)
+val start_bol : t -> int
+
+(** A lens over the last column of this span. *)
+val finish_line : (t, int) Lens.lens'
+
+(** A lens over the last line of this span. *)
+val finish_col : (t, int) Lens.lens'
 
 val pp : Format.formatter -> t -> unit
 

@@ -100,16 +100,16 @@ let doc_options_term =
            | [] -> Some (Buffer.contents out)
            | Lex_template.Raw x :: xs -> Buffer.add_string out x; go xs
            | Key "path" :: xs ->
-               span.filename.path
+               (Span.filename span).path
                |> CCOpt.flat_map (Fpath.relativize ~root)
                |> CCOpt.flat_map (fun x ->
                       Fpath.to_string x |> Buffer.add_string out;
                       go xs)
            | Key ("line" | "sline") :: xs ->
-               string_of_int span.start_line |> Buffer.add_string out;
+               Span.start_line.get span |> string_of_int |> Buffer.add_string out;
                go xs
            | Key "eline" :: xs ->
-               string_of_int span.finish_line |> Buffer.add_string out;
+               Span.finish_line.get span |> string_of_int |> Buffer.add_string out;
                go xs
            | Key "commit" :: xs -> (
              match Lazy.force git_commit with

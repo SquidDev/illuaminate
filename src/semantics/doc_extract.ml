@@ -206,18 +206,23 @@ module Infer = struct
   let documenting state ~before ~after (span : Span.t) value : value documented =
     (* Limit comments to ones directly before/after the current node and appropriately aligned with
        it. *)
+    let start_line = Span.start_line.get span
+    and finish_line = Span.finish_line.get span
+    and start_col = Span.start_col.get span in
     let before =
       match before with
       | ({ C.source; _ } as c) :: _
-        when source.start_line = span.start_line
-             || (source.finish_line = span.start_line - 1 && source.start_col = span.start_col) ->
+        when Span.start_line.get source = start_line
+             || Span.finish_line.get source = start_line - 1
+                && Span.start_col.get source = start_col ->
           Some c
       | _ -> None
     and after =
       match after with
       | ({ C.source; _ } as c) :: _
-        when source.finish_line = span.finish_line
-             || (source.start_line = span.finish_line + 1 && source.start_col = span.start_col) ->
+        when Span.finish_line.get source = finish_line
+             || Span.start_line.get source = finish_line + 1
+                && Span.start_col.get source = start_col ->
           Some c
       | _ -> None
     in
@@ -474,7 +479,8 @@ module Infer = struct
     let module_comment =
       match P.comment (First.program.get program) state.comments |> fst |> CCList.last_opt with
       | Some ({ source; _ } as c)
-        when source.start_col = 1 && source.start_line = 1
+        when Span.start_col.get source = 1
+             && Span.start_line.get source = 1
              && CommentCollection.mem state.unused_comments c ->
           CommentCollection.remove state.unused_comments c;
           Some c
@@ -491,8 +497,9 @@ module Infer = struct
           Named (Value.get_documented ~state comment |> Merge.documented merge body)
       | Some ({ module_info = None; _ } as comment) ->
           let body = Value.get_documented ~state comment |> Merge.doc_value ~errs:state.errs body in
-          Unnamed { body; mod_types; file = (Spanned.program program).filename; mod_kind }
-      | None -> Unnamed { body; mod_types; file = (Spanned.program program).filename; mod_kind }
+          Unnamed { body; mod_types; file = Spanned.program program |> Span.filename; mod_kind }
+      | None ->
+          Unnamed { body; mod_types; file = Spanned.program program |> Span.filename; mod_kind }
     in
     (state, result)
 
@@ -733,7 +740,7 @@ let detached_comments ({ comments; _ } : t) = CommentCollection.to_seq_keys comm
 
 let get_unresolved_module data program =
   let module_path =
-    D.need data D.Programs.Context.key (Spanned.program program).filename |> Config.get
+    D.need data D.Programs.Context.key (Spanned.program program |> Span.filename) |> Config.get
   in
   match D.need data Infer.key program |> snd with
   | Named m -> Some m

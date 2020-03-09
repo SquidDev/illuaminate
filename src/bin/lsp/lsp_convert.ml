@@ -2,16 +2,16 @@ open IlluaminateCore
 open Lsp
 open Lsp.Types
 
-let span_start { Span.start_line; start_col; _ } : Position.t =
-  { line = start_line - 1; character = start_col - 1 }
+let span_start span : Position.t =
+  { line = Span.start_line.get span - 1; character = Span.start_col.get span - 1 }
 
-let span_finish { Span.finish_line; finish_col; _ } : Position.t =
-  { line = finish_line - 1; character = finish_col }
+let span_finish span : Position.t =
+  { line = Span.finish_line.get span - 1; character = Span.finish_col.get span }
 
 let range span = Range.create ~start:(span_start span) ~end_:(span_finish span)
 
 let location (span : Span.t) =
-  Location.create ~uri:(Store.Filename.to_uri span.filename |> Uri.to_string) ~range:(range span)
+  Location.create ~uri:(Span.filename span |> Store.Filename.to_uri |> Uri.to_string) ~range:(range span)
 
 let severity : Error.level -> DiagnosticSeverity.t = function
   | Critical | Error -> Error

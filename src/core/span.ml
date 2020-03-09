@@ -37,11 +37,22 @@ type t =
     finish_col : int;
     finish_bol : int
   }
+[@@deriving illuaminateDeriving_lens]
+
+let filename = T.filename.get
+
+let start_line = T.start_line
+
+let start_col = T.start_col
+
+let start_bol = T.start_bol.get
+
+let finish_line = T.finish_line
+
+let finish_col = T.finish_col
 
 let pp out { filename; start_line; start_col; finish_line; finish_col; _ } =
   Format.fprintf out "%s[%d:%d-%d:%d]" filename.name start_line start_col finish_line finish_col
-
-let show = Format.asprintf "%a" pp
 
 let compare a b =
   if a.filename <> b.filename then String.compare a.filename.name b.filename.name

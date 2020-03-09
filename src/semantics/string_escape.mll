@@ -9,10 +9,10 @@ type component =
   | Quote of char
 
 let pos (span : Span.t) lexbuf =
-  { span with
-    start_col = span.start_col + (Lexing.lexeme_start_p lexbuf).pos_cnum;
-    finish_col = span.start_col + (Lexing.lexeme_end_p lexbuf).pos_cnum - 1
-  }
+  let open Lens in
+  span
+  |> (Span.start_col ^= (Span.start_col.get span + (Lexing.lexeme_start_p lexbuf).pos_cnum))
+     % (Span.finish_col ^= (Span.start_col.get span + (Lexing.lexeme_end_p lexbuf).pos_cnum - 1))
 
 }
 

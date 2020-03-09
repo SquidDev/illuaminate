@@ -37,27 +37,29 @@ let partition_string = (start, length, str) => {
 };
 
 let error = (line, ~fix=?, {Error.Error.span, message, tag, _}) => {
+  let start_line = Span.start_line.get(span);
+  let start_col = Span.start_col.get(span);
+  let finish_line = Span.finish_line.get(span);
+  let finish_col = Span.finish_col.get(span);
+
   let length =
-    if (span.finish_line == span.start_line) {
-      span.finish_col - span.start_col + 1;
+    if (finish_line == start_line) {
+      finish_col - start_col + 1;
     } else {
-      String.length(line) - span.start_col + 1;
+      String.length(line) - start_col + 1;
     };
 
   let (before, contents, after) =
-    partition_string(span.start_col - 1, length, line);
-  //  = CCString.take(span.start_col - 1, line);
-  // let contents = String.sub(line, span.start_col - 1, length);
-  // let after = CCString.drop(span.start_col - 1 + length, line);
+    partition_string(start_col - 1, length, line);
 
   <div class_={"error error-" ++ level(tag.level)}>
     <div class_="error-pos">
       {Printf.sprintf(
          "[%d:%d-%d:%d]: %s [%s]",
-         span.start_line,
-         span.start_col,
-         span.finish_line,
-         span.finish_col,
+         start_line,
+         start_col,
+         finish_line,
+         finish_col,
          message,
          tag.name,
        )
@@ -69,9 +71,7 @@ let error = (line, ~fix=?, {Error.Error.span, message, tag, _}) => {
        }}
     </div>
     <div class_="error-line">
-      <span class_="error-line-no">
-        {str(string_of_int(span.start_line))}
-      </span>
+      <span class_="error-line-no"> {str(string_of_int(start_line))} </span>
       <span class_="error-line-str">
         {str(before)}
         <strong> {Option.fold(~none=str(" "), ~some=str, contents)} </strong>
@@ -85,11 +85,11 @@ let some_errors = (program, ~fix=?, errors) => {
   let main =
     List.map(
       ({Error.Error.span, _} as err) => {
+        let bol = Span.start_bol(span);
         let line_end =
-          String.index_from_opt(program, span.start_bol, '\n')
+          String.index_from_opt(program, bol, '\n')
           |> Option.value(~default=String.length(program));
-        let line =
-          String.sub(program, span.start_bol, line_end - span.start_bol);
+        let line = String.sub(program, bol, line_end - bol);
         error(line, err);
       },
       errors,

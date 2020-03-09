@@ -84,7 +84,7 @@ let linter =
     | Table
         { table_open = Node { span = start; _ }; table_body; table_close = Node { span = fin; _ } }
       -> (
-        let multiline = start.start_line <> fin.start_line in
+        let multiline = Span.start_line.get start <> Span.start_line.get fin in
         match CCList.last_opt table_body with
         | None -> [] (* If it's an empty table, allow both. *)
         | Some (item, None) when multiline ->

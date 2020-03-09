@@ -455,13 +455,12 @@ let extract node =
     | { Span.value = Node.Whitespace _; _ } :: xs ->
         (* Skip whitespace *)
         extract_block buffer last line column xs
-    | { Span.value = Node.LineComment c; span = { start_line = sl; start_col = sc; _ } as span }
-      :: xs
-      when sl = line + 1 && sc = column ->
+    | { Span.value = Node.LineComment c; span } :: xs
+      when Span.start_line.get span = line + 1 && Span.start_col.get span = column ->
         (* Comments aligned with this one on successive lines are included *)
         Buffer.add_char buffer '\n';
         add_trimmed buffer c 0;
-        extract_block buffer span sl column xs
+        extract_block buffer span (Span.start_line.get span) column xs
     | xs -> (last, xs)
   in
   (* Extract all comments before this token *)
@@ -478,7 +477,9 @@ let extract node =
            (String.length c = 1 || CCString.exists (fun x -> x <> '-') c) ->
         let buffer = Buffer.create 16 in
         Buffer.add_substring buffer c 1 (String.length c - 1);
-        let last, xs = extract_block buffer span span.start_line span.start_col xs in
+        let last, xs =
+          extract_block buffer span (Span.start_line.get span) (Span.start_col.get span) xs
+        in
         let documented = Buffer.contents buffer |> parse |> build (Span.of_span2 span last) in
         extract_comments (documented :: cs) xs
     | _ :: xs -> extract_comments cs xs
