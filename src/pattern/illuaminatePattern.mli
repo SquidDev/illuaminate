@@ -11,6 +11,7 @@
     - [**] matches 0 or more directories. (so [**/foo] matches [foo], [bar/foo], [bar/baz/foo],
       etc...). *)
 
+(** A pattern which can be matched against, or used to direct a tree walk. *)
 type t
 
 val pp : Format.formatter -> t -> unit
@@ -24,12 +25,14 @@ val matches : Fpath.t -> t -> bool
 (** Locate all files matching a glob within a folder, calling the accepting function on them. *)
 val iter : (Fpath.t -> unit) -> ?path:Fpath.t -> root:Fpath.t -> t -> unit
 
+(** A union of patterns. *)
 module Union : sig
   type pattern := t
 
   (** A collection representing a union of multiple patterns. *)
   type t
 
+  (** Construct a union from a list of patterns. *)
   val of_list : pattern list -> t
 
   (** Append two globs together. *)
@@ -38,6 +41,7 @@ module Union : sig
   (** Determine if this directory matches any given pattern. *)
   val matches : Fpath.t -> t -> bool
 
-  (** A version of {!iter}, which may accept multiple overlapping globs. *)
+  (** A version of {!IlluaminatePattern.iter} which works on a union of patterns instead. This is
+      more optimal than iterating over each pattern individually. *)
   val iter : (Fpath.t -> unit) -> ?path:Fpath.t -> root:Fpath.t -> t -> unit
 end

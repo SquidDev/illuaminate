@@ -1,3 +1,11 @@
+(** Functions for building and emitting HTML nodes. This is designed to be used in tandem with
+    Reason's JSX syntax and the {!Jsx} pre-processor. *)
+
+(** A HTML syntax tree and functions for working with them.
+
+    This functor is parameterised by the type of event handler this tree uses. The {!Default} module
+    uses an empty variant type, however other modules (such as our website) use a js_of_ocaml event
+    handler. *)
 module Make (X : sig
   type event_handler
 end) : sig
@@ -45,6 +53,7 @@ end) : sig
   val emit_doc : Format.formatter -> node -> unit
 end
 
+(** The default HTML tree. *)
 module Default : module type of Make (struct
   type event_handler = |
 end)

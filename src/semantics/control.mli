@@ -1,6 +1,8 @@
 (** Control flow analysis for Lua functions.
 
-    This does not do inter-procedural analysis quite yet. *)
+    This does not do inter-procedural analysis, only a simple generation of basic-block-like
+    constructs for individual functions.*)
+
 open IlluaminateCore
 
 (** The source of a jump between two basic blocks. *)

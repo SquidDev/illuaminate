@@ -2,10 +2,15 @@
 
 open IlluaminateCore
 
+(** A fixer for a problematic node. This should map a term of some type, to an equivalent
+    no-problematic term. *)
 type 'a fixer =
-  | FixNothing : 'a fixer
+  | FixNothing : 'a fixer  (** This node has no fixer. *)
   | FixOne : ('a -> ('a, string) result) -> 'a fixer
+      (** This node can be fixed by replacing it with a single equivalent node. If the node cannot
+          be fixed, we return {!Error}. *)
   | FixBlock : (Syntax.stmt -> (Syntax.stmt list, string) result) -> Syntax.stmt fixer
+      (** This statement can be fixed by replacing it with 0 or more statements. *)
 
 (** A linter message which will be attached to a specific node. *)
 type 'a note = private
@@ -52,8 +57,8 @@ type ('op, 'term) visitor = 'op -> context -> 'term -> 'term note list
 (** A linter is effectively a visitor which accepts some node and returns various messages for that
     specific node.
 
-    Every linter is parameterised by an option type (['op]), which can be used to configure how the
-    linter behaves. *)
+    Every linter is parameterised by an "options type" (['op]), which can be used to configure how
+    the linter behaves. *)
 type 'op linter_info =
   { options : 'op IlluaminateConfig.Category.key;  (** A term which parses this group's options. *)
     tags : Error.Tag.t list;  (** The tags this linter may report errors under.*)
@@ -65,8 +70,8 @@ type 'op linter_info =
     var : ('op, Syntax.var) visitor
   }
 
-(** A wrapper of {!linter_data} which hides the option type variable. *)
-type t = private Linter : 'a linter_info -> t
+(** A wrapper of {!linter_data} which hides the options type variable. *)
+type t = private Linter : 'op linter_info -> t
 
 (** Construct a new linter. *)
 val make :
