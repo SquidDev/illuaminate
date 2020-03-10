@@ -4,7 +4,7 @@ let { Logger.log } = Logger.for_section "lsp"
 
 (** {!Rpc.send}, but public. Thanks, I hate it. *)
 let send (_ : Rpc.t) json =
-  log ~title:"debug" "send: %a" (fun () -> Yojson.Safe.pretty_to_string ~std:false) json;
+  log ~title:LocalDebug "send: %a" (fun () -> Yojson.Safe.pretty_to_string ~std:false) json;
   let data = Yojson.Safe.to_string json in
   let content_length = String.length data in
   let header = Header.create ~content_length in

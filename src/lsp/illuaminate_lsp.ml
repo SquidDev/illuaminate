@@ -1,3 +1,9 @@
+let to_title : Logs.level -> Lsp.Logger.Title.t = function
+  | App | Info -> Info
+  | Error -> Error
+  | Warning -> Warning
+  | Debug -> LocalDebug
+
 let () =
   let open Cmdliner in
   let open Term in
@@ -12,9 +18,7 @@ let () =
     { report =
         (fun src level ~over k msgf ->
           let k out =
-            Lsp.Logger.log ~section:(Logs.Src.name src)
-              ~title:(Logs.level_to_string (Some level))
-              "%s" out;
+            Lsp.Logger.log ~section:(Logs.Src.name src) ~title:(to_title level) "%s" out;
             over ();
             k ()
           in
