@@ -1,6 +1,7 @@
 open IlluaminateCore
 open IlluaminateLint
 module StringMap = Map.Make (String)
+module Config = IlluaminateConfigFormat
 
 let reporter () =
   let open Error.Style in
@@ -42,7 +43,7 @@ let lint paths github =
                   Driver.lint ~store ~data ~tags l parsed |> List.iter (Driver.report_note errs)));
   Error.display_of_files errs;
   ( if github then
-    match IlluaminateGithub.publish_errors errs with
+    match Github.publish_errors errs with
     | Ok () -> ()
     | Error msg -> Printf.eprintf "%s\n" msg; exit 2 );
   if Error.has_problems errs then exit 1
@@ -80,7 +81,7 @@ let fix paths =
 
 let mkdirs =
   let rec go xs path =
-    let path_s = Fpath.(rem_empty_seg path |> to_string) in
+    let path_s = Fpath.to_string path in
     if Sys.file_exists path_s then List.iter (fun p -> Unix.mkdir p 0o755) xs
     else if Fpath.is_root path then failwith "Root directory doesn't exist!"
     else go (path_s :: xs) Fpath.(parent path |> normalize)

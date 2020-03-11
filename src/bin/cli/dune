@@ -1,0 +1,43 @@
+(library
+ (name illuaminate_cli)
+ (synopsis
+   "A library containing the main CLI for illuaminate. Does not fulful all virtual modules.")
+ (modules
+  (:standard \ illuaminate illuaminate_js))
+ (libraries containers cmdliner fpath illuaminate.core illuaminate.data
+   illuaminate.parser illuaminate.semantics illuaminate.lint
+   illuaminateConfigFormat illuaminate.html illuaminate.pattern
+   illuaminate.doc_emit illuaminate.exec omd result logs yojson
+   ppx_deriving_yojson.runtime)
+ (preprocess
+  (pps ppx_deriving_yojson)))
+
+(executable
+ (name illuaminate)
+ (libraries illuaminate_cli)
+ (modules illuaminate)
+ (modes exe)
+ (variants unix))
+
+(executable
+ (name illuaminate_js)
+ (modules illuaminate_js)
+ (libraries illuaminate_cli)
+ (modes js)
+ (variants js)
+ (js_of_ocaml
+  (javascript_files runtime.js)
+  (flags "--opt=3" "--custom-header=#!/usr/bin/env node")))
+
+(rule
+ (target illuaminate.min.exe)
+ (deps illuaminate.exe)
+ (action
+  (run upx -o %{target} %{deps})))
+
+(install
+ (section bin)
+ (package illuaminate)
+ (files
+  (illuaminate.min.exe as illuaminate)
+  (illuaminate_js.bc.js as illuaminate.js)))

@@ -34,7 +34,6 @@ depends: [
   "result"
   "yojson"
 ]
-depopts: ["lwt" "cohttp-lwt-unix" "tls"]
 build: [
   ["dune" "subst"] {pinned}
   [

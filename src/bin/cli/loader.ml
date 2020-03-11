@@ -1,6 +1,7 @@
 open IlluaminateCore
 module Files = IlluaminateData.Programs.Files
 module StringMap = Map.Make (String)
+module Config = IlluaminateConfigFormat
 
 let src = Logs.Src.create ~doc:"Loads files from directories." __MODULE__
 

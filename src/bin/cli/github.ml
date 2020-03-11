@@ -1,3 +1,4 @@
+open Github_types
 open IlluaminateCore
 open CCResult.Infix
 
@@ -7,62 +8,32 @@ module Log = (val Logs.src_log src)
 
 let root = "https://api.github.com"
 
-let read_and_delete path =
-  let result =
-    match open_in path with
-    | channel ->
-        let buffer = Buffer.create 1024 in
-        let bytes = Bytes.create 8192 in
-        let rec read () =
-          let n = input channel bytes 0 8192 in
-          Buffer.add_subbytes buffer bytes 0 n;
-          if n > 0 then read ()
-        in
-        let () = read () in
-        close_in channel;
-        Some (Buffer.contents buffer)
-    | exception e ->
-        Log.err (fun f -> f "Cannot read %s (%s)" path (Printexc.to_string e));
-        None
-  in
-  if Sys.file_exists path then Sys.remove path;
-  result
-
 (** Make a request against the GitHub API. *)
 let request ~token ~path ~mthd ~body : (Yojson.Safe.t, string) result =
   let body = Yojson.Safe.to_string ~std:true body in
-  let tmpfile = Filename.temp_file "illuaminate" ".json" in
   let headers =
     [ ("Accept", "application/vnd.github.antiope-preview+json");
       ("Authorization", "token " ^ token)
     ]
     |> CCList.flat_map (fun (h, v) -> [ "-H"; Printf.sprintf "%s: %s" h v ])
   in
-  let args =
-    headers @ [ "-s"; "-X"; mthd; "-d"; body; path ] |> List.map Filename.quote |> String.concat " "
-  in
-  let cmd = Printf.sprintf "curl %s > %s" args (Filename.quote tmpfile) in
-
-  Log.info (fun f -> f "Running %s" cmd);
-  let ok = Sys.command cmd in
-  let contents = read_and_delete tmpfile in
-  match (ok, contents) with
-  | 0, Some body -> (
+  let args = headers @ [ "-s"; "-X"; mthd; "-d"; body; path ] in
+  Log.info (fun f -> f "Running curl %s" (List.map Filename.quote args |> String.concat " "));
+  match IlluaminateExec.exec "curls" ("curl" :: args |> Array.of_list) with
+  | Ok body -> (
     try Ok (Yojson.Safe.from_string body)
     with Yojson.Json_error _ ->
       Error (Printf.sprintf "Cannot parse response of %s (%s)" path body) )
-  | 0, None -> Error (Printf.sprintf "Cannot read command output")
-  | n, _ -> Error (Printf.sprintf "curl exited with %d" n)
+  | Error e -> Error e
 
 let publish_errors ~token ~repo ~sha ~errors =
   let error_list = Error.errors errors in
-  let output = Core.Consts.get_skeleton_output error_list in
+  let output = Consts.get_skeleton_output error_list in
   let rec update id = function
     | [] -> Ok ()
     | ans :: anss ->
         let body =
-          Core.Consts.make_update { output with annotations = ans }
-          |> Core.check_run_update_to_yojson
+          Consts.make_update { output with annotations = ans } |> check_run_update_to_yojson
         in
         request ~token
           ~path:(Printf.sprintf "%s/repos/%s/check-runs/%d" root repo id)
@@ -71,18 +42,29 @@ let publish_errors ~token ~repo ~sha ~errors =
   in
   let ok = not (Error.has_problems errors) in
   let ans, anss =
-    match Core.Consts.to_annotations error_list with
+    match Consts.to_annotations error_list with
     | [] -> ([], [])
     | x :: xs -> (x, xs)
   in
   let body =
-    Core.Consts.make_create ~sha ~ok { output with annotations = ans }
-    |> Core.check_run_create_to_yojson
+    Consts.make_create ~sha ~ok { output with annotations = ans } |> check_run_create_to_yojson
   in
   ( request ~token ~path:(Printf.sprintf "%s/repos/%s/check-runs" root repo) ~mthd:"POST" ~body
   >>= fun x ->
-    Core.check_run_response_of_yojson x
+    check_run_response_of_yojson x
     |> Stdlib.Result.map_error (fun _ ->
            Log.err (fun f -> f "Cannot parse response %s" (Yojson.Safe.pretty_to_string x));
            "Cannot parse response") )
   >>= fun { id; _ } -> update id anss
+
+let getenv name err =
+  match Sys.getenv_opt name with
+  | Some x -> Ok x
+  | None -> Error err
+
+let publish_errors errors =
+  let ( let+ ) = Result.bind in
+  let+ token = getenv "GITHUB_TOKEN" "GITHUB_TOKEN is not available." in
+  let+ sha = getenv "GITHUB_SHA" "GITHUB_SHA is not available." in
+  let+ repo = getenv "GITHUB_REPOSITORY" "GITHUB_REPOSITORY is not available." in
+  publish_errors ~token ~sha ~repo ~errors

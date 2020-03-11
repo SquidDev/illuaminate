@@ -1,6 +1,7 @@
 open IlluaminateCore
-module Files := IlluaminateData.Programs.Files
-module D := IlluaminateData
+module Config := IlluaminateConfigFormat
+module Data := IlluaminateData
+module Files := Data.Programs.Files
 
 type file =
   { root : Fpath.t;
@@ -18,7 +19,8 @@ val create : ?root:Fpath.t -> Error.t -> t
 val get_config : loader:t -> Fpath.t -> Config.t option
 
 (** Attempt to load files from a directory, skipping if there is a configuration error. *)
-val load_from : loader:t -> Fpath.t -> (Config.t * file list * (D.Builder.t -> D.Builder.t)) option
+val load_from :
+  loader:t -> Fpath.t -> (Config.t * file list * (Data.Builder.t -> Data.Builder.t)) option
 
 (** Attempt to load files from multiple directories. *)
-val load_from_many : loader:t -> Fpath.t list -> file list * (D.Builder.t -> D.Builder.t)
+val load_from_many : loader:t -> Fpath.t list -> file list * (Data.Builder.t -> Data.Builder.t)
