@@ -35,3 +35,12 @@
 (alias
  (name opam)
  (deps illuaminate.opam))
+
+;; Cut down version of @all - doesn't build the executables in src/tools.
+
+(alias
+ (name everything)
+ (deps
+  (alias opam)
+  (alias install)
+  (alias doc)))

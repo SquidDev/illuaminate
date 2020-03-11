@@ -3,6 +3,7 @@
 (using library_variants 0.2)
 (implicit_transitive_deps false)
 (generate_opam_files true)
+(allow_approximate_merlin)
 
 (name illuaminate)
 (version 0.1.0)
@@ -51,10 +52,4 @@
     yojson
 
     ;; Language server
-    lsp)
-  (depopts
-    ; GitHub integration (HTTP support mostly). This is not required, as
-    ; we shell out to curl by default.
-    lwt
-    cohttp-lwt-unix
-    tls))
+    lsp))

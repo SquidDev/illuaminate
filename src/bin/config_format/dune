@@ -1,0 +1,9 @@
+(library
+ (name illuaminateConfigFormat)
+ (synopsis "The actual")
+ (libraries containers cmdliner fpath illuaminate.core illuaminate.data
+   illuaminate.lint illuaminate.semantics illuaminate.config
+   illuaminate.pattern illuaminate.exec result))
+
+(ocamllex
+ (modules lex_template))

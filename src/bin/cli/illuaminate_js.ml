@@ -1,2 +1,2 @@
 (** Illuaminate compiling to Javascript, suitable to be run under node.js. *)
-let () = Illuaminate.run ()
+let () = Illuaminate_cli.run ()

@@ -37,23 +37,33 @@ let test_cases =
     ("a/*.txt", "a/foo.txt", true);
     ("a/*.txt", "a/b/foo.txt", false);
     ("a/*.txt", "x/a/foo.txt", false);
-    ("**/a/*.txt", "x/a/foo.txt", true)
-    (* TODO: ("**/a/*.txt", "a/foo.txt", true) *)
+    ("**/a/*.txt", "x/a/foo.txt", true);
+    ("**/a/*.txt", "a/foo.txt", true);
+    (* Weird ** wildcards. *)
+    ("a/**.txt", "a/foo.txt", true);
+    ("a/**.txt", "a/x/foo.txt", false);
+    ("a/b**c", "a/bc", true);
+    ("a/b**c", "a/b/c", false)
   ]
 
 let tests =
-  test_cases
-  |> List.map (fun (pat, dir, expected) ->
-         test (Printf.sprintf "%S → %S" pat dir) (fun () ->
-             let actual = parse pat |> matches (Fpath.v dir) in
-             if actual = expected then result Pass
-             else
-               let msg =
-                 if expected then
-                   Printf.sprintf "Expected pattern %S to match %S, but it didn't" pat dir
-                 else Printf.sprintf "Expected pattern %S to not match %S, but it did" pat dir
-               in
-               result
-                 ~message:(fun fmt -> Format.pp_print_string fmt msg)
-                 (Failed { backtrace = None })))
-  |> group "Patterns"
+  let build matcher =
+    test_cases
+    |> List.map (fun (pat, dir, expected) ->
+           test (Printf.sprintf "%S → %S" pat dir) (fun () ->
+               let actual = parse pat |> matcher (Fpath.v dir) in
+               if actual = expected then result Pass
+               else
+                 let msg =
+                   if expected then
+                     Printf.sprintf "Expected pattern %S to match %S, but it didn't" pat dir
+                   else Printf.sprintf "Expected pattern %S to not match %S, but it did" pat dir
+                 in
+                 result
+                   ~message:(fun fmt -> Format.pp_print_string fmt msg)
+                   (Failed { backtrace = None })))
+  in
+  group "Patterns"
+    [ group "Standalone" (build matches);
+      group "Union" (build (fun p v -> Union.of_list [ v ] |> Union.matches p))
+    ]

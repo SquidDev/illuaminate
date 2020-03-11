@@ -19,7 +19,9 @@ module Type : sig
   module Syntax = Type_syntax
 end
 
+(** Functions relating to Lua's [string] library. *)
 module Stringlib : sig
+  (** Parse [string.format] format strings. *)
   module Format : sig
     (** A format specifier. *)
     type specifier =

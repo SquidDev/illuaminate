@@ -2,5 +2,4 @@
  (name illuaminateExec)
  (public_name illuaminate.exec)
  (synopsis "Run an external command and capture the output")
- (virtual_modules illuaminateExec)
- (default_implementation illuaminate.exec.default))
+ (virtual_modules illuaminateExec))

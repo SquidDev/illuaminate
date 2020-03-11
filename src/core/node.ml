@@ -1,7 +1,7 @@
 (** A node is an object which exists in the syntax tree of the program.
 
-    Nodes, a long with holding an object, also include additional metadata such as their position
-    and surrounding trivia. *)
+    Nodes, along with holding an object, also include additional metadata such as their position and
+    surrounding trivia. *)
 
 (** A "trivial" part of the program, which is not important for the execution of the program, but
     may be useful for understanding or recreating it. *)
