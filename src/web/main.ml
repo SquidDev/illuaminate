@@ -52,7 +52,7 @@ let render (doc : Dom_html.document Js.t) html : Dom.node Js.t =
 let data () =
   let open IlluaminateData in
   let open Builder in
-  let context = { Programs.Context.root = Fpath.v "/"; config = store } in
+  let context = { Programs.Context.root = None; config = store } in
   empty
   |> Programs.Files.(create () |> builder)
   |> oracle Programs.Context.key (Fun.const context)
@@ -61,7 +61,7 @@ let data () =
 (** Fix all errors within the program. *)
 let rec fix_all () : unit =
   let lexbuf = input##.value |> Js.to_string |> Lexing.from_string in
-  match IlluaminateParser.program { name = "input"; path = "input" } lexbuf with
+  match IlluaminateParser.program (Span.Filename.mk "=input") lexbuf with
   | Error _ -> ()
   | Ok parsed ->
       let program, _ = Driver.lint_and_fix_all ~store ~data:(data ()) Linters.all parsed in
@@ -79,7 +79,7 @@ and lint () : unit =
   let errs = Error.make () in
   let input = Js.to_string input##.value in
   let lexbuf = Lexing.from_string input in
-  ( match IlluaminateParser.program { name = "input"; path = "input" } lexbuf with
+  ( match IlluaminateParser.program (Span.Filename.mk "=input") lexbuf with
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok parsed ->
       let data = data () in

@@ -14,6 +14,10 @@ type doc_options =
         (** Resolve a position in source code to an online file host (such as GitHub). *)
   }
 
+(** Read config from a lexer, either accepting some options or producing a warning. *)
+val of_lexer :
+  directory:Fpath.t -> Span.filename -> Lexing.lexbuf -> (t, string Span.spanned) result
+
 (** Read config from a file, either accepting some options or producing a warning. *)
 val of_file : Error.t -> Span.filename -> t option
 
@@ -27,7 +31,7 @@ val generate : Format.formatter -> unit
 val files : (Fpath.t -> unit) -> t -> Fpath.t -> unit
 
 (** Get the enabled error tags and linter options from the config object. *)
-val get_linters : t -> Fpath.t -> Error.Tag.filter * Schema.store
+val get_linters : t -> ?path:Fpath.t -> unit -> Error.Tag.filter * Schema.store
 
 (** Get options relating to the documentation. *)
 val get_doc_options : t -> doc_options

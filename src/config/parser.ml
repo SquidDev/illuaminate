@@ -173,7 +173,7 @@ let parse state (body : 'a t) last : ('a, Span.t * string) result =
 
 let parse_buf (file : Span.filename) (lexbuf : Lexing.lexbuf) body =
   try
-    lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = file.path };
+    lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = file.name };
     let rec go stack (head : Sexp.t list) head_start : Sexp.t list =
       let start = lexbuf.lex_curr_p in
       let token = Lexer.token lexbuf in

@@ -34,7 +34,7 @@
     ; Documentation generation
     (odoc :with-doc)
 
-    ; Dev-only dependencies. We mark them as with-test for convenience's sake.
+    ; Dev-only dependencies.
     (ocamlformat :dev)
     (opam-file-format :dev)
 

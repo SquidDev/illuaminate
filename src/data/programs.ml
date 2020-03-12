@@ -3,7 +3,7 @@ module IntMap = Map.Make (Int)
 
 module Context = struct
   type t =
-    { root : Fpath.t;
+    { root : Fpath.t option;
       config : IlluaminateConfig.Schema.store
     }
 

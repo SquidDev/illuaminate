@@ -179,9 +179,13 @@ let display_of_files ?(out = Format.err_formatter) ?(with_summary = true) store 
   in
   store
   |> each_error (fun ({ span; _ } as err) ->
-         let ch = get_channel span.filename.path in
-         seek_in ch span.start_bol;
-         let line = input_line ch in
+         let line =
+           match span.filename.path with
+           | None -> ""
+           | Some path ->
+               let ch = get_channel (Fpath.to_string path) in
+               seek_in ch span.start_bol; input_line ch
+         in
          display_line out line err);
   ( match !last with
   | Some (_, ch) -> close_in ch

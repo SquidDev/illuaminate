@@ -712,9 +712,11 @@ module Config = struct
     in
     Category.add term workspace
 
-  let get { D.Programs.Context.root; config } =
-    let { module_path } = Schema.get key config in
-    List.map (fun (p, ext) -> (Fpath.(root // v p), ext)) module_path
+  let get : D.Programs.Context.t -> (Fpath.t * string) list = function
+    | { root = None; _ } -> []
+    | { root = Some root; config } ->
+        let { module_path } = Schema.get key config in
+        List.map (fun (p, ext) -> (Fpath.(root // v p), ext)) module_path
 end
 
 type t =
@@ -735,8 +737,8 @@ let get_unresolved_module data program =
   in
   match D.need data Infer.key program |> snd with
   | Named m -> Some m
-  | Unnamed { file; body; mod_types; mod_kind } ->
-      let path = Fpath.v file.path in
+  | Unnamed { file = { path = None; _ }; _ } -> None
+  | Unnamed { file = { path = Some path; _ }; body; mod_types; mod_kind } ->
       let get_name best (root, ext) =
         if not (Fpath.is_rooted ~root path) then best
         else

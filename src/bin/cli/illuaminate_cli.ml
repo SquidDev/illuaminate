@@ -3,6 +3,10 @@ open IlluaminateLint
 module StringMap = Map.Make (String)
 module Config = IlluaminateConfigFormat
 
+let src = Logs.Src.create ~doc:"The core CLI for illuaminate" __MODULE__
+
+module Log = (val Logs.src_log src)
+
 let reporter () =
   let open Error.Style in
   let app_name =
@@ -37,7 +41,7 @@ let lint paths github =
   |> List.iter (function
        | { Loader.parsed = None; _ } -> ()
        | { path; config; parsed = Some parsed; _ } ->
-           let tags, store = Config.get_linters config path in
+           let tags, store = Config.get_linters config ~path () in
            Linters.all
            |> List.iter (fun l ->
                   Driver.lint ~store ~data ~tags l parsed |> List.iter (Driver.report_note errs)));
@@ -60,7 +64,7 @@ let fix paths =
          | { path; config; parsed = Some parsed; _ } as f ->
              (* TODO: Have a separate linter list for fixers - so we can have things which are
                 linted but not fixed? *)
-             let tags, store = Config.get_linters config path in
+             let tags, store = Config.get_linters config ~path () in
              let program, _ = Driver.lint_and_fix_all ~store ~data ~tags Linters.all parsed in
              { f with parsed = Some program })
   in
@@ -69,10 +73,10 @@ let fix paths =
     | { Loader.file; parsed = Some oldm; _ }, { Loader.parsed = Some newm; _ } when oldm != newm
       -> (
       try
-        let ch = open_out file.path in
+        let ch = open_out file.id in
         let fmt = Format.formatter_of_out_channel ch in
         Emit.program fmt newm; Format.pp_print_flush fmt (); close_out ch
-      with e -> Printf.eprintf "Error fixing %s (%s).\n" file.path (Printexc.to_string e) )
+      with e -> Log.err (fun f -> f "Error fixing %s (%s).\n" file.name (Printexc.to_string e)) )
     | _ -> ()
   in
   List.iter2 rewrite modules modules';

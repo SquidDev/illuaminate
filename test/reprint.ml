@@ -4,7 +4,8 @@ open IlluaminateCore
 let process name =
   let path = Filename.concat "data/reprint" name in
   let contents = CCIO.(with_in path read_all) in
-  match Lexing.from_string contents |> IlluaminateParser.program { Span.name; path } with
+  let name = Span.Filename.mk name in
+  match Lexing.from_string contents |> IlluaminateParser.program name with
   | Error err ->
       let errs = Error.make () in
       IlluaminateParser.Error.report errs err.span err.value;

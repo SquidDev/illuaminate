@@ -7,13 +7,13 @@ open CCFun
 
 let process ~name contents out =
   let lexbuf = Lexing.from_string contents in
-  let name = { Span.name; path = name } in
+  let name = Span.Filename.mk name in
   let errs = Error.make () in
   ( match IlluaminateParser.program name lexbuf with
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok parsed ->
       let context =
-        { D.Programs.Context.root = Sys.getcwd () |> Fpath.v;
+        { D.Programs.Context.root = Sys.getcwd () |> Fpath.v |> Option.some;
           config = Schema.(singleton Doc.Config.key |> default)
         }
       in

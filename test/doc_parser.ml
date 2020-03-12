@@ -7,16 +7,14 @@ module D = IlluaminateData
 
 let process ~name contents out =
   let lexbuf = Lexing.from_string contents in
-  let name = { Span.name; path = name } in
+  let name = Span.Filename.mk name in
   match IlluaminateParser.program name lexbuf with
   | Error err ->
       let errs = Error.make () in
       IlluaminateParser.Error.report errs err.span err.value;
       Error.display_of_string ~out (fun _ -> Some contents) errs
   | Ok parsed -> (
-      let context =
-        { D.Programs.Context.root = Sys.getcwd () |> Fpath.v; config = Schema.(default empty) }
-      in
+      let context = { D.Programs.Context.root = None; config = Schema.(default empty) } in
       let data =
         let open D.Builder in
         empty

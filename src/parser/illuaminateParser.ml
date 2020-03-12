@@ -65,7 +65,7 @@ let parse start (file : Span.filename) (lexbuf : Lexing.lexbuf) =
     | I.Rejected -> assert false
   in
   try
-    lexbuf.lex_curr_p <- { Lexing.pos_fname = file.path; pos_lnum = 1; pos_cnum = 0; pos_bol = 0 };
+    lexbuf.lex_curr_p <- { Lexing.pos_fname = file.name; pos_lnum = 1; pos_cnum = 0; pos_bol = 0 };
     let first = lex_one file lexbuf in
     start Lexing.dummy_pos |> go None first
   with Lexer.Error (err, start, fin) ->
@@ -83,7 +83,7 @@ module Lexer = struct
   let lex (file : Span.filename) (lexbuf : Lexing.lexbuf) :
       (token Span.spanned array, Error.t Span.spanned) result =
     try
-      lexbuf.lex_curr_p <- { Lexing.pos_fname = file.path; pos_lnum = 1; pos_cnum = 0; pos_bol = 0 };
+      lexbuf.lex_curr_p <- { Lexing.pos_fname = file.name; pos_lnum = 1; pos_cnum = 0; pos_bol = 0 };
       let rec go xs =
         let token = lex_one file lexbuf in
         match token with
