@@ -29,11 +29,9 @@ let create ?root errors =
 let mk_name ~loader:{ relative; _ } path =
   let path_s = Fpath.to_string path in
   let name =
-    Fpath.(
-      relativize ~root:relative path
-      |> Option.fold ~none:path_s ~some:(fun x -> normalize x |> to_string))
+    Fpath.(relativize ~root:relative path |> Option.map (fun f -> normalize f |> to_string))
   in
-  { Span.path = path_s; name }
+  Span.Filename.mk ?name ~path path_s
 
 let rec get_config ~loader dir =
   let dir = Fpath.normalize dir in
@@ -59,8 +57,8 @@ let get_config_for ~loader path =
   if Sys.is_directory str then get_config ~loader path else get_config ~loader (Fpath.parent path)
 
 (** Parse a file and report its errors. *)
-let parse ~loader:{ errors; _ } ({ Span.path; _ } as file) =
-  CCIO.with_in path (fun channel ->
+let parse ~loader:{ errors; _ } ({ Span.id; _ } as file) =
+  CCIO.with_in id (fun channel ->
       let lexbuf = Lexing.from_channel channel in
       match IlluaminateParser.program file lexbuf with
       | Error err ->
@@ -87,9 +85,9 @@ let do_load_from ~loader ~files ~file_store ~config root =
 
 let builder files file_store builder =
   builder
-  |> IlluaminateData.Builder.oracle IlluaminateData.Programs.Context.key (fun file ->
-         let { root; config; _ } = StringMap.find file.Span.path files in
-         { root; config = Config.get_store config })
+  |> IlluaminateData.Builder.oracle IlluaminateData.Programs.Context.key (fun file _ ->
+         let { root; config; _ } = StringMap.find file.Span.id files in
+         { root = Some root; config = Config.get_store config })
   |> Files.builder file_store
 
 let keys m = StringMap.to_seq m |> Seq.map snd |> List.of_seq

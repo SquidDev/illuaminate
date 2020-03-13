@@ -3,11 +3,14 @@ module IntMap = Map.Make (Int)
 
 module Context = struct
   type t =
-    { root : Fpath.t;
+    { root : Fpath.t option;
       config : IlluaminateConfig.Schema.store
     }
 
-  let key : (Span.filename, t) Core.Key.t = Core.Key.oracle ~name:(__MODULE__ ^ ".Context") ()
+  let eq_v a b = a.root = b.root && a.config == b.config
+
+  let key : (Span.filename, t) Core.Key.t =
+    Core.Key.deferred ~eq_v ~name:(__MODULE__ ^ ".Context") ()
 end
 
 module Files = struct
@@ -22,7 +25,8 @@ module Files = struct
       store : t
     }
 
-  let file : (id, Syntax.program) Core.Key.t = Core.Key.oracle ~name:(__MODULE__ ^ ".Files.file") ()
+  let file : (id, Syntax.program) Core.Key.t =
+    Core.Key.deferred ~name:(__MODULE__ ^ ".Files.file") ()
 
   let files : (unit, id list) Core.Key.t =
     let rec eq_v xs ys =
@@ -31,14 +35,14 @@ module Files = struct
       | { id = x; _ } :: xs, { id = y; _ } :: ys when x = y -> eq_v xs ys
       | _ -> false
     in
-    Core.Key.oracle ~eq_v ~name:(__MODULE__ ^ ".Files.files") ()
+    Core.Key.deferred ~eq_v ~name:(__MODULE__ ^ ".Files.files") ()
 
   let builder store builder =
-    let get_file { id; store = this_store } =
+    let get_file { id; store = this_store } _ =
       assert (store == this_store);
       IntMap.find id store.files
     in
-    let get_files () = store.file_list in
+    let get_files () _ = store.file_list in
     builder |> Core.Builder.oracle file get_file |> Core.Builder.oracle files get_files
 
   let create () = { files = IntMap.empty; file_list = []; next_id = 0 }

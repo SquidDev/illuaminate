@@ -1,7 +1,7 @@
 open Omnomnom.Tests
 open IlluaminateData
 
-let ref_key = Key.oracle ~name:"Reference" ()
+let ref_key = Key.deferred ~name:"Reference" ()
 
 let add_key = Key.key ~name:"Add" (fun s (a, b) -> need s ref_key a + need s ref_key b)
 
@@ -9,7 +9,7 @@ let count_key key k =
   let counter = ref 0 in
   (Key.key ~name:"Count" (fun s () -> incr counter; need s key k), counter)
 
-let ref_builder = Builder.oracle ref_key (fun x -> !x)
+let ref_builder = Builder.oracle ref_key (fun x _ -> !x)
 
 let ( let+ ) x f =
   match x with

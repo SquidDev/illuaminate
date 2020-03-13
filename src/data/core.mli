@@ -31,8 +31,14 @@ module Key : sig
   val key : ('k, 'v, context -> 'k -> 'v) factory
 
   (** Construct an "oracle" key. This provides data from outside the store (such as the filesystem).
-      A provider for oracles must be registered with {!Builder.oracle}. *)
-  val oracle : ('k, 'v, unit) factory
+
+      This accepts the key, and the previous value, and returns the new value. *)
+  val oracle : ('k, 'v, 'k -> 'v option -> 'v) factory
+
+  (** Construct a deferred key, whose provider function can be specified when constructing the
+      store.. The provider for such keys must be registered with {!Builder.key} or
+      {!Builder.oracle}. *)
+  val deferred : ('k, 'v, unit) factory
 end
 
 module Builder : sig
@@ -43,9 +49,16 @@ module Builder : sig
   (** An empty builder. *)
   val empty : t
 
-  (** Register a provider for an oracle. Throws if the key was not constructed with {!Key.oracle},
-      or a provider is already registered. *)
-  val oracle : ('k, 'v) Key.t -> ('k -> 'v) -> t -> t
+  (** Register a provider for a deferred which just queries the store. This causes the deferred key
+      to act as a standard key ({!Key.key}).
+
+      Throws if the key was not constructed with {!Key.deferred}, or a provider is already
+      registered. *)
+  val key : ('k, 'v) Key.t -> (context -> 'k -> 'v) -> t -> t
+
+  (** Register a provider for a deferred key. Throws if the key was not constructed with
+      {!Key.deferred}, or a provider is already registered. *)
+  val oracle : ('k, 'v) Key.t -> ('k -> 'v option -> 'v) -> t -> t
 
   (** Convert a store builder into a fully-fledged oracle. *)
   val build : t -> store

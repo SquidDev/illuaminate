@@ -36,7 +36,7 @@ let emit ~input visit tree =
 
 (** Highlight Lua as HTML code. *)
 let lua input =
-  let file = { Span.name = "=input"; path = "=input" } in
+  let file = Span.Filename.mk "=input" in
   let program = Lexing.from_string input |> IlluaminateParser.program file
   and expr = lazy (Lexing.from_string input |> IlluaminateParser.repl_exprs file) in
 

@@ -15,7 +15,7 @@ let only =
 
 let process ~name contents out =
   let lexbuf = Lexing.from_string contents in
-  let name = { Span.name; path = name } in
+  let name = Span.Filename.mk name in
   match IlluaminateParser.program name lexbuf with
   | Error err ->
       let errs = Error.make () in
@@ -41,7 +41,7 @@ let process ~name contents out =
             | Some c ->
                 let buf = Lexing.from_string c in
                 Schema.to_parser schema |> Parser.fields
-                |> Parser.parse_buf { Span.path = "?"; name = "?" } buf
+                |> Parser.parse_buf (Span.Filename.mk "=config") buf
                 |> Result.fold ~ok:Fun.id ~error:(fun (_, x) -> failwith x)
             | None -> Schema.default schema )
         | _ -> Schema.default schema
@@ -55,12 +55,12 @@ let process ~name contents out =
             | Some t -> t)
           only
       in
-      let context = { D.Programs.Context.root = Sys.getcwd () |> Fpath.v; config = store } in
+      let context = { D.Programs.Context.root = None; config = store } in
       let data =
         let open D.Builder in
         empty
         |> D.Programs.Files.(create () |> builder)
-        |> oracle D.Programs.Context.key (Fun.const context)
+        |> oracle D.Programs.Context.key (fun _ _ -> context)
         |> build
       in
       let linters =

@@ -179,3 +179,13 @@ module Make (H : KeyContainer) = struct
     in
     replace_bucket l
 end
+
+let strong (type k) ?(hash = Hashtbl.hash) ~eq () =
+  ( module StrongContainer (struct
+    type t = k
+
+    let equal = eq
+
+    let hash = hash
+  end) : KeyContainer
+    with type t = k )

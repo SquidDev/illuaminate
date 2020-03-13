@@ -22,7 +22,7 @@ let spec_key = Category.add spec cat
 
 let process spec proj ~name contents =
   let buf = Lexing.from_string contents in
-  match spec |> Parser.fields |> Parser.parse_buf { Span.path = name; name } buf with
+  match spec |> Parser.fields |> Parser.parse_buf (Span.Filename.mk name) buf with
   | Ok k -> show_config (proj k)
   | Error (pos, e) -> Format.asprintf "%a: %s" Span.pp pos e
 

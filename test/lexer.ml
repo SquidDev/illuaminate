@@ -3,7 +3,7 @@ open IlluaminateCore
 let lex ~name contents =
   let lexbuf = Lexing.from_string contents in
   let errs = Error.make () in
-  let name = { Span.name; path = name } in
+  let name = Span.Filename.mk name in
   let buffer = Buffer.create 128 in
   let out = Format.formatter_of_buffer buffer in
   ( match IlluaminateParser.Lexer.lex name lexbuf with

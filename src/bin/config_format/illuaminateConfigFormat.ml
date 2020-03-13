@@ -98,12 +98,12 @@ let doc_options_term =
          let rec go = function
            | [] -> Some (Buffer.contents out)
            | Lex_template.Raw x :: xs -> Buffer.add_string out x; go xs
-           | Key "path" :: xs -> (
-             match Fpath.(v span.filename.path |> relativize ~root) with
-             | None -> None
-             | Some x ->
-                 Fpath.to_string x |> Buffer.add_string out;
-                 go xs )
+           | Key "path" :: xs ->
+               span.filename.path
+               |> CCOpt.flat_map (Fpath.relativize ~root)
+               |> CCOpt.flat_map (fun x ->
+                      Fpath.to_string x |> Buffer.add_string out;
+                      go xs)
            | Key ("line" | "sline") :: xs ->
                string_of_int span.start_line |> Buffer.add_string out;
                go xs
@@ -195,16 +195,25 @@ let parser =
 
 let parse_error = Error.(Tag.make Critical "config:parse")
 
+let of_lexer ~directory (file : Span.filename) lexbuf =
+  match IlluaminateConfig.Parser.parse_buf file lexbuf parser with
+  | Ok c -> c directory |> Result.ok
+  | Error (span, message) -> Error { Span.span; value = message }
+
 let of_file err (file : Span.filename) =
+  let path =
+    match file.path with
+    | None -> failwith "of_file: must have a location on disk"
+    | Some path -> path
+  in
   let parsed =
-    CCIO.with_in file.path (fun channel ->
-        let lexbuf = Lexing.from_channel channel in
-        IlluaminateConfig.Parser.parse_buf file lexbuf parser)
+    CCIO.with_in (Fpath.to_string path) (fun channel ->
+        Lexing.from_channel channel |> of_lexer ~directory:(Fpath.parent path) file)
   in
   match parsed with
-  | Ok x -> Fpath.v file.path |> Fpath.parent |> x |> Option.some
-  | Error (pos, msg) ->
-      Error.report err parse_error pos msg;
+  | Ok x -> Some x
+  | Error { Span.span; value = message } ->
+      Error.report err parse_error span message;
       None
 
 let default = Default
@@ -266,13 +275,18 @@ let files iter config path =
   | Config { root; sources; _ } -> Pattern.Union.iter iter ~path ~root sources
 
 (** Get all linters and their configuration options for a particular file. *)
-let get_linters config path =
+let get_linters config ?path () =
   match config with
   | Default -> ((fun _ -> true), Schema.default linter_schema)
   | Config { root; pat_config; _ } ->
-      if not (Fpath.is_rooted ~root path) then
-        failwith "Path should be a child of the config's root.";
-      let path = Fpath.relativize ~root path |> Option.get in
+      let path =
+        match path with
+        | None -> root
+        | Some path ->
+            if not (Fpath.is_rooted ~root path) then
+              failwith "Path should be a child of the config's root.";
+            Fpath.relativize ~root path |> Option.get
+      in
       let enabled, store =
         List.fold_left
           (fun (linters, store) { pattern; tags; linter_options } ->

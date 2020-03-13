@@ -8,7 +8,7 @@ let linter =
   let tag = Error.Tag.make Error.Warning "doc:malformed-example" in
 
   let check ~notes ~span contents =
-    let file = { Span.name = "=input"; path = "=input" } in
+    let file = Span.Filename.mk "=input" in
     let program = Lexing.from_string contents |> IlluaminateParser.program file
     and expr = lazy (Lexing.from_string contents |> IlluaminateParser.repl_exprs file) in
 

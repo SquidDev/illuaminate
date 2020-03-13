@@ -1,3 +1,4 @@
+open Stdlib
 open Github_types
 open IlluaminateCore
 open CCResult.Infix
@@ -52,7 +53,7 @@ let publish_errors ~token ~repo ~sha ~errors =
   ( request ~token ~path:(Printf.sprintf "%s/repos/%s/check-runs" root repo) ~mthd:"POST" ~body
   >>= fun x ->
     check_run_response_of_yojson x
-    |> Stdlib.Result.map_error (fun _ ->
+    |> Result.map_error (fun _ ->
            Log.err (fun f -> f "Cannot parse response %s" (Yojson.Safe.pretty_to_string x));
            "Cannot parse response") )
   >>= fun { id; _ } -> update id anss

@@ -63,3 +63,6 @@ end
 
 (** Construct a new open-hash table. *)
 module Make (M : KeyContainer) : S with type key = M.t and type 'a container = 'a M.container
+
+val strong :
+  ?hash:('a -> int) -> eq:('a -> 'a -> bool) -> unit -> (module KeyContainer with type t = 'a)
