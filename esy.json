@@ -41,7 +41,7 @@
     "@opam/omnomnom":
       "git://github.com/SquidDev/omnomnom:omnomnom.opam#a0620d42b2ac94fcc4617e87709d6bda9188362c",
     "@opam/lsp":
-      "git://github.com/ocaml/ocaml-lsp:lsp.opam#5782d1da7bd25db2070b325d794ebea2e2d72276"
+      "git://github.com/ocaml/ocaml-lsp:lsp.opam#f3e1f4c543eef14a3cc42bc5efbb41c9137dc3a2"
   },
   "scripts": {
     "test": "dune build @runtest -f",

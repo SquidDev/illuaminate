@@ -1,7 +1,6 @@
 open IlluaminateCore
 open IlluaminateLint
-open Lsp.Protocol
-open! PublishDiagnostics
+open Lsp.Types
 open Lsp_convert
 open Syntax
 module D = IlluaminateData
@@ -9,16 +8,10 @@ module D = IlluaminateData
 let fname p = (Syntax.Spanned.program p).filename
 
 let diagnostic ~tag ~span ?(relatedInformation = []) ?(tags = []) message =
-  { range = range span;
-    severity = tag_severity tag;
-    code = tag_code tag;
-    source = Some "illuaminate";
-    message;
-    relatedInformation;
-    tags
-  }
+  Diagnostic.create ~range:(range span) ~severity:(tag_severity tag) ~code:(tag_code tag)
+    ~source:"illuaminate" ~message ~relatedInformation ~tags ()
 
-let note_to_diagnostic : Driver.any_note -> diagnostic = function
+let note_to_diagnostic : Driver.any_note -> Diagnostic.t = function
   | Note ({ note = { Linter.message; detail; tag; _ }; _ } as n) ->
       let span = Driver.NoteAt.span n in
       let message =
@@ -66,7 +59,7 @@ let notes =
       add 1 xs xss; out
   | _ -> failwith "Impossible"
 
-let diagnostics store : Store.document -> diagnostic list = function
+let diagnostics store : Store.document -> Diagnostic.t list = function
   | { program = Error { span; value }; _ } ->
       [ diagnostic ~span ~tag:IlluaminateParser.Error.tag
           (Format.asprintf "%a" IlluaminateParser.Error.pp value)
@@ -75,7 +68,7 @@ let diagnostics store : Store.document -> diagnostic list = function
       D.get (Store.data store) notes prog
       |> Array.to_seq |> Seq.map note_to_diagnostic |> CCList.of_std_seq_rev
 
-let code_actions store program range : Lsp.CodeAction.result =
+let code_actions store program range : CodeActionResult.t =
   D.get (Store.data store) notes program
   |> Array.to_seqi
   |> Seq.filter (fun (_, Driver.Note n) -> Pos.overlaps range (Driver.NoteAt.span n))
@@ -85,21 +78,16 @@ let code_actions store program range : Lsp.CodeAction.result =
          | FixOne _ | FixBlock _ ->
              let title = Printf.sprintf "Fix '%s'" message in
              let action =
-               { Lsp.CodeAction.title;
-                 kind = Some QuickFix;
-                 diagnostics = [ note_to_diagnostic note ];
-                 isPreferred = true;
-                 edit = None;
-                 command =
-                   Some
-                     { title;
-                       command = "illuaminate/fix";
-                       arguments = Some [ Store.Filename.to_uri_json (fname program); `Int i ]
-                     }
-               }
+               CodeAction.create ~title ~kind:QuickFix ~diagnostics:[ note_to_diagnostic note ]
+                 ~isPreferred:true
+                 ~command:
+                   (Command.create ~title ~command:"illuaminate/fix"
+                      ~arguments:[ Store.Filename.to_uri_json (fname program); `Int i ]
+                      ())
+                 ()
              in
-             Some (Lsp.Import.Either.Right action))
-  |> CCList.of_std_seq_rev
+             Some (`CodeAction action))
+  |> CCList.of_std_seq_rev |> Option.some
 
 let get_token_range (type a) (x : a) : a Driver.NoteAt.witness -> token * token = function
   | AtExpr -> (First.expr.get x, Last.expr.get x)
@@ -123,7 +111,7 @@ let get_whole_range before witness =
       | None -> span
       | Some { span; _ } -> span )
   in
-  { Range.start_ = span_start start; end_ = span_finish finish }
+  { Range.start = span_start start; end_ = span_finish finish }
 
 let get_printer (type a) : a Driver.NoteAt.witness -> Format.formatter -> a -> unit = function
   | AtExpr -> Emit.expr

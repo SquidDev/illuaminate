@@ -20,7 +20,9 @@ module Filename = struct
 
   let to_uri_json { Span.id; _ } : Yojson.Safe.t = `String id
 
-  let to_uri { Span.id; _ } = Uri.t_of_yojson (`String id)
+  let box x = Uri.t_of_yojson (`String x)
+
+  let to_uri { Span.id; _ } = box id
 
   let of_fpath path = Span.Filename.mk ~path (Fpath.to_string path |> Uri.of_path |> Uri.to_string)
 end
@@ -219,8 +221,7 @@ let set_workspace store ?root workspaces =
   Log.info (fun f ->
       f "Setting root to %s and additional workspaces to [%s]"
         (Option.fold ~none:"none" ~some:Uri.to_string root)
-        ( List.map (fun { Protocol.WorkspaceFolder.uri; _ } -> Uri.to_string uri) workspaces
-        |> String.concat ", " ));
+        (List.map (fun { Types.WorkspaceFolder.uri; _ } -> uri) workspaces |> String.concat ", "));
 
   (* TODO: Don't reconstruct unless needed *)
   store.root <-
@@ -229,6 +230,7 @@ let set_workspace store ?root workspaces =
       root;
   store.workspaces <-
     List.map
-      (fun ({ uri; name } : Protocol.WorkspaceFolder.t) ->
+      (fun ({ uri; name } : Types.WorkspaceFolder.t) ->
+        let uri = Filename.box uri in
         { uri; Workspace.path = Filename.get_path uri; name = Some name })
       workspaces

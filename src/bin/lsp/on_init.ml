@@ -1,51 +1,34 @@
 open Lsp
+open Lsp.Types
 
-let init_info : Initialize.Result.t =
-  { capabilities =
-      { textDocumentSync =
-          { change = IncrementalSync;
-            openClose = true;
-            willSave = false;
-            willSaveWaitUntil = false;
-            save = None
-          };
-        hoverProvider = true;
-        completionProvider = None;
-        signatureHelpProvider = None;
-        definitionProvider = true;
-        typeDefinitionProvider = false;
-        referencesProvider = true;
-        documentHighlightProvider = true;
-        documentSymbolProvider = false;
-        workspaceSymbolProvider = false;
-        codeActionProvider = Bool true;
-        codeLensProvider = None;
-        documentFormattingProvider = false;
-        documentRangeFormattingProvider = false;
-        documentOnTypeFormattingProvider = None;
-        renameProvider = false;
-        documentLinkProvider = None;
-        executeCommandProvider = Some { commands = [ "illuaminate/fix" ] };
-        typeCoverageProvider = false;
-        foldingRangeProvider = Bool false
-      };
-    serverInfo = Some { name = "illuaminate-lsp"; version = Some "%%VERSION%%" }
-  }
+let init_info : InitializeResult.t =
+  let capabilities =
+    ServerCapabilities.create
+      ~textDocumentSync:
+        (`TextDocumentSyncOptions
+          (TextDocumentSyncOptions.create ~change:Incremental ~openClose:true ~willSave:false
+             ~willSaveWaitUntil:false ()))
+      ~hoverProvider:(`Bool true) ~definitionProvider:(`Bool true) ~referencesProvider:(`Bool true)
+      ~declarationProvider:(`Bool true) ~documentHighlightProvider:(`Bool true)
+      ~codeActionProvider:(`Bool true)
+      ~workspace:
+        { workspaceFolders =
+            Some
+              (WorkspaceFoldersServerCapabilities.create ~supported:true
+                 ~changeNotifications:(`Bool true) ())
+        }
+      ~executeCommandProvider:(ExecuteCommandOptions.create ~commands:[ "illuaminate/fix" ] ())
+      ()
+  in
+  InitializeResult.create
+    ~serverInfo:{ name = "illuaminate-lsp"; version = Some "%%VERSION%%" }
+    ~capabilities ()
 
-let handle rpc store
-    { Initialize.Params.rootPath; rootUri; workspaceFolders; capabilities = { workspace; _ }; _ } =
-  if workspace.workspaceFolders then
-    Ugly_hacks.send_request rpc
-      (ClientRegisterCapability
-         { registrations =
-             [ { id = ""; method_ = "workspace/didChangeWorkspaceFolders"; registerOptions = None }
-             ]
-         });
-
+let handle (_ : Rpc.t) store { InitializeParams.rootPath; rootUri; workspaceFolders; _ } =
   let root =
     match rootUri with
-    | Some u -> Some u
-    | None -> Option.map Uri.of_path rootPath
+    | Some u -> Some (Store.Filename.box u)
+    | None -> Option.join rootPath |> Option.map Uri.of_path
   in
-  Store.set_workspace store ?root workspaceFolders;
+  Store.set_workspace store ?root (Option.join workspaceFolders |> Option.value ~default:[]);
   Ok (store, init_info)

@@ -1,13 +1,18 @@
 open Lsp
-open Lsp.Protocol
+open Lsp.Types
 open IlluaminateCore
 open IlluaminateSemantics
 module D = IlluaminateData
 open Lsp_convert
+open CCFun
 
 let src = Logs.Src.create ~doc:"Request handler" __MODULE__
 
 module Log = (val Logs.src_log src)
+
+let non_empty = function
+  | [] -> None
+  | _ :: _ as xs -> Some xs
 
 let on_program ~default store ~uri f =
   match Store.get_file store uri with
@@ -19,22 +24,24 @@ let on_program ~default store ~uri f =
       Log.err (fun f -> f "%a is not open" Uri.pp uri);
       Ok (store, default)
 
+let on_program' ~default store ~uri f = on_program ~default store ~uri:(Store.Filename.box uri) f
+
 let dots_range = function
   | Resolve.IllegalDots -> assert false
   | BoundDots { node; _ } -> Node.span node
 
 let make_edit ~uri ~version edits =
   Server_request.WorkspaceApplyEdit
-    { label = None;
-      edit =
-        { changes = [];
-          documentChanges = [ TextDocumentEdit { textDocument = { uri; version }; edits } ]
-        }
-    }
+    (ApplyWorkspaceEditParams.create
+       ~edit:
+         (WorkspaceEdit.create
+            ~documentChanges:
+              [ `TextDocumentEdit { textDocument = { uri; version = Some version }; edits } ]
+            ())
+       ())
 
 (** Get documentation of a node. *)
 module Hover = struct
-  open! Hover
   open Doc.Syntax
 
   let of_name ~store program name =
@@ -49,19 +56,19 @@ module Hover = struct
         let title =
           Format.asprintf "```\n%a%s\n```" Module_resolve.Reference.pp refr (get_suffix descriptor)
         in
-        Some
-          { range = Some (range (Syntax.Spanned.name name));
-            contents =
-              { value =
-                  ( match description with
-                  | None -> title
-                  | Some (Description d) -> Printf.sprintf "%s\n%s" title (Omd.to_markdown d) );
-                kind = Markdown
-              }
-          }
+        let value =
+          match description with
+          | None -> title
+          | Some (Description d) -> Printf.sprintf "%s\n%s" title (Omd.to_markdown d)
+        in
+        Hover.create
+          ~range:(range (Syntax.Spanned.name name))
+          ~contents:(`MarkupContent (MarkupContent.create ~kind:Markdown ~value))
+          ()
+        |> Option.some
     | None -> None
 
-  let find ~store ~position program : Hover.result =
+  let find ~store ~position program : Hover.t option =
     match Locate.locate position program with
     | Var v -> of_name ~store program (NVar v)
     | Name n -> of_name ~store program n
@@ -72,17 +79,16 @@ end
 
 (** Get the initial assignment to a variable. *)
 module Declarations = struct
-  open Locations
-
   let of_resolved_var ~uri (var : Resolve.var) : Locations.t option =
-    let rec get = function
+    let rec get : _ -> Locations.t option = function
       | [] -> None
-      | (Some var, Resolve.Declare) :: _ -> Some (Location (location ~uri (Syntax.Spanned.var var)))
+      | (Some var, Resolve.Declare) :: _ ->
+          Some (`Location [ location ~uri (Syntax.Spanned.var var) ])
       | [ (Some v, _) ] -> (
         match var.kind with
         | Local _ ->
             (* If we're a local, use the first assignment as our alternative. *)
-            Some (Location (location ~uri (Syntax.Spanned.var v)))
+            Some (`Location [ location ~uri (Syntax.Spanned.var v) ])
         | _ -> None )
       | _ :: xs -> get xs
     in
@@ -98,7 +104,7 @@ module Declarations = struct
     let resolved = D.get (Store.data store) Resolve.key program in
     Resolve.get_dots d resolved
     |> CCOpt.flat_map (fun x -> x.Resolve.dot_node)
-    |> Option.map (fun x -> Location (location ~uri (Node.span x)))
+    |> Option.map (fun x -> `Location [ location ~uri (Node.span x) ])
 
   let find ~store ~position ~uri program : Locations.t option =
     match Locate.locate position program with
@@ -111,8 +117,6 @@ end
 
 (** Get all assignments to a variable. *)
 module Definitions = struct
-  open Locations
-
   let of_resolved_var ~uri (var : Resolve.var) : Locations.t option =
     let get_one = function
       | Some var, _ -> Some (location ~uri (Syntax.Spanned.var var))
@@ -120,8 +124,8 @@ module Definitions = struct
     in
     match List.filter_map get_one var.definitions with
     | [] -> None
-    | [ x ] -> Some (Location x)
-    | xs -> Some (Locations xs)
+    | [ x ] -> Some (`Location [ x ])
+    | xs -> Some (`Location xs)
 
   let of_var ~store ~uri program v =
     let resolved = D.get (Store.data store) Resolve.key program in
@@ -205,25 +209,26 @@ module Highlights = struct
         []
 end
 
-let worker (type res) rpc store (_ : Initialize.ClientCapabilities.t) :
+let worker (type res) rpc store (_ : ClientCapabilities.t) :
     res Client_request.t -> (Store.t * res, Jsonrpc.Response.Error.t) result = function
   | Shutdown -> Ok (store, ())
   | TextDocumentHover { textDocument = { uri }; position } ->
-      on_program ~default:None store ~uri (Hover.find ~store ~position)
+      on_program' ~default:None store ~uri (Hover.find ~store ~position)
   | TextDocumentDeclaration { textDocument = { uri }; position } ->
-      on_program ~default:None store ~uri (Declarations.find ~store ~position ~uri)
+      on_program' ~default:None store ~uri (Declarations.find ~store ~position ~uri)
   | TextDocumentDefinition { textDocument = { uri }; position } ->
-      on_program ~default:None store ~uri (Definitions.find ~store ~position ~uri)
+      on_program' ~default:None store ~uri (Definitions.find ~store ~position ~uri)
   | TextDocumentReferences { textDocument = { uri }; position; _ } ->
-      on_program ~default:[] store ~uri (References.find ~store ~position ~uri)
+      on_program' ~default:None store ~uri (non_empty % References.find ~store ~position ~uri)
   | TextDocumentHighlight { textDocument = { uri }; position; _ } ->
-      on_program ~default:[] store ~uri (Highlights.find ~store ~position)
+      on_program' ~default:None store ~uri (non_empty % Highlights.find ~store ~position)
   | CodeAction { textDocument = { uri }; range; _ } ->
-      on_program ~default:[] store ~uri (fun p -> Lint.code_actions store p range)
+      on_program' ~default:None store ~uri (fun p -> Lint.code_actions store p range)
   | ExecuteCommand { command = "illuaminate/fix"; arguments } -> (
     match arguments with
     | Some [ uri; `Int id ] -> (
         let uri = Uri.t_of_yojson uri in
+        let duri = Uri.to_string uri in
 
         match Store.get_file store uri with
         | Some { program = Ok prog; contents = Open contents; _ } -> (
@@ -231,10 +236,10 @@ let worker (type res) rpc store (_ : Initialize.ClientCapabilities.t) :
             match fixed with
             | Error msg -> Error { code = ContentModified; message = msg; data = None }
             | Ok edit ->
-                make_edit ~uri ~version:(Text_document.version contents) [ edit ]
+                make_edit ~uri:duri ~version:(Text_document.version contents) [ edit ]
                 |> Ugly_hacks.send_request rpc;
-                Ok (store, None) )
-        | _ -> Ok (store, None) )
+                Ok (store, `Null) )
+        | _ -> Ok (store, `Null) )
     | _ -> Error { code = InternalError; message = "Invalid arguments"; data = None } )
   | _ ->
       Log.err (fun f -> f "Unknown message (not implemented)");
@@ -246,4 +251,4 @@ let handle rpc store caps req =
     let bt = Printexc.get_backtrace () in
     let e = Printexc.to_string e in
     Log.err (fun f -> f "Error handling request: %s\n%s" e bt);
-    Error { code = InternalError; message = e; data = None }
+    Error { Jsonrpc.Response.Error.code = InternalError; message = e; data = None }

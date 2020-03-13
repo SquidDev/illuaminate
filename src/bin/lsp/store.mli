@@ -6,6 +6,8 @@ module Filename : sig
   val to_uri : Span.filename -> Lsp.Uri.t
 
   val to_uri_json : Span.filename -> Yojson.Safe.t
+
+  val box : Lsp.Types.DocumentUri.t -> Lsp.Uri.t
 end
 
 module FileDigest : sig
@@ -43,11 +45,10 @@ val data : t -> IlluaminateData.t
 val create : unit -> t
 
 (** Update the list of workspaces. *)
-val set_workspace :
-  t -> ?root:Lsp.Protocol.documentUri -> Lsp.Protocol.WorkspaceFolder.t list -> unit
+val set_workspace : t -> ?root:Lsp.Uri.t -> Lsp.Types.WorkspaceFolder.t list -> unit
 
 (** Get a document if it is open. *)
-val get_file : t -> Lsp.Protocol.documentUri -> document option
+val get_file : t -> Lsp.Uri.t -> document option
 
 (** Create or open a file. *)
 val open_file : t -> Lsp.Text_document.t -> document
