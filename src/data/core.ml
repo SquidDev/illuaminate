@@ -4,7 +4,11 @@ type 'a containers = ..
 
 type values = ..
 
-type oracles = ..
+type providers = ..
+
+type ('store, 'k, 'v) provider =
+  | Tracing of ('store -> 'k -> 'v)
+  | Oracle of ('k -> 'v option -> 'v)
 
 let src = Logs.Src.create ~doc:"A basic system for incremental computation" __MODULE__
 
@@ -25,13 +29,13 @@ module type Key = sig
 
   val eq : value -> value -> bool
 
-  val factory : (store -> key -> value) option
+  val factory : (store, key, value) provider option
 
   type 'a containers += Container of 'a Container.container
 
   type values += Value of value
 
-  type oracles += Oracle of (key -> value)
+  type providers += Provider of (store, key, value) provider
 end
 
 module BoxedKey = struct
@@ -100,7 +104,7 @@ and result =
 type t =
   { mutable version : int;
     results : result KeyTbl.t;
-    oracles : oracles IntMap.t
+    providers : providers IntMap.t
   }
 
 type context =
@@ -130,21 +134,14 @@ module Key = struct
 
   let next_id = ref 0
 
-  let factory (type k v) : (k, v, (context -> k -> v) option) factory =
+  let factory (type k v) : (k, v, (context, k, v) provider option) factory =
    fun ~name ?container_k ?eq_v factory ->
     let id = !next_id in
     incr next_id;
     let container =
       match container_k with
       | Some k -> k
-      | None ->
-          ( module Contained_tbl.StrongContainer (struct
-            type t = k
-
-            let equal = ( == )
-
-            let hash = Hashtbl.hash
-          end) )
+      | None -> Contained_tbl.strong ~eq:( == ) ()
     in
     let eq = Option.value ~default:( == ) eq_v in
     ( module struct
@@ -168,27 +165,42 @@ module Key = struct
 
       type values += Value of value
 
-      type oracles += Oracle of (key -> value)
+      type providers += Provider of (store, key, value) provider
     end )
 
-  let key ~name ?container_k ?eq_v f = factory ~name ?container_k ?eq_v (Some f)
+  let key ~name ?container_k ?eq_v f = factory ~name ?container_k ?eq_v (Some (Tracing f))
 
-  let oracle ~name ?container_k ?eq_v () = factory ~name ?container_k ?eq_v None
+  let oracle ~name ?container_k ?eq_v f = factory ~name ?container_k ?eq_v (Some (Oracle f))
+
+  let deferred ~name ?container_k ?eq_v () = factory ~name ?container_k ?eq_v None
 end
 
 module Builder = struct
-  type t = oracles IntMap.t
+  type t = providers IntMap.t
 
   let empty = IntMap.empty
 
-  let oracle (type k v) ((module Key) : (k, v) Key.t) oracle oracles =
-    if IntMap.mem Key.id oracles then invalid_arg ("Duplicate oracle for " ^ Key.name);
-    IntMap.add Key.id (Key.Oracle oracle) oracles
+  let add_deferred (type k v) ((module Key) : (k, v) Key.t) provider providers =
+    if Option.is_some Key.factory then
+      invalid_arg (Printf.sprintf "Builder.add_deferred : %s is not a deferred key" Key.name);
+    if IntMap.mem Key.id providers then
+      invalid_arg (Printf.sprintf "Builder.add_deferred : Multiple factories for %s" Key.name);
+    IntMap.add Key.id (Key.Provider provider) providers
 
-  let build oracles = { version = 0; oracles; results = KeyTbl.create 32 }
+  let key key f providers = add_deferred key (Tracing f) providers
+
+  let oracle key f providers = add_deferred key (Oracle f) providers
+
+  let build providers = { version = 0; providers; results = KeyTbl.create 32 }
 end
 
 let refresh x = x.version <- x.version + 1
+
+let with_context ~store ~tracing f =
+  let t = { tracing; trace = []; active = true; store } in
+  let res = f t in
+  t.active <- false;
+  (res, t.trace)
 
 (** Build a single term and return the result. This does not do dependency checking, nor does it
     update the store. *)
@@ -197,23 +209,29 @@ let build_result store (Mk ((module K), key) : BoxedKey.t) previous : result =
   Log.debug (fun f -> f "Building %s" K.name);
   let version = store.version in
   let contents, trace =
-    match K.factory with
-    | Some f ->
+    let provider =
+      match K.factory with
+      | Some f -> f
+      | None -> (
+        match IntMap.find_opt K.id store.providers with
+        | None -> Printf.sprintf "No oracle for %S" K.name |> invalid_arg
+        | Some (K.Provider f) -> f
+        | Some _ -> Printf.sprintf "Incorrect oracle for %S" K.name |> failwith )
+    in
+    match provider with
+    | Tracing f ->
         (* The use of magic here is terribly ugly, but it's not clear how else to convert from the
            abstract store to the concrete one without introducing another open union. There's only
            one possible type here, so our use of magic shouldn't ever be incorrect. *)
-        let t = { tracing = true; trace = []; active = true; store } in
-        let res = f (Obj.magic t) key in
-        t.active <- false;
-        (res, Depends t.trace)
-    | None ->
-        let oracle =
-          match IntMap.find_opt K.id store.oracles with
-          | None -> Printf.sprintf "No oracle for %S" K.name |> invalid_arg
-          | Some (K.Oracle o) -> o
-          | Some _ -> Printf.sprintf "Incorrect oracle for %S" K.name |> failwith
+        let res, trace = with_context ~store ~tracing:true (fun t -> f (Obj.magic t) key) in
+        (res, Depends trace)
+    | Oracle f ->
+        let previous =
+          match previous with
+          | Some ({ contents = K.Value c; _ } : result) -> Some c
+          | _ -> None
         in
-        (oracle key, Oracle)
+        (f key previous, Oracle)
   in
   let delta = Sys.time () -. start in
   let log kind = Log.debug (fun f -> f "Finished %s in %.2f (%s)" K.name delta kind) in
@@ -286,8 +304,4 @@ let need (type k v) ({ store; _ } as context) (key : (k, v) Key.t) (k : k) : v =
   if context.tracing then context.trace <- container :: context.trace;
   Key.value key result.contents
 
-let compute f store =
-  let t = { tracing = false; trace = []; active = true; store } in
-  let res = f t in
-  t.active <- false;
-  res
+let compute f store = with_context ~store ~tracing:false f |> fst

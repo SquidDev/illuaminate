@@ -22,7 +22,7 @@ let process ~name contents out =
       let data =
         let open D.Builder in
         empty |> D.Programs.Files.builder files
-        |> oracle D.Programs.Context.key (Fun.const context)
+        |> oracle D.Programs.Context.key (fun _ _ -> context)
         |> build
       in
       let data = D.get data Doc.key parsed in

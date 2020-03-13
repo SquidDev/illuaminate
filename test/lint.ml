@@ -60,7 +60,7 @@ let process ~name contents out =
         let open D.Builder in
         empty
         |> D.Programs.Files.(create () |> builder)
-        |> oracle D.Programs.Context.key (Fun.const context)
+        |> oracle D.Programs.Context.key (fun _ _ -> context)
         |> build
       in
       let linters =
