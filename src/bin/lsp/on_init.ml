@@ -1,4 +1,6 @@
-let init_info : Lsp.Initialize.Result.t =
+open Lsp
+
+let init_info : Initialize.Result.t =
   { capabilities =
       { textDocumentSync =
           { change = IncrementalSync;
@@ -30,4 +32,20 @@ let init_info : Lsp.Initialize.Result.t =
     serverInfo = Some { name = "illuaminate-lsp"; version = Some "%%VERSION%%" }
   }
 
-let handle (_ : Lsp.Rpc.t) store (_ : Lsp.Initialize.Params.t) = Ok (store, init_info)
+let handle rpc store
+    { Initialize.Params.rootPath; rootUri; workspaceFolders; capabilities = { workspace; _ }; _ } =
+  if workspace.workspaceFolders then
+    Ugly_hacks.send_request rpc
+      (ClientRegisterCapability
+         { registrations =
+             [ { id = ""; method_ = "workspace/didChangeWorkspaceFolders"; registerOptions = None }
+             ]
+         });
+
+  let root =
+    match rootUri with
+    | Some u -> Some u
+    | None -> Option.map Uri.of_path rootPath
+  in
+  Store.set_workspace store ?root workspaceFolders;
+  Ok (store, init_info)

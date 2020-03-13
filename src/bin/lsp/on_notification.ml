@@ -18,7 +18,7 @@ let worker rpc store : Client_notification.t -> (Store.t, string) result = funct
       Ok store
   | TextDocumentDidChange { textDocument = { uri; version }; contentChanges } ->
       ( match Store.get_file store uri with
-      | Some ({ contents = Some contents; _ } as doc) ->
+      | Some ({ contents = Open contents; _ } as doc) ->
           List.fold_left
             (fun doc change -> Text_document.apply_content_change ~version change doc)
             contents contentChanges

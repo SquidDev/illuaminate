@@ -226,7 +226,7 @@ let worker (type res) rpc store (_ : Initialize.ClientCapabilities.t) :
         let uri = Uri.t_of_yojson uri in
 
         match Store.get_file store uri with
-        | Some { program = Ok prog; contents = Some contents; _ } -> (
+        | Some { program = Ok prog; contents = Open contents; _ } -> (
             let fixed = Lint.fix store prog id in
             match fixed with
             | Error msg -> Error { code = ContentModified; message = msg; data = None }

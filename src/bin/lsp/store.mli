@@ -8,15 +8,31 @@ module Filename : sig
   val to_uri_json : Span.filename -> Yojson.Safe.t
 end
 
+module FileDigest : sig
+  type t
+end
+
+module Workspace : sig
+  type t
+end
+
+type contents =
+  | Open of Lsp.Text_document.t  (** The current file's contents. *)
+  | FromFile of FileDigest.t
+      (** This file was loaded from the filesystem. We store a hash of its contents, to determine if
+          the file has changed.
+
+          We just use the built-in {!Digest} module - this uses MD5, so it's by no means "secure",
+          but this only needs to serve as an efficient checksum. *)
+
 type document = private
   { name : Span.filename;
     uri : Lsp.Uri.t;
-    mutable contents : Lsp.Text_document.t option;
-        (** The file's contents, if it is open in an editor. *)
+    mutable contents : contents;  (** The file's contents. *)
     mutable program : (Syntax.program, IlluaminateParser.Error.t Span.spanned) result;
         (** The result of parsing the file, or nil if not available. *)
     mutable file : IlluaminateData.Programs.Files.id option;  (** The current file's ID *)
-    context : IlluaminateData.Programs.Context.t
+    mutable workspace : Workspace.t option
   }
 
 type t
@@ -25,6 +41,10 @@ val data : t -> IlluaminateData.t
 
 (** Create a new store. *)
 val create : unit -> t
+
+(** Update the list of workspaces. *)
+val set_workspace :
+  t -> ?root:Lsp.Protocol.documentUri -> Lsp.Protocol.WorkspaceFolder.t list -> unit
 
 (** Get a document if it is open. *)
 val get_file : t -> Lsp.Protocol.documentUri -> document option
