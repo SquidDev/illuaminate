@@ -7,7 +7,6 @@ type file =
   { root : Fpath.t;
     path : Fpath.t;
     file : Span.filename;
-    file_id : Files.id option;
     config : Config.t;
     parsed : Syntax.program option
   }

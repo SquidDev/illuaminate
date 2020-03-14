@@ -1,5 +1,4 @@
 open IlluaminateCore
-module IntMap = Map.Make (Int)
 
 module Context = struct
   type t =
@@ -14,50 +13,51 @@ module Context = struct
 end
 
 module Files = struct
+  let file : (Span.filename, Syntax.program option) Core.Key.t =
+    Core.Key.deferred ~eq_v:(Option.equal ( == )) ~name:(__MODULE__ ^ ".Files.file") ()
+
+  let files : (unit, Span.filename list) Core.Key.t =
+    Core.Key.deferred ~eq_v:(CCList.equal ( == )) ~name:(__MODULE__ ^ ".Files.files") ()
+end
+
+module FileStore = struct
+  module Tbl = Hashtbl.Make (struct
+    type t = Span.filename
+
+    let hash = Hashtbl.hash
+
+    let equal = ( == )
+  end)
+
   type t =
-    { mutable files : Syntax.program IntMap.t;
-      mutable file_list : id list;
-      mutable next_id : int
+    { files : Syntax.program Tbl.t;
+      mutable file_list : Span.filename list option
     }
-
-  and id =
-    { id : int;
-      store : t
-    }
-
-  let file : (id, Syntax.program) Core.Key.t =
-    Core.Key.deferred ~name:(__MODULE__ ^ ".Files.file") ()
-
-  let files : (unit, id list) Core.Key.t =
-    let rec eq_v xs ys =
-      match (xs, ys) with
-      | [], [] -> true
-      | { id = x; _ } :: xs, { id = y; _ } :: ys when x = y -> eq_v xs ys
-      | _ -> false
-    in
-    Core.Key.deferred ~eq_v ~name:(__MODULE__ ^ ".Files.files") ()
 
   let builder store builder =
-    let get_file { id; store = this_store } _ =
-      assert (store == this_store);
-      IntMap.find id store.files
+    let get_file path _ = Tbl.find_opt store.files path in
+    let get_files () _ =
+      match store.file_list with
+      | Some x -> x
+      | None ->
+          let files = Tbl.to_seq_keys store.files |> List.of_seq in
+          store.file_list <- Some files;
+          files
     in
-    let get_files () _ = store.file_list in
-    builder |> Core.Builder.oracle file get_file |> Core.Builder.oracle files get_files
+    builder |> Core.Builder.oracle Files.file get_file |> Core.Builder.oracle Files.files get_files
 
-  let create () = { files = IntMap.empty; file_list = []; next_id = 0 }
+  let create () = { files = Tbl.create 16; file_list = None }
 
-  let add program store =
-    let id = store.next_id in
-    let res = { id; store } in
-    store.next_id <- store.next_id + 1;
-    store.file_list <- res :: store.file_list;
-    store.files <- IntMap.add id program store.files;
-    res
-
-  let update { id; store } program =
-    let existing = IntMap.find id store.files in
-    if existing != program then store.files <- IntMap.add id program store.files
+  let update store path program =
+    match (Tbl.find_opt store.files path, program) with
+    | Some old, Some changed -> if old != changed then Tbl.replace store.files path changed
+    | Some _, None ->
+        Tbl.remove store.files path;
+        store.file_list <- None
+    | None, None -> ()
+    | None, Some new_program ->
+        Tbl.add store.files path new_program;
+        store.file_list <- Option.map (fun x -> path :: x) store.file_list
 end
 
 type 'a key = (Syntax.program, 'a) Core.Key.t
@@ -71,3 +71,7 @@ module WeakProgram = Contained_tbl.WeakContainer (struct
 end)
 
 let key ~name build = Core.Key.key ~name ~container_k:(module WeakProgram) build
+
+let need_for data key file = Core.need data Files.file file |> Option.map (Core.need data key)
+
+let get_for data key file = Core.get data Files.file file |> Option.map (Core.get data key)

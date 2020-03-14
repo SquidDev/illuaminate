@@ -54,7 +54,7 @@ let data () =
   let open Builder in
   let context = { Programs.Context.root = None; config = store } in
   empty
-  |> Programs.Files.(create () |> builder)
+  |> Programs.FileStore.(create () |> builder)
   |> oracle Programs.Context.key (fun _ _ -> context)
   |> build
 

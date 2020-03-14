@@ -17,32 +17,28 @@ module Context : sig
 end
 
 module Files : sig
-  (** A collection of files, and their corresponding program. Unlike the main data store, this is
-      immutable. *)
+  (** Fetch a given file's contents. Returns {!None} if the file does not exist or has a syntax
+      error.
+
+      This may be registered using {!FileStore.builder}, or your own implementation. *)
+  val file : (Span.filename, Syntax.program option) Core.Key.t
+
+  (** List all available files. This may be registered using {!FileStore.builder}, or your own
+      implementation.*)
+  val files : (unit, Span.filename list) Core.Key.t
+end
+
+module FileStore : sig
+  (** A collection of files and their corresponding program. *)
   type t
-
-  (** A unique identifier for a file. *)
-  type id
-
-  (** An oracle for fetching a file's contents. This must be provided using {!builder} (or your own
-      implementation. *)
-  val file : (id, Syntax.program) Core.Key.t
-
-  (** An oracle which lists all files. This must be provided using {!builder} (or your own
-      implementation. *)
-  val files : (unit, id list) Core.Key.t
-
-  (** Add an oracle for the given file collection to a context. *)
-  val builder : t -> Core.Builder.t -> Core.Builder.t
 
   val create : unit -> t
 
-  (** Add a new program to the file collection, returning the updated identifier for this file. You
-      should call {!Core.refresh} after calling this. *)
-  val add : Syntax.program -> t -> id
+  (** Add implementations for the {!Files} keys using the given file store. *)
+  val builder : t -> Core.Builder.t -> Core.Builder.t
 
   (** Update a file's program. You should call {!Core.refresh} after calling this. *)
-  val update : id -> Syntax.program -> unit
+  val update : t -> Span.filename -> Syntax.program option -> unit
 end
 
 (** A key within the data store.
@@ -54,3 +50,9 @@ type 'a key = (Syntax.program, 'a) Core.Key.t
 
     Note that the "metadata generator" function can be lazy in generating data. *)
 val key : name:string -> (Core.context -> Syntax.program -> 'a) -> 'a key
+
+(** Wraps {!Core.need}, first looking up a program for the current filename. *)
+val need_for : Core.context -> (Syntax.program, 'a) Core.Key.t -> Span.filename -> 'a option
+
+(** Wraps {!Core.get}, first looking up a program for the current filename. *)
+val get_for : Core.t -> (Syntax.program, 'a) Core.Key.t -> Span.filename -> 'a option

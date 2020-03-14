@@ -1,5 +1,5 @@
 open IlluaminateCore
-module Files = IlluaminateData.Programs.Files
+module FileStore = IlluaminateData.Programs.FileStore
 module StringMap = Map.Make (String)
 module Config = IlluaminateConfigFormat
 
@@ -11,7 +11,6 @@ type file =
   { root : Fpath.t;
     path : Fpath.t;
     file : Span.filename;
-    file_id : Files.id option;
     config : Config.t;
     parsed : Syntax.program option
   }
@@ -76,9 +75,9 @@ let do_load_from ~loader ~files ~file_store ~config root =
       Log.debug (fun f -> f "Using source file %S" path_s);
       (* TODO: Warn on duplicate files. *)
       let file = mk_name ~loader path in
-      let parse = parse ~loader file in
-      let file_id = parse |> Option.map (fun x -> Files.add x file_store) in
-      files := StringMap.add path_s { root; path; file; config; parsed = parse; file_id } !files )
+      let parsed = parse ~loader file in
+      FileStore.update file_store file parsed;
+      files := StringMap.add path_s { root; path; file; config; parsed } !files )
   in
 
   Config.files add config root
@@ -88,7 +87,7 @@ let builder files file_store builder =
   |> IlluaminateData.Builder.oracle IlluaminateData.Programs.Context.key (fun file _ ->
          let { root; config; _ } = StringMap.find file.Span.id files in
          { root = Some root; config = Config.get_store config })
-  |> Files.builder file_store
+  |> FileStore.builder file_store
 
 let keys m = StringMap.to_seq m |> Seq.map snd |> List.of_seq
 
@@ -97,13 +96,13 @@ let load_from ~loader path =
   get_config_for ~loader path
   |> Option.map @@ fun config ->
      let files = ref StringMap.empty in
-     let file_store = Files.create () in
+     let file_store = FileStore.create () in
      do_load_from ~loader ~files ~file_store ~config path;
      (config, keys !files, builder !files file_store)
 
 let load_from_many ~loader paths =
   let files = ref StringMap.empty in
-  let file_store = Files.create () in
+  let file_store = FileStore.create () in
   paths
   |> List.iter (fun path ->
          let path = Fpath.(append loader.relative path |> normalize) in
