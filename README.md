@@ -7,7 +7,9 @@ rather bare bones, and still at a POC stage, but hopefully will expand and
 become more useful as it continues to develop.
 
 <p align="center">
-<img src="doc/example.png" />
+<img src="doc/example.png"
+  alt="An example of running illuaminate from the command line, displaying several warnings."
+  title="Running illuaminate from the command line" />
 </p>
 
 ## Features
@@ -41,8 +43,9 @@ package managers.
 ## Usage
  - Either build Illuaminate as above, or download a pre-built version:
    ```
-   > wget https://squiddev.cc/illuaminate/bin/illuaminate # A x86-64 bit Linux static binary
-   > wget https://squiddev.cc/illuaminate/bin/illuaminate.js # Cross-platform JavaScript file which can be run with Node
+   > wget https://squiddev.cc/illuaminate/linux-x86-64/illuaminate # A x86-64 Linux static binary
+   > wget https://squiddev.cc/illuaminate/windows-x86-64/illuaminate.js # A x86-64 Windows binary
+   > wget https://squiddev.cc/illuaminate/linux-x86-64/illuaminate.js # JavaScript file which can be run with Node
    ```
 
    You may need to `chmod +x` the downloaded file to make it executable.
@@ -67,7 +70,9 @@ warnings as annotations, allowing them to be viewed within the GitHub
 interfaces:
 
 <p align="center">
-<img src="doc/gh-annotations.png" />
+<img src="doc/gh-annotations.png"
+  alt="A warning displayed in GitHub's annotation view"
+  title="A warning displayed inline on GitHub"/>
 </p>
 
 This can be done by adding the following to your workflow file:
@@ -91,8 +96,52 @@ jobs:
         GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} bin/illuaminate lint --github
 ```
 
+## Language server
+Illuaminate has support for the [language server protocol][lsp]. This allows it
+to be used with [many different editors and tools][lsp_editors].
+
+We provide [plugins for Emacs and VS Code][editor_tree]. Currently one must
+build-from source, or copy into your own setup as we do not currently publish
+them on the package repositories - this will change as illuaminate matures.
+
+The server can be downloaded as with [normal illuaminate][#usage] - just change
+the executable to `illuaminate-lsp`.
+
+The language server has support for the following features:
+
+### Documentation
+Illuaminate parses documentation comments, and uses them to display information
+about modules and functions.
+
+<p align="center">
+<img src="doc/emacs-doc.png" title="Displaying member documentation within Emacs." />
+</p>
+
+### Find all references and go to definition
+One may find all references of local variables, and jump to the definition of
+any local or module variable.
+
+<p align="center">
+<img src="doc/emacs-references.png" title="Find all references of a local variable" />
+</p>
+<p align="center">
+<img src="doc/emacs-highlight.png" title="Highlight all references and assignments of a variable." />
+</p>
+
+### Diagnostics and code fixes
+Any error or warning message that `illuaminate lint` reports is also shown in
+your editor. For any warning which has an automatic fix, we provide a code
+action to apply it.
+
+<p align="center">
+<img src="doc/emacs-warning.png" title="A basic warning and available code action." />
+</p>
+
 
 [opam]: https://opam.ocaml.org/doc/Install.html
 [omnomnom]: https://github.com/SquidDev/omnomnom
 [actions]: https://github.com/features/actions
 [esy]: https://esy.sh/
+[lsp]: https://microsoft.github.io/language-server-protocol
+[lsp_editors]: https://microsoft.github.io/language-server-protocol/implementors/tools
+[editor_tree]: https://github.com/SquidDev/illuaminate/tree/master/src/editor

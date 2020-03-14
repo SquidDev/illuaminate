@@ -245,7 +245,8 @@ module Args = struct
     in
     conv ~docv:"FILE" (parse, Fpath.pp)
 
-  let files_arg = value & pos_all file [] & info ~doc:"Files and directories to check." []
+  let files_arg =
+    value & pos_all file [ Fpath.v "." ] & info ~doc:"Files and directories to check." []
 
   let file_arg =
     value
