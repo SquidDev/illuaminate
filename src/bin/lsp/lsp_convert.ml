@@ -1,4 +1,5 @@
 open IlluaminateCore
+open Lsp
 open Lsp.Types
 
 let span_start { Span.start_line; start_col; _ } : Position.t =
@@ -9,7 +10,8 @@ let span_finish { Span.finish_line; finish_col; _ } : Position.t =
 
 let range span = Range.create ~start:(span_start span) ~end_:(span_finish span)
 
-let location ~uri span = Location.create ~uri ~range:(range span)
+let location (span : Span.t) =
+  Location.create ~uri:(Store.Filename.to_uri span.filename |> Uri.to_string) ~range:(range span)
 
 let severity : Error.level -> DiagnosticSeverity.t = function
   | Critical | Error -> Error
@@ -18,7 +20,7 @@ let severity : Error.level -> DiagnosticSeverity.t = function
 
 let tag_severity t = severity t.Error.Tag.level
 
-let tag_code t : Lsp.Jsonrpc.Id.t = Left t.Error.Tag.name
+let tag_code t : Jsonrpc.Id.t = Left t.Error.Tag.name
 
 module Pos = struct
   open Position

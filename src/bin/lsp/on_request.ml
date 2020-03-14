@@ -79,44 +79,43 @@ end
 
 (** Get the initial assignment to a variable. *)
 module Declarations = struct
-  let of_resolved_var ~uri (var : Resolve.var) : Locations.t option =
+  let of_resolved_var (var : Resolve.var) : Locations.t option =
     let rec get : _ -> Locations.t option = function
       | [] -> None
-      | (Some var, Resolve.Declare) :: _ ->
-          Some (`Location [ location ~uri (Syntax.Spanned.var var) ])
+      | (Some var, Resolve.Declare) :: _ -> Some (`Location [ location (Syntax.Spanned.var var) ])
       | [ (Some v, _) ] -> (
         match var.kind with
         | Local _ ->
             (* If we're a local, use the first assignment as our alternative. *)
-            Some (`Location [ location ~uri (Syntax.Spanned.var v) ])
+            Some (`Location [ location (Syntax.Spanned.var v) ])
         | _ -> None )
       | _ :: xs -> get xs
     in
     get var.definitions
 
-  let of_var ~store ~uri program v =
+  let of_var ~store program v =
     let resolved = D.get (Store.data store) Resolve.key program in
     match Resolve.get_var v resolved with
-    | v -> of_resolved_var ~uri v
+    | v -> of_resolved_var v
     | exception Not_found -> None
 
-  let of_name ~store ~uri program name : Locations.t option =
+  let of_name ~store program name : Locations.t option =
     let modules = D.get (Store.data store) Module_resolve.key program in
     match Module_resolve.get_name modules name with
-    | Some (_, { definition; _ }) -> Some (`Location [ location ~uri definition ])
+    | Some (_, { definition; _ }) -> Some (`Location [ location definition ])
     | None -> None
 
-  let of_dots ~store ~uri program d =
+  let of_dots ~store program d =
     let resolved = D.get (Store.data store) Resolve.key program in
     Resolve.get_dots d resolved
     |> CCOpt.flat_map (fun x -> x.Resolve.dot_node)
-    |> Option.map (fun x -> `Location [ location ~uri (Node.span x) ])
+    |> Option.map (fun x -> `Location [ location (Node.span x) ])
 
-  let find ~store ~position ~uri program : Locations.t option =
+  let find ~store ~position program : Locations.t option =
     match Locate.locate position program with
-    | Var v -> of_var ~store ~uri program v
-    | Name n -> of_name ~store ~uri program n
-    | Expr (Dots d) -> of_dots ~store ~uri program d
+    | Var v -> of_var ~store program v
+    | Name n -> of_name ~store program n
+    | Expr (Dots d) -> of_dots ~store program d
     | n ->
         Log.debug (fun f -> f "Not a variable node (%a)" Locate.pp_node_short n);
         None
@@ -124,9 +123,9 @@ end
 
 (** Get all assignments to a variable. *)
 module Definitions = struct
-  let of_resolved_var ~uri (var : Resolve.var) : Locations.t option =
+  let of_resolved_var (var : Resolve.var) : Locations.t option =
     let get_one = function
-      | Some var, _ -> Some (location ~uri (Syntax.Spanned.var var))
+      | Some var, _ -> Some (location (Syntax.Spanned.var var))
       | _ -> None
     in
     match List.filter_map get_one var.definitions with
@@ -134,40 +133,40 @@ module Definitions = struct
     | [ x ] -> Some (`Location [ x ])
     | xs -> Some (`Location xs)
 
-  let of_var ~store ~uri program v =
+  let of_var ~store program v =
     let resolved = D.get (Store.data store) Resolve.key program in
     match Resolve.get_var v resolved with
-    | v -> of_resolved_var ~uri v
+    | v -> of_resolved_var v
     | exception Not_found -> None
 
-  let find ~store ~position ~uri program : Locations.t option =
+  let find ~store ~position program : Locations.t option =
     match Locate.locate position program with
-    | Var v -> of_var ~store ~uri program v
-    | Name n -> Declarations.of_name ~store ~uri program n
-    | Expr (Dots d) -> Declarations.of_dots ~store ~uri program d
+    | Var v -> of_var ~store program v
+    | Name n -> Declarations.of_name ~store program n
+    | Expr (Dots d) -> Declarations.of_dots ~store program d
     | n ->
         Log.debug (fun f -> f "Not a variable node (%a)" Locate.pp_node_short n);
         None
 end
 
 module References = struct
-  let of_var ~store ~uri program v =
+  let of_var ~store program v =
     let resolved = D.get (Store.data store) Resolve.key program in
     match Resolve.get_var v resolved with
     | { usages; _ } ->
-        List.rev_map (fun { Resolve.node; _ } -> location ~uri (Syntax.Spanned.var node)) usages
+        List.rev_map (fun { Resolve.node; _ } -> location (Syntax.Spanned.var node)) usages
     | exception Not_found -> []
 
-  let of_dots ~store ~uri program d =
+  let of_dots ~store program d =
     let resolved = D.get (Store.data store) Resolve.key program in
     match Resolve.get_dots d resolved with
     | None -> []
-    | Some { dot_usages; _ } -> List.rev_map (fun x -> location ~uri (dots_range x)) dot_usages
+    | Some { dot_usages; _ } -> List.rev_map (fun x -> location (dots_range x)) dot_usages
 
-  let find ~store ~position ~uri program : Location.t list =
+  let find ~store ~position program : Location.t list =
     match Locate.locate position program with
-    | Var v -> of_var ~store ~uri program v
-    | Expr (Dots d) -> of_dots ~store ~uri program d
+    | Var v -> of_var ~store program v
+    | Expr (Dots d) -> of_dots ~store program d
     | n ->
         Log.debug (fun f -> f "Not a variable node (%a)" Locate.pp_node_short n);
         []
@@ -223,11 +222,11 @@ let worker (type res) client store (_ : ClientCapabilities.t) :
   | TextDocumentHover { textDocument = { uri }; position } ->
       on_program' ~default:None store ~uri (Hover.find ~store ~position)
   | TextDocumentDeclaration { textDocument = { uri }; position } ->
-      on_program' ~default:None store ~uri (Declarations.find ~store ~position ~uri)
+      on_program' ~default:None store ~uri (Declarations.find ~store ~position)
   | TextDocumentDefinition { textDocument = { uri }; position } ->
-      on_program' ~default:None store ~uri (Definitions.find ~store ~position ~uri)
+      on_program' ~default:None store ~uri (Definitions.find ~store ~position)
   | TextDocumentReferences { textDocument = { uri }; position; _ } ->
-      on_program' ~default:None store ~uri (non_empty % References.find ~store ~position ~uri)
+      on_program' ~default:None store ~uri (non_empty % References.find ~store ~position)
   | TextDocumentHighlight { textDocument = { uri }; position; _ } ->
       on_program' ~default:None store ~uri (non_empty % Highlights.find ~store ~position)
   | CodeAction { textDocument = { uri }; range; _ } ->
