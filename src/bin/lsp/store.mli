@@ -31,13 +31,22 @@ val data : t -> IlluaminateData.t
 val create : unit -> t
 
 (** Update the list of workspaces. *)
-val set_workspace : t -> ?root:Lsp.Uri.t -> Lsp.Types.WorkspaceFolder.t list -> unit
+val update_workspace :
+  t ->
+  ?root:Lsp.Uri.t ->
+  add:Lsp.Types.WorkspaceFolder.t list ->
+  remove:Lsp.Types.WorkspaceFolder.t list ->
+  unit ->
+  unit
 
 (** Get a document if it is open. *)
 val get_file : t -> Lsp.Uri.t -> document option
 
 (** Create or open a file. *)
 val open_file : t -> Lsp.Text_document.t -> document
+
+(** Close an open file *)
+val close_file : t -> Lsp.Uri.t -> unit
 
 (** Update the contents of a file. *)
 val update_file : t -> document -> Lsp.Text_document.t -> unit

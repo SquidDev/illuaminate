@@ -28,12 +28,16 @@ let worker client store : Client_notification.t -> (unit, string) result = funct
           send_diagnostics client store ?version doc
       | _ -> Log.err (fun f -> f "Cannot update file %a (not currently open)" Uri.pp uri) );
       Ok ()
+  | TextDocumentDidClose { textDocument = { uri; _ } } ->
+      Store.close_file store (Store.Filename.box uri);
+      Ok ()
   (* TODO: Implement. *)
-  | TextDocumentDidClose _ -> Ok ()
-  | ChangeWorkspaceFolders _ -> Ok ()
-  | ChangeConfiguration _ -> Ok ()
+  | ChangeWorkspaceFolders { event = { added; removed } } ->
+      Store.update_workspace store ~add:added ~remove:removed ();
+      Ok ()
   (* Whole bunch of notifications we can ignore. *)
-  | WillSaveTextDocument _ | DidSaveTextDocument _ | Initialized | Exit | Unknown_notification _ ->
+  | ChangeConfiguration _ | WillSaveTextDocument _ | DidSaveTextDocument _ | Initialized | Exit
+  | Unknown_notification _ ->
       Ok ()
 
 let handle client store noti =

@@ -31,5 +31,7 @@ let handle (_ : Store.client_channel) store
     | Some u -> Some (Store.Filename.box u)
     | None -> Option.join rootPath |> Option.map Uri.of_path
   in
-  Store.set_workspace store ?root (Option.join workspaceFolders |> Option.value ~default:[]);
+  Store.update_workspace store ?root
+    ~add:(Option.join workspaceFolders |> Option.value ~default:[])
+    ~remove:[] ();
   Ok init_info

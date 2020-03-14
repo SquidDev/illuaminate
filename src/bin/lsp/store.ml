@@ -1,9 +1,16 @@
 open IlluaminateCore
 open Lsp
+open Lsp.Types
 module Data = IlluaminateData
 module UriTbl = Hashtbl.Make (Uri)
 module Config = IlluaminateConfigFormat
 module FilenameSet = Set.Make (Span.Filename)
+
+module UriMap = Map.Make (struct
+  type t = Uri.t
+
+  let compare l r = String.compare (Uri.to_string l) (Uri.to_string r)
+end)
 
 let src = Logs.Src.create ~doc:"Loading and storing of local files" __MODULE__
 
@@ -107,15 +114,16 @@ module Workspace = struct
 
   type workspaces =
     { root : t option;
-      workspaces : t list
+      workspaces : t UriMap.t
     }
 
   let pp out { uri; _ } = Uri.pp out uri
 
-  let workspace_for ~root (workspaces : t list) = function
+  let workspace_for ~root (workspaces : t UriMap.t) = function
     | { Span.path = None; _ } -> None
     | { Span.path = Some path; _ } ->
-        let get_name best = function
+        let get_name _ v best =
+          match v with
           | { path = None; _ } -> best
           | { path = Some wk_path; _ } as workspace -> (
               if not (Fpath.is_rooted ~root:wk_path path) then best
@@ -125,11 +133,11 @@ module Workspace = struct
                 | Some (_, best_len) when wk_len <= best_len -> best
                 | _ -> Some (workspace, wk_len) )
         in
-        List.fold_left get_name None workspaces |> Option.map fst |> CCOpt.or_ ~else_:root
+        UriMap.fold get_name workspaces None |> Option.map fst |> CCOpt.or_ ~else_:root
 
   let workspaces : (unit, workspaces) Data.Key.t =
     let eq_v a b =
-      CCOpt.equal ( == ) a.root b.root && CCList.equal ( == ) a.workspaces b.workspaces
+      CCOpt.equal ( == ) a.root b.root && UriMap.equal ( == ) a.workspaces b.workspaces
     in
     Data.Key.deferred ~eq_v ~name:(__MODULE__ ^ ".Workspace.workspaces") ()
 
@@ -230,7 +238,7 @@ type t =
 
 let create () =
   let files = UriTbl.create 64 in
-  let workspaces = ref { Workspace.root = None; workspaces = [] } in
+  let workspaces = ref { Workspace.root = None; workspaces = UriMap.empty } in
   let data =
     let open Data in
     let open Builder in
@@ -262,12 +270,14 @@ let create () =
     (* The file list is derived from all matching patterns in the config file for each workspace *)
     |> key Programs.Files.files (fun store () ->
            let workspaces = need store Workspace.workspaces () in
-           List.fold_left
-             (fun all workspace ->
-               need store Workspace.sources workspace
-               |> List.fold_left (fun s p -> FilenameSet.add (Filename.of_path p) s) all)
-             FilenameSet.empty
-             (CCList.cons_maybe workspaces.root workspaces.workspaces)
+           let add workspace all =
+             need store Workspace.sources workspace
+             |> List.fold_left (fun s p -> FilenameSet.add (Filename.of_path p) s) all
+           in
+           let base = UriMap.fold (fun _ -> add) workspaces.workspaces FilenameSet.empty in
+           ( match workspaces.root with
+           | None -> base
+           | Some w -> add w base )
            |> FilenameSet.to_seq |> List.of_seq)
     (* A program's context is just derived from its workspace. *)
     |> key Programs.Context.key (fun store name ->
@@ -305,26 +315,37 @@ let open_file store contents =
       let doc = { name; uri; contents; program } in
       UriTbl.add store.files uri doc; Data.refresh store.data; doc
 
-let set_workspace store ?root workspaces =
-  Log.info (fun f ->
-      f "Setting root to %s and additional workspaces to [%s]"
-        (Option.fold ~none:"none" ~some:Uri.to_string root)
-        (List.map (fun { Types.WorkspaceFolder.uri; _ } -> uri) workspaces |> String.concat ", "));
+let close_file store uri =
+  Log.info (fun f -> f "Closing %a" Uri.pp uri);
+  UriTbl.remove store.files uri;
+  Data.refresh store.data
 
-  (* TODO: Work out some sane hashing or caching implementation for workspaces - we currently use
-     the identity. *)
+let update_workspace store ?root ~add ~remove () =
+  Log.info (fun f ->
+      let pp xs = List.map (fun { WorkspaceFolder.uri; _ } -> uri) xs |> String.concat ", " in
+      f "Setting root to %s, adding workspaces to [%s] and removing [%s]"
+        (Option.fold ~none:"none" ~some:Uri.to_string root)
+        (pp add) (pp remove));
+
   let current = !(store.workspaces) in
+  let workspaces =
+    List.fold_left
+      (fun t k -> UriMap.remove (Filename.box k.WorkspaceFolder.uri) t)
+      current.workspaces remove
+  in
+  let workspaces =
+    List.fold_left
+      (fun t ({ uri; name } : WorkspaceFolder.t) ->
+        let uri = Filename.box uri in
+        UriMap.add uri { uri; Workspace.path = Filename.get_path uri; name = Some name } t)
+      workspaces add
+  in
   store.workspaces :=
     { root =
         Option.fold ~none:current.root
           ~some:(fun uri -> Some { uri; path = Filename.get_path uri; name = None })
           root;
-      workspaces =
-        List.map
-          (fun ({ uri; name } : Types.WorkspaceFolder.t) ->
-            let uri = Filename.box uri in
-            { uri; Workspace.path = Filename.get_path uri; name = Some name })
-          workspaces
+      workspaces
     }
 
 let linters = Workspace.linters
