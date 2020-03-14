@@ -20,7 +20,7 @@ let request ~token ~path ~mthd ~body : (Yojson.Safe.t, string) result =
   in
   let args = headers @ [ "-s"; "-X"; mthd; "-d"; body; path ] in
   Log.info (fun f -> f "Running curl %s" (List.map Filename.quote args |> String.concat " "));
-  match IlluaminateExec.exec "curls" ("curl" :: args |> Array.of_list) with
+  match IlluaminateExec.exec "curl" ("curl" :: args |> Array.of_list) with
   | Ok body -> (
     try Ok (Yojson.Safe.from_string body)
     with Yojson.Json_error _ ->

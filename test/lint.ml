@@ -1,3 +1,4 @@
+open Stdlib
 open Omnomnom.Tests
 open IlluaminateCore
 open IlluaminateLint

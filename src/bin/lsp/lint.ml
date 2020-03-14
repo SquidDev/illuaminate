@@ -1,3 +1,4 @@
+open Stdlib
 open IlluaminateCore
 open IlluaminateLint
 open Lsp.Types
@@ -122,9 +123,9 @@ let fix store program id =
     let (Driver.Note { note = { fix; _ }; source; witness }) = notes.(id) in
     match fix with
     | FixNothing -> Error "No fixer for this note"
-    | FixOne f -> Stdlib.Result.map (make_edit source witness) (f source)
+    | FixOne f -> Result.map (make_edit source witness) (f source)
     | FixBlock f ->
         f source
-        |> Stdlib.Result.map @@ fun res ->
+        |> Result.map @@ fun res ->
            let range = get_whole_range source witness in
            { range; TextEdit.newText = Format.asprintf "%a" Emit.block res }
