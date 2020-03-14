@@ -17,6 +17,7 @@ depends: [
   "ppx_deriving" {build}
   "ppxlib" {build}
   "reason" {build}
+  "alcotest" {with-test}
   "junit" {with-test}
   "omnomnom" {with-test}
   "odoc" {with-doc}
@@ -33,6 +34,7 @@ depends: [
   "re"
   "result"
   "yojson"
+  "lsp"
 ]
 build: [
   ["dune" "subst"] {pinned}

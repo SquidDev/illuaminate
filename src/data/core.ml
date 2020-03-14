@@ -27,6 +27,8 @@ module type Key = sig
 
   module Container : Contained_tbl.KeyContainer with type t = key
 
+  val pp : Format.formatter -> key -> unit
+
   val eq : value -> value -> bool
 
   val factory : (store, key, value) provider option
@@ -46,9 +48,18 @@ module BoxedKey = struct
       container : 'a containers
     }
 
-  let name { key = (module Key); _ } = Key.name
-
   let hash (Mk ((module Key), k)) = Key.Container.hash k
+
+  let pp out (Mk ((module Key), k)) = Format.fprintf out "%s(%a)" Key.name Key.pp k
+
+  let pp_container out { key = (module Key); container } =
+    match container with
+    | Key.Container c -> (
+        let key = Key.Container.get_key c in
+        match key with
+        | Some key -> Format.fprintf out "%s(%a)" Key.name Key.pp key
+        | None -> Format.fprintf out "%s(missing)" Key.name )
+    | _ -> Format.fprintf out "%s(unknown container)" Key.name
 
   let equal { container; _ } (Mk ((module Key), k)) =
     match container with
@@ -97,6 +108,7 @@ type trace =
 and result =
   { changed_at : version;
     built_at : version;
+    checked_at : version;
     contents : values;
     trace : trace
   }
@@ -127,6 +139,7 @@ module Key = struct
 
   type ('k, 'v, 'f) factory =
     name:string ->
+    ?pp:(Format.formatter -> 'k -> unit) ->
     ?container_k:(module Contained_tbl.KeyContainer with type t = 'k) ->
     ?eq_v:('v -> 'v -> bool) ->
     'f ->
@@ -134,8 +147,10 @@ module Key = struct
 
   let next_id = ref 0
 
+  let default_pp out _ = Format.pp_print_string out "?"
+
   let factory (type k v) : (k, v, (context, k, v) provider option) factory =
-   fun ~name ?container_k ?eq_v factory ->
+   fun ~name ?pp ?container_k ?eq_v factory ->
     let id = !next_id in
     incr next_id;
     let container =
@@ -144,6 +159,7 @@ module Key = struct
       | None -> Contained_tbl.strong ~eq:( == ) ()
     in
     let eq = Option.value ~default:( == ) eq_v in
+    let pp = Option.value ~default:default_pp pp in
     ( module struct
       type key = k
 
@@ -159,6 +175,8 @@ module Key = struct
 
       let eq = eq
 
+      let pp = pp
+
       let factory = factory
 
       type 'a containers += Container of 'a Container.container
@@ -168,11 +186,11 @@ module Key = struct
       type providers += Provider of (store, key, value) provider
     end )
 
-  let key ~name ?container_k ?eq_v f = factory ~name ?container_k ?eq_v (Some (Tracing f))
+  let key ~name ?pp ?container_k ?eq_v f = factory ~name ?pp ?container_k ?eq_v (Some (Tracing f))
 
-  let oracle ~name ?container_k ?eq_v f = factory ~name ?container_k ?eq_v (Some (Oracle f))
+  let oracle ~name ?pp ?container_k ?eq_v f = factory ~name ?pp ?container_k ?eq_v (Some (Oracle f))
 
-  let deferred ~name ?container_k ?eq_v () = factory ~name ?container_k ?eq_v None
+  let deferred ~name ?pp ?container_k ?eq_v () = factory ~name ?pp ?container_k ?eq_v None
 end
 
 module Builder = struct
@@ -204,9 +222,9 @@ let with_context ~store ~tracing f =
 
 (** Build a single term and return the result. This does not do dependency checking, nor does it
     update the store. *)
-let build_result store (Mk ((module K), key) : BoxedKey.t) previous : result =
+let build_result store (Mk ((module K), key) as bkey : BoxedKey.t) previous : result =
   let start = Sys.time () in
-  Log.debug (fun f -> f "Building %s" K.name);
+  Log.debug (fun f -> f "Building %a" BoxedKey.pp bkey);
   let version = store.version in
   let contents, trace =
     let provider =
@@ -234,8 +252,15 @@ let build_result store (Mk ((module K), key) : BoxedKey.t) previous : result =
         (f key previous, Oracle)
   in
   let delta = Sys.time () -. start in
-  let log kind = Log.debug (fun f -> f "Finished %s in %.2f (%s)" K.name delta kind) in
-  let result = { changed_at = version; built_at = version; contents = K.Value contents; trace } in
+  let log kind = Log.info (fun f -> f "Finished %a in %.2f (%s)" BoxedKey.pp bkey delta kind) in
+  let result =
+    { checked_at = version;
+      changed_at = version;
+      built_at = version;
+      contents = K.Value contents;
+      trace
+    }
+  in
   match previous with
   | Some { contents = K.Value contents2; changed_at; _ } when K.eq contents contents2 ->
       (* If our value hasn't'changed, then don't update the changed_at timestamp. *)
@@ -244,21 +269,19 @@ let build_result store (Mk ((module K), key) : BoxedKey.t) previous : result =
   | None -> log "new"; result
 
 (** Determine if this step can be skipped (namely, all its dependencies haven't changed). *)
-let skip build : result -> bool = function
+let skip source build : result -> bool = function
   | { trace = Oracle; _ } -> false
   | { built_at; trace = Depends trace; _ } ->
       let skip container =
         match BoxedKey.get_key container with
-        | None ->
-            Log.debug (fun f -> f "Not skipping: %s is unavailable" (BoxedKey.name container));
-            false
+        | None -> false
         | Some key ->
             let _, result = build key (Some container) in
             if result.changed_at <= built_at then true
             else (
               Log.debug (fun f ->
-                  f "Skipping: %s was built more recently (%d > %d)" (BoxedKey.name container)
-                    result.changed_at built_at);
+                  f "Rebuilding: %a - %a was built more recently (%d > %d)" BoxedKey.pp source
+                    BoxedKey.pp_container container result.changed_at built_at);
               false )
       in
       List.for_all skip trace
@@ -268,15 +291,15 @@ let rec rebuild ({ version; results; _ } as store) k container =
   match container with
   | Some container -> (
     match BoxedKey.get_data container with
-    | Some ({ built_at; _ } as result) when built_at = version ->
-        (* If we rebuilt it this version, then don't check dependencies. *)
+    | Some ({ checked_at; _ } as result) when checked_at = version ->
+        (* If we already checked this version, then don't check dependencies. *)
         (container, result)
-    | Some result when skip (rebuild store) result ->
+    | Some result when skip k (rebuild store) result ->
         (* If all our dependencies are up-to-date, then continue. *)
         Log.debug (fun f ->
             let (Mk ((module K), _)) = k in
-            f "Skipping %s" K.name);
-        (container, result)
+            f "Skipping %a" BoxedKey.pp k);
+        (container, { result with checked_at = version })
     | previous ->
         (* Rebuild and update the key. *)
         let result = build_result store k previous in

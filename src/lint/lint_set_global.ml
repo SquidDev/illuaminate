@@ -41,7 +41,9 @@ let linter =
         let resolve = IlluaminateData.need context.data R.key context.program in
         match R.get_definition var resolve with
         | { kind = Global; _ } ->
-            [ note ~tag "Setting unknown global function %S." (Node.contents.get name) ]
+            [ note ~span:(Spanned.var var) ~tag "Setting unknown global function %S."
+                (Node.contents.get name)
+            ]
         | _ -> [] )
     | _ -> []
   and name opts context name =

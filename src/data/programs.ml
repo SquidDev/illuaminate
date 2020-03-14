@@ -9,15 +9,19 @@ module Context = struct
   let eq_v a b = a.root = b.root && a.config == b.config
 
   let key : (Span.filename, t) Core.Key.t =
-    Core.Key.deferred ~eq_v ~name:(__MODULE__ ^ ".Context") ()
+    Core.Key.deferred ~pp:Span.Filename.pp ~eq_v ~name:(__MODULE__ ^ ".Context") ()
 end
 
 module Files = struct
   let file : (Span.filename, Syntax.program option) Core.Key.t =
-    Core.Key.deferred ~eq_v:(Option.equal ( == )) ~name:(__MODULE__ ^ ".Files.file") ()
+    Core.Key.deferred ~pp:Span.Filename.pp
+      ~container_k:(module Contained_tbl.StrongContainer (Span.Filename))
+      ~eq_v:(Option.equal ( == )) ~name:(__MODULE__ ^ ".Files.file") ()
 
   let files : (unit, Span.filename list) Core.Key.t =
-    Core.Key.deferred ~eq_v:(CCList.equal ( == )) ~name:(__MODULE__ ^ ".Files.files") ()
+    Core.Key.deferred
+      ~eq_v:(CCList.equal Span.Filename.equal)
+      ~name:(__MODULE__ ^ ".Files.files") ()
 end
 
 module FileStore = struct

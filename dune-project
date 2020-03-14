@@ -28,6 +28,7 @@
     (reason :build)
 
     ; Test
+    (alcotest :with-test)
     (junit :with-test)
     (omnomnom :with-test)
 
@@ -49,4 +50,7 @@
     ppx_deriving_yojson
     re
     result
-    yojson))
+    yojson
+
+    ;; Language server
+    lsp))

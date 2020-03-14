@@ -74,6 +74,10 @@ let get_suffix = function
   | Expr { value = Some value; _ } -> " = " ^ value
   | _ -> ""
 
+let is_documented = function
+  | { description = None; examples = []; see = []; _ } -> false
+  | _ -> true
+
 let base_iter = new abstract_iter
 
 class iter =

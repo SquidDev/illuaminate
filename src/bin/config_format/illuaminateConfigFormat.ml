@@ -274,6 +274,12 @@ let files iter config path =
   | Default -> Pattern.iter iter ~root:path always_pattern
   | Config { root; sources; _ } -> Pattern.Union.iter iter ~path ~root sources
 
+let all_files iter config =
+  let iter x = if Fpath.has_ext ".lua" x then iter x in
+  match config with
+  | Default -> ()
+  | Config { root; sources; _ } -> Pattern.Union.iter iter ~root sources
+
 (** Get all linters and their configuration options for a particular file. *)
 let get_linters config ?path () =
   match config with

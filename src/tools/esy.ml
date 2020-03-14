@@ -3,6 +3,8 @@ module J = Yojson.Safe
 
 module Versions = struct
   let omnomnom = "a0620d42b2ac94fcc4617e87709d6bda9188362c"
+
+  let lsp = "f3e1f4c543eef14a3cc42bc5efbb41c9137dc3a2"
 end
 
 let rec json_of_value : value -> J.t = function
@@ -97,7 +99,8 @@ let () =
             `Assoc
               [ ( "@opam/omnomnom",
                   `String ("git://github.com/SquidDev/omnomnom:omnomnom.opam#" ^ Versions.omnomnom)
-                )
+                );
+                ("@opam/lsp", `String ("git://github.com/ocaml/ocaml-lsp:lsp.opam#" ^ Versions.lsp))
               ] );
           ( "scripts",
             `Assoc

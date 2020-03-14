@@ -89,7 +89,11 @@ and get_expr ({ resolved; modules; _ } as store) :
     match Syntax.Helpers.get_call_args args with
     | Some (Mono (String { lit_value; _ })) ->
         (* Identify calls to require("foo"), and find a module "foo". *)
-        StringMap.find_opt lit_value modules |> CCOpt.flat_map mk_module
+        let res = StringMap.find_opt lit_value modules |> CCOpt.flat_map mk_module in
+        Logs.info (fun f ->
+            f "Found module %s => %s" lit_value
+              (Option.fold ~none:"None" ~some:(fun _ -> "Some") res));
+        res
     | _ -> None )
   | _ -> None
 
@@ -104,3 +108,8 @@ and get_name store : Syntax.name -> (Reference.t * value documented) option = fu
       in
       get_expr store tbl |> CCOpt.flat_map find
   | NLookup _ -> None
+
+let is_interesting r value =
+  match Reference.root r with
+  | `Reference (Unknown _) | `Var _ -> Doc_syntax.is_documented value
+  | `Reference (Internal _ | External _) -> true

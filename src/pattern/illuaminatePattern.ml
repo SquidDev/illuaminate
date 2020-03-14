@@ -30,7 +30,10 @@ let rec matches_pat paths pats =
 let matches path pattern = matches_pat (Fpath.segs path) pattern
 
 (** A set of files we'll always skip over. Just saves us iterating over VCS directories and whatnot. *)
-let ignored_files = List.to_seq [ ".git"; ".svn" ] |> Seq.map (fun x -> (x, ())) |> Hashtbl.of_seq
+let ignored_files =
+  List.to_seq [ ".git"; ".svn"; "_build"; "_opam"; "_esy"; "node_modules" ]
+  |> Seq.map (fun x -> (x, ()))
+  |> Hashtbl.of_seq
 
 let iter_pats iter ~root path pats =
   let rec visit path =
