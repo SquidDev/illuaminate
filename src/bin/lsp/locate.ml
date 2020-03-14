@@ -4,7 +4,7 @@ open Lsp_convert
 
 type node =
   | Var of var
-  | Arg of arg
+  | DotArg of token
   | Name of name
   | FunctionName of function_name
   | Expr of expr
@@ -14,7 +14,7 @@ type node =
 
 let pp_node out : node -> unit = function
   | Var _ -> Format.fprintf out "Var"
-  | Arg _ -> Format.fprintf out "Arg"
+  | DotArg _ -> Format.fprintf out "DotArg"
   | Name _ -> Format.fprintf out "Name"
   | FunctionName _ -> Format.fprintf out "FunctionName"
   | TableItem _ -> Format.fprintf out "TableItem"
@@ -24,7 +24,7 @@ let pp_node out : node -> unit = function
 
 let node_kind : node -> string = function
   | Var _ -> "Var"
-  | Arg _ -> "Arg"
+  | DotArg _ -> "DotArg"
   | Name _ -> "Name"
   | FunctionName _ -> "FunctionName"
   | TableItem _ -> "TableItem"
@@ -193,6 +193,8 @@ and call_args pos : call_args -> node option = function
 
 and args pos { args_args; _ } = seplist0 Spanned.arg arg pos args_args
 
-and arg _ a = Arg a
+and arg _ = function
+  | NamedArg v -> Var v
+  | DotArg v -> DotArg v
 
 let locate pos program = block pos program.program <|> Program program

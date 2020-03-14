@@ -4,7 +4,7 @@
    containers containers.sexp illuaminate.core illuaminate.config
    illuaminate.data illuaminate.parser illuaminate.lint omd fpath
    illuaminate.semantics illuaminate.pattern illuaminateLsp lsp lsp.stdune
-   logs cmdliner yojson result alcotest fmt)
+   logs cmdliner yojson result alcotest fmt ppx_yojson_conv_lib)
  (variants unix)
  (deps
   (source_tree data))

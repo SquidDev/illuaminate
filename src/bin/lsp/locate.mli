@@ -2,7 +2,7 @@ open IlluaminateCore.Syntax
 
 type node =
   | Var of var
-  | Arg of arg
+  | DotArg of token
   | Name of name
   | FunctionName of function_name
   | Expr of expr

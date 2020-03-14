@@ -42,5 +42,11 @@ let () =
          Reprint.tests;
          Data.tests;
          group "Documentation" [ Doc_parser.tests; Doc_extract.tests ];
-         group "Lsp" [ Lsp_diagnostic.tests ]
+         group "Language server"
+           [ Lsp_diagnostic.tests;
+             Lsp_definition.tests;
+             Lsp_declaration.tests;
+             Lsp_reference.tests;
+             Lsp_highlight.tests
+           ]
        ]

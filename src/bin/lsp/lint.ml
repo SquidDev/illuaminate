@@ -46,7 +46,7 @@ let notes =
             add (i + 1) xs xss
       in
       add 1 xs xss; out
-  | _ -> failwith "Impossible"
+  | [] :: _ -> failwith "Impossible"
 
 let diagnostics store : Store.document -> Diagnostic.t list = function
   | { program = Error { span; value }; _ } ->
