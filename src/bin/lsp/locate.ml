@@ -111,7 +111,7 @@ and stmt pos stmt : node =
             when Pos.(span_start (Node.span e) <= pos && pos <= span_finish (Node.span if_end)) ->
               block pos xs <|> Stmt stmt
           | _ -> Stmt stmt )
-        | x :: y :: _ as xs ->
+        | x :: (y :: _ as xs) ->
             let+ () = if_clause pos x y.clause_if in
             clauses xs
         | [ x ] ->
