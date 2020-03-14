@@ -13,7 +13,7 @@ executable. This defaults to \"illuaminate-lsp\"."
   "The command to start the LSP server. This can be taken as a
   function reference in order to defer evaluation of
   `illuaminate-illuaminate-lsp-executable'"
-  `(,illuaminate-illuaminate-lsp-executable "--log=-"))
+  `(,illuaminate-illuaminate-lsp-executable "--log=lsp.log" "-vv"))
 
 (with-eval-after-load 'lsp-mode
   (lsp-register-client

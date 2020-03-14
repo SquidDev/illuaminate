@@ -17,6 +17,15 @@ let () =
     & opt (some string) None
     & info [ "log" ] ~docv:"FILE" ~doc:"Enable logging to FILE (or - for stdout)."
   in
+  let verbose =
+    let open Arg in
+    value & flag_all
+    & info ~docs:Cmdliner.Manpage.s_common_options
+        ~doc:
+          "Show log messages. One $(b,-v) shows errors, warnings and information messages. \
+           Additional usages will also show debug messages."
+        [ "verbose"; "v" ]
+  in
 
   let reporter : Logs.reporter =
     { report =
@@ -29,9 +38,16 @@ let () =
           msgf (fun ?header:_ ?tags:_ -> Format.kasprintf k))
     }
   in
-  let setup log_file =
+  let setup log_file verbose =
     if Option.is_some log_file then (
-      Logs.set_level ~all:true (Some Debug);
+      let level =
+        match verbose with
+        | [] -> Logs.Warning
+        | [ _ ] -> Logs.Info
+        | _ :: _ :: _ -> Logs.Debug
+      in
+
+      Logs.set_level ~all:true (Some level);
       Logs.set_reporter reporter );
 
     Lsp.Logger.with_log_file log_file (fun () ->
@@ -54,7 +70,7 @@ let () =
   in
 
   let cmd =
-    ( const setup $ log_file,
+    ( const setup $ log_file $ verbose,
       info "illuaminate-lsp" ~doc:"Start a Language Server Protocol sever for illuaminate" )
   in
   exit @@ eval cmd

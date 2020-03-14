@@ -3,6 +3,7 @@ open Lsp
 module Data = IlluaminateData
 module UriTbl = Hashtbl.Make (Uri)
 module Config = IlluaminateConfigFormat
+module FilenameSet = Set.Make (Span.Filename)
 
 let src = Logs.Src.create ~doc:"Loading and storing of local files" __MODULE__
 
@@ -29,31 +30,35 @@ module Filename = struct
 
   let to_uri { Span.id; _ } = box id
 
-  let of_fpath path = Span.Filename.mk ~path (Fpath.to_string path |> Uri.of_path |> Uri.to_string)
+  let of_path path = Span.Filename.mk ~path (Fpath.to_string path |> Uri.of_path |> Uri.to_string)
 end
 
 module FileDigest = struct
-  type t = Digest.t * Mtime.t
+  type 'a t =
+    { digest : Digest.t;
+      time : Mtime.t;
+      value : 'a
+    }
 
-  let default_duration = Mtime.Span.of_uint64_ns 5_000_000_000L (* 5s *)
+  let default_duration = Mtime.Span.of_uint64_ns 30_000_000_000L (* 30s *)
+
+  let equal ~eq_v l r = l == r || (l.digest = r.digest && l.time = r.time && eq_v l.value r.value)
 
   (** Read a file and perform some processing function (such as parsing) if the contents has changed
       since last time we checked. Limited to 5 seconds. *)
-  let with_change ?(delay = default_duration) ~process ~path (digest : t option) =
+  let with_change ?(delay = default_duration) ~process ~path (previous : 'a t option) =
     let path_s = Fpath.to_string path in
     let error msg =
       Log.warn (fun f -> f "Error reading file %S (%s)" path_s msg);
       None
     in
-    let result ~digest result = Some ((digest, Mtime_clock.now ()), result) in
+    let result ~digest value = Some { digest; time = Mtime_clock.now (); value } in
     let read ~new_digest =
       match open_in path_s with
       | exception Sys_error e -> error e
       | ic -> (
         match process ic with
-        | res ->
-            close_in ic;
-            result ~digest:new_digest (Some res)
+        | res -> close_in ic; result ~digest:new_digest res
         | exception Sys_error e -> close_in_noerr ic; error e
         | exception e ->
             let bt = Printexc.get_raw_backtrace () in
@@ -61,18 +66,18 @@ module FileDigest = struct
             Printexc.raise_with_backtrace e bt )
     in
 
-    match digest with
-    | Some (digest, time) when Mtime.Span.compare (Mtime.span (Mtime_clock.now ()) time) delay < 0
-      ->
+    match previous with
+    | Some ({ time; _ } as result)
+      when Mtime.Span.compare (Mtime.span (Mtime_clock.now ()) time) delay < 0 ->
         (* Skip if we changed in strictly less than "delay" time. *)
-        Some ((digest, time), None)
-    | Some (digest, _) -> (
+        Some result
+    | Some { digest; value; _ } -> (
       match Digest.file path_s with
       | new_digest ->
           Log.debug (fun f ->
               f "Checking digest for %S (previously %s, now %s)" path_s (Digest.to_hex digest)
                 (Digest.to_hex new_digest));
-          if new_digest = digest then result ~digest None else read ~new_digest
+          if new_digest = digest then result ~digest value else read ~new_digest
       | exception Sys_error msg -> error msg )
     | None -> (
       match Digest.file path_s with
@@ -82,15 +87,15 @@ module FileDigest = struct
   let oracle ?delay ?container_k ?(eq_v = ( == )) ~name process =
     let open Data in
     let compute path previous =
-      let previous = Option.join previous in
-      match with_change ?delay ~process:(process path) ~path (Option.map fst previous) with
-      | Some (t, None) -> Some (t, Option.get previous |> snd)
-      | Some (t, Some v) -> Some (t, v)
-      | None -> None
+      Option.join previous |> with_change ?delay ~process:(process path) ~path
     in
-    let compute_key = Key.oracle ?container_k ~name:(name ^ ".compute") compute in
-    Key.key ?container_k ~eq_v:(Option.equal eq_v) ~name (fun store key ->
-        need store compute_key key |> Option.map snd)
+    let compute_key =
+      Key.oracle ~pp:Fpath.pp
+        ~eq_v:(Option.equal (equal ~eq_v))
+        ?container_k ~name:(name ^ ".compute") compute
+    in
+    Key.key ~pp:Fpath.pp ?container_k ~eq_v:(Option.equal eq_v) ~name (fun store key ->
+        need store compute_key key |> Option.map (fun x -> x.value))
 end
 
 module Workspace = struct
@@ -104,6 +109,8 @@ module Workspace = struct
     { root : t option;
       workspaces : t list
     }
+
+  let pp out { uri; _ } = Uri.pp out uri
 
   let workspace_for ~root (workspaces : t list) = function
     | { Span.path = None; _ } -> None
@@ -131,7 +138,7 @@ module Workspace = struct
     let read_config path chan =
       let parsed =
         Lexing.from_channel chan
-        |> Config.of_lexer ~directory:(Fpath.parent path) (Filename.of_fpath path)
+        |> Config.of_lexer ~directory:(Fpath.parent path) (Filename.of_path path)
       in
       match parsed with
       | Ok o -> o
@@ -141,23 +148,64 @@ module Workspace = struct
           Config.default
     in
     let config_key = FileDigest.oracle ~name:(__MODULE__ ^ ".Workspace.config_file") read_config in
-    Key.key ~name:(__MODULE__ ^ ".Workspace.config") (fun store workspace ->
+    Key.key ~name:(__MODULE__ ^ ".Workspace.config") ~pp (fun store workspace ->
         workspace.path
         |> CCOpt.flat_map (fun path -> need store config_key Fpath.(path / "illuaminate.sexp"))
         |> Option.value ~default:Config.default)
 
   let context : (t, Data.Programs.Context.t) Data.Key.t =
     let open Data in
-    Key.key ~name:(__MODULE__ ^ ".Workspace.context") (fun store workspace ->
+    Key.key ~name:(__MODULE__ ^ ".Workspace.context") ~pp (fun store workspace ->
         let config = need store config workspace in
         { Programs.Context.root = workspace.path; config = Config.get_store config })
+
+  let sources : (t, Fpath.t list) Data.Key.t =
+    let delay = Mtime.Span.of_uint64_ns 60_000_000_000L (* 60s *) in
+    let name = __MODULE__ ^ ".FileTree" in
+    let open Data in
+    let compute config = function
+      | Some (time, value) when Mtime.Span.compare (Mtime.span (Mtime_clock.now ()) time) delay < 0
+        ->
+          (time, value)
+      | _ ->
+          let files = ref [] in
+          Config.all_files (fun f -> files := f :: !files) config;
+          (Mtime_clock.now (), !files)
+    in
+    let compute_key = Key.oracle ~eq_v:( = ) ~name:(name ^ ".compute") compute in
+    Key.key ~pp ~eq_v:( = ) ~name (fun store key ->
+        need store config key |> need store compute_key |> snd)
 end
+
+type parsed_program = (Syntax.program, IlluaminateParser.Error.t Span.spanned) result
+
+type parsed_file =
+  | OnDisk of parsed_program FileDigest.t
+  | Open of parsed_program
+  | Unknown
+
+let parsed_file : (Span.filename, parsed_file) Data.Key.t =
+  let eq_v l r =
+    if l == r then true
+    else
+      match (l, r) with
+      | Unknown, Unknown -> true
+      | OnDisk l, OnDisk r -> FileDigest.equal ~eq_v:( == ) l r
+      | Open l, Open r -> l == r
+      | _, _ -> false
+  in
+  Data.Key.deferred ~pp:Span.Filename.pp ~eq_v
+    ~container_k:(module Data.Container.Strong (Span.Filename))
+    ~name:(__MODULE__ ^ ".parsed_file") ()
+
+let default_context : Data.Programs.Context.t =
+  { root = None; config = Config.get_store Config.default }
 
 type document =
   { name : Span.filename;
     uri : Uri.t;
     mutable contents : Lsp.Text_document.t;
-    mutable program : (Syntax.program, IlluaminateParser.Error.t Span.spanned) result
+    mutable program : parsed_program
   }
 
 type t =
@@ -166,11 +214,6 @@ type t =
     data : Data.t
   }
 
-let data { data; _ } = data
-
-let default_context : Data.Programs.Context.t =
-  { root = None; config = Config.get_store Config.default }
-
 let create () =
   let files = UriTbl.create 64 in
   let workspaces = ref { Workspace.root = None; workspaces = [] } in
@@ -178,8 +221,41 @@ let create () =
     let open Data in
     let open Builder in
     empty
-    |> oracle Programs.Files.files (fun () _ -> [])
     |> oracle Workspace.workspaces (fun () _ -> !workspaces)
+    (* In order to extract a file, we try to read our open files, from disk, and then give up after
+       that. *)
+    |> oracle parsed_file (fun file previous ->
+           match UriTbl.find_opt files (Filename.to_uri file) with
+           | Some p -> Open p.program
+           | None -> (
+             match file.path with
+             | None -> Unknown
+             | Some path ->
+                 let digest =
+                   match previous with
+                   | Some (OnDisk d) -> Some d
+                   | None | Some (Open _ | Unknown) -> None
+                 in
+                 FileDigest.with_change
+                   ~process:(fun chan -> Lexing.from_channel chan |> IlluaminateParser.program file)
+                   ~path digest
+                 |> Option.fold ~none:Unknown ~some:(fun x -> OnDisk x) ))
+    (* Then we use the above key to extract the actual program. *)
+    |> key Programs.Files.file (fun store file ->
+           match need store parsed_file file with
+           | OnDisk { value; _ } | Open value -> Result.to_option value
+           | Unknown -> None)
+    (* The file list is derived from all matching patterns in the config file for each workspace *)
+    |> key Programs.Files.files (fun store () ->
+           let workspaces = need store Workspace.workspaces () in
+           List.fold_left
+             (fun all workspace ->
+               need store Workspace.sources workspace
+               |> List.fold_left (fun s p -> FilenameSet.add (Filename.of_path p) s) all)
+             FilenameSet.empty
+             (CCList.cons_maybe workspaces.root workspaces.workspaces)
+           |> FilenameSet.to_seq |> List.of_seq)
+    (* A program's context is just derived from its workspace. *)
     |> key Programs.Context.key (fun store name ->
            let { Workspace.root; workspaces } = need store Workspace.workspaces () in
            Workspace.workspace_for ~root workspaces name
@@ -188,14 +264,16 @@ let create () =
   in
   { workspaces; files; data }
 
-let lex_file name doc =
-  Text_document.text doc |> Lexing.from_string |> IlluaminateParser.program name
+let data { data; _ } = data
 
-let get_file { files; data; _ } =
+let get_file { files; data; _ } file =
   (* We refresh our data here - we're not changing anything, but this is the primary interaction
      point! It might be better to do that before every notification/request instead, but this'll do
      for now. *)
-  Data.refresh data; UriTbl.find_opt files
+  Data.refresh data; UriTbl.find_opt files file
+
+let lex_file name doc =
+  Text_document.text doc |> Lexing.from_string |> IlluaminateParser.program name
 
 let update_file store (doc : document) contents =
   doc.contents <- contents;

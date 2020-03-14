@@ -17,6 +17,8 @@ module Filename = struct
   let hash x = x.hash
 
   let equal l r = l == r || (l.hash = r.hash && l.id = r.id)
+
+  let pp out f = Format.pp_print_string out f.id
 end
 
 type filename = Filename.t =

@@ -12,6 +12,8 @@ module Filename : sig
       hash : int  (** A cached hash of [id] *)
     }
 
+  val pp : Format.formatter -> t -> unit
+
   include Hashtbl.HashedType with type t := t
 
   include Set.OrderedType with type t := t

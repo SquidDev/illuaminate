@@ -30,6 +30,9 @@ val generate : Format.formatter -> unit
 (** Iterator over files within this a subdirectory of this module. *)
 val files : (Fpath.t -> unit) -> t -> Fpath.t -> unit
 
+(** Iterator over source files within this module. *)
+val all_files : (Fpath.t -> unit) -> t -> unit
+
 (** Get the enabled error tags and linter options from the config object. *)
 val get_linters : t -> ?path:Fpath.t -> unit -> Error.Tag.filter * Schema.store
 

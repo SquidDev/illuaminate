@@ -22,6 +22,7 @@ module Key : sig
         the {!(==)} *)
   type ('k, 'v, 'f) factory =
     name:string ->
+    ?pp:(Format.formatter -> 'k -> unit) ->
     ?container_k:(module Contained_tbl.KeyContainer with type t = 'k) ->
     ?eq_v:('v -> 'v -> bool) ->
     'f ->
