@@ -62,7 +62,7 @@ val fix : Syntax.program -> any_note list -> Syntax.program
 val lint_and_fix_all :
   store:IlluaminateConfig.Schema.store ->
   data:IlluaminateData.t ->
-  ?id:IlluaminateData.Programs.Files.id ->
+  ?files:Span.filename * IlluaminateData.Programs.FileStore.t ->
   ?tags:Error.Tag.filter ->
   Linter.t list ->
   Syntax.program ->

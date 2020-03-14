@@ -59,7 +59,7 @@ let process ~name contents out =
       let data =
         let open D.Builder in
         empty
-        |> D.Programs.Files.(create () |> builder)
+        |> D.Programs.FileStore.(create () |> builder)
         |> oracle D.Programs.Context.key (fun _ _ -> context)
         |> build
       in

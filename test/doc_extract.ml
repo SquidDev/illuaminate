@@ -17,11 +17,12 @@ let process ~name contents out =
           config = Schema.(singleton Doc.Config.key |> default)
         }
       in
-      let files = D.Programs.Files.create () in
-      D.Programs.Files.add parsed files |> ignore;
+      let files = D.Programs.FileStore.create () in
+      D.Programs.FileStore.update files name (Some parsed);
       let data =
         let open D.Builder in
-        empty |> D.Programs.Files.builder files
+        empty
+        |> D.Programs.FileStore.builder files
         |> oracle D.Programs.Context.key (fun _ _ -> context)
         |> build
       in

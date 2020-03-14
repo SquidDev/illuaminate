@@ -767,8 +767,6 @@ let crunch_modules : module_info documented list -> module_info documented = fun
       let errs = Error.make () in
       List.fold_left Merge.(documented (modules ~errs)) x xs
 
-let need_for data key file = D.need data D.Programs.Files.file file |> D.need data key
-
 let get data program =
   let state, current_module = D.need data Infer.key program in
   let contents = D.need data unresolved_module program in
@@ -776,9 +774,9 @@ let get data program =
     let all =
       List.fold_left
         (fun modules file ->
-          match need_for data unresolved_module file with
-          | None -> modules
-          | Some result ->
+          match D.Programs.need_for data unresolved_module file with
+          | None | Some None -> modules
+          | Some (Some result) ->
               let name = result.descriptor.mod_name in
               StringMap.update name (fun x -> Some (result :: Option.value ~default:[] x)) modules)
         StringMap.empty
@@ -814,9 +812,9 @@ let get_modules =
   D.need data D.Programs.Files.files ()
   |> List.fold_left
        (fun modules file ->
-         match need_for data key file |> get_module with
-         | None -> modules
-         | Some result ->
+         match D.Programs.need_for data key file with
+         | None | Some { contents = None; _ } -> modules
+         | Some { contents = Some result; _ } ->
              let name = result.descriptor.mod_name in
              StringMap.update name (fun x -> Some (result :: Option.value ~default:[] x)) modules)
        StringMap.empty

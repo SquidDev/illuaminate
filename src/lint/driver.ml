@@ -385,15 +385,15 @@ let fix prog fixes =
     end)
       #program prog
 
-let lint_and_fix_all ~store ~data ?id ?tags linters program =
+let lint_and_fix_all ~store ~data ?files ?tags linters program =
   List.fold_left
     (fun (program, msgs) linter ->
       let msgs' = lint ~store ~data ?tags linter program in
       let program = fix program msgs' in
       Option.iter
-        (fun id ->
-          IlluaminateData.Programs.Files.update id program;
+        (fun (name, store) ->
+          IlluaminateData.Programs.FileStore.update store name (Some program);
           IlluaminateData.refresh data)
-        id;
+        files;
       (program, msgs' @ msgs))
     (program, []) linters
