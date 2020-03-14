@@ -26,5 +26,21 @@ let tests =
                "Received locations from declaration"
                (Some (`Location [ Location.create ~uri ~range:(range 4 21 4 22) ]));
 
+          ());
+      test ~name:"Find the definitions of documented terms" (fun t ->
+          let uri = open_file t "vars.lua" in
+
+          request t (TextDocumentDeclaration { textDocument = { uri }; position = pos 11 8 })
+          |> Check.ok_response
+          |> Testable.(check (option (locations location location_link)))
+               "Received locations from inline-table field"
+               (Some (`Location [ Location.create ~uri ~range:(range 8 16 8 17) ]));
+
+          request t (TextDocumentDeclaration { textDocument = { uri }; position = pos 11 13 })
+          |> Check.ok_response
+          |> Testable.(check (option (locations location location_link)))
+               "Received locations from separate-table field"
+               (Some (`Location [ Location.create ~uri ~range:(range 9 6 9 7) ]));
+
           ())
     ]

@@ -100,6 +100,12 @@ module Declarations = struct
     | v -> of_resolved_var ~uri v
     | exception Not_found -> None
 
+  let of_name ~store ~uri program name : Locations.t option =
+    let modules = D.get (Store.data store) Module_resolve.key program in
+    match Module_resolve.get_name modules name with
+    | Some (_, { definition; _ }) -> Some (`Location [ location ~uri definition ])
+    | None -> None
+
   let of_dots ~store ~uri program d =
     let resolved = D.get (Store.data store) Resolve.key program in
     Resolve.get_dots d resolved
@@ -109,6 +115,7 @@ module Declarations = struct
   let find ~store ~position ~uri program : Locations.t option =
     match Locate.locate position program with
     | Var v -> of_var ~store ~uri program v
+    | Name n -> of_name ~store ~uri program n
     | Expr (Dots d) -> of_dots ~store ~uri program d
     | n ->
         Log.debug (fun f -> f "Not a variable node (%a)" Locate.pp_node_short n);
@@ -136,6 +143,7 @@ module Definitions = struct
   let find ~store ~position ~uri program : Locations.t option =
     match Locate.locate position program with
     | Var v -> of_var ~store ~uri program v
+    | Name n -> Declarations.of_name ~store ~uri program n
     | Expr (Dots d) -> Declarations.of_dots ~store ~uri program d
     | n ->
         Log.debug (fun f -> f "Not a variable node (%a)" Locate.pp_node_short n);
