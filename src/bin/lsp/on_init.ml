@@ -24,11 +24,12 @@ let init_info : InitializeResult.t =
     ~serverInfo:{ name = "illuaminate-lsp"; version = Some "%%VERSION%%" }
     ~capabilities ()
 
-let handle (_ : Rpc.t) store { InitializeParams.rootPath; rootUri; workspaceFolders; _ } =
+let handle (_ : Store.client_channel) store
+    { InitializeParams.rootPath; rootUri; workspaceFolders; _ } =
   let root =
     match rootUri with
     | Some u -> Some (Store.Filename.box u)
     | None -> Option.join rootPath |> Option.map Uri.of_path
   in
   Store.set_workspace store ?root (Option.join workspaceFolders |> Option.value ~default:[]);
-  Ok (store, init_info)
+  Ok init_info

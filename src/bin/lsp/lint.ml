@@ -7,9 +7,9 @@ module D = IlluaminateData
 
 let fname p = (Syntax.Spanned.program p).filename
 
-let diagnostic ~tag ~span ?(relatedInformation = []) ?(tags = []) message =
+let diagnostic ~tag ~span ?relatedInformation ?tags message =
   Diagnostic.create ~range:(range span) ~severity:(tag_severity tag) ~code:(tag_code tag)
-    ~source:"illuaminate" ~message ~relatedInformation ~tags ()
+    ~source:"illuaminate" ~message ?relatedInformation ?tags ()
 
 let note_to_diagnostic : Driver.any_note -> Diagnostic.t = function
   | Note ({ note = { Linter.message; detail; tag; _ }; _ } as n) ->

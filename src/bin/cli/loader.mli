@@ -1,7 +1,6 @@
 open IlluaminateCore
 module Config := IlluaminateConfigFormat
 module Data := IlluaminateData
-module Files := Data.Programs.Files
 
 type file =
   { root : Fpath.t;

@@ -28,6 +28,7 @@
     (reason :build)
 
     ; Test
+    (alcotest :with-test)
     (junit :with-test)
     (omnomnom :with-test)
 

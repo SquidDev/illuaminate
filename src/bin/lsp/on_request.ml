@@ -16,13 +16,13 @@ let non_empty = function
 
 let on_program ~default store ~uri f =
   match Store.get_file store uri with
-  | Some { program = Ok prog; _ } -> Ok (store, f prog)
+  | Some { program = Ok prog; _ } -> Ok (f prog)
   | Some { program = Error _; _ } ->
       Log.debug (fun f -> f "%a is malformed" Uri.pp uri);
-      Ok (store, default)
+      Ok default
   | None ->
       Log.err (fun f -> f "%a is not open" Uri.pp uri);
-      Ok (store, default)
+      Ok default
 
 let on_program' ~default store ~uri f = on_program ~default store ~uri:(Store.Filename.box uri) f
 
@@ -209,9 +209,9 @@ module Highlights = struct
         []
 end
 
-let worker (type res) rpc store (_ : ClientCapabilities.t) :
-    res Client_request.t -> (Store.t * res, Jsonrpc.Response.Error.t) result = function
-  | Shutdown -> Ok (store, ())
+let worker (type res) client store (_ : ClientCapabilities.t) :
+    res Client_request.t -> (res, Jsonrpc.Response.Error.t) result = function
+  | Shutdown -> Ok ()
   | TextDocumentHover { textDocument = { uri }; position } ->
       on_program' ~default:None store ~uri (Hover.find ~store ~position)
   | TextDocumentDeclaration { textDocument = { uri }; position } ->
@@ -231,22 +231,22 @@ let worker (type res) rpc store (_ : ClientCapabilities.t) :
         let duri = Uri.to_string uri in
 
         match Store.get_file store uri with
-        | Some { program = Ok prog; contents = Open contents; _ } -> (
+        | Some { program = Ok prog; contents; _ } -> (
             let fixed = Lint.fix store prog id in
             match fixed with
             | Error msg -> Error { code = ContentModified; message = msg; data = None }
             | Ok edit ->
                 make_edit ~uri:duri ~version:(Text_document.version contents) [ edit ]
-                |> Ugly_hacks.send_request rpc;
-                Ok (store, `Null) )
-        | _ -> Ok (store, `Null) )
+                |> client.Store.request;
+                Ok `Null )
+        | _ -> Ok `Null )
     | _ -> Error { code = InternalError; message = "Invalid arguments"; data = None } )
   | _ ->
       Log.err (fun f -> f "Unknown message (not implemented)");
       Error { code = InternalError; message = "Not implemented"; data = None }
 
-let handle rpc store caps req =
-  try worker rpc store caps req
+let handle client store caps req =
+  try worker client store caps req
   with e ->
     let bt = Printexc.get_backtrace () in
     let e = Printexc.to_string e in

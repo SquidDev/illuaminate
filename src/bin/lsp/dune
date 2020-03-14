@@ -1,7 +1,7 @@
 (library
- (name illuaminate_lsp_core)
+ (name illuaminateLsp)
  (modules
-  (:standard \ illuaminate_lsp))
+  (:standard \ illuaminate_lsp ugly_hacks))
  (libraries cmdliner containers containers.data fpath illuaminate.config
    illuaminateConfigFormat illuaminate.core illuaminate.data illuaminate.lint
    illuaminate.parser illuaminate.semantics logs lsp lsp.stdune mtime
@@ -9,10 +9,10 @@
 
 (executable
  (name illuaminate_lsp)
- (modules illuaminate_lsp)
+ (modules illuaminate_lsp ugly_hacks)
  (modes exe)
  (variants unix)
- (libraries illuaminate_lsp_core cmdliner lsp logs))
+ (libraries illuaminateLsp cmdliner lsp logs yojson lsp.stdune))
 
 (rule
  (target illuaminate_lsp.min.exe)

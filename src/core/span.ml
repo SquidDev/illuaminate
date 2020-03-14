@@ -2,20 +2,28 @@ module Filename = struct
   type t =
     { name : string;
       path : Fpath.t option;
-      id : string
+      id : string;
+      hash : int
     }
 
   let mk ?path ?name id =
     ( match path with
     | Some p when not (Fpath.is_abs p) -> invalid_arg "Filename.mk: path must be absolute"
     | _ -> () );
-    { name = Option.value ~default:id name; path; id }
+    { name = Option.value ~default:id name; path; id; hash = Hashtbl.hash id }
+
+  let compare l r = String.compare l.id r.id
+
+  let hash x = x.hash
+
+  let equal l r = l == r || (l.hash = r.hash && l.id = r.id)
 end
 
 type filename = Filename.t =
   { name : string;
     path : Fpath.t option;
-    id : string
+    id : string;
+    hash : int
   }
 
 type t =

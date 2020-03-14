@@ -1,3 +1,7 @@
+let src = Logs.Src.create ~doc:"The main server loop" "illuaminate-lsp"
+
+module Log = (val Logs.src_log src)
+
 let to_title : Logs.level -> Lsp.Logger.Title.t = function
   | App | Info -> Info
   | Error -> Error
@@ -29,7 +33,24 @@ let () =
     if Option.is_some log_file then (
       Logs.set_level ~all:true (Some Debug);
       Logs.set_reporter reporter );
-    Lsp.Logger.with_log_file log_file Illuaminate_lsp_core.main
+
+    Lsp.Logger.with_log_file log_file (fun () ->
+        let open IlluaminateLsp in
+        let server = server () in
+        let add_store r = Result.map (fun x -> ((), x)) r in
+        let wrap rpc : client_channel =
+          { notify = Lsp.Rpc.send_notification rpc;
+            request = (fun r -> Ugly_hacks.send_request rpc r)
+          }
+        in
+        Log.info (fun f -> f "Starting server");
+        Lsp.Rpc.start ()
+          { on_initialize = (fun rpc () p -> server.initialize (wrap rpc) p |> add_store);
+            on_request = (fun rpc () cap req -> server.request (wrap rpc) cap req |> add_store);
+            on_notification = (fun rpc () noti -> server.notify (wrap rpc) noti)
+          }
+          stdin stdout;
+        Log.info (fun f -> f "Stopping server"))
   in
 
   let cmd =

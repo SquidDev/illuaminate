@@ -26,6 +26,7 @@
     "@opam/ppx_deriving": "*",
     "@opam/ppxlib": "*",
     "@opam/reason": "*",
+    "@opam/alcotest": "*",
     "@opam/junit": "*",
     "@opam/omnomnom": "*",
     "@opam/odoc": "*",

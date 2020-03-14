@@ -1,4 +1,4 @@
-open Lsp
 open Lsp.Types
 
-val handle : Rpc.t -> Store.t -> InitializeParams.t -> (Store.t * InitializeResult.t, string) result
+val handle :
+  Store.client_channel -> Store.t -> InitializeParams.t -> (InitializeResult.t, string) result

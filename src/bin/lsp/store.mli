@@ -1,5 +1,10 @@
 open IlluaminateCore
 
+type client_channel =
+  { notify : Lsp.Server_notification.t -> unit;
+    request : 'a. 'a Lsp.Server_request.t -> unit
+  }
+
 module Filename : sig
   val of_uri : Lsp.Uri.t -> Span.filename
 
@@ -10,31 +15,12 @@ module Filename : sig
   val box : Lsp.Types.DocumentUri.t -> Lsp.Uri.t
 end
 
-module FileDigest : sig
-  type t
-end
-
-module Workspace : sig
-  type t
-end
-
-type contents =
-  | Open of Lsp.Text_document.t  (** The current file's contents. *)
-  | FromFile of FileDigest.t
-      (** This file was loaded from the filesystem. We store a hash of its contents, to determine if
-          the file has changed.
-
-          We just use the built-in {!Digest} module - this uses MD5, so it's by no means "secure",
-          but this only needs to serve as an efficient checksum. *)
-
 type document = private
   { name : Span.filename;
     uri : Lsp.Uri.t;
-    mutable contents : contents;  (** The file's contents. *)
-    mutable program : (Syntax.program, IlluaminateParser.Error.t Span.spanned) result;
+    mutable contents : Lsp.Text_document.t;  (** The file's contents. *)
+    mutable program : (Syntax.program, IlluaminateParser.Error.t Span.spanned) result
         (** The result of parsing the file, or nil if not available. *)
-    mutable file : IlluaminateData.Programs.Files.id option;  (** The current file's ID *)
-    mutable workspace : Workspace.t option
   }
 
 type t

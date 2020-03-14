@@ -8,6 +8,11 @@ let src = Logs.Src.create ~doc:"Loading and storing of local files" __MODULE__
 
 module Log = (val Logs.src_log src)
 
+type client_channel =
+  { notify : Lsp.Server_notification.t -> unit;
+    request : 'a. 'a Lsp.Server_request.t -> unit
+  }
+
 module Filename = struct
   let protocol =
     match Sys.win32 with
@@ -34,10 +39,10 @@ module FileDigest = struct
 
   (** Read a file and perform some processing function (such as parsing) if the contents has changed
       since last time we checked. Limited to 5 seconds. *)
-  let with_change ?(delay = default_duration) ~process ~path digest =
+  let with_change ?(delay = default_duration) ~process ~path (digest : t option) =
     let path_s = Fpath.to_string path in
     let error msg =
-      Log.err (fun f -> f "Error reading file %S (%s)" path_s msg);
+      Log.warn (fun f -> f "Error reading file %S (%s)" path_s msg);
       None
     in
     let result ~digest result = Some ((digest, Mtime_clock.now ()), result) in
@@ -95,6 +100,11 @@ module Workspace = struct
       name : string option
     }
 
+  type workspaces =
+    { root : t option;
+      workspaces : t list
+    }
+
   let workspace_for ~root (workspaces : t list) = function
     | { Span.path = None; _ } -> None
     | { Span.path = Some path; _ } ->
@@ -109,6 +119,12 @@ module Workspace = struct
                 | _ -> Some (workspace, wk_len) )
         in
         List.fold_left get_name None workspaces |> Option.map fst |> CCOpt.or_ ~else_:root
+
+  let workspaces : (unit, workspaces) Data.Key.t =
+    let eq_v a b =
+      CCOpt.equal ( == ) a.root b.root && CCList.equal ( == ) a.workspaces b.workspaces
+    in
+    Data.Key.deferred ~eq_v ~name:(__MODULE__ ^ ".Workspace.workspaces") ()
 
   let config : (t, Config.t) Data.Key.t =
     let open Data in
@@ -137,26 +153,17 @@ module Workspace = struct
         { Programs.Context.root = workspace.path; config = Config.get_store config })
 end
 
-type contents =
-  | Open of Lsp.Text_document.t
-  | FromFile of FileDigest.t
-
 type document =
   { name : Span.filename;
     uri : Uri.t;
-    mutable contents : contents;
-    mutable program : (Syntax.program, IlluaminateParser.Error.t Span.spanned) result;
-    mutable file : Data.Programs.Files.id option;
-    mutable workspace : Workspace.t option
+    mutable contents : Lsp.Text_document.t;
+    mutable program : (Syntax.program, IlluaminateParser.Error.t Span.spanned) result
   }
 
 type t =
-  { mutable root : Workspace.t option;
-    mutable workspaces : Workspace.t list;
-    directories : Workspace.t UriTbl.t;
+  { workspaces : Workspace.workspaces ref;
     files : document UriTbl.t;
-    data : Data.t;
-    file_store : Data.Programs.Files.t
+    data : Data.t
   }
 
 let data { data; _ } = data
@@ -166,56 +173,45 @@ let default_context : Data.Programs.Context.t =
 
 let create () =
   let files = UriTbl.create 64 in
-  let file_store = Data.Programs.Files.create () in
+  let workspaces = ref { Workspace.root = None; workspaces = [] } in
   let data =
     let open Data in
     let open Builder in
-    empty |> Programs.Files.builder file_store
+    empty
+    |> oracle Programs.Files.files (fun () _ -> [])
+    |> oracle Workspace.workspaces (fun () _ -> !workspaces)
     |> key Programs.Context.key (fun store name ->
-           match Filename.to_uri name |> UriTbl.find_opt files with
-           | Some { workspace = Some workspace; _ } -> need store Workspace.context workspace
-           | Some { workspace = None; _ } -> default_context
-           | None -> failwith "Unknown file!")
+           let { Workspace.root; workspaces } = need store Workspace.workspaces () in
+           Workspace.workspace_for ~root workspaces name
+           |> Option.fold ~none:default_context ~some:(need store Workspace.context))
     |> build
   in
-  { directories = UriTbl.create 4; workspaces = []; root = None; files; file_store; data }
+  { workspaces; files; data }
 
 let lex_file name doc =
   Text_document.text doc |> Lexing.from_string |> IlluaminateParser.program name
 
-let get_file { files; _ } = UriTbl.find_opt files
-
-(** Update the {!Data.Programs.Files.t} store. *)
-let sync_file store file =
-  ( match file with
-  | { program = Error _; _ } -> ()
-  | { program = Ok p; file = None; _ } as file ->
-      let id = Data.Programs.Files.add p store.file_store in
-      file.file <- Some id
-  | { program = Ok p; file = Some id; _ } -> Data.Programs.Files.update id p );
-  Data.refresh store.data
+let get_file { files; data; _ } =
+  (* We refresh our data here - we're not changing anything, but this is the primary interaction
+     point! It might be better to do that before every notification/request instead, but this'll do
+     for now. *)
+  Data.refresh data; UriTbl.find_opt files
 
 let update_file store (doc : document) contents =
-  doc.contents <- Open contents;
+  doc.contents <- contents;
   doc.program <- lex_file doc.name contents;
-  sync_file store doc
+  Data.refresh store.data
 
 let open_file store contents =
   let uri = Text_document.documentUri contents in
   match get_file store uri with
   | Some doc -> update_file store doc contents; doc
   | None ->
-      (* TODO: Store the workspace in data system rather than on a file. *)
+      Log.info (fun f -> f "Opening %a" Uri.pp uri);
       let name = Filename.of_uri uri in
       let program = lex_file name contents in
-      let workspace = Workspace.workspace_for ~root:store.root store.workspaces name in
-      let doc = { name; uri; contents = Open contents; program; file = None; workspace } in
-      UriTbl.add store.files uri doc;
-      sync_file store doc;
-      Log.info (fun f ->
-          f "Opening %s in workspace %s" (Uri.to_string uri)
-            (Option.fold ~none:"none" ~some:(fun f -> f.Workspace.uri |> Uri.to_string) workspace));
-      doc
+      let doc = { name; uri; contents; program } in
+      UriTbl.add store.files uri doc; Data.refresh store.data; doc
 
 let set_workspace store ?root workspaces =
   Log.info (fun f ->
@@ -223,14 +219,18 @@ let set_workspace store ?root workspaces =
         (Option.fold ~none:"none" ~some:Uri.to_string root)
         (List.map (fun { Types.WorkspaceFolder.uri; _ } -> uri) workspaces |> String.concat ", "));
 
-  (* TODO: Don't reconstruct unless needed *)
-  store.root <-
-    Option.fold ~none:store.root
-      ~some:(fun uri -> Some { uri; path = Filename.get_path uri; name = None })
-      root;
-  store.workspaces <-
-    List.map
-      (fun ({ uri; name } : Types.WorkspaceFolder.t) ->
-        let uri = Filename.box uri in
-        { uri; Workspace.path = Filename.get_path uri; name = Some name })
-      workspaces
+  (* TODO: Work out some sane hashing or caching implementation for workspaces - we currently use
+     the identity. *)
+  let current = !(store.workspaces) in
+  store.workspaces :=
+    { root =
+        Option.fold ~none:current.root
+          ~some:(fun uri -> Some { uri; path = Filename.get_path uri; name = None })
+          root;
+      workspaces =
+        List.map
+          (fun ({ uri; name } : Types.WorkspaceFolder.t) ->
+            let uri = Filename.box uri in
+            { uri; Workspace.path = Filename.get_path uri; name = Some name })
+          workspaces
+    }

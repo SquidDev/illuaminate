@@ -16,12 +16,16 @@ let logging : Omnomnom.Ingredients.reporter =
 
       Term.(const (fun v -> { verbose = List.length v }) $ verbose)
 
-    let run = function
-      | { verbose = 0 } -> None
-      | { verbose = n } ->
-          Logs.set_level ~all:true (Some (if n > 1 then Debug else Info));
-          Logs.format_reporter () |> Logs.set_reporter;
-          None
+    let run verbose =
+      Logs.format_reporter () |> Logs.set_reporter;
+      let level =
+        match verbose with
+        | { verbose = 0 } -> Logs.Error
+        | { verbose = 1 } -> Info
+        | { verbose = _ } -> Debug
+      in
+      Logs.set_level ~all:true (Some level);
+      None
   end )
 
 let () =
@@ -37,5 +41,6 @@ let () =
          Pattern.tests;
          Reprint.tests;
          Data.tests;
-         group "Documentation" [ Doc_parser.tests; Doc_extract.tests ]
+         group "Documentation" [ Doc_parser.tests; Doc_extract.tests ];
+         group "Lsp" [ Lsp_diagnostic.tests ]
        ]
