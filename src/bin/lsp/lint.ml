@@ -21,24 +21,13 @@ let note_to_diagnostic : Driver.any_note -> Diagnostic.t = function
       in
       diagnostic ~tag ~span message
 
-let linter_options =
-  let open IlluaminateLint in
-  let open IlluaminateConfig in
-  let add k s = Schema.union (Schema.singleton k) s in
-  List.fold_left
-    (fun s (Linter.Linter l) -> Schema.union s (Schema.singleton l.options))
-    Schema.empty Linters.all
-  |> add IlluaminateSemantics.Doc.Extract.Config.key
-  |> Schema.default
-
 let notes =
   D.Programs.key ~name:__MODULE__ @@ fun data prog ->
-  (* TODO: Correctly draw config information for this file. *)
-  (* let config = D.need data D.Programs.Context.key (fname prog) in *)
+  let tags, store = D.need data Store.linters (Node.span prog.eof).filename in
   let notes =
     List.fold_left
       (fun notes linter ->
-        match Driver.need_lint ~store:linter_options ~data linter prog with
+        match Driver.need_lint ~tags ~store ~data linter prog with
         | [] -> notes
         | n -> n :: notes)
       [] Linters.all

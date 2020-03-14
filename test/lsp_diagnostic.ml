@@ -76,5 +76,21 @@ let tests =
                 ~source:"illuaminate" ~severity:Warning ~message:"Unused variable \"x\"." ()
             ]
             diags.diagnostics;
+          ());
+      test ~name:"Picks up configuration" ~workspace:"linters" (fun t _ _ ->
+          let allow = open_file t "allow_unused.lua" in
+          let d = diagnostics ~uri:allow t in
+          Alcotest.(check (list (Check.json Diagnostic.yojson_of_t)))
+            "allow_unused's diagnostics are empty" [] d.diagnostics;
+
+          let check = open_file t "check_unused.lua" in
+          let d = diagnostics ~uri:check t in
+          Alcotest.(check (list (Check.json Diagnostic.yojson_of_t)))
+            "check_unused's warns on unused variables"
+            [ Diagnostic.create ~range:(range 0 6 0 7) ~code:(Left "var:unused")
+                ~source:"illuaminate" ~severity:Warning ~message:"Unused variable \"x\"." ()
+            ]
+            d.diagnostics;
+
           ())
     ]

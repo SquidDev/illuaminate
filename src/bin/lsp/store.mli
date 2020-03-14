@@ -41,3 +41,7 @@ val open_file : t -> Lsp.Text_document.t -> document
 
 (** Update the contents of a file. *)
 val update_file : t -> document -> Lsp.Text_document.t -> unit
+
+(** Get all linters for a file. *)
+val linters :
+  (Span.filename, Error.Tag.filter * IlluaminateConfig.Schema.store) IlluaminateData.Key.t

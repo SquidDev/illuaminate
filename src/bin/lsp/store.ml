@@ -94,8 +94,8 @@ module FileDigest = struct
         ~eq_v:(Option.equal (equal ~eq_v))
         ?container_k ~name:(name ^ ".compute") compute
     in
-    Key.key ~pp:Fpath.pp ?container_k ~eq_v:(Option.equal eq_v) ~name (fun store key ->
-        need store compute_key key |> Option.map (fun x -> x.value))
+    Key.key ~pp:Fpath.pp ?container_k ~eq_v:(Option.equal eq_v) ~name @@ fun store key ->
+    need store compute_key key |> Option.map (fun x -> x.value)
 end
 
 module Workspace = struct
@@ -148,20 +148,20 @@ module Workspace = struct
           Config.default
     in
     let config_key = FileDigest.oracle ~name:(__MODULE__ ^ ".Workspace.config_file") read_config in
-    Key.key ~name:(__MODULE__ ^ ".Workspace.config") ~pp (fun store workspace ->
-        workspace.path
-        |> CCOpt.flat_map (fun path -> need store config_key Fpath.(path / "illuaminate.sexp"))
-        |> Option.value ~default:Config.default)
+    Key.key ~name:(__MODULE__ ^ ".Workspace.config") ~pp @@ fun store workspace ->
+    workspace.path
+    |> CCOpt.flat_map (fun path -> need store config_key Fpath.(path / "illuaminate.sexp"))
+    |> Option.value ~default:Config.default
 
   let context : (t, Data.Programs.Context.t) Data.Key.t =
     let open Data in
-    Key.key ~name:(__MODULE__ ^ ".Workspace.context") ~pp (fun store workspace ->
-        let config = need store config workspace in
-        { Programs.Context.root = workspace.path; config = Config.get_store config })
+    Key.key ~name:(__MODULE__ ^ ".Workspace.context") ~pp @@ fun store workspace ->
+    let config = need store config workspace in
+    { Programs.Context.root = workspace.path; config = Config.get_store config }
 
   let sources : (t, Fpath.t list) Data.Key.t =
     let delay = Mtime.Span.of_uint64_ns 60_000_000_000L (* 60s *) in
-    let name = __MODULE__ ^ ".FileTree" in
+    let name = __MODULE__ ^ ".Workspace.sources" in
     let open Data in
     let compute config = function
       | Some (time, value) when Mtime.Span.compare (Mtime.span (Mtime_clock.now ()) time) delay < 0
@@ -173,8 +173,22 @@ module Workspace = struct
           (Mtime_clock.now (), !files)
     in
     let compute_key = Key.oracle ~eq_v:( = ) ~name:(name ^ ".compute") compute in
-    Key.key ~pp ~eq_v:( = ) ~name (fun store key ->
-        need store config key |> need store compute_key |> snd)
+    Key.key ~pp ~eq_v:( = ) ~name @@ fun store key ->
+    need store config key |> need store compute_key |> snd
+
+  let linters : (Span.filename, Error.Tag.filter * IlluaminateConfig.Schema.store) Data.Key.t =
+    let open Data in
+    Key.key ~pp:Span.Filename.pp ~name:(__MODULE__ ^ ".Workspace.linters") @@ fun store name ->
+    let { root; workspaces } = need store workspaces () in
+    let workspace = workspace_for ~root workspaces name in
+    match workspace with
+    | None ->
+        Log.warn (fun f -> f "Default linters for %a" (CCOpt.pp Fpath.pp) name.path);
+        Config.(get_linters default ())
+    | Some workspace ->
+        let config = need store config workspace in
+        Log.warn (fun f -> f "Getting linters for %a" (CCOpt.pp Fpath.pp) name.path);
+        Config.get_linters config ?path:name.path ()
 end
 
 type parsed_program = (Syntax.program, IlluaminateParser.Error.t Span.spanned) result
@@ -312,3 +326,5 @@ let set_workspace store ?root workspaces =
             { uri; Workspace.path = Filename.get_path uri; name = Some name })
           workspaces
     }
+
+let linters = Workspace.linters
