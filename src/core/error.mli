@@ -18,14 +18,15 @@ module Tag : sig
   (** A marker token for errors, used for filtering and classification *)
   type t = private
     { name : string;
-      level : level
+      level : level;
+      enabled : bool  (** Whether this tag is enabled by default. *)
     }
 
   (** Display a tag in a formatter. *)
   val pp : Format.formatter -> t -> unit
 
   (** Create a new error tag, and register it internally *)
-  val make : level -> string -> t
+  val make : ?enabled:bool -> level -> string -> t
 
   (** Find a tag with a given name *)
   val find : string -> t option

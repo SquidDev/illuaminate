@@ -8,6 +8,7 @@ module TagSet = Set.Make (Error.Tag)
 (** A specification of a tag. Either all tags, or specific one. *)
 type tag_spec =
   | All
+  | TDefault
   | Tag of Error.Tag.t
 
 (** An action to modify a set of tags. One may either add or remove items from the set. *)
@@ -156,10 +157,11 @@ let parser =
   let open Parser in
   let pattern = atom ~ty:"string" (fun x -> Some (Pattern.parse x)) in
   let tag_parser name =
-    match Error.Tag.find name with
-    | None when name = "all" -> Ok All
-    | None -> Error (Printf.sprintf "Unknown tag %S" name)
-    | Some t -> Ok (Tag t)
+    match (name, Error.Tag.find name) with
+    | ("all" | ":all"), _ -> Ok All
+    | ("default" | ":default"), _ -> Ok TDefault
+    | _, None -> Error (Printf.sprintf "Unknown tag %S" name)
+    | _, Some t -> Ok (Tag t)
   in
   let tag_set_mod name =
     if String.length name = 0 then Error "Expected a tag, but this is an empty string."
@@ -260,10 +262,14 @@ let all_tags =
     (fun tags (Linter.Linter linter) -> List.fold_left (Fun.flip TagSet.add) tags linter.tags)
     TagSet.empty Linters.all
 
+let default_tags = TagSet.filter (fun l -> l.Error.Tag.enabled) all_tags
+
 let apply_mod set = function
   | Include All -> all_tags
+  | Include TDefault -> default_tags
   | Include (Tag t) -> TagSet.add t set
   | Exclude All -> TagSet.empty
+  | Exclude TDefault -> TagSet.diff set default_tags
   | Exclude (Tag t) -> TagSet.remove t set
 
 let always_pattern = Pattern.parse "*"
@@ -283,7 +289,7 @@ let all_files iter config =
 (** Get all linters and their configuration options for a particular file. *)
 let get_linters config ?path () =
   match config with
-  | Default -> ((fun _ -> true), Schema.default linter_schema)
+  | Default -> (Fun.flip TagSet.mem default_tags, Schema.default linter_schema)
   | Config { root; pat_config; _ } ->
       let path =
         match path with
@@ -300,7 +306,7 @@ let get_linters config ?path () =
               let linters = List.fold_left apply_mod linters tags in
               (linters, Schema.merge store linter_options)
             else (linters, store))
-          (all_tags, Schema.default linter_schema)
+          (default_tags, Schema.default linter_schema)
           pat_config
       in
       (Fun.flip TagSet.mem enabled, store)

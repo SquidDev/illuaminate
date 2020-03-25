@@ -31,7 +31,7 @@ module Quote = struct
 end
 
 let linter =
-  let tag = Error.Tag.make Error.Note "format:string-quote" in
+  let tag = Error.Tag.make ~enabled:false Error.Note "format:string-quote" in
   let fix =
     let requote quote node =
       let open IlluaminateSemantics.Stringlib.Literal in

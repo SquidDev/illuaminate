@@ -8,7 +8,11 @@ let linter =
   let expr () _ = function
     | String { lit_node; _ } ->
         let value = Node.contents.get lit_node in
-        if String.length value > 0 && (value.[0] = '\'' || value.[0] = '\"') && String.contains value '\\' then
+        if
+          String.length value > 0
+          && (value.[0] = '\'' || value.[0] = '\"')
+          && String.contains value '\\'
+        then
           let open IlluaminateSemantics.Stringlib.Literal in
           let rec build out = function
             | [] -> out

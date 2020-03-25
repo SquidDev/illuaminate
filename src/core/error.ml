@@ -79,15 +79,16 @@ type level =
 module Tag = struct
   type t =
     { name : string;
-      level : level
+      level : level;
+      enabled : bool
     }
 
   let pp f { name; _ } = Format.fprintf f "%s" name
 
   let tags = ref StringMap.empty
 
-  let make level name =
-    let tag = { level; name } in
+  let make ?(enabled = true) level name =
+    let tag = { level; name; enabled } in
     tags := StringMap.add name tag !tags;
     tag
 

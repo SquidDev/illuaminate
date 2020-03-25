@@ -61,7 +61,7 @@ type ('op, 'term) visitor = 'op -> context -> 'term -> 'term note list
     the linter behaves. *)
 type 'op linter_info =
   { options : 'op IlluaminateConfig.Category.key;  (** A term which parses this group's options. *)
-    tags : Error.Tag.t list;  (** The tags this linter may report errors under.*)
+    tags : Error.Tag.t list;  (** The tags this linter may report errors under. *)
     program : ('op, Syntax.program) visitor;
     token : ('op, Syntax.token) visitor;
     expr : ('op, Syntax.expr) visitor;
