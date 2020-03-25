@@ -20,7 +20,7 @@ module Type : sig
   module Syntax = Type_syntax
 end
 
-(** Functions relating to Lua's [string] library. *)
+(** Functions relating to Lua's [string] library and literals. *)
 module Stringlib : sig
   (** Parse [string.format] format strings. *)
   module Format : sig
@@ -52,4 +52,9 @@ module Stringlib : sig
     (** Parse a string literal. *)
     val parse : string Node.t -> t option
   end
+end
+
+module Ident : sig
+  (** Is this string a valid identifier? *)
+  val is : string -> bool
 end

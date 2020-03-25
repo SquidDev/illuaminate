@@ -12,3 +12,6 @@ No errors and 2 warnings
 -x["foo"] = x["foo"]
 +x.foo = x.foo
  
+ x["return"] = 0
+ x["nil"] = 0
+ 
