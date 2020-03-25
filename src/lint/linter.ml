@@ -58,3 +58,7 @@ let category =
     ~comment:"Control how the illuaminate linter works." ()
 
 let make_no_opt = make ~options:IlluaminateConfig.(Category.add Term.unit category)
+
+module type S = sig
+  val linter : t
+end

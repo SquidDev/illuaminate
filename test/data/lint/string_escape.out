@@ -2,8 +2,8 @@ string_escape.lua:[7:5-7:6]: Unknown escape character '\('. [syntax:string-escap
    │
  7 │   "a\(b",
    │     ^^
-string_escape.lua:[13:5-13:6]: Unknown escape character '\('. [syntax:string-escape]
+string_escape.lua:[14:5-14:6]: Unknown escape character '\('. [syntax:string-escape]
     │
- 13 │   'a\(b',
+ 14 │   'a\(b',
     │     ^^
 2 errors and 0 warnings

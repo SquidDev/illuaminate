@@ -25,4 +25,13 @@ module Stringlib = struct
 
     let parse str = Lexing.from_string str |> format []
   end
+
+  module Literal = struct
+    open IlluaminateCore
+    include String_escape
+
+    type t = component list
+
+    let parse node = Lexing.from_string (Node.contents.get node) |> string_of (Node.span node)
+  end
 end

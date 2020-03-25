@@ -102,3 +102,9 @@ val make_no_opt :
 
     Linters may chose to read options from different groups if needed. *)
 val category : IlluaminateConfig.Category.t
+
+(** A module template which can be included in a [.mli] file. *)
+module type S = sig
+  (** The linter exposed by this module. *)
+  val linter : t
+end

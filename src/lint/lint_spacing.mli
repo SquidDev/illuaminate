@@ -10,4 +10,4 @@
     - Related to the above, but enforce a specific kind of table, call and function def style.
     - Make this more extensible, so we can configure it for other tokens too. *)
 
-val linter : Linter.t
+include Linter.S

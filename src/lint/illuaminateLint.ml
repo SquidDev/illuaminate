@@ -81,6 +81,7 @@ module Linters = struct
       parens;
       string_escape;
       malformed_number;
+      Lint_string_quote.linter;
       pointless_semicolon;
       set_global;
       set_loop;

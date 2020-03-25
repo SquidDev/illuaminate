@@ -4,6 +4,3 @@
  (synopsis "Basic linting for Illuaminate.")
  (libraries containers illuaminate.core illuaminate.config illuaminate.data
    illuaminate.semantics illuaminate.parser ppx_deriving.runtime omd))
-
-(ocamllex
- (modules lex_string_escape))

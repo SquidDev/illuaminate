@@ -1,0 +1,17 @@
+string_quote.lua:[3:14-3:18]: String should use double quotes ('"') [format:string-quote]
+   │
+ 3 │ print("foo", 'foo', [[foo]])
+   │              ^^^^^
+string_quote.lua:[4:18-4:26]: String should use double quotes ('"') [format:string-quote]
+   │
+ 4 │ print("'\n\"\'", '"\n\"\'', [[
+   │                  ^^^^^^^^^
+No errors and 2 warnings
+ -- config: (lint (only format:string-quote))
+ 
+-print("foo", 'foo', [[foo]])
+-print("'\n\"\'", '"\n\"\'', [[
++print("foo", "foo", [[foo]])
++print("'\n\"\'", "\"\n\"\'", [[
+ "']])
+ 

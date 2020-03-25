@@ -7,22 +7,16 @@ let linter =
 
   let expr () _ = function
     | String { lit_node; _ } ->
-        let value = Node.contents.get lit_node and span = Node.span lit_node in
-        if String.length value > 0 && (value.[0] = '\'' || value.[0] = '\"') then
-          let lexbuf = Lexing.from_string value in
-          match Lex_string_escape.string_of lexbuf with
-          | None -> Printf.printf "Oh no"; []
-          | Some es ->
-              let msg (chr, start, finish) =
-                let span =
-                  { span with
-                    start_col = span.start_col + start.Lexing.pos_cnum;
-                    finish_col = span.start_col + finish.Lexing.pos_cnum - 1
-                  }
-                in
-                note ~tag ~span "Unknown escape character '\\%c'." chr
-              in
-              List.map msg es
+        let value = Node.contents.get lit_node in
+        if String.length value > 0 && (value.[0] = '\'' || value.[0] = '\"') && String.contains value '\\' then
+          let open IlluaminateSemantics.Stringlib.Literal in
+          let rec build out = function
+            | [] -> out
+            | Malformed (chr, span) :: xs ->
+                build (note ~tag ~span "Unknown escape character '\\%c'." chr :: out) xs
+            | _ :: xs -> build out xs
+          in
+          parse lit_node |> Option.get |> build []
         else []
     | _ -> []
   in
