@@ -82,6 +82,7 @@ module Linters = struct
       string_escape;
       malformed_number;
       Lint_string_quote.linter;
+      Lint_string_index.linter;
       pointless_semicolon;
       set_global;
       set_loop;

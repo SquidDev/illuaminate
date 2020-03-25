@@ -28,6 +28,9 @@ let ( ^= ) lens value obj = lens.over (fun _ -> value) obj
 (** Apply a function to the lens's target. *)
 let ( %= ) lens fn obj = lens.over fn obj
 
+(** Function composition. May be used with %= or ^=. *)
+let ( % ) f g x = f (g x)
+
 (** Various built-in lenses. *)
 module Lenses = struct
   (** Get the first item in a pair. *)
