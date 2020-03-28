@@ -34,8 +34,7 @@ end
 
 type t
 
-val test :
-  name:string -> ?workspace:string -> (t -> unit) -> Omnomnom.Tests.test Omnomnom.Tests.tree
+val test : name:string -> ?workspace:string -> (t -> unit) -> Omnomnom.Tests.tests
 
 type some_request = Request : 'a Server_request.t -> some_request
 

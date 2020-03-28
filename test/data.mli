@@ -1,1 +1,1 @@
-val tests : Omnomnom.Tests.test Omnomnom.Tests.tree
+val tests : Omnomnom.Tests.tests

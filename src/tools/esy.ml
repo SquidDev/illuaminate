@@ -2,9 +2,9 @@ open OpamParserTypes
 module J = Yojson.Safe
 
 module Versions = struct
-  let omnomnom = "a0620d42b2ac94fcc4617e87709d6bda9188362c"
+  let omnomnom = "83ca89cc33e6becbe86501c80ed51fce6054c335"
 
-  let lsp = "f3e1f4c543eef14a3cc42bc5efbb41c9137dc3a2"
+  let lsp = "ed4f500291bb316a63f16ca7d045cb19550ea806"
 end
 
 let rec json_of_value : value -> J.t = function
