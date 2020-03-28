@@ -54,6 +54,9 @@ val start_line : t -> int
 (** Get the beginning of the starting line for this span. *)
 val start_bol : t -> int
 
+(** Get the beginning offset of this span. *)
+val start_offset : (t, int) Lens.lens'
+
 (** A lens over the starting column of this span. *)
 val start_col : (t, int) Lens.lens'
 
@@ -68,6 +71,9 @@ val finish_col : (t, int) Lens.lens'
 
 (** A lens over the end line and column of this span. *)
 val finish_pos : (t, int * int) Lens.lens'
+
+(** Get the end offset of this span. *)
+val finish_offset : (t, int) Lens.lens'
 
 val show : t -> string
 

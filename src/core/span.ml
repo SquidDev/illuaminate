@@ -117,6 +117,17 @@ module Lines = struct
     | { store = Map (xs, _); _ } -> IntMap.find line_off xs + col' - 1
 
   let over_col f = over_pos (Lens.Lenses.snd.over f)
+
+  let over_offset f lines offset =
+    let offset = f offset in
+    let max =
+      match lines with
+      | { store = Array xs; _ } -> xs.(Array.length xs - 1)
+      | { store = Map (xs, _); _ } -> IntMap.max_binding xs |> snd
+    in
+    if offset < 0 || offset >= max then
+      Printf.sprintf "offset d invalid for %d: 0 <= offset < %d" offset max |> invalid_arg;
+    offset
 end
 
 type t =
@@ -141,6 +152,11 @@ let start_pos =
     over = (fun f ({ lines; start; _ } as l) -> { l with start = Lines.over_pos f lines start })
   }
 
+let start_offset =
+  { Lens.get = (fun { start; _ } -> start);
+    over = (fun f ({ lines; start; _ } as l) -> { l with start = Lines.over_offset f lines start })
+  }
+
 let finish_line { lines; finish; _ } = Lines.get_line lines finish
 
 let finish_col =
@@ -151,6 +167,12 @@ let finish_col =
 let finish_pos =
   { Lens.get = (fun { lines; finish; _ } -> Lines.get_pos lines finish);
     over = (fun f ({ lines; finish; _ } as l) -> { l with finish = Lines.over_pos f lines finish })
+  }
+
+let finish_offset =
+  { Lens.get = (fun { finish; _ } -> finish);
+    over =
+      (fun f ({ lines; finish; _ } as l) -> { l with finish = Lines.over_offset f lines finish })
   }
 
 let pp out span =

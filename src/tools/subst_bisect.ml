@@ -6,22 +6,22 @@ type sexp =
 
 let parse (file : Span.filename) (lexbuf : Lexing.lexbuf) =
   let open! Sexp_lexer in
+  Span.Lines.using file lexbuf @@ fun lines ->
   try
-    lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = file.name };
     let rec go stack (head : sexp list) head_start : sexp list =
       let start = lexbuf.lex_curr_p in
-      let token = token lexbuf in
+      let token = token lines lexbuf in
       match token with
       | Skip -> go stack head head_start
       | String x ->
-          go stack (Atom (Span.of_pos2 file start lexbuf.lex_curr_p, x) :: head) head_start
+          go stack (Atom (Span.of_pos2 lines start lexbuf.lex_curr_p, x) :: head) head_start
       | Open -> go ((head, head_start) :: stack) [] start
       | Close -> (
         match stack with
         | [] -> raise (Error ("Closing ')' with no matching '('", start, lexbuf.lex_curr_p))
         | (xs, xs_pos) :: stack ->
             go stack
-              (List (Span.of_pos2 file head_start lexbuf.lex_curr_p, List.rev head) :: xs)
+              (List (Span.of_pos2 lines head_start lexbuf.lex_curr_p, List.rev head) :: xs)
               xs_pos )
       | End -> (
         match stack with
@@ -32,11 +32,11 @@ let parse (file : Span.filename) (lexbuf : Lexing.lexbuf) =
     in
     let value = go [] [] lexbuf.lex_curr_p in
     Ok value
-  with Error (err, start, fin) -> Error (Span.of_pos2 file start fin, err)
+  with Error (err, start, fin) -> Error (Span.of_pos2 lines start fin, err)
 
 let rec has_bisect = function
   | Atom (_, "bisect_ppx") -> true
-  | Atom (_, _) -> true
+  | Atom (_, _) -> false
   | List (_, xs) -> List.exists has_bisect xs
 
 let inject ~contents ~at extra = CCString.take at contents ^ extra ^ CCString.drop at contents
@@ -53,9 +53,7 @@ let process ~root (path : Fpath.t) =
         | [] ->
             Logs.info (fun f -> f "%s Has no pre-processor. Adding one." name);
             let updated =
-              inject ~contents
-                ~at:(pos.finish_bol + pos.finish_col - 1)
-                "\n (preprocess (pps bisect_ppx))"
+              inject ~contents ~at:(Span.finish_offset.get pos) "\n (preprocess (pps bisect_ppx))"
             in
             CCIO.with_out (Fpath.to_string path) (Fun.flip output_string updated)
         | List (pos, Atom (_, "preprocess") :: xs) :: _ ->
@@ -64,9 +62,7 @@ let process ~root (path : Fpath.t) =
             else (
               Logs.info (fun f -> f "%s has existing pre-processor. Adding bisect_ppx to it." name);
 
-              let updated =
-                inject ~contents ~at:(pos.finish_bol + pos.finish_col - 2) " bisect_ppx"
-              in
+              let updated = inject ~contents ~at:(Span.finish_offset.get pos - 1) " bisect_ppx" in
               CCIO.with_out (Fpath.to_string path) (Fun.flip output_string updated) )
         | _ :: xs -> find xs
       in

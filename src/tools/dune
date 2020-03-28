@@ -14,9 +14,9 @@
  (libraries opam-file-format yojson))
 
 (executable
-  (name subst_bisect)
-  (modules subst_bisect sexp_lexer)
-  (libraries illuaminate.core illuaminate.pattern logs containers fpath))
+ (name subst_bisect)
+ (modules subst_bisect sexp_lexer)
+ (libraries illuaminate.core illuaminate.pattern logs containers fpath))
 
 (rule
  (targets syntax.ml)
@@ -30,6 +30,7 @@
     (echo "]")))))
 
 (ocamllex
-  (modules sexp_lexer))
+ (modules sexp_lexer))
 
-(rule (copy ../config/lexer.mll sexp_lexer.mll))
+(rule
+ (copy ../config/lexer.mll sexp_lexer.mll))

@@ -197,5 +197,5 @@ module Repr = struct
         invalid_arg "Mismatch (pair and something else)"
     | ReprMap _, (ReprNode _ | ReprConst _ | ReprPair _) ->
         invalid_arg "Mismatch (pair and something else)"
-  (* bisect_ppx doesn't work well with GADTs *) [@@coverage off]
+   (* bisect_ppx doesn't work well with GADTs *) [@@coverage off]
 end
