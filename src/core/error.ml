@@ -129,10 +129,15 @@ let error_ansi = function
   | Note -> Style.Blue
 
 let display_line out line { Error.tag; span; message; details } =
-  let line_no = string_of_int span.start_line in
+  let start_l = Span.start_line span
+  and start_c = Span.start_col.get span
+  and finish_l = Span.finish_line span
+  and finish_c = Span.finish_col.get span in
+  let line_no = start_l |> string_of_int in
+
   Style.(printf (BrightColor (error_ansi tag.level)))
-    out "%s:[%d:%d-%d:%d]: %s [%s]@\n" span.filename.name span.start_line span.start_col
-    span.finish_line span.finish_col message tag.name;
+    out "%s:[%d:%d-%d:%d]: %s [%s]@\n" (Span.filename span).name start_l start_c finish_l finish_c
+    message tag.name;
   ( match details with
   | None -> ()
   | Some details -> Format.fprintf out "%t@\n" details );
@@ -143,10 +148,9 @@ let display_line out line { Error.tag; span; message; details } =
   fmt "" "";
   fmt line_no (CCString.replace ~sub:"\t" ~by:" " line);
   let length =
-    if span.finish_line = span.start_line then span.finish_col - span.start_col + 1
-    else String.length line - span.start_col + 1
+    if finish_l = start_l then finish_c - start_c + 1 else String.length line - start_c + 1
   in
-  fmt "" (String.make (span.start_col - 1) ' ' ^ String.make length '^')
+  fmt "" (String.make (start_c - 1) ' ' ^ String.make length '^')
 
 let summary out t =
   let errors, warnings =
@@ -181,11 +185,12 @@ let display_of_files ?(out = Format.err_formatter) ?(with_summary = true) store 
   store
   |> each_error (fun ({ span; _ } as err) ->
          let line =
-           match span.filename.path with
+           match (Span.filename span).path with
            | None -> ""
            | Some path ->
                let ch = get_channel (Fpath.to_string path) in
-               seek_in ch span.start_bol; input_line ch
+               seek_in ch (Span.start_bol span);
+               input_line ch
          in
          display_line out line err);
   ( match !last with
@@ -196,15 +201,16 @@ let display_of_files ?(out = Format.err_formatter) ?(with_summary = true) store 
 let display_of_string ?(out = Format.err_formatter) ?(with_summary = true) getter store =
   store
   |> each_error (fun ({ span; _ } as err) ->
-         match getter span.filename with
+         match getter (Span.filename span) with
          | None -> ()
          | Some contents ->
              let line =
-               String.sub contents span.start_bol
-                 ( ( match String.index_from_opt contents span.start_bol '\n' with
+               let bol = Span.start_bol span in
+               String.sub contents bol
+                 ( ( match String.index_from_opt contents bol '\n' with
                    | None -> String.length contents
                    | Some x -> x )
-                 - span.start_bol )
+                 - bol )
              in
              display_line out line err);
 

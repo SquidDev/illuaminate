@@ -19,6 +19,7 @@ depends: [
   "reason" {build}
   "alcotest" {with-test}
   "junit" {with-test}
+  "qcheck-core" {with-test}
   "omnomnom" {with-test}
   "odoc" {with-doc}
   "ocamlformat" {dev}

@@ -6,7 +6,7 @@ open Lsp_convert
 open Syntax
 module D = IlluaminateData
 
-let fname p = (Syntax.Spanned.program p).filename
+let fname p = Syntax.Spanned.program p |> Span.filename
 
 let diagnostic ~tag ~span ?relatedInformation ?tags message =
   Diagnostic.create ~range:(range span) ~severity:(tag_severity tag) ~code:(tag_code tag)
@@ -24,7 +24,7 @@ let note_to_diagnostic : Driver.any_note -> Diagnostic.t = function
 
 let notes =
   D.Programs.key ~name:__MODULE__ @@ fun data prog ->
-  let tags, store = D.need data Store.linters (Node.span prog.eof).filename in
+  let tags, store = D.need data Store.linters (Node.span prog.eof |> Span.filename) in
   let notes =
     List.fold_left
       (fun notes linter ->

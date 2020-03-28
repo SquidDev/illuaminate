@@ -73,7 +73,7 @@
                             Node.Node {leading_trivia = [];
                               trailing_trivia =
                               [{ Span.value = (Node.Whitespace "\n");
-                                 span = pass_binop.lua[1:20-2:0] }
+                                 span = pass_binop.lua[1:20-1:20] }
                                 ];
                               contents = "4";
                               span = pass_binop.lua[1:19-1:19]}
@@ -83,5 +83,5 @@
     ];
   eof =
   Node.Node {leading_trivia = []; trailing_trivia = [];
-    contents = end of file; span = pass_binop.lua[2:1-2:0]}
+    contents = end of file; span = pass_binop.lua[2:1-2:1]}
   }

@@ -172,22 +172,22 @@ let parse state (body : 'a t) last : ('a, Span.t * string) result =
   parse_til_empty body (get_last state) state
 
 let parse_buf (file : Span.filename) (lexbuf : Lexing.lexbuf) body =
+  Span.Lines.using file lexbuf @@ fun lines ->
   try
-    lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = file.name };
     let rec go stack (head : Sexp.t list) head_start : Sexp.t list =
       let start = lexbuf.lex_curr_p in
-      let token = Lexer.token lexbuf in
+      let token = Lexer.token lines lexbuf in
       match token with
       | Skip -> go stack head head_start
       | String x ->
-          go stack (Atom (Span.of_pos2 file start lexbuf.lex_curr_p, x) :: head) head_start
+          go stack (Atom (Span.of_pos2 lines start lexbuf.lex_curr_p, x) :: head) head_start
       | Open -> go ((head, head_start) :: stack) [] start
       | Close -> (
         match stack with
         | [] -> raise (Lexer.Error ("Closing ')' with no matching '('", start, lexbuf.lex_curr_p))
         | (xs, xs_pos) :: stack ->
             go stack
-              (List (Span.of_pos2 file head_start lexbuf.lex_curr_p, List.rev head) :: xs)
+              (List (Span.of_pos2 lines head_start lexbuf.lex_curr_p, List.rev head) :: xs)
               xs_pos )
       | End -> (
         match stack with
@@ -197,5 +197,5 @@ let parse_buf (file : Span.filename) (lexbuf : Lexing.lexbuf) body =
             raise (Lexer.Error ("Unclosed '('", head_start, head_start')) )
     in
     let value = go [] [] lexbuf.lex_curr_p in
-    parse value body (Span.of_pos2 file lexbuf.lex_curr_p lexbuf.lex_curr_p)
-  with Lexer.Error (err, start, fin) -> Error (Span.of_pos2 file start fin, err)
+    parse value body (Span.of_pos2 lines lexbuf.lex_curr_p lexbuf.lex_curr_p)
+  with Lexer.Error (err, start, fin) -> Error (Span.of_pos2 lines start fin, err)

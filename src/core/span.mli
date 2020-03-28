@@ -29,16 +29,45 @@ type filename = Filename.t = private
     hash : int
   }
 
+(** A builder, which tracks the start position of newlines, allowing you to map between the two. *)
+module Lines : sig
+  type t
+
+  (** Lex using this line builder. This sets up the lexer with the appropriate positions and then
+      passes the lines builder to the given lexing/parsing function. This object may then be used to
+      construct positions, using {!of_pos2}. *)
+  val using : filename -> Lexing.lexbuf -> (t -> 'a) -> 'a
+
+  (** Wraps {!Lexing.new_line}, also tracking it within the context. *)
+  val new_line : t -> unit
+end
+
 (** A span in a file or other source program *)
-type t =
-  { filename : filename;
-    start_line : int;
-    start_col : int;
-    start_bol : int;
-    finish_line : int;
-    finish_col : int;
-    finish_bol : int
-  }
+type t
+
+(** Get the filename for this span. *)
+val filename : t -> filename
+
+(** Get the start line of this span.*)
+val start_line : t -> int
+
+(** Get the beginning of the starting line for this span. *)
+val start_bol : t -> int
+
+(** A lens over the starting column of this span. *)
+val start_col : (t, int) Lens.lens'
+
+(** A lens over the starting line and column of this span. *)
+val start_pos : (t, int * int) Lens.lens'
+
+(** Get the end line this span. *)
+val finish_line : t -> int
+
+(** A lens over the end column of this span. *)
+val finish_col : (t, int) Lens.lens'
+
+(** A lens over the end line and column of this span. *)
+val finish_pos : (t, int * int) Lens.lens'
 
 val show : t -> string
 
@@ -48,7 +77,7 @@ val pp : Format.formatter -> t -> unit
 val compare : t -> t -> int
 
 (** Make a source span from a pair of lexing positions *)
-val of_pos2 : filename -> Lexing.position -> Lexing.position -> t
+val of_pos2 : Lines.t -> Lexing.position -> Lexing.position -> t
 
 (** Make a source span from a pair of two other spans *)
 val of_span2 : t -> t -> t

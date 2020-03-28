@@ -1,10 +1,11 @@
 (test
  (name test)
  (libraries omnomnom omnomnom.golden omnomnom.junit omnomnom.alcotest
-   containers containers.sexp illuaminate.core illuaminate.config
-   illuaminate.data illuaminate.parser illuaminate.lint omd fpath
-   illuaminate.semantics illuaminate.pattern illuaminateLsp lsp lsp.stdune
-   logs cmdliner yojson result alcotest fmt ppx_yojson_conv_lib)
+   omnomnom.qcheck containers containers.sexp illuaminate.core
+   illuaminate.config illuaminate.data illuaminate.parser illuaminate.lint
+   omd fpath illuaminate.semantics illuaminate.pattern illuaminateLsp lsp
+   lsp.stdune logs cmdliner yojson result alcotest fmt ppx_yojson_conv_lib
+   qcheck-core)
  (variants unix)
  (deps
   (source_tree data))

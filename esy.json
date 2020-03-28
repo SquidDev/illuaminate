@@ -28,6 +28,7 @@
     "@opam/reason": "*",
     "@opam/alcotest": "*",
     "@opam/junit": "*",
+    "@opam/qcheck-core": "*",
     "@opam/omnomnom": "*",
     "@opam/odoc": "*",
     "@opam/ocamlformat": "*",

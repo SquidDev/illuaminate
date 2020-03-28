@@ -30,6 +30,7 @@
     ; Test
     (alcotest :with-test)
     (junit :with-test)
+    (qcheck-core :with-test)
     (omnomnom :with-test)
 
     ; Documentation generation

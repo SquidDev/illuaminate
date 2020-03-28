@@ -55,12 +55,12 @@
                     { Span.value = (Node.LineComment "- @local");
                       span = pass_simple.lua[1:29-1:38] };
                     { Span.value = (Node.Whitespace "\n");
-                      span = pass_simple.lua[1:39-2:0] }
+                      span = pass_simple.lua[1:39-1:39] }
                     ];
                   contents = "enter"; span = pass_simple.lua[1:23-1:27]}}))
         })
     ];
   eof =
   Node.Node {leading_trivia = []; trailing_trivia = [];
-    contents = end of file; span = pass_simple.lua[2:1-2:0]}
+    contents = end of file; span = pass_simple.lua[2:1-2:1]}
   }
