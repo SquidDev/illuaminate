@@ -3,7 +3,7 @@ open Syntax
 
 module Safe = struct
   (* Our handling of binary operators and table indexing is a little restrictive, as we just assume
-     they is unsafe (as they may error or have unknown side effects).
+     they are unsafe (as they may error or have unknown side effects).
 
      In the future it might be nice to improve this behaviour. For instance, looking up values in
      the environment, or when working with known globals. *)

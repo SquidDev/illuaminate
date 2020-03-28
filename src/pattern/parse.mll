@@ -1,4 +1,5 @@
 {
+  [@@@coverage exclude_file]
   open Pattern
   open Builder
 }

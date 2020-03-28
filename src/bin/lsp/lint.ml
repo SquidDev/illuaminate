@@ -58,25 +58,28 @@ let diagnostics store : Store.document -> Diagnostic.t list = function
       D.get (Store.data store) notes prog
       |> Array.to_seq |> Seq.map note_to_diagnostic |> CCList.of_std_seq_rev
 
+let to_code_action ~program (i, (Driver.Note { note = { Linter.message; fix; _ }; _ } as note)) =
+  match fix with
+  | FixNothing -> None
+  | FixOne _ | FixBlock _ ->
+      let title = Printf.sprintf "Fix '%s'" message in
+      let action =
+        CodeAction.create ~title ~kind:QuickFix ~diagnostics:[ note_to_diagnostic note ]
+          ~isPreferred:true
+          ~command:
+            (Command.create ~title ~command:"illuaminate/fix"
+               ~arguments:[ Store.Filename.to_uri_json (fname program); `Int i ]
+               ())
+          ()
+      in
+      Some (`CodeAction action)
+  (* bisect_ppx doesn't work well with GADTs *) [@@coverage off]
+
 let code_actions store program range : CodeActionResult.t =
   D.get (Store.data store) notes program
   |> Array.to_seqi
   |> Seq.filter (fun (_, Driver.Note n) -> Pos.overlaps range (Driver.NoteAt.span n))
-  |> Seq.filter_map (fun (i, (Driver.Note { note = { Linter.message; fix; _ }; _ } as note)) ->
-         match fix with
-         | FixNothing -> None
-         | FixOne _ | FixBlock _ ->
-             let title = Printf.sprintf "Fix '%s'" message in
-             let action =
-               CodeAction.create ~title ~kind:QuickFix ~diagnostics:[ note_to_diagnostic note ]
-                 ~isPreferred:true
-                 ~command:
-                   (Command.create ~title ~command:"illuaminate/fix"
-                      ~arguments:[ Store.Filename.to_uri_json (fname program); `Int i ]
-                      ())
-                 ()
-             in
-             Some (`CodeAction action))
+  |> Seq.filter_map (to_code_action ~program)
   |> CCList.of_std_seq_rev |> Option.some
 
 let get_token_range (type a) (x : a) : a Driver.NoteAt.witness -> token * token = function

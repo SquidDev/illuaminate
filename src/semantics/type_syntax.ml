@@ -14,14 +14,12 @@ module type S = sig
         }
     | Table of table_entry list
     | Union of t list
-  [@@deriving show]
 
   and arg =
     { name : string option;
       ty : t;
       opt : bool
     }
-  [@@deriving show]
 
   and table_entry =
     | Field of
@@ -36,7 +34,6 @@ module type S = sig
           optional : bool;
           value : t
         }
-  [@@deriving show]
 end
 
 module Make (X : sig
@@ -57,14 +54,12 @@ end) : S with type reference = X.reference = struct
         }
     | Table of table_entry list
     | Union of t list
-  [@@deriving show]
 
   and arg =
     { name : string option;
       ty : t;
       opt : bool
     }
-  [@@deriving show]
 
   and table_entry =
     | Field of
@@ -79,7 +74,6 @@ end) : S with type reference = X.reference = struct
           optional : bool;
           value : t
         }
-  [@@deriving show]
 end
 
 module Unresolved = Make (struct

@@ -252,12 +252,13 @@ let fix_some ~original node note =
     | FixOne f -> Result.value ~default:node (f node)
     | _ -> node
 
+let no_fix (Note { note = { fix; _ }; _ }) =
+  match fix with
+  | FixNothing -> true
+  | FixOne _ | FixBlock _ -> false
+  (* bisect_ppx doesn't work well with GADTs *) [@@coverage off]
+
 let fix prog fixes =
-  let no_fix (Note { note = { fix; _ }; _ }) =
-    match fix with
-    | FixNothing -> true
-    | FixOne _ | FixBlock _ -> false
-  in
   if List.for_all no_fix fixes then prog
   else
     let open Syntax in

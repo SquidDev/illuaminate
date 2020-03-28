@@ -1,5 +1,5 @@
 {
-open Stdlib
+[@@@coverage exclude_file]
 
 type t = Raw of string | Key of string
 

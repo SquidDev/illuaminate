@@ -1,4 +1,5 @@
 {
+[@@@coverage exclude_file]
 type specifier =
   | Eof
   | Unknown of char

@@ -1,4 +1,5 @@
 {
+  [@@@coverage exclude_file]
   open Error
   open Token
   open IlluaminateCore.Node

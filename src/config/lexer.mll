@@ -1,4 +1,5 @@
 {
+  [@@@coverage exclude_file]
   exception Error of (string * Lexing.position * Lexing.position)
   let lexeme_spanned lexbuf x = (x, Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)
 

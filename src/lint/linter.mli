@@ -42,7 +42,6 @@ type path_item =
       (** The left hand side of a variable assignment or definition. Guaranteed to be followed by a
           {!Stmt}. *)
   | Block of Syntax.block
-[@@deriving show]
 
 (** Information about the current node being visited. *)
 type context =

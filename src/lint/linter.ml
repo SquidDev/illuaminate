@@ -23,7 +23,6 @@ type path_item =
   | FunctionName of Syntax.function_name
   | Bind
   | Block of Syntax.block
-[@@deriving show]
 
 type context =
   { path : path_item list;

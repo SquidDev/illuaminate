@@ -18,6 +18,7 @@ let lookup_type = function
   | "nil" | "number" | "integer" | "boolean" | "function" ->
       Undocumented (* Could do 2.2, but seems a little dubious *)
   | _ -> Unknown
+  [@@coverage off]
 
 let lookup_name = function
   | "coroutine" -> InManual "5.2"
@@ -54,3 +55,4 @@ let lookup_name = function
     | "type" | "unpack" | "xpcall" ) as x ->
       InManual x
   | x -> lookup_type x
+  [@@coverage off]

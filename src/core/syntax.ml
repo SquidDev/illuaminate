@@ -1,3 +1,6 @@
+(* The traverse deriver doesn't play well with bisect. *)
+[@@@coverage exclude_file]
+
 type token = Token.t Node.t [@@deriving show]
 
 module SepList1 = struct

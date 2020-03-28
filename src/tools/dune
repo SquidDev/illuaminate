@@ -11,9 +11,12 @@
 (executable
  (name esy)
  (modules esy)
- (libraries opam-file-format yojson)
- (preprocess
-  (pps ppxlib.metaquot)))
+ (libraries opam-file-format yojson))
+
+(executable
+  (name subst_bisect)
+  (modules subst_bisect sexp_lexer)
+  (libraries illuaminate.core illuaminate.pattern logs containers fpath))
 
 (rule
  (targets syntax.ml)
@@ -25,3 +28,8 @@
     (echo "open Ppxlib\nlet loc = Location.none\nlet tree = [%str ")
     (cat %{deps})
     (echo "]")))))
+
+(ocamllex
+  (modules sexp_lexer))
+
+(rule (copy ../config/lexer.mll sexp_lexer.mll))
