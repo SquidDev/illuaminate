@@ -4,7 +4,7 @@ open IlluaminateSemantics
 open! Linter
 module R = Resolve
 
-let tag = Error.Tag.make Error.Warning "var:use-arg"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "var:use-arg"
 
 let msg = [ note ~tag "Using implicit vararg variable \"arg\"." ]
 

@@ -2,7 +2,7 @@ open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
 
-let tag = Error.Tag.make Error.Error "syntax:string-escape"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Error "syntax:string-escape"
 
 let expr () _ = function
   | String { lit_node; _ } ->

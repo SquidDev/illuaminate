@@ -2,7 +2,7 @@ open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
 
-let tag = Error.Tag.make Error.Warning "var:pointless-discard"
+let tag = Error.Tag.make ~attr:[ Default; Unused ] ~level:Warning "var:pointless-discard"
 
 (** A variable is a "discard variable" if it is named exactly "_". *)
 let is_discard (Var n) = Node.contents.get n = "_"

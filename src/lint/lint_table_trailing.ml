@@ -32,7 +32,7 @@ module Separator = struct
     Category.add term category
 end
 
-let tag = Error.Tag.make Error.Note "format:table-trailing"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Note "format:table-trailing"
 
 let rec over_last f = function
   | [] -> []

@@ -4,11 +4,11 @@ open IlluaminateSemantics
 open! Doc.Syntax
 module E = Doc.Extract
 
-let tag = Error.Tag.make Error.Warning "doc:undocumented"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:undocumented"
 
-let arg_tag = Error.Tag.make Error.Warning "doc:undocumented-arg"
+let arg_tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:undocumented-arg"
 
-let return_tag = Error.Tag.make Error.Warning "doc:undocumented-return"
+let return_tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:undocumented-return"
 
 let check ~notes ~tag ~span description msg =
   match description with

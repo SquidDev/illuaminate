@@ -6,9 +6,9 @@ module R = Resolve
 module G = Global
 module F = Stringlib.Format
 
-let tag_format = Error.Tag.make Error.Warning "stdlib:string-format"
+let tag_format = Error.Tag.make ~attr:[ Default ] ~level:Warning "stdlib:string-format"
 
-let tag_pattern = Error.Tag.make Error.Warning "stdlib:string-pattern"
+let tag_pattern = Error.Tag.make ~attr:[ Default ] ~level:Warning "stdlib:string-pattern"
 
 let plural fmt (n, word) =
   if n = 1 then Format.fprintf fmt "1 %s" word else Format.fprintf fmt "%d %ss" n word

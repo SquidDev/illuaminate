@@ -30,7 +30,7 @@ module Quote = struct
     Category.add term category
 end
 
-let tag = Error.Tag.make ~enabled:false Error.Note "format:string-quote"
+let tag = Error.Tag.make ~attr:[] ~level:Error.Note "format:string-quote"
 
 let fix =
   let requote quote node =

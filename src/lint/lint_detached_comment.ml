@@ -3,8 +3,9 @@ open IlluaminateCore
 open IlluaminateSemantics
 module E = Doc.Extract
 
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:detached-comment"
+
 let linter =
-  let tag = Error.Tag.make Error.Warning "doc:detached-comment" in
   make_no_opt ~tags:[ tag ]
     ~program:(fun () context prog ->
       IlluaminateData.need context.data E.key prog

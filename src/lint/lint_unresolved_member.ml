@@ -4,7 +4,7 @@ open IlluaminateSemantics
 open! Linter
 module R = Module_resolve
 
-let tag = Error.Tag.make Error.Warning "var:unresolved-member"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "var:unresolved-member"
 
 let check data ~table ~idx ~key =
   match R.get_name data table with

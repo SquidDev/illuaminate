@@ -2,7 +2,7 @@ open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
 
-let tag = Error.Tag.make Error.Warning "var:unbalanced-assign"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "var:unbalanced-assign"
 
 let too_few =
   [ note ~tag "Right-hand side of assignment has less values than left hand side expects." ]

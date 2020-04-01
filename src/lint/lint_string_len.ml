@@ -7,7 +7,7 @@ module G = Global
 
 let string_len = G.parse "string.len"
 
-let tag = Error.Tag.make Error.Warning "stdlib:string-len"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "stdlib:string-len"
 
 let check ~(context : context) ?fix f =
   let resolve = IlluaminateData.need context.data R.key context.program in

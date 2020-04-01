@@ -4,9 +4,11 @@ open IlluaminateSemantics
 open! Linter
 module C = Control
 
-let tag_unreach = Error.Tag.make Error.Warning "control:unreachable"
+let tag_unreach =
+  (* TODO: Make this use "Unused" too. *)
+  Error.Tag.make ~attr:[ Default ] ~level:Warning "control:unreachable"
 
-let tag_loop = Error.Tag.make Error.Warning "control:loop-once"
+let tag_loop = Error.Tag.make ~attr:[ Default ] ~level:Warning "control:loop-once"
 
 let msg_unreach span = [ note ~tag:tag_unreach ~span "Unreachable code" ]
 

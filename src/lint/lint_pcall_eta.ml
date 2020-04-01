@@ -8,7 +8,7 @@ module Safe = Pure.Safe
 
 let string_len = G.parse "pcall"
 
-let tag = Error.Tag.make Error.Warning "stdlib:pcall-eta"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "stdlib:pcall-eta"
 
 let safe_args = function
   | CallArgs { args; _ } -> SepList0.for_all Safe.expr args

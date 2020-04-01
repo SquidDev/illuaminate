@@ -2,7 +2,7 @@ open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
 
-let tag = Error.Tag.make Error.Warning "control:for-num"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "control:for-num"
 
 let count_nowhere =
   [ note ~tag "This loop has the same start and stop point, and so will only execute once." ]

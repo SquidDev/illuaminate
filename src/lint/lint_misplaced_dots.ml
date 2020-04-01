@@ -2,7 +2,7 @@ open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
 
-let tag = Error.Tag.make Error.Error "syntax:misplaced-dots"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Error "syntax:misplaced-dots"
 
 let msg n =
   note ~tag ~span:(Node.span n) "Varargs can only appear as the last argument to a function."

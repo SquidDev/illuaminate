@@ -4,7 +4,7 @@ open IlluaminateSemantics
 open! Doc.Syntax
 module E = Doc.Extract
 
-let tag = Error.Tag.make Error.Warning "doc:unresolved-reference"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:unresolved-reference"
 
 let check ~notes ~span = function
   | Reference.Unknown x -> notes := note ~span ~tag "Unknown reference %S." x :: !notes

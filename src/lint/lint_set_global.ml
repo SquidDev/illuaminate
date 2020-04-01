@@ -21,7 +21,7 @@ module Opt = struct
     Category.add term category
 end
 
-let tag = Error.Tag.make Error.Warning "var:set-global"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "var:set-global"
 
 let rec is_toplevel = function
   | [] | [ Block _ ] -> true

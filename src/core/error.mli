@@ -7,6 +7,18 @@
     Errors are then reported into an error sink ({!t}), which counts errors, sorts them into files,
     and is used to report them (see {!display_of_files}).*)
 
+(** Attributes about an error's tag (and thus errors using that tag). *)
+type attribute =
+  | Default  (** This tag is enabled by default, when used in a linter. *)
+  | Unused
+      (** This tag warns about some unused node, such as an unused variable or unreachable code.
+
+          This maps to LSP's "unused" diagnostic tag. *)
+  | Deprecated
+      (** This tag warns about working with a deprecated node.
+
+          This maps to LSP's "deprecated" diagnostic tag. *)
+
 (** An error reporting level *)
 type level =
   | Critical  (** An error which cannot be recovered from *)
@@ -19,20 +31,23 @@ module Tag : sig
   type t = private
     { name : string;
       level : level;
-      enabled : bool  (** Whether this tag is enabled by default. *)
+      attributes : attribute list
     }
 
   (** Display a tag in a formatter. *)
   val pp : Format.formatter -> t -> unit
 
   (** Create a new error tag, and register it internally *)
-  val make : ?enabled:bool -> level -> string -> t
+  val make : attr:attribute list -> level:level -> string -> t
 
   (** Find a tag with a given name *)
   val find : string -> t option
 
   (** Compare two tags. *)
   val compare : t -> t -> int
+
+  (** Determine if this tag has an attribute. *)
+  val has : attribute -> t -> bool
 
   (** A predicate which determines if a tag should be reported or not. *)
   type filter = t -> bool

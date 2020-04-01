@@ -3,7 +3,7 @@ open IlluaminateCore
 open Linter
 open Lens
 
-let tag = Error.Tag.make Error.Note "syntax:redundant-semicolon"
+let tag = Error.Tag.make ~attr:[ Default; Unused ] ~level:Note "syntax:redundant-semicolon"
 
 let fix =
   FixBlock

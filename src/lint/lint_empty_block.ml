@@ -18,9 +18,9 @@ module Opt = struct
     Category.add term category
 end
 
-let tag_do = Error.Tag.make Error.Warning "syntax:empty-do"
+let tag_do = Error.Tag.make ~attr:[ Default; Unused ] ~level:Warning "syntax:empty-do"
 
-let tag_if = Error.Tag.make Error.Warning "syntax:empty-if"
+let tag_if = Error.Tag.make ~attr:[ Default ] ~level:Warning "syntax:empty-if"
 
 let msg_do =
   let fix =

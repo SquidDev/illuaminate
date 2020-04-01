@@ -3,7 +3,7 @@ open IlluaminateCore
 open Linter
 open Lens
 
-let tag = Error.Tag.make Note "syntax:string-index"
+let tag = Error.Tag.make ~attr:[] ~level:Note "syntax:string-index"
 
 let fix =
   FixOne

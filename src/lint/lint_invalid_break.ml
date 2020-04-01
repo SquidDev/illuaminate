@@ -2,7 +2,7 @@ open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
 
-let tag = Error.Tag.make Error.Error "syntax:invalid-break"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Error "syntax:invalid-break"
 
 let msg = [ note ~tag "Using `break` outside a loop" ]
 

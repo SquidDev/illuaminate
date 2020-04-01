@@ -195,7 +195,7 @@ let parser =
 
   fields main
 
-let parse_error = Error.(Tag.make Critical "config:parse")
+let parse_error = Error.(Tag.make ~attr:[] ~level:Critical "config:parse")
 
 let of_lexer ~directory (file : Span.filename) lexbuf =
   match IlluaminateConfig.Parser.parse_buf file lexbuf parser with
@@ -262,7 +262,7 @@ let all_tags =
     (fun tags (Linter.Linter linter) -> List.fold_left (Fun.flip TagSet.add) tags linter.tags)
     TagSet.empty Linters.all
 
-let default_tags = TagSet.filter (fun l -> l.Error.Tag.enabled) all_tags
+let default_tags = TagSet.filter (Error.Tag.has Default) all_tags
 
 let apply_mod set = function
   | Include All -> all_tags

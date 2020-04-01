@@ -2,7 +2,7 @@ open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
 
-let tag = Error.Tag.make Error.Warning "var:use-discard"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "var:use-discard"
 
 let msg = [ note ~tag "Using \"discard\" variable `_`." ]
 

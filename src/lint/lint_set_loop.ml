@@ -4,7 +4,7 @@ open IlluaminateSemantics
 open! Linter
 module R = Resolve
 
-let tag = Error.Tag.make Error.Warning "var:set-loop"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "var:set-loop"
 
 let stmt () (context : context) =
   let check (Var name as var) =

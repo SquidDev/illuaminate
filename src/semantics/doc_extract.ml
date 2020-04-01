@@ -18,9 +18,9 @@ module CommentCollection = Hashtbl.Make (struct
 end)
 
 module Tag = struct
-  let type_mismatch = Error.Tag.make Error.Warning "doc:type-mismatch"
+  let type_mismatch = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:type-mismatch"
 
-  let kind_mismatch = Error.Tag.make Error.Error "doc:kind-mismatch"
+  let kind_mismatch = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:kind-mismatch"
 
   let all = [ kind_mismatch; type_mismatch ]
 end

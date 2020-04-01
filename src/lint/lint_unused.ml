@@ -4,11 +4,11 @@ open IlluaminateSemantics
 open! Linter
 module R = Resolve
 
-let tag_generic = Error.Tag.make Error.Warning "var:unused"
+let tag_generic = Error.Tag.make ~attr:[ Default; Unused ] ~level:Warning "var:unused"
 
-let tag_arg = Error.Tag.make Error.Warning "var:unused-arg"
+let tag_arg = Error.Tag.make ~attr:[ Default; Unused ] ~level:Warning "var:unused-arg"
 
-let tag_global = Error.Tag.make Error.Warning "var:unused-global"
+let tag_global = Error.Tag.make ~attr:[ Default; Unused ] ~level:Warning "var:unused-global"
 
 let fix_var = FixOne (fun (Var name) -> Ok (Var (Node.with_contents "_" name)))
 

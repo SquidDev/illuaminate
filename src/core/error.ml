@@ -70,6 +70,11 @@ module Style = struct
       }
 end
 
+type attribute =
+  | Default
+  | Unused
+  | Deprecated
+
 type level =
   | Critical
   | Error
@@ -80,21 +85,23 @@ module Tag = struct
   type t =
     { name : string;
       level : level;
-      enabled : bool
+      attributes : attribute list
     }
 
   let pp f { name; _ } = Format.fprintf f "%s" name
 
   let tags = ref StringMap.empty
 
-  let make ?(enabled = true) level name =
-    let tag = { level; name; enabled } in
+  let make ~attr ~level name =
+    let tag = { level; name; attributes = attr } in
     tags := StringMap.add name tag !tags;
     tag
 
   let find name = StringMap.find_opt name !tags
 
   let compare l r = String.compare l.name r.name
+
+  let has a l = List.mem a l.attributes
 
   type filter = t -> bool
 end

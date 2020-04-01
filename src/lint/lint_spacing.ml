@@ -3,10 +3,10 @@ open IlluaminateCore
 open Linter
 
 (** Missing spaces around binary operators and assignments. *)
-let tag_op_space = Error.Tag.make Error.Note "format:op-space"
+let tag_op_space = Error.Tag.make ~attr:[ Default ] ~level:Note "format:op-space"
 
 (** Missing spaces after separators (`,` and `;`). *)
-let tag_sep_space = Error.Tag.make Error.Note "format:separator-space"
+let tag_sep_space = Error.Tag.make ~attr:[ Default ] ~level:Note "format:separator-space"
 
 let has_trailing = function
   | Node.SimpleNode _ -> true

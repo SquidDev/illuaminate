@@ -20,7 +20,7 @@ module Opt = struct
     Category.add term category
 end
 
-let tag = Error.Tag.make Error.Note "syntax:redundant-parens"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Note "syntax:redundant-parens"
 
 let unpack = function
   | Node.SimpleNode _ -> []

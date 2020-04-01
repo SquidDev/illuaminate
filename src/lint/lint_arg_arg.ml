@@ -2,7 +2,7 @@ open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
 
-let tag = Error.Tag.make Error.Warning "var:arg-arg"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "var:arg-arg"
 
 let msg n = note ~tag ~span:(Node.span n) "Argument named \"arg\"."
 

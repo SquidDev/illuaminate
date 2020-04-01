@@ -57,19 +57,20 @@ let parse_description =
     Description (x |> String.trim |> Omd.of_string ~extensions:[ ext ] ~default_lang)
 
 module Tag = struct
-  let malformed_tag = Error.Tag.make Error.Error "doc:malformed-tag"
+  let malformed_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:malformed-tag"
 
-  let malformed_type = Error.Tag.make Error.Error "doc:malformed-type"
+  let malformed_type = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:malformed-type"
 
-  let unknown_flag = Error.Tag.make Error.Error "doc:unknown-flag"
+  let unknown_flag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:unknown-flag"
 
-  let unknown_tag = Error.Tag.make Error.Error "doc:unknown-tag"
+  let unknown_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:unknown-tag"
 
-  let duplicate_definitions = Error.Tag.make Error.Error "doc:duplicate-definitions"
+  let duplicate_definitions =
+    Error.Tag.make ~attr:[ Default ] ~level:Error "doc:duplicate-definitions"
 
-  let bad_index = Error.Tag.make Error.Error "doc:bad-index"
+  let bad_index = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:bad-index"
 
-  let wrong_throws = Error.Tag.make Error.Error "doc:wrong-throws"
+  let wrong_throws = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:wrong-throws"
 
   let all =
     [ malformed_tag;

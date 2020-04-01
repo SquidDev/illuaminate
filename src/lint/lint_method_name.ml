@@ -2,7 +2,7 @@ open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
 
-let tag = Error.Tag.make Error.Error "syntax:method-name"
+let tag = Error.Tag.make ~attr:[ Default ] ~level:Error "syntax:method-name"
 
 let msg n = [ note ~tag ~span:(Node.span n) "Method names cannot appear at this position." ]
 
