@@ -69,7 +69,8 @@ let tests =
           |> Testable.(check (list diagnostic))
                "Has an unused variable error"
                [ Diagnostic.create ~range:(range 0 6 0 7) ~code:(Left "var:unused")
-                   ~source:"illuaminate" ~severity:Warning ~message:"Unused variable \"x\"." ()
+                   ~source:"illuaminate" ~severity:Warning ~message:"Unused variable \"x\"."
+                   ~tags:[ Unnecessary ] ()
                ];
           ());
       test ~name:"Picks up configuration" ~workspace:"linters" (fun t ->
@@ -82,7 +83,8 @@ let tests =
           |> Testable.(check (list diagnostic))
                "check_unused's warns on unused variables"
                [ Diagnostic.create ~range:(range 0 6 0 7) ~code:(Left "var:unused")
-                   ~source:"illuaminate" ~severity:Warning ~message:"Unused variable \"x\"." ()
+                   ~source:"illuaminate" ~severity:Warning ~message:"Unused variable \"x\"."
+                   ~tags:[ Unnecessary ] ()
                ];
 
           ())

@@ -13,7 +13,7 @@ type attribute =
   | Unused
       (** This tag warns about some unused node, such as an unused variable or unreachable code.
 
-          This maps to LSP's "unused" diagnostic tag. *)
+          This maps to LSP's "unnecessary" diagnostic tag. *)
   | Deprecated
       (** This tag warns about working with a deprecated node.
 
