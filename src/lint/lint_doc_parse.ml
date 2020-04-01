@@ -1,9 +1,6 @@
 open Linter
 open IlluaminateSemantics
-
-open struct
-  module D = Doc.Parser.Data
-end
+module D = Doc.Parser.Data
 
 let linter =
   make_no_opt ~tags:Doc.Parser.Tag.all

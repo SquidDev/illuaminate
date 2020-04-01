@@ -126,35 +126,36 @@ module Fix = struct
       | _ -> Error "Not a function")
 end
 
-let linter =
-  let note fix (Var n) = [ note ~fix ~span:(Node.span n) ~tag "Pointless discard variable `_`." ] in
-  let check_args fixer { args_args = args; _ } =
-    match SepList0.last args with
-    | Some (NamedArg v) when is_discard v -> note fixer v
-    | _ -> []
-  in
-  let stmt () _ = function
-    | Assign { assign_vars = vs; _ } -> (
-      (* TODO: Can we match patterns like a, _, b = 0, 1, 2, where it's safe to discard when it's in
-         the middle? *)
-      match SepList1.last.get vs with
-      | NVar v when is_discard v -> note Fix.fix_assignment v
-      | _ -> [] )
-    | Local { local_vars = vs; _ } | ForIn { forp_vars = SepList1.Cons1 (_, _, vs); _ } ->
-        (* For loops need at least one variable, hence the odd pattern. *)
-        let v = SepList1.last.get vs in
-        if is_discard v then note Fix.fix_assignment v else []
-    | LocalFunction { localf_var = v; localf_args = args; _ } ->
-        let main = check_args Fix.fix_stmt_args args in
-        if is_discard v then note Fix.fix_assignment v @ main else main
-    | AssignFunction { assignf_name = n; assignf_args = args; _ } -> (
-        let main = check_args Fix.fix_stmt_args args in
-        match n with
-        | FVar v when is_discard v -> note Fix.fix_assignment v @ main
-        | _ -> main )
-    | _ -> []
-  and expr () _ = function
-    | Fun { fun_args = args; _ } -> check_args Fix.fix_expr_args args
-    | _ -> []
-  in
-  make_no_opt ~tags:[ tag ] ~stmt ~expr ()
+let note fix (Var n) = [ note ~fix ~span:(Node.span n) ~tag "Pointless discard variable `_`." ]
+
+let check_args fixer { args_args = args; _ } =
+  match SepList0.last args with
+  | Some (NamedArg v) when is_discard v -> note fixer v
+  | _ -> []
+
+let stmt () _ = function
+  | Assign { assign_vars = vs; _ } -> (
+    (* TODO: Can we match patterns like a, _, b = 0, 1, 2, where it's safe to discard when it's in
+       the middle? *)
+    match SepList1.last.get vs with
+    | NVar v when is_discard v -> note Fix.fix_assignment v
+    | _ -> [] )
+  | Local { local_vars = vs; _ } | ForIn { forp_vars = SepList1.Cons1 (_, _, vs); _ } ->
+      (* For loops need at least one variable, hence the odd pattern. *)
+      let v = SepList1.last.get vs in
+      if is_discard v then note Fix.fix_assignment v else []
+  | LocalFunction { localf_var = v; localf_args = args; _ } ->
+      let main = check_args Fix.fix_stmt_args args in
+      if is_discard v then note Fix.fix_assignment v @ main else main
+  | AssignFunction { assignf_name = n; assignf_args = args; _ } -> (
+      let main = check_args Fix.fix_stmt_args args in
+      match n with
+      | FVar v when is_discard v -> note Fix.fix_assignment v @ main
+      | _ -> main )
+  | _ -> []
+
+let expr () _ = function
+  | Fun { fun_args = args; _ } -> check_args Fix.fix_expr_args args
+  | _ -> []
+
+let linter = make_no_opt ~tags:[ tag ] ~stmt ~expr ()

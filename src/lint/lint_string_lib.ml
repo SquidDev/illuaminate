@@ -2,12 +2,9 @@ open IlluaminateCore.Syntax
 open IlluaminateCore
 open IlluaminateSemantics
 open! Linter
-
-open struct
-  module R = Resolve
-  module G = Global
-  module F = Stringlib.Format
-end
+module R = Resolve
+module G = Global
+module F = Stringlib.Format
 
 let tag_format = Error.Tag.make Error.Warning "stdlib:string-format"
 
@@ -61,39 +58,38 @@ let check_format_args ~span specs args =
   in
   go 0 specs args
 
-let linter =
-  let string_format = G.parse "string.format" in
-  let check_format : 'a. call -> expr -> expr SepList0.t -> 'a note list =
-   fun call fmt args ->
-    match Eval.eval fmt with
-    | RString value ->
-        let specs = F.parse value in
-        check_format_args ~span:(Spanned.call call) specs args
-        @ List.filter_map (check_format ~span:(Spanned.expr fmt)) specs
-    | _ -> []
-  in
+let string_format = G.parse "string.format"
 
-  let check ~(context : context) = function
-    | Call { fn; args } as c -> (
-        let resolve = IlluaminateData.need context.data R.key context.program in
-        match G.of_expr resolve fn with
-        | Some g when g = string_format -> (
-          match Helpers.get_call_args args with
-          | None -> []
-          | Some (Cons1 (fmt, _, args)) -> check_format c fmt (Some args)
-          | Some (Mono fmt) -> check_format c fmt None )
-        | _ -> [] )
-    | Invoke { obj; colon = _; meth; args } as c -> (
-      match Node.contents.get meth with
-      | "format" -> check_format c obj (Helpers.get_call_args args)
+let check_format : 'a. call -> expr -> expr SepList0.t -> 'a note list =
+ fun call fmt args ->
+  match Eval.eval fmt with
+  | RString value ->
+      let specs = F.parse value in
+      check_format_args ~span:(Spanned.call call) specs args
+      @ List.filter_map (check_format ~span:(Spanned.expr fmt)) specs
+  | _ -> []
+
+let check ~(context : context) = function
+  | Call { fn; args } as c -> (
+      let resolve = IlluaminateData.need context.data R.key context.program in
+      match G.of_expr resolve fn with
+      | Some g when g = string_format -> (
+        match Helpers.get_call_args args with
+        | None -> []
+        | Some (Cons1 (fmt, _, args)) -> check_format c fmt (Some args)
+        | Some (Mono fmt) -> check_format c fmt None )
       | _ -> [] )
-  in
+  | Invoke { obj; colon = _; meth; args } as c -> (
+    match Node.contents.get meth with
+    | "format" -> check_format c obj (Helpers.get_call_args args)
+    | _ -> [] )
 
-  let expr () context = function
-    | ECall call -> check ~context call
-    | _ -> []
-  and stmt () context = function
-    | SCall call -> check ~context call
-    | _ -> []
-  in
-  make_no_opt ~tags:[ tag_format; tag_pattern ] ~expr ~stmt ()
+let expr () context = function
+  | ECall call -> check ~context call
+  | _ -> []
+
+let stmt () context = function
+  | SCall call -> check ~context call
+  | _ -> []
+
+let linter = make_no_opt ~tags:[ tag_format; tag_pattern ] ~expr ~stmt ()

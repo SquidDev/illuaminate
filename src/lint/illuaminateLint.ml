@@ -4,101 +4,74 @@ module Driver = Driver
 type linter = Linter.t
 
 module Linters = struct
-  let pointless_discard = Lint_pointless_discard.linter
-
-  let set_global = Lint_set_global.linter
-
-  let unbalanced_assign = Lint_unbalanced_assign.linter
-
-  let unused = Lint_unused.linter
-
-  let use_discard = Lint_use_discard.linter
-
-  let empty_block = Lint_empty_block.linter
-
-  let pointless_semicolon = Lint_pointless_semicolon.linter
-
-  let parens = Lint_parens.linter
-
-  let misplaced_dots = Lint_misplaced_dots.linter
-
-  let method_name = Lint_method_name.linter
-
-  let for_num = Lint_for_num.linter
-
-  let set_loop = Lint_set_loop.linter
-
-  let arg_arg = Lint_arg_arg.linter
-
-  let use_arg = Lint_use_arg.linter
-
-  let unreachable = Lint_unreachable.linter
-
-  let invalid_break = Lint_invalid_break.linter
-
-  let doc_parse = Lint_doc_parse.linter
-
-  let doc_extract = Lint_doc_extract.linter
-
-  let undocumented = Lint_undocumented.linter
-
-  let unknown_reference = Lint_unresolved_reference.linter
-
-  let malformed_example = Lint_malformed_example.linter
-
-  let detached_comments = Lint_detached_comment.linter
-
-  let spacing = Lint_spacing.linter
-
-  let table_trailing = Lint_table_trailing.linter
-
-  let string_len = Lint_string_len.linter
-
-  let string_lib = Lint_string_lib.linter
-
-  let string_escape = Lint_string_escape.linter
-
-  let malformed_number = Lint_malformed_number.linter
-
-  let pcall_eta = Lint_pcall_eta.linter
-
-  let unresolved_member = Lint_unresolved_member.linter
+  module Arg_arg = Lint_arg_arg
+  module Detached_comment = Lint_detached_comment
+  module Doc_extract = Lint_doc_extract
+  module Doc_parse = Lint_doc_parse
+  module Empty_block = Lint_empty_block
+  module For_num = Lint_for_num
+  module Invalid_break = Lint_invalid_break
+  module Malformed_example = Lint_malformed_example
+  module Malformed_number = Lint_malformed_number
+  module Method_name = Lint_method_name
+  module Misplaced_dots = Lint_misplaced_dots
+  module Parens = Lint_parens
+  module Pcall_eta = Lint_pcall_eta
+  module Pointless_discard = Lint_pointless_discard
+  module Pointless_semicolon = Lint_pointless_semicolon
+  module Set_global = Lint_set_global
+  module Set_loop = Lint_set_loop
+  module Spacing = Lint_spacing
+  module String_escape = Lint_string_escape
+  module String_index = Lint_string_index
+  module String_len = Lint_string_len
+  module String_lib = Lint_string_lib
+  module String_quote = Lint_string_quote
+  module Table_trailing = Lint_table_trailing
+  module Unbalanced_assign = Lint_unbalanced_assign
+  module Undocumented = Lint_undocumented
+  module Unreachable = Lint_unreachable
+  module Unresolved_member = Lint_unresolved_member
+  module Unresolved_reference = Lint_unresolved_reference
+  module Unused = Lint_unused
+  module Use_arg = Lint_use_arg
+  module Use_discard = Lint_use_discard
 
   let all =
     (* TODO: Find a more efficient order for these (namely group related passes together instead) *)
-    [ arg_arg;
-      doc_parse;
-      doc_extract;
-      undocumented;
-      unknown_reference;
-      malformed_example;
-      detached_comments;
-      empty_block;
-      for_num;
-      invalid_break;
-      method_name;
-      misplaced_dots;
-      parens;
-      string_escape;
-      malformed_number;
-      Lint_string_quote.linter;
-      Lint_string_index.linter;
-      pointless_semicolon;
-      set_global;
-      set_loop;
-      spacing;
-      string_len;
-      string_lib;
-      pcall_eta;
-      table_trailing;
-      unbalanced_assign;
-      unreachable;
+    [ Arg_arg.linter;
+      Doc_parse.linter;
+      Doc_extract.linter;
+      Undocumented.linter;
+      Unresolved_reference.linter;
+      Malformed_example.linter;
+      Detached_comment.linter;
+      Empty_block.linter;
+      For_num.linter;
+      Invalid_break.linter;
+      Method_name.linter;
+      Misplaced_dots.linter;
+      Parens.linter;
+      String_escape.linter;
+      Malformed_number.linter;
+      String_quote.linter;
+      String_index.linter;
+      Pointless_semicolon.linter;
+      Set_global.linter;
+      Set_loop.linter;
+      Spacing.linter;
+      String_len.linter;
+      String_lib.linter;
+      Pcall_eta.linter;
+      Table_trailing.linter;
+      Unbalanced_assign.linter;
+      Unreachable.linter;
       (* "pointless_discard" occurs after "unused" to ensure we'll entirely remove redundant
          assigns. *)
-      unused;
-      pointless_discard;
-      use_arg;
-      use_discard;
-      unresolved_member
+      Unused.linter;
+      Pointless_discard.linter;
+      Use_arg.linter;
+      Use_discard.linter;
+      Unresolved_member.linter
     ]
 end
