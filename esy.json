@@ -41,7 +41,7 @@
   },
   "resolutions": {
     "@opam/omnomnom":
-      "git://github.com/SquidDev/omnomnom:omnomnom.opam#83ca89cc33e6becbe86501c80ed51fce6054c335",
+      "git://github.com/SquidDev/omnomnom:omnomnom.opam#61949595e940ebad81fc670bb7abcba292f58ebc",
     "@opam/lsp":
       "git://github.com/ocaml/ocaml-lsp:lsp.opam#ed4f500291bb316a63f16ca7d045cb19550ea806"
   },

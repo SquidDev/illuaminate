@@ -29,10 +29,7 @@ let logging : Omnomnom.Ingredients.reporter =
   end )
 
 let () =
-  Omnomnom.run
-    ~reporter:
-      Omnomnom.Ingredients.(
-        compose_reporters console_reporter OmnomnomJUnit.reporter |> compose_reporters logging)
+  Omnomnom.run ~reporters:Omnomnom.Ingredients.[ console_reporter; OmnomnomJUnit.reporter; logging ]
   @@ group "illuaminate"
        [ Parser.tests;
          Lexer.tests;
