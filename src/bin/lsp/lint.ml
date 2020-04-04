@@ -82,16 +82,8 @@ let code_actions store program range : CodeActionResult.t =
   |> Seq.filter_map (to_code_action ~program)
   |> CCList.of_std_seq_rev |> Option.some
 
-let get_token_range (type a) (x : a) : a Driver.NoteAt.witness -> token * token = function
-  | AtExpr -> (First.expr.get x, Last.expr.get x)
-  | AtStmt -> (First.stmt.get x, Last.stmt.get x)
-  | AtProgram -> (First.program.get x, Last.program.get x)
-  | AtToken -> (x, x)
-  | AtName -> (First.name.get x, Last.name.get x)
-  | AtVar -> (First.var.get x, Last.var.get x)
-
 let get_whole_range before witness =
-  let start, finish = get_token_range before witness in
+  let start = (Witness.first witness).get before and finish = (Witness.first witness).get before in
   let start =
     match start with
     | SimpleNode _ -> assert false
@@ -106,17 +98,9 @@ let get_whole_range before witness =
   in
   { Range.start = span_start start; end_ = span_finish finish }
 
-let get_printer (type a) : a Driver.NoteAt.witness -> Format.formatter -> a -> unit = function
-  | AtExpr -> Emit.expr
-  | AtStmt -> Emit.stmt
-  | AtProgram -> Emit.program
-  | AtToken -> Emit.token ~kind:Keyword
-  | AtName -> Emit.name
-  | AtVar -> Emit.var
-
-let make_edit (type a) (before : a) (witness : a Driver.NoteAt.witness) (after : a) : TextEdit.t =
+let make_edit (type a) (before : a) (witness : a Witness.t) (after : a) : TextEdit.t =
   let range = get_whole_range before witness in
-  let newText = Format.asprintf "%a" (get_printer witness) after in
+  let newText = Format.asprintf "%a" (Witness.emit witness) after in
   { range; newText }
 
 let fix store program id =

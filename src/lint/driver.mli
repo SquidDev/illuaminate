@@ -5,18 +5,10 @@ open IlluaminateCore
 
 (** A note at a specific node. *)
 module NoteAt : sig
-  type 'a witness =
-    | AtExpr : Syntax.expr witness
-    | AtStmt : Syntax.stmt witness
-    | AtProgram : Syntax.program witness
-    | AtToken : Syntax.token witness
-    | AtName : Syntax.name witness
-    | AtVar : Syntax.var witness
-
   type 'a t = private
     { note : 'a Linter.note;
       source : 'a;
-      witness : 'a witness
+      witness : 'a Witness.t
     }
 
   (** Get the span of a note_at. *)

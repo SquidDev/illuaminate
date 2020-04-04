@@ -3,32 +3,15 @@ open Linter
 module C = IlluaminateConfig
 
 module NoteAt = struct
-  type 'a witness =
-    | AtExpr : Syntax.expr witness
-    | AtStmt : Syntax.stmt witness
-    | AtProgram : Syntax.program witness
-    | AtToken : Syntax.token witness
-    | AtName : Syntax.name witness
-    | AtVar : Syntax.var witness
-
   type 'a t =
     { note : 'a note;
       source : 'a;
-      witness : 'a witness
+      witness : 'a Witness.t
     }
 
   let span (type a) : a t -> Span.t = function
     | { note = { span = Some span; _ }; _ } -> span
-    | { witness; source; _ } -> (
-      match witness with
-      | AtExpr -> Syntax.Spanned.expr source
-      | AtStmt -> Syntax.Spanned.stmt source
-      | AtToken -> Node.span source
-      | AtName -> Syntax.Spanned.name source
-      | AtVar ->
-          let (Var n) = source in
-          Node.span n
-      | AtProgram -> Syntax.Spanned.program source )
+    | { witness; source; _ } -> Witness.span witness source
 
   let report err ({ note; _ } as n) =
     let span = span n in
@@ -57,7 +40,7 @@ let worker ~store ~data ~tags (Linter linter : t) program =
             !messages xs
   in
   let ( |: ) t ctx = { ctx with path = t :: ctx.path } in
-  let token = visit linter.token AtToken in
+  let token = visit linter.token Token in
   let list1 f ctx = SepList1.iter (f ctx) ~tok:(token ctx) in
   let list0 f ctx = Option.iter (list1 f ctx) in
   (* Fear not, this code is mostly auto-generated. *)
@@ -147,7 +130,7 @@ let worker ~store ~data ~tags (Linter linter : t) program =
     token context clause_then;
     block context clause_body
   and stmt context stmt =
-    visit linter.stmt AtStmt context stmt;
+    visit linter.stmt Stmt context stmt;
     let context = Stmt stmt |: context in
     match stmt with
     | Do a -> do_stmt context a
@@ -165,9 +148,9 @@ let worker ~store ~data ~tags (Linter linter : t) program =
     | SCall a -> call context a
     | Semicolon a -> token context a
   and block context x = List.iter (stmt (Block x |: context)) x
-  and var = visit linter.var AtVar
+  and var = visit linter.var Var
   and name context name =
-    visit linter.name AtName context name;
+    visit linter.name Name context name;
     let context = Name name |: context in
     match name with
     | NVar a -> var context a
@@ -199,7 +182,7 @@ let worker ~store ~data ~tags (Linter linter : t) program =
   and paren_expr context { paren_open; paren_expr; paren_close } =
     token context paren_open; expr context paren_expr; token context paren_close
   and expr context expr =
-    visit linter.expr AtExpr context expr;
+    visit linter.expr Expr context expr;
     let context = Expr expr |: context in
     match expr with
     | Ref a -> name context a
@@ -222,9 +205,9 @@ let worker ~store ~data ~tags (Linter linter : t) program =
     | CallArgs { open_a; args; close_a } ->
         token context open_a; list0 expr context args; token context close_a
     | CallTable a ->
-        visit linter.expr AtExpr context (Table a);
+        visit linter.expr Expr context (Table a);
         table context a
-    | CallString a -> visit linter.expr AtExpr context (String a)
+    | CallString a -> visit linter.expr Expr context (String a)
   and args context { args_open; args_args; args_close } =
     token context args_open;
     list0 arg (Bind |: context) args_args;
@@ -234,7 +217,7 @@ let worker ~store ~data ~tags (Linter linter : t) program =
     | DotArg a -> token context a
   in
   let context = { program; data; path = [] } in
-  visit linter.program AtProgram context program;
+  visit linter.program Program context program;
   block context program.Syntax.program;
   token context program.eof;
   !messages
@@ -268,7 +251,7 @@ let fix prog fixes =
        method! token (tok : token) =
          let visit (type a) (x : token) (note : a NoteAt.t) : token =
            match note with
-           | { witness = AtToken; _ } -> fix_some ~original:tok x note
+           | { witness = Token; _ } -> fix_some ~original:tok x note
            | _ -> x
          in
          List.fold_left (fun x (Note note) -> visit x note) tok fixes
@@ -276,7 +259,7 @@ let fix prog fixes =
        method! stmt stmt =
          let visit (type a) (x : stmt) (note : a NoteAt.t) : stmt =
            match note with
-           | { witness = AtStmt; _ } -> fix_some ~original:stmt x note
+           | { witness = Stmt; _ } -> fix_some ~original:stmt x note
            | _ -> x
          in
          List.fold_left (fun x (Note note) -> visit x note) stmt fixes |> super#stmt
@@ -284,7 +267,7 @@ let fix prog fixes =
        method! block stmts =
          let visit (type a) (original : stmt) (x : stmt) (note : a NoteAt.t) : stmt list option =
            match note with
-           | { witness = AtStmt; source; note = { fix = FixBlock f; _ }; _ } when source == original
+           | { witness = Stmt; source; note = { fix = FixBlock f; _ }; _ } when source == original
              ->
                Some (Result.value ~default:[ x ] (f x))
            | _ -> None
@@ -306,7 +289,7 @@ let fix prog fixes =
        method! program program =
          let visit (type a) (x : program) (note : a NoteAt.t) : program =
            match note with
-           | { witness = AtProgram; _ } -> fix_some ~original:program x note
+           | { witness = Program; _ } -> fix_some ~original:program x note
            | _ -> x
          in
          List.fold_left (fun x (Note note) -> visit x note) program fixes |> super#program
@@ -314,7 +297,7 @@ let fix prog fixes =
        method! expr expr =
          let visit (type a) (x : expr) (note : a NoteAt.t) : expr =
            match note with
-           | { witness = AtExpr; _ } -> fix_some ~original:expr x note
+           | { witness = Expr; _ } -> fix_some ~original:expr x note
            | _ -> x
          in
          List.fold_left (fun x (Note note) -> visit x note) expr fixes |> super#expr
@@ -344,7 +327,7 @@ let fix prog fixes =
                  match (arg, notes) with
                  | _, [] -> arg
                  | (CallArgs _ | CallString _), _ -> arg (* If we're no longer a table, abort. *)
-                 | CallTable t, Note { witness = AtExpr; source; note } :: notes ->
+                 | CallTable t, Note { witness = Expr; source; note } :: notes ->
                      ( match source with
                      | Table source when source == original -> fix note args (Table t)
                      | _ -> args )
@@ -357,7 +340,7 @@ let fix prog fixes =
                  match (arg, notes) with
                  | _, [] -> arg
                  | (CallArgs _ | CallTable _), _ -> arg (* If we're no longer a string, abort. *)
-                 | CallString s, Note { witness = AtExpr; source; note } :: notes ->
+                 | CallString s, Note { witness = Expr; source; note } :: notes ->
                      ( match source with
                      | String source when source == original -> fix note args (String s)
                      | _ -> args )
@@ -371,7 +354,7 @@ let fix prog fixes =
        method! name name =
          let visit (type a) (x : name) (note : a NoteAt.t) : name =
            match note with
-           | { witness = AtName; _ } -> fix_some ~original:name x note
+           | { witness = Name; _ } -> fix_some ~original:name x note
            | _ -> x
          in
          List.fold_left (fun x (Note note) -> visit x note) name fixes |> super#name
@@ -379,7 +362,7 @@ let fix prog fixes =
        method! var var =
          let visit (type a) (x : var) (note : a NoteAt.t) : var =
            match note with
-           | { witness = AtVar; _ } -> fix_some ~original:var x note
+           | { witness = Var; _ } -> fix_some ~original:var x note
            | _ -> x
          in
          List.fold_left (fun x (Note note) -> visit x note) var fixes |> super#var

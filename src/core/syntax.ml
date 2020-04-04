@@ -108,16 +108,16 @@ module UnOp = struct
     | OpNot
     | OpBNot
 
-  let to_token = function
-    | OpNeg -> Token.Sub
-    | OpLen -> Token.Len
-    | OpNot -> Token.Not
-    | _ -> assert false
+  let to_token : t -> Token.t = function
+    | OpNeg -> Sub
+    | OpLen -> Len
+    | OpNot -> Not
+    | OpBNot -> failwith "OpBNot should never be generated."
 
-  let of_token = function
-    | Token.Sub -> OpNeg
-    | Token.Len -> OpLen
-    | Token.Not -> OpNot
+  let of_token : Token.t -> t = function
+    | Sub -> OpNeg
+    | Len -> OpLen
+    | Not -> OpNot
     | t -> failwith (Format.asprintf "Cannot convert token '%a' to unop." Token.pp t)
 
   let token = { Lens.get = to_token; Lens.over = (fun f x -> to_token x |> f |> of_token) }
@@ -169,6 +169,43 @@ module BinOp = struct
     | OpOr -> "or"
 
   let pp f x = Format.pp_print_string f (show x)
+
+  let to_token : t -> Token.t = function
+    | OpAdd -> Add
+    | OpSub -> Sub
+    | OpMul -> Mul
+    | OpDiv -> Div
+    | OpMod -> Mod
+    | OpPow -> Pow
+    | OpConcat -> Concat
+    | OpEq -> Eq
+    | OpNe -> Ne
+    | OpLt -> Lt
+    | OpLe -> Le
+    | OpGt -> Gt
+    | OpGe -> Ge
+    | OpAnd -> And
+    | OpOr -> Or
+
+  let of_token : Token.t -> t = function
+    | Add -> OpAdd
+    | Sub -> OpSub
+    | Mul -> OpMul
+    | Div -> OpDiv
+    | Mod -> OpMod
+    | Pow -> OpPow
+    | Concat -> OpConcat
+    | Eq -> OpEq
+    | Ne -> OpNe
+    | Lt -> OpLt
+    | Le -> OpLe
+    | Gt -> OpGt
+    | Ge -> OpGe
+    | And -> OpAnd
+    | Or -> OpOr
+    | t -> failwith (Format.asprintf "Cannot convert token '%a' to binop." Token.pp t)
+
+  let token = { Lens.get = to_token; Lens.over = (fun f x -> to_token x |> f |> of_token) }
 
   let precedence = function
     | OpPow -> 0

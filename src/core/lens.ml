@@ -38,4 +38,7 @@ module Lenses = struct
 
   (** Get the second item in a pair. *)
   let snd = { get = snd; over = (fun f (x, y) -> (x, f y)) }
+
+  (** A lens which just returns itself. *)
+  let id = { get = Fun.id; over = ( @@ ) }
 end
