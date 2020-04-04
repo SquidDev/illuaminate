@@ -43,8 +43,10 @@ let lint paths github =
        | { path; config; parsed = Some parsed; _ } ->
            let tags, store = Config.get_linters config ~path () in
            Linters.all
-           |> List.iter (fun l ->
-                  Driver.lint ~store ~data ~tags l parsed |> List.iter (Driver.report_note errs)));
+           |> List.iter @@ fun l ->
+              Driver.lint ~store ~data ~tags l parsed
+              |> Driver.Notes.to_seq
+              |> Seq.iter (Driver.report_note errs));
   Error.display_of_files errs;
   ( if github then
     match Github.publish_errors errs with

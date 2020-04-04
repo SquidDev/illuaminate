@@ -85,8 +85,10 @@ and lint () : unit =
       let data = data () in
       let tags _ = true in
       Linters.all
-      |> List.iter (fun l ->
-             Driver.lint ~store ~data ~tags l parsed |> List.iter (Driver.report_note errs)) );
+      |> List.iter @@ fun l ->
+         Driver.lint ~store ~data ~tags l parsed
+         |> Driver.Notes.to_seq
+         |> Seq.iter (Driver.report_note errs) );
   let out =
     Error.errors errs
     |> List.sort Error.Error.span_compare
