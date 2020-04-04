@@ -73,7 +73,7 @@ let process ~name contents out =
       in
       let program, notes = Driver.lint_and_fix_all ~store ~data linters parsed in
       let errs = Error.make () in
-      List.iter (Driver.report_note errs) notes;
+      Driver.Notes.to_seq notes |> Seq.iter (Driver.report_note errs);
       Error.display_of_string ~out (fun _ -> Some contents) errs;
       let new_contents = Format.asprintf "%a" Emit.program program in
       if contents <> new_contents then Helpers.diff out contents new_contents

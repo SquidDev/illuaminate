@@ -6,12 +6,12 @@ module NoteAt = struct
   type 'a t =
     { note : 'a note;
       source : 'a;
-      witness : 'a Witness.t
+      kind : 'a Witness.t
     }
 
   let span (type a) : a t -> Span.t = function
     | { note = { span = Some span; _ }; _ } -> span
-    | { witness; source; _ } -> Witness.span witness source
+    | { kind; source; _ } -> Witness.span kind source
 
   let report err ({ note; _ } as n) =
     let span = span n in
@@ -24,20 +24,65 @@ type any_note = Note : 'a NoteAt.t -> any_note
 
 let report_note err (Note n) = NoteAt.report err n
 
+module Node = struct
+  type t = Node : 'a Witness.t * 'a -> t
+
+  let hash = Hashtbl.hash
+
+  let equal (Node (lw, l)) (Node (rw, r)) =
+    match (lw, rw) with
+    | Stmt, Stmt -> l == r
+    | Program, Program -> l == r
+    | Token, Token -> l == r
+    | BinOp, BinOp -> l == r
+    | Name, Name -> l == r
+    | Var, Var -> l == r
+    | Call, Call -> l == r
+    | Expr, Expr -> (
+      match (l, r) with
+      | String l, String r -> l == r
+      | Table l, Table r -> l == r
+      | l, r -> l == r )
+    | (Stmt | Program | Token | BinOp | Name | Expr | Var | Call), _ -> false
+end
+
+let extract (type a) (l : a Witness.t) (Note { kind = r; note; _ }) : a note =
+  match (l, r) with
+  | Stmt, Stmt -> note
+  | Program, Program -> note
+  | Token, Token -> note
+  | BinOp, BinOp -> note
+  | Name, Name -> note
+  | Var, Var -> note
+  | Expr, Expr -> note
+  | Call, Call -> note
+  | (Stmt | Program | Token | BinOp | Name | Expr | Var | Call), _ -> failwith "Witness mismatch!"
+
+module Notes = struct
+  module Tbl = Hashtbl.Make (Node)
+
+  type t = any_note Tbl.t
+
+  let empty : t = Tbl.create 0
+
+  let size = Tbl.length
+
+  let find witness x t = Tbl.find_all t (Node.Node (witness, x)) |> List.rev_map (extract witness)
+
+  let to_seq = Tbl.to_seq_values
+end
+
 let always : Error.Tag.filter = fun _ -> true
 
 let worker ~store ~data ~tags (Linter linter : t) program =
   let open! Syntax in
   let options = C.Schema.get linter.options store in
-  let messages = ref [] in
-  let visit f witness ctx source =
-    match f options ctx source with
-    | [] -> ()
-    | xs ->
-        messages :=
-          List.fold_left
-            (fun xs note -> if tags note.tag then Note { note; source; witness } :: xs else xs)
-            !messages xs
+  let messages = Notes.Tbl.create 16 in
+  let visit (type a) (f : (_, a) Linter.visitor) (kind : a Witness.t) ctx (source : a) =
+    f options ctx source
+    |> List.iter @@ fun note ->
+       if tags note.tag then
+         Notes.Tbl.add messages (Node (kind, source)) (Note { note; kind; source })
   in
   let ( |: ) t ctx = { ctx with path = t :: ctx.path } in
   let token = visit linter.token Token in
@@ -216,90 +261,76 @@ let worker ~store ~data ~tags (Linter linter : t) program =
     | NamedArg a -> var context a
     | DotArg a -> token context a
   in
+
   let context = { program; data; path = [] } in
   visit linter.program Program context program;
   block context program.Syntax.program;
   token context program.eof;
-  !messages
+  messages
 
 let need_lint ~store ~data ?(tags = always) (Linter l as linter : t) program =
-  if List.exists tags l.tags then worker ~store ~data ~tags linter program else []
+  if List.exists tags l.tags then worker ~store ~data ~tags linter program else Notes.empty
 
 let lint ~store ~data ?tags l program =
   IlluaminateData.compute (fun data -> need_lint ~store ~data ?tags l program) data
 
-let fix_some ~original node note =
-  if note.NoteAt.source != original then node
-  else
-    match note.note.fix with
-    | One f -> Result.value ~default:node (f node)
-    | _ -> node
+let fix_all (type a) fixes (w : a Witness.t) (original : a) : a =
+  let rec go node = function
+    | [] -> node
+    | x :: xs -> (
+      match extract w x with
+      | { fix = Nothing | Block _; _ } -> go node xs
+      | { fix = One f; _ } ->
+          let node' = Result.value ~default:node (f node) in
+          if node' != node then node' else go node xs )
+  in
+  Notes.Tbl.find_all fixes (Node (w, original)) |> go original
 
-let no_fix (Note { note = { fix; _ }; _ }) =
-  match fix with
-  | Nothing -> true
-  | One _ | Block _ -> false
-  (* bisect_ppx doesn't work well with GADTs *) [@@coverage off]
+let rec no_fixers (f : any_note Seq.t) : bool =
+  match f () with
+  | Nil -> true
+  | Cons (Note { note = { fix = One _ | Block _; _ }; _ }, _) -> false
+  | Cons (Note { note = { fix = Nothing; _ }; _ }, f) -> no_fixers f
 
-let fix prog fixes =
-  if List.for_all no_fix fixes then prog
+let fix prog (fixes : Notes.t) =
+  if Notes.to_seq fixes |> no_fixers then prog
   else
     let open Syntax in
-    (object (self)
+    (object
        inherit Syntax.map as super
 
-       method! token (tok : token) =
-         let visit (type a) (x : token) (note : a NoteAt.t) : token =
-           match note with
-           | { witness = Token; _ } -> fix_some ~original:tok x note
-           | _ -> x
-         in
-         List.fold_left (fun x (Note note) -> visit x note) tok fixes
+       method! token (tok : token) = fix_all fixes Token tok
 
-       method! stmt stmt =
-         let visit (type a) (x : stmt) (note : a NoteAt.t) : stmt =
-           match note with
-           | { witness = Stmt; _ } -> fix_some ~original:stmt x note
-           | _ -> x
-         in
-         List.fold_left (fun x (Note note) -> visit x note) stmt fixes |> super#stmt
+       method! stmt x = fix_all fixes Stmt x |> super#stmt
 
-       method! block stmts =
-         let visit (type a) (original : stmt) (x : stmt) (note : a NoteAt.t) : stmt list option =
-           match note with
-           | { witness = Stmt; source; note = { fix = Block f; _ }; _ } when source == original ->
-               Some (Result.value ~default:[ x ] (f x))
-           | _ -> None
-         in
-         let rec visit_all original x = function
-           | [] -> [ x ]
-           | Note note :: xs -> (
-             match visit original x note with
-             | None -> visit_all original x xs
-             | Some [ x ] -> visit_all original x xs
-             | Some xs -> xs )
-         in
-         List.fold_right
-           (fun stmt rest ->
-             let x = self#stmt stmt in
-             visit_all stmt x fixes @ rest)
-           stmts []
+       method! block =
+         let rec go rest node = function
+           | [] -> super#stmt node :: rest
+           | x :: xs -> (
+             match extract Stmt x with
+             | { fix = Nothing; _ } -> go rest node xs
+             | { fix = Block f; _ } -> (
+                 let node' = f node in
+                 match node' with
+                 | Error _ -> go rest node xs
+                 | Ok stmts ->
+                     (* There's a risk here that this will result in an infinite loop, if the fixer
+                        returns a list of statements which contains the original one. So don't do
+                        that, OK? *)
+                     go_block rest stmts )
+             | { fix = One f; _ } ->
+                 let node' = Result.value ~default:node (f node) in
+                 if node' != node then super#stmt node' :: rest else go rest node xs )
+         and go_stmt original xs =
+           Notes.Tbl.find_all fixes (Node (Stmt, original)) |> go xs original
+         and go_block rest xs = List.fold_right go_stmt xs rest in
+         go_block []
 
-       method! program program =
-         let visit (type a) (x : program) (note : a NoteAt.t) : program =
-           match note with
-           | { witness = Program; _ } -> fix_some ~original:program x note
-           | _ -> x
-         in
-         List.fold_left (fun x (Note note) -> visit x note) program fixes |> super#program
+       method! program program = fix_all fixes Program program |> super#program
 
-       method! expr expr =
-         let visit (type a) (x : expr) (note : a NoteAt.t) : expr =
-           match note with
-           | { witness = Expr; _ } -> fix_some ~original:expr x note
-           | _ -> x
-         in
-         List.fold_left (fun x (Note note) -> visit x note) expr fixes |> super#expr
+       method! call x = fix_all fixes Call x |> super#call
+
+       method! expr x = fix_all fixes Expr x |> super#expr
 
        method! call_args args =
          let rewrap = function
@@ -312,71 +343,34 @@ let fix prog fixes =
                    close_a = SimpleNode { contents = CParen }
                  }
          in
-         let fix { fix; _ } args expr =
-           match fix with
-           | One f -> f expr |> Result.fold ~error:(fun _ -> args) ~ok:rewrap
-           | _ -> args
-         in
-
          let args =
            match args with
            | CallArgs _ -> args
-           | CallTable original ->
-               let rec visit notes (arg : call_args) : call_args =
-                 match (arg, notes) with
-                 | _, [] -> arg
-                 | (CallArgs _ | CallString _), _ -> arg (* If we're no longer a table, abort. *)
-                 | CallTable t, Note { witness = Expr; source; note } :: notes ->
-                     ( match source with
-                     | Table source when source == original -> fix note args (Table t)
-                     | _ -> args )
-                     |> visit notes
-                 | CallTable _, _ :: notes -> visit notes arg
-               in
-               visit fixes args
-           | CallString original ->
-               let rec visit notes (arg : call_args) : call_args =
-                 match (arg, notes) with
-                 | _, [] -> arg
-                 | (CallArgs _ | CallTable _), _ -> arg (* If we're no longer a string, abort. *)
-                 | CallString s, Note { witness = Expr; source; note } :: notes ->
-                     ( match source with
-                     | String source when source == original -> fix note args (String s)
-                     | _ -> args )
-                     |> visit notes
-                 | CallString _, _ :: notes -> visit notes arg
-               in
-               visit fixes args
+           | CallTable original -> fix_all fixes Expr (Table original) |> rewrap
+           | CallString original -> fix_all fixes Expr (String original) |> rewrap
          in
          super#call_args args
 
-       method! name name =
-         let visit (type a) (x : name) (note : a NoteAt.t) : name =
-           match note with
-           | { witness = Name; _ } -> fix_some ~original:name x note
-           | _ -> x
-         in
-         List.fold_left (fun x (Note note) -> visit x note) name fixes |> super#name
+       method! name name = fix_all fixes Name name |> super#name
 
-       method! var var =
-         let visit (type a) (x : var) (note : a NoteAt.t) : var =
-           match note with
-           | { witness = Var; _ } -> fix_some ~original:var x note
-           | _ -> x
-         in
-         List.fold_left (fun x (Note note) -> visit x note) var fixes |> super#var
+       method! var var = fix_all fixes Var var |> super#var
     end)
       #program prog
 
 let lint_and_fix_all ~store ~data ?files ?tags linters program =
-  List.fold_left
-    (fun (program, msgs) linter ->
-      let msgs' = lint ~store ~data ?tags linter program in
-      let program = fix program msgs' in
-      Option.iter
-        (fun (name, store) ->
-          IlluaminateData.Programs.FileStore.update store name (Some program);
-          IlluaminateData.refresh data)
-        files;
-      (program, msgs' @ msgs))
-    (program, []) linters
+  let all = Notes.Tbl.create 8 in
+  let program =
+    List.fold_left
+      (fun program linter ->
+        let msgs' = lint ~store ~data ?tags linter program in
+        let program = fix program msgs' in
+        Option.iter
+          (fun (name, store) ->
+            IlluaminateData.Programs.FileStore.update store name (Some program);
+            IlluaminateData.refresh data)
+          files;
+        Notes.Tbl.(iter (add all) msgs');
+        program)
+      program linters
+  in
+  (program, all)

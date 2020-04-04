@@ -6,11 +6,11 @@ undocumented.lua:[11:13-11:26]: `no_docs` is exported, but has no documentation.
     │
  11 │   no_docs = function() end, -- This doesn't
     │             ^^^^^^^^^^^^^^
-undocumented.lua:[14:13-14:30]: Argument `b` is missing a description [doc:undocumented-arg]
+undocumented.lua:[14:13-14:30]: Argument `a` is missing a description [doc:undocumented-arg]
     │
  14 │   no_args = function(a, b) end,
     │             ^^^^^^^^^^^^^^^^^^
-undocumented.lua:[14:13-14:30]: Argument `a` is missing a description [doc:undocumented-arg]
+undocumented.lua:[14:13-14:30]: Argument `b` is missing a description [doc:undocumented-arg]
     │
  14 │   no_args = function(a, b) end,
     │             ^^^^^^^^^^^^^^^^^^

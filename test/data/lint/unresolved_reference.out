@@ -1,12 +1,4 @@
-unresolved_reference.lua:[21:14-21:28]: Unknown reference "UnknownSee". [doc:unresolved-reference]
-    │
- 21 │   has_docs = function(f) end,
-    │              ^^^^^^^^^^^^^^^
-unresolved_reference.lua:[21:14-21:28]: Unknown reference "UnknownExample". [doc:unresolved-reference]
-    │
- 21 │   has_docs = function(f) end,
-    │              ^^^^^^^^^^^^^^^
-unresolved_reference.lua:[21:14-21:28]: Unknown reference "UnknownRetType". [doc:unresolved-reference]
+unresolved_reference.lua:[21:14-21:28]: Unknown reference "UnknownDescription". [doc:unresolved-reference]
     │
  21 │   has_docs = function(f) end,
     │              ^^^^^^^^^^^^^^^
@@ -14,7 +6,15 @@ unresolved_reference.lua:[21:14-21:28]: Unknown reference "UnknownArgType". [doc
     │
  21 │   has_docs = function(f) end,
     │              ^^^^^^^^^^^^^^^
-unresolved_reference.lua:[21:14-21:28]: Unknown reference "UnknownDescription". [doc:unresolved-reference]
+unresolved_reference.lua:[21:14-21:28]: Unknown reference "UnknownRetType". [doc:unresolved-reference]
+    │
+ 21 │   has_docs = function(f) end,
+    │              ^^^^^^^^^^^^^^^
+unresolved_reference.lua:[21:14-21:28]: Unknown reference "UnknownExample". [doc:unresolved-reference]
+    │
+ 21 │   has_docs = function(f) end,
+    │              ^^^^^^^^^^^^^^^
+unresolved_reference.lua:[21:14-21:28]: Unknown reference "UnknownSee". [doc:unresolved-reference]
     │
  21 │   has_docs = function(f) end,
     │              ^^^^^^^^^^^^^^^

@@ -1,4 +1,4 @@
-doc_parse.lua:[3:1-7:13]: Duplicate @module definitions (named 'foo' and '') [doc:duplicate-definitions]
+doc_parse.lua:[3:1-7:13]: Duplicate @module definitions (named 'foo' and 'bar') [doc:duplicate-definitions]
    │
  3 │ --- A module
    │ ^^^^^^^^^^^^
@@ -6,7 +6,7 @@ doc_parse.lua:[3:1-7:13]: @module has unknown flag 'x' [doc:unknown-flag]
    │
  3 │ --- A module
    │ ^^^^^^^^^^^^
-doc_parse.lua:[3:1-7:13]: Duplicate @module definitions (named 'foo' and 'bar') [doc:duplicate-definitions]
+doc_parse.lua:[3:1-7:13]: Duplicate @module definitions (named 'foo' and '') [doc:duplicate-definitions]
    │
  3 │ --- A module
    │ ^^^^^^^^^^^^

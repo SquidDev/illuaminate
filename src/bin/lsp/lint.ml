@@ -22,32 +22,35 @@ let note_to_diagnostic : Driver.any_note -> Diagnostic.t = function
       in
       diagnostic ~tag ~span message
 
+module Seq = struct
+  include Seq
+
+  let hd (f : 'a Seq.t) : 'a =
+    match f () with
+    | Cons (x, _) -> x
+    | Nil -> failwith "hd"
+end
+
 let notes =
   D.Programs.key ~name:__MODULE__ @@ fun data prog ->
   let tags, store = D.need data Store.linters (Node.span prog.eof |> Span.filename) in
-  let notes =
+  let n, notes =
     List.fold_left
-      (fun notes linter ->
-        match Driver.need_lint ~tags ~store ~data linter prog with
-        | [] -> notes
-        | n -> n :: notes)
-      [] Linters.all
+      (fun (n, notes) linter ->
+        let this = Driver.need_lint ~tags ~store ~data linter prog in
+        let size = Driver.Notes.size this in
+        if size > 0 then (n + size, this :: notes) else (n, notes))
+      (0, []) Linters.all
   in
-  match notes with
-  | [] -> [||]
-  | (x :: xs) :: xss ->
-      let length = List.fold_left (fun n x -> n + List.length x) 0 notes in
-      let out = Array.make length x in
-      let rec add i xs xss =
-        match (xs, xss) with
-        | [], [] -> ()
-        | [], xs :: xss -> add i xs xss
-        | x :: xs, xss ->
-            out.(i) <- x;
-            add (i + 1) xs xss
-      in
-      add 1 xs xss; out
-  | [] :: _ -> failwith "Impossible"
+
+  if n = 0 then [||]
+  else
+    let out = List.hd notes |> Driver.Notes.to_seq |> Seq.hd |> Array.make n in
+    List.fold_left
+      (fun i xs -> Driver.Notes.to_seq xs |> Seq.fold_left (fun i x -> out.(i) <- x; i + 1) i)
+      0 notes
+    |> ignore;
+    out
 
 let diagnostics store : Store.document -> Diagnostic.t list = function
   | { program = Error { span; value }; _ } ->
@@ -107,12 +110,12 @@ let fix store program id =
   let notes = D.get (Store.data store) notes program in
   if id < 0 || id > Array.length notes then Result.Error "Unknown note"
   else
-    let (Driver.Note { note = { fix; _ }; source; witness }) = notes.(id) in
+    let (Driver.Note { note = { fix; _ }; source; kind }) = notes.(id) in
     match fix with
     | Nothing -> Error "No fixer for this note"
-    | One f -> Result.map (make_edit source witness) (f source)
+    | One f -> Result.map (make_edit source kind) (f source)
     | Block f ->
         f source
         |> Result.map @@ fun res ->
-           let range = get_whole_range source witness in
+           let range = get_whole_range source kind in
            { range; TextEdit.newText = Format.asprintf "%a" Emit.block res }
