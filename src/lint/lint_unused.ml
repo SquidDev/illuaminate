@@ -10,7 +10,7 @@ let tag_arg = Error.Tag.make ~attr:[ Default; Unused ] ~level:Warning "var:unuse
 
 let tag_global = Error.Tag.make ~attr:[ Default; Unused ] ~level:Warning "var:unused-global"
 
-let fix_var = FixOne (fun (Var name) -> Ok (Var (Node.with_contents "_" name)))
+let fix_var = Fixer.fix @@ fun (Var name) -> Ok (Var (Node.with_contents "_" name))
 
 let fix_args ({ args_args = args; _ } as rest) =
   let rec go =
@@ -27,19 +27,17 @@ let fix_args ({ args_args = args; _ } as rest) =
   { rest with args_args = Option.bind args go }
 
 let fix_expr =
-  FixOne
-    (function
-    | Fun ({ fun_args = args; _ } as rest) -> Ok (Fun { rest with fun_args = fix_args args })
-    | _ -> Error "Expected function")
+  Fixer.fix @@ function
+  | Fun ({ fun_args = args; _ } as rest) -> Ok (Fun { rest with fun_args = fix_args args })
+  | _ -> Error "Expected function"
 
 let fix_stmt =
-  FixOne
-    (function
-    | LocalFunction ({ localf_args = args; _ } as rest) ->
-        Ok (LocalFunction { rest with localf_args = fix_args args })
-    | AssignFunction ({ assignf_args = args; _ } as rest) ->
-        Ok (AssignFunction { rest with assignf_args = fix_args args })
-    | _ -> Error "Expected function")
+  Fixer.fix @@ function
+  | LocalFunction ({ localf_args = args; _ } as rest) ->
+      Ok (LocalFunction { rest with localf_args = fix_args args })
+  | AssignFunction ({ assignf_args = args; _ } as rest) ->
+      Ok (AssignFunction { rest with assignf_args = fix_args args })
+  | _ -> Error "Expected function"
 
 let check_args (context : context) fix { args_args; _ } =
   match SepList0.last args_args with

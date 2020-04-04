@@ -1,19 +1,27 @@
 open IlluaminateCore
 
-type 'a fixer =
-  | FixNothing : 'a fixer
-  | FixOne : ('a -> ('a, string) result) -> 'a fixer
-  | FixBlock : (Syntax.stmt -> (Syntax.stmt list, string) result) -> Syntax.stmt fixer
+module Fixer = struct
+  type 'a t =
+    | Nothing : 'a t
+    | One : ('a -> ('a, string) result) -> 'a t
+    | Block : (Syntax.stmt -> (Syntax.stmt list, string) result) -> Syntax.stmt t
+
+  let none = Nothing
+
+  let fix f = One f
+
+  let block f = Block f
+end
 
 type 'a note =
   { message : string;
     detail : (Format.formatter -> unit) option;
-    fix : 'a fixer;
+    fix : 'a Fixer.t;
     tag : Error.Tag.t;
     span : Span.t option
   }
 
-let note ?(fix = FixNothing) ?span ?detail ~tag message =
+let note ?(fix = Fixer.none) ?span ?detail ~tag message =
   Format.kasprintf (fun message -> { fix; message; detail; span; tag }) message
 
 type path_item =

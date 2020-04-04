@@ -40,45 +40,43 @@ let rec over_last f = function
   | x :: xs -> x :: over_last f xs
 
 let add_sep insert =
-  FixOne
-    (function
-    | Table ({ table_body; _ } as t) ->
-        let fix = function
-          | i, Some x -> (i, Some (Node.contents.over (fun _ -> insert) x))
-          | i, None -> (
-              let last = Last.table_item.get i in
-              match last with
-              | Node.SimpleNode _ -> (i, Some (Node.SimpleNode { contents = insert }))
-              | Node.Node { trailing_trivia; span; _ } ->
-                  ( Lens.(Last.table_item -| Node.trailing_trivia).over (fun _ -> []) i,
-                    Some
-                      (Node.Node
-                         { contents = insert;
-                           span = Span.finish span;
-                           leading_trivia = [];
-                           trailing_trivia
-                         }) ) )
-        in
-        Ok (Table { t with table_body = over_last fix table_body })
-    | _ -> Error "Expected a table")
+  Fixer.fix @@ function
+  | Table ({ table_body; _ } as t) ->
+      let fix = function
+        | i, Some x -> (i, Some (Node.contents.over (fun _ -> insert) x))
+        | i, None -> (
+            let last = Last.table_item.get i in
+            match last with
+            | Node.SimpleNode _ -> (i, Some (Node.SimpleNode { contents = insert }))
+            | Node.Node { trailing_trivia; span; _ } ->
+                ( Lens.(Last.table_item -| Node.trailing_trivia).over (fun _ -> []) i,
+                  Some
+                    (Node.Node
+                       { contents = insert;
+                         span = Span.finish span;
+                         leading_trivia = [];
+                         trailing_trivia
+                       }) ) )
+      in
+      Ok (Table { t with table_body = over_last fix table_body })
+  | _ -> Error "Expected a table"
 
 let del_sep =
-  FixOne
-    (function
-    | Table ({ table_body; _ } as t) ->
-        let fix = function
-          | i, (None | Some (Node.SimpleNode _)) -> (i, None)
-          | i, Some (Node.Node { leading_trivia = []; trailing_trivia = []; _ }) -> (i, None)
-          | i, Some (Node.Node { leading_trivia; trailing_trivia; _ }) ->
-              ( Lens.(Last.table_item -| Node.trailing_trivia).over
-                  (fun x ->
-                    let ( @^ ) = Node.join_trivia in
-                    x @^ leading_trivia @^ trailing_trivia)
-                  i,
-                None )
-        in
-        Ok (Table { t with table_body = over_last fix table_body })
-    | _ -> Error "Expected a table")
+  Fixer.fix @@ function
+  | Table ({ table_body; _ } as t) ->
+      let fix = function
+        | i, (None | Some (Node.SimpleNode _)) -> (i, None)
+        | i, Some (Node.Node { leading_trivia = []; trailing_trivia = []; _ }) -> (i, None)
+        | i, Some (Node.Node { leading_trivia; trailing_trivia; _ }) ->
+            ( Lens.(Last.table_item -| Node.trailing_trivia).over
+                (fun x ->
+                  let ( @^ ) = Node.join_trivia in
+                  x @^ leading_trivia @^ trailing_trivia)
+                i,
+              None )
+      in
+      Ok (Table { t with table_body = over_last fix table_body })
+  | _ -> Error "Expected a table"
 
 let expr sep _ = function
   | Table

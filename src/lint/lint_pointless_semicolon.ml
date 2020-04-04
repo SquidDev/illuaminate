@@ -6,10 +6,9 @@ open Lens
 let tag = Error.Tag.make ~attr:[ Default; Unused ] ~level:Note "syntax:redundant-semicolon"
 
 let fix =
-  FixBlock
-    (function
-    | Semicolon _ -> Ok []
-    | _ -> Error "Expected semicolon")
+  Fixer.block @@ function
+  | Semicolon _ -> Ok []
+  | _ -> Error "Expected semicolon"
 
 let msg = [ note ~fix ~tag "Redundant semicolon." ]
 

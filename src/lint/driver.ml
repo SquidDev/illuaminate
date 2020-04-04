@@ -232,13 +232,13 @@ let fix_some ~original node note =
   if note.NoteAt.source != original then node
   else
     match note.note.fix with
-    | FixOne f -> Result.value ~default:node (f node)
+    | One f -> Result.value ~default:node (f node)
     | _ -> node
 
 let no_fix (Note { note = { fix; _ }; _ }) =
   match fix with
-  | FixNothing -> true
-  | FixOne _ | FixBlock _ -> false
+  | Nothing -> true
+  | One _ | Block _ -> false
   (* bisect_ppx doesn't work well with GADTs *) [@@coverage off]
 
 let fix prog fixes =
@@ -267,8 +267,7 @@ let fix prog fixes =
        method! block stmts =
          let visit (type a) (original : stmt) (x : stmt) (note : a NoteAt.t) : stmt list option =
            match note with
-           | { witness = Stmt; source; note = { fix = FixBlock f; _ }; _ } when source == original
-             ->
+           | { witness = Stmt; source; note = { fix = Block f; _ }; _ } when source == original ->
                Some (Result.value ~default:[ x ] (f x))
            | _ -> None
          in
@@ -315,7 +314,7 @@ let fix prog fixes =
          in
          let fix { fix; _ } args expr =
            match fix with
-           | FixOne f -> f expr |> Result.fold ~error:(fun _ -> args) ~ok:rewrap
+           | One f -> f expr |> Result.fold ~error:(fun _ -> args) ~ok:rewrap
            | _ -> args
          in
 

@@ -50,7 +50,7 @@ let fix =
     | String lit -> Ok (String (Lens.(Literal.lit_node %= requote quote) @@ lit))
     | _ -> Error "Expected a string"
   in
-  let fix_single = FixOne (fix Single) and fix_double = FixOne (fix Double) in
+  let fix_single = Fixer.fix @@ fix Single and fix_double = Fixer.fix @@ fix Double in
   function
   | Quote.Single -> fix_single
   | Double -> fix_double

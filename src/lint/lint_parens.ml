@@ -53,7 +53,7 @@ let unwrap_all =
         Ok e
     | _ -> Error "Expected Parens"
   in
-  [ note ~tag ~fix:(FixOne fix) "Unnecessary parenthesis." ]
+  [ note ~tag ~fix:(Fixer.fix @@ fix) "Unnecessary parenthesis." ]
 
 let unwrap_most =
   (* The fixer attempts to append the leading/trailing trivia to the outer parenthesis. *)
@@ -69,7 +69,7 @@ let unwrap_most =
         |> Result.ok
     | _ -> Error "Expected Parens"
   in
-  [ note ~tag ~fix:(FixOne fix) "Unnecessary parenthesis." ]
+  [ note ~tag ~fix:(Fixer.fix @@ fix) "Unnecessary parenthesis." ]
 
 let contains p = function
   | None -> false

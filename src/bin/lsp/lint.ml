@@ -60,8 +60,8 @@ let diagnostics store : Store.document -> Diagnostic.t list = function
 
 let to_code_action ~program (i, (Driver.Note { note = { Linter.message; fix; _ }; _ } as note)) =
   match fix with
-  | FixNothing -> None
-  | FixOne _ | FixBlock _ ->
+  | Nothing -> None
+  | One _ | Block _ ->
       let title = Printf.sprintf "Fix '%s'" message in
       let action =
         CodeAction.create ~title ~kind:QuickFix ~diagnostics:[ note_to_diagnostic note ]
@@ -109,9 +109,9 @@ let fix store program id =
   else
     let (Driver.Note { note = { fix; _ }; source; witness }) = notes.(id) in
     match fix with
-    | FixNothing -> Error "No fixer for this note"
-    | FixOne f -> Result.map (make_edit source witness) (f source)
-    | FixBlock f ->
+    | Nothing -> Error "No fixer for this note"
+    | One f -> Result.map (make_edit source witness) (f source)
+    | Block f ->
         f source
         |> Result.map @@ fun res ->
            let range = get_whole_range source witness in

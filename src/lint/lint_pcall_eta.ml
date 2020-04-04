@@ -90,20 +90,18 @@ let fix = function
   | _ -> Error "Not a suitable call"
 
 let fix_expr =
-  FixOne
-    (function
-    | ECall call -> fix call |> Result.map (fun x -> ECall x)
-    | _ -> Error "Not a function call")
+  Fixer.fix @@ function
+  | ECall call -> fix call |> Result.map (fun x -> ECall x)
+  | _ -> Error "Not a function call"
 
 let expr () context = function
   | ECall call -> check ~context ~fix:fix_expr call
   | _ -> []
 
 let fix_stmt =
-  FixOne
-    (function
-    | SCall call -> fix call |> Result.map (fun x -> SCall x)
-    | _ -> Error "Not a function call")
+  Fixer.fix @@ function
+  | SCall call -> fix call |> Result.map (fun x -> SCall x)
+  | _ -> Error "Not a function call"
 
 let stmt () context = function
   | SCall call -> check ~context ~fix:fix_stmt call

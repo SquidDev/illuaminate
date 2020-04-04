@@ -24,18 +24,16 @@ let tag_if = Error.Tag.make ~attr:[ Default ] ~level:Warning "syntax:empty-if"
 
 let msg_do =
   let fix =
-    FixBlock
-      (function
-      | Do { do_body = []; _ } -> Ok []
-      | _ -> Error "Expected empty `do' block.")
+    Fixer.block @@ function
+    | Do { do_body = []; _ } -> Ok []
+    | _ -> Error "Expected empty `do' block."
   in
   [ note ~fix ~tag:tag_do "Empty do statement" ]
 
 let fix_else =
-  FixOne
-    (function
-    | If ({ if_else = Some (_, []); _ } as ifs) -> Ok (If { ifs with if_else = None })
-    | _ -> Error "Expected empty `else' clause.")
+  Fixer.fix @@ function
+  | If ({ if_else = Some (_, []); _ } as ifs) -> Ok (If { ifs with if_else = None })
+  | _ -> Error "Expected empty `else' clause."
 
 let clause_span { clause_if; clause_then; _ } =
   Span.of_span2 (Node.span clause_if) (Node.span clause_then)
@@ -46,8 +44,8 @@ let stmt { Opt.allow_empty_if } _ = function
       let clauses =
         List.fold_left
           (fun xs ({ clause_body; _ } as c) ->
-            ("elseif", clause_body, clause_span c, FixNothing) :: xs)
-          [ ("if", if_if.clause_body, clause_span if_if, FixNothing) ]
+            ("elseif", clause_body, clause_span c, Fixer.none) :: xs)
+          [ ("if", if_if.clause_body, clause_span if_if, Fixer.none) ]
           if_elseif
       in
       let clauses =

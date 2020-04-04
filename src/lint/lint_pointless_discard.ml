@@ -82,48 +82,45 @@ module Fix = struct
       | NVar v -> is_discard v
       | _ -> false
     in
-    FixBlock
-      (function
-      | Assign ({ assign_vars = vs; assign_vals = es; _ } as st) -> (
-        match fix_list1 is_discard_name Lens.(Syntax.Last.name -| Node.trailing_trivia) vs with
+    Fixer.block @@ function
+    | Assign ({ assign_vars = vs; assign_vals = es; _ } as st) -> (
+      match fix_list1 is_discard_name Lens.(Syntax.Last.name -| Node.trailing_trivia) vs with
+      | Error e -> Error e
+      | Ok (Present vs) -> Ok [ Assign { st with assign_vars = vs } ]
+      | Ok (Empty _) -> flatten1 es )
+    | Local ({ local_vars = vs; local_vals = es; _ } as st) -> (
+      match fix_list1 is_discard Lens.(Syntax.Last.var -| Node.trailing_trivia) vs with
+      | Error e -> Error e
+      | Ok (Present vs) -> Ok [ Local { st with local_vars = vs } ]
+      | Ok (Empty _) -> (
+        match es with
+        | None -> Ok []
+        | Some (_, vs) -> flatten1 vs ) )
+    | ForIn ({ forp_vars = SepList1.Cons1 (v, s, vs); _ } as forp) -> (
+        let lens = Lens.(Syntax.Last.var -| Node.trailing_trivia) in
+        match fix_list1 is_discard lens vs with
         | Error e -> Error e
-        | Ok (Present vs) -> Ok [ Assign { st with assign_vars = vs } ]
-        | Ok (Empty _) -> flatten1 es )
-      | Local ({ local_vars = vs; local_vals = es; _ } as st) -> (
-        match fix_list1 is_discard Lens.(Syntax.Last.var -| Node.trailing_trivia) vs with
-        | Error e -> Error e
-        | Ok (Present vs) -> Ok [ Local { st with local_vars = vs } ]
-        | Ok (Empty _) -> (
-          match es with
-          | None -> Ok []
-          | Some (_, vs) -> flatten1 vs ) )
-      | ForIn ({ forp_vars = SepList1.Cons1 (v, s, vs); _ } as forp) -> (
-          let lens = Lens.(Syntax.Last.var -| Node.trailing_trivia) in
-          match fix_list1 is_discard lens vs with
-          | Error e -> Error e
-          | Ok (Empty tt) ->
-              Ok [ ForIn { forp with forp_vars = Mono (lens.over (fun t -> t @ tt) v) } ]
-          | Ok (Present vs) -> Ok [ ForIn { forp with forp_vars = Cons1 (v, s, vs) } ] )
-      | LocalFunction _ | AssignFunction _ -> Ok []
-      | _ -> Error "Oh no")
+        | Ok (Empty tt) ->
+            Ok [ ForIn { forp with forp_vars = Mono (lens.over (fun t -> t @ tt) v) } ]
+        | Ok (Present vs) -> Ok [ ForIn { forp with forp_vars = Cons1 (v, s, vs) } ] )
+    | LocalFunction _ | AssignFunction _ -> Ok []
+    | _ -> Error "Oh no"
 
   (** Checks the arguments of a function. *)
   let fix_expr_args =
-    FixOne
-      (function
-      | Fun ({ fun_args = args; _ } as fn) ->
-          fix_args args |> Result.map (fun x -> Fun { fn with fun_args = x })
-      | _ -> Error "Not a function.")
+    Fixer.fix @@ function
+    | Fun ({ fun_args = args; _ } as fn) ->
+        fix_args args |> Result.map (fun x -> Fun { fn with fun_args = x })
+    | _ -> Error "Not a function."
 
   (** Checks the arguments of a statement. *)
   let fix_stmt_args =
-    FixOne
-      (function
-      | LocalFunction ({ localf_args = args; _ } as fn) ->
-          fix_args args |> Result.map (fun x -> LocalFunction { fn with localf_args = x })
-      | AssignFunction ({ assignf_args = args; _ } as fn) ->
-          fix_args args |> Result.map (fun x -> AssignFunction { fn with assignf_args = x })
-      | _ -> Error "Not a function")
+    Fixer.fix @@ function
+    | LocalFunction ({ localf_args = args; _ } as fn) ->
+        fix_args args |> Result.map (fun x -> LocalFunction { fn with localf_args = x })
+    | AssignFunction ({ assignf_args = args; _ } as fn) ->
+        fix_args args |> Result.map (fun x -> AssignFunction { fn with assignf_args = x })
+    | _ -> Error "Not a function"
 end
 
 let note fix (Var n) = [ note ~fix ~span:(Node.span n) ~tag "Pointless discard variable `_`." ]

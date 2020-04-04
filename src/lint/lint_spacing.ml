@@ -26,10 +26,9 @@ let has_leading prev = function
 
 module Fix = struct
   let after =
-    FixOne
-      (fun node ->
-        let span = Node.span node in
-        Ok (Node.trailing_trivia.over (fun x -> { value = Whitespace " "; span } :: x) node))
+    Fixer.fix @@ fun node ->
+    let span = Node.span node in
+    Ok (Node.trailing_trivia.over (fun x -> { value = Whitespace " "; span } :: x) node)
 
   let around prev node =
     let span = Node.span node in
@@ -52,31 +51,29 @@ module Fix = struct
     | ((Array _, _) as p) :: xs -> p :: table_body xs
 
   let expr =
-    FixOne
-      (function
-      | BinOp ({ binop_lhs; binop_op; _ } as op) ->
-          Ok (BinOp { op with binop_op = around (Last.expr.get binop_lhs) binop_op })
-      | Table x -> Ok (Table { x with table_body = table_body x.table_body })
-      | _ -> Error "Unknown expression")
+    Fixer.fix @@ function
+    | BinOp ({ binop_lhs; binop_op; _ } as op) ->
+        Ok (BinOp { op with binop_op = around (Last.expr.get binop_lhs) binop_op })
+    | Table x -> Ok (Table { x with table_body = table_body x.table_body })
+    | _ -> Error "Unknown expression"
 
   let stmt =
-    FixOne
-      (function
-      | Assign ({ assign_vars; assign_eq; _ } as stmt) ->
-          Ok
-            (Assign
-               { stmt with
-                 assign_eq = around (assign_vars |> SepList1.last.get |> Last.name.get) assign_eq
-               })
-      | ForNum ({ forn_var; forn_eq; _ } as stmt) ->
-          Ok (ForNum { stmt with forn_eq = around (Last.var.get forn_var) forn_eq })
-      | Local ({ local_vars; local_vals = Some (eql, vs); _ } as stmt) ->
-          Ok
-            (Local
-               { stmt with
-                 local_vals = Some (around (local_vars |> SepList1.last.get |> Last.var.get) eql, vs)
-               })
-      | _ -> Error "Unknown statement")
+    Fixer.fix @@ function
+    | Assign ({ assign_vars; assign_eq; _ } as stmt) ->
+        Ok
+          (Assign
+             { stmt with
+               assign_eq = around (assign_vars |> SepList1.last.get |> Last.name.get) assign_eq
+             })
+    | ForNum ({ forn_var; forn_eq; _ } as stmt) ->
+        Ok (ForNum { stmt with forn_eq = around (Last.var.get forn_var) forn_eq })
+    | Local ({ local_vars; local_vals = Some (eql, vs); _ } as stmt) ->
+        Ok
+          (Local
+             { stmt with
+               local_vals = Some (around (local_vars |> SepList1.last.get |> Last.var.get) eql, vs)
+             })
+    | _ -> Error "Unknown statement"
 end
 
 module Lint = struct

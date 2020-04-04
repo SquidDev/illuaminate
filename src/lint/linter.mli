@@ -2,21 +2,33 @@
 
 open IlluaminateCore
 
-(** A fixer for a problematic node. This should map a term of some type, to an equivalent
-    no-problematic term. *)
-type 'a fixer =
-  | FixNothing : 'a fixer  (** This node has no fixer. *)
-  | FixOne : ('a -> ('a, string) result) -> 'a fixer
-      (** This node can be fixed by replacing it with a single equivalent node. If the node cannot
-          be fixed, we return {!Error}. *)
-  | FixBlock : (Syntax.stmt -> (Syntax.stmt list, string) result) -> Syntax.stmt fixer
-      (** This statement can be fixed by replacing it with 0 or more statements. *)
+module Fixer : sig
+  (** A fixer for a problematic node. This should map a term of some type, to an equivalent
+      no-problematic term. *)
+  type 'a t = private
+    | Nothing : 'a t  (** This node has no fixer. *)
+    | One : ('a -> ('a, string) result) -> 'a t
+        (** This node can be fixed by replacing it with a single equivalent node. If the node cannot
+            be fixed, we return {!Error}. *)
+    | Block : (Syntax.stmt -> (Syntax.stmt list, string) result) -> Syntax.stmt t
+        (** This statement can be fixed by replacing it with 0 or more statements. *)
+
+  (** The fixer which does nothing. See {!Nothing} *)
+  val none : 'a t
+
+  (** Construct a fixer which replaces it with an equivalent node. See {!One}. *)
+  val fix : ('a -> ('a, string) result) -> 'a t
+
+  (** Construct a fixer which replaces a statement with a (possibly empty) list of statements. See
+      {!Block} *)
+  val block : (Syntax.stmt -> (Syntax.stmt list, string) result) -> Syntax.stmt t
+end
 
 (** A linter message which will be attached to a specific node. *)
 type 'a note = private
   { message : string;  (** The message used within this warning. *)
     detail : (Format.formatter -> unit) option;  (** Additional detail to the message. *)
-    fix : 'a fixer;
+    fix : 'a Fixer.t;
         (** A function which will be used to fix up this warning. Note, this function should not
             make any assumptions about the form of this node. *)
     tag : Error.Tag.t;  (** The tag associated with this error. *)
@@ -25,7 +37,7 @@ type 'a note = private
 
 (** Construct a new {!type:note} *)
 val note :
-  ?fix:'a fixer ->
+  ?fix:'a Fixer.t ->
   ?span:Span.t ->
   ?detail:(Format.formatter -> unit) ->
   tag:Error.Tag.t ->
