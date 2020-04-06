@@ -46,7 +46,7 @@ let lint paths github =
            |> List.iter @@ fun l ->
               Driver.lint ~store ~data ~tags l parsed
               |> Driver.Notes.to_seq
-              |> Seq.iter (Driver.report_note errs));
+              |> Seq.iter (Driver.Note.report_any errs));
   Error.display_of_files errs;
   ( if github then
     match Github.publish_errors errs with

@@ -88,7 +88,7 @@ and lint () : unit =
       |> List.iter @@ fun l ->
          Driver.lint ~store ~data ~tags l parsed
          |> Driver.Notes.to_seq
-         |> Seq.iter (Driver.report_note errs) );
+         |> Seq.iter (Driver.Note.report_any errs) );
   let out =
     Error.errors errs
     |> List.sort Error.Error.span_compare

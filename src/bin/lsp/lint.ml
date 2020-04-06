@@ -12,9 +12,8 @@ let diagnostic ~tag ~span ?relatedInformation message =
   Diagnostic.create ~range:(range span) ~severity:(tag_severity tag) ~code:(tag_code tag)
     ~source:"illuaminate" ~message ?relatedInformation ?tags:(tag_attributes tag) ()
 
-let note_to_diagnostic : Driver.any_note -> Diagnostic.t = function
-  | Note ({ note = { Linter.message; detail; tag; _ }; _ } as n) ->
-      let span = Driver.NoteAt.span n in
+let note_to_diagnostic : Driver.Note.any -> Diagnostic.t = function
+  | Note { message; detail; tag; span; _ } ->
       let message =
         match detail with
         | None -> message
@@ -61,7 +60,7 @@ let diagnostics store : Store.document -> Diagnostic.t list = function
       D.get (Store.data store) notes prog
       |> Array.to_seq |> Seq.map note_to_diagnostic |> CCList.of_std_seq_rev
 
-let to_code_action ~program (i, (Driver.Note { note = { Linter.message; fix; _ }; _ } as note)) =
+let to_code_action ~program (i, (Driver.Note.Note { message; fix; _ } as note)) =
   match fix with
   | Nothing -> None
   | One _ | Block _ ->
@@ -81,7 +80,7 @@ let to_code_action ~program (i, (Driver.Note { note = { Linter.message; fix; _ }
 let code_actions store program range : CodeActionResult.t =
   D.get (Store.data store) notes program
   |> Array.to_seqi
-  |> Seq.filter (fun (_, Driver.Note n) -> Pos.overlaps range (Driver.NoteAt.span n))
+  |> Seq.filter (fun (_, Driver.Note.Note { span; _ }) -> Pos.overlaps range span)
   |> Seq.filter_map (to_code_action ~program)
   |> CCList.of_std_seq_rev |> Option.some
 
@@ -110,7 +109,7 @@ let fix store program id =
   let notes = D.get (Store.data store) notes program in
   if id < 0 || id > Array.length notes then Result.Error "Unknown note"
   else
-    let (Driver.Note { note = { fix; _ }; source; kind }) = notes.(id) in
+    let (Driver.Note.Note { fix; source; kind; _ }) = notes.(id) in
     match fix with
     | Nothing -> Error "No fixer for this note"
     | One f -> Result.map (make_edit source kind) (f source)

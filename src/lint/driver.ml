@@ -2,27 +2,30 @@ open IlluaminateCore
 open Linter
 module C = IlluaminateConfig
 
-module NoteAt = struct
+module Note = struct
   type 'a t =
-    { note : 'a note;
+    { message : string;
+      detail : (Format.formatter -> unit) option;
+      fix : 'a Fixer.t;
+      tag : Error.Tag.t;
+      span : Span.t;
       source : 'a;
       kind : 'a Witness.t
     }
 
-  let span (type a) : a t -> Span.t = function
-    | { note = { span = Some span; _ }; _ } -> span
-    | { kind; source; _ } -> Witness.span kind source
+  (* let span (type a) : a t -> Span.t = function
+   *   | { note = { span = Some span; _ }; _ } -> span
+   *   | { kind; source; _ } -> Witness.span kind source *)
 
-  let report err ({ note; _ } as n) =
-    let span = span n in
-    match note.detail with
-    | None -> Error.report err note.tag span note.message
-    | Some detail -> Error.report_detailed err note.tag span note.message detail
+  let report err { detail; tag; span; message; _ } =
+    match detail with
+    | None -> Error.report err tag span message
+    | Some detail -> Error.report_detailed err tag span message detail
+
+  type any = Note : 'a t -> any
+
+  let report_any err (Note n) = report err n
 end
-
-type any_note = Note : 'a NoteAt.t -> any_note
-
-let report_note err (Note n) = NoteAt.report err n
 
 module Node = struct
   type t = Node : 'a Witness.t * 'a -> t
@@ -46,7 +49,7 @@ module Node = struct
     | (Stmt | Program | Token | BinOp | Name | Expr | Var | Call), _ -> false
 end
 
-let extract (type a) (l : a Witness.t) (Note { kind = r; note; _ }) : a note =
+let extract (type a) (l : a Witness.t) (Note.Note ({ kind = r; _ } as note)) : a Note.t =
   match (l, r) with
   | Stmt, Stmt -> note
   | Program, Program -> note
@@ -61,7 +64,7 @@ let extract (type a) (l : a Witness.t) (Note { kind = r; note; _ }) : a note =
 module Notes = struct
   module Tbl = Hashtbl.Make (Node)
 
-  type t = any_note Tbl.t
+  type t = Note.any Tbl.t
 
   let empty : t = Tbl.create 0
 
@@ -80,11 +83,16 @@ let worker ~store ~data ~tags (Linter linter : t) program =
   let messages = Notes.Tbl.create 16 in
   let r ?(fix = Fixer.none) ?span ?detail ~kind ~source ~tag message =
     if tags tag then
+      let span =
+        match span with
+        | Some span -> span
+        | None -> Witness.span kind source
+      in
       Format.kasprintf
         (fun message ->
           Notes.Tbl.add messages
             (Node (kind, source))
-            (Note { note = { fix; message; detail; span; tag }; kind; source }))
+            (Note.Note { fix; message; detail; span; tag; kind; source }))
         message
     else Format.ifprintf Format.std_formatter message
   in
@@ -293,11 +301,11 @@ let fix_all (type a) fixes (w : a Witness.t) (original : a) : a =
   in
   Notes.Tbl.find_all fixes (Node (w, original)) |> go original
 
-let rec no_fixers (f : any_note Seq.t) : bool =
+let rec no_fixers (f : Note.any Seq.t) : bool =
   match f () with
   | Nil -> true
-  | Cons (Note { note = { fix = One _ | Block _; _ }; _ }, _) -> false
-  | Cons (Note { note = { fix = Nothing; _ }; _ }, f) -> no_fixers f
+  | Cons (Note { fix = One _ | Block _; _ }, _) -> false
+  | Cons (Note { fix = Nothing; _ }, f) -> no_fixers f
 
 let fix prog (fixes : Notes.t) =
   if Notes.to_seq fixes |> no_fixers then prog

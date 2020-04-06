@@ -4,37 +4,43 @@
 open IlluaminateCore
 
 (** A note at a specific node. *)
-module NoteAt : sig
+module Note : sig
+  (** A linter message which will be attached to a specific node. *)
   type 'a t = private
-    { note : 'a Linter.note;
-      source : 'a;
-      kind : 'a Witness.t
+    { message : string;  (** The message used within this warning. *)
+      detail : (Format.formatter -> unit) option;  (** Additional detail to the message. *)
+      fix : 'a Linter.Fixer.t;
+          (** A function which will be used to fix up this warning. Note, this function should not
+              make any assumptions about the form of this node. *)
+      tag : Error.Tag.t;  (** The tag associated with this error. *)
+      span : Span.t;
+          (** The location of this note. Will generally be [source]'s position, but may be
+              overridden. *)
+      source : 'a;  (** The source node we're attached to. *)
+      kind : 'a Witness.t  (** The kind of source node. *)
     }
-
-  (** Get the span of a note_at. *)
-  val span : 'a t -> Span.t
 
   (** Report a note to an error sink. *)
   val report : Error.t -> 'a t -> unit
+
+  (** A note of any type. *)
+  type any = private Note : 'a t -> any
+
+  (** Report a note to an error sink. *)
+  val report_any : Error.t -> any -> unit
 end
-
-(** A note of any type. *)
-type any_note = private Note : 'a NoteAt.t -> any_note
-
-(** Report a note to an error sink. *)
-val report_note : Error.t -> any_note -> unit
 
 module Notes : sig
   type t
 
   (** Get all notes within the collection. *)
-  val to_seq : t -> any_note Seq.t
+  val to_seq : t -> Note.any Seq.t
 
   (** Get the number of note within the collection. *)
   val size : t -> int
 
   (** Find all fixes at a specific location. *)
-  val find : 'a Witness.t -> 'a -> t -> 'a Linter.note list
+  val find : 'a Witness.t -> 'a -> t -> 'a Note.t list
 end
 
 (** Gather all errors from a specific linter. *)

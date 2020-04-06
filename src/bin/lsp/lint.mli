@@ -2,7 +2,7 @@ open IlluaminateCore
 open Lsp.Types
 
 (** All notes for a given program. *)
-val notes : IlluaminateLint.Driver.any_note array IlluaminateData.Programs.key
+val notes : IlluaminateLint.Driver.Note.any array IlluaminateData.Programs.key
 
 (** Lint a program and export any diagnostics. *)
 val diagnostics : Store.t -> Store.document -> Diagnostic.t list

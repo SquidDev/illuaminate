@@ -13,14 +13,6 @@ module Fixer = struct
   let block f = Block f
 end
 
-type 'a note =
-  { message : string;
-    detail : (Format.formatter -> unit) option;
-    fix : 'a Fixer.t;
-    tag : Error.Tag.t;
-    span : Span.t option
-  }
-
 type 'a reporter =
   { r :
       'f. ?fix:'a Fixer.t -> ?span:Span.t -> ?detail:(Format.formatter -> unit) ->

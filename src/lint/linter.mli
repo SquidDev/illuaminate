@@ -24,17 +24,6 @@ module Fixer : sig
   val block : (Syntax.stmt -> (Syntax.stmt list, string) result) -> Syntax.stmt t
 end
 
-(** A linter message which will be attached to a specific node. *)
-type 'a note =
-  { message : string;  (** The message used within this warning. *)
-    detail : (Format.formatter -> unit) option;  (** Additional detail to the message. *)
-    fix : 'a Fixer.t;
-        (** A function which will be used to fix up this warning. Note, this function should not
-            make any assumptions about the form of this node. *)
-    tag : Error.Tag.t;  (** The tag associated with this error. *)
-    span : Span.t option  (** An optional span to override the node. *)
-  }
-
 (** A reporter, which may be used to report notes to the user. *)
 type 'a reporter =
   { r :
