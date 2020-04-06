@@ -74,7 +74,11 @@ module WeakProgram = Contained_tbl.WeakContainer (struct
   let hash = Hashtbl.hash
 end)
 
-let key ~name build = Core.Key.key ~name ~container_k:(module WeakProgram) build
+let key ~name build =
+  Core.Key.key ~name
+    ~pp:(fun f k -> Syntax.Spanned.program k |> Span.filename |> Span.Filename.pp f)
+    ~container_k:(module WeakProgram)
+    build
 
 let need_for data key file = Core.need data Files.file file |> Option.map (Core.need data key)
 
