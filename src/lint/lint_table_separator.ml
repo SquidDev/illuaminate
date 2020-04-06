@@ -13,8 +13,8 @@ let expr kind _ r = function
       let tok = Separator.token kind in
       let go = function
         | _, Some t when Node.contents.get t <> tok ->
-            r.e ~tag ~fix:(fix tok) ~kind:Token ~source:t "Table fields should be separated by a %s."
-              (Separator.show kind)
+            r.e ~tag ~fix:(fix tok) ~kind:Token ~source:t
+              "Table fields should be separated by a %s." (Separator.show kind)
         | _ -> ()
       in
       List.iter go table_body
