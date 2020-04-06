@@ -15,34 +15,8 @@ let safe_args = function
   | CallTable t -> Safe.table t
   | CallString _ -> true
 
-let check ~r ~(context : context) ~fix = function
-  | Call
-      (* Look for `function return f(...) end' and `function() f(...) end'. *)
-      { fn;
-        args =
-          CallArgs
-            { args =
-                Some
-                  (Mono
-                    (Fun
-                      { fun_args = { args_args = None; _ };
-                        fun_body =
-                          [ ( Return { return_vals = Some (Mono (ECall (Call call))); _ }
-                            | SCall (Call call) )
-                          ];
-                        _
-                      }));
-              _
-            }
-      } -> (
-      let resolve = IlluaminateData.need context.data R.key context.program in
-      match G.of_expr resolve fn with
-      | Some g when g = string_len && safe_args call.args ->
-          r.r ~fix ~tag "Prefer passing function arguments to pcall, rather than using a closure."
-      | _ -> () )
-  | _ -> ()
-
-let fix = function
+let fix =
+  Fixer.fix @@ function
   | Call
       { fn;
         args =
@@ -87,22 +61,40 @@ let fix = function
       Ok (Call { fn; args = CallArgs { open_a; close_a; args = Some args } })
   | _ -> Error "Not a suitable call"
 
-let fix_expr =
-  Fixer.fix @@ function
-  | ECall call -> fix call |> Result.map (fun x -> ECall x)
-  | _ -> Error "Not a function call"
-
-let expr () context r = function
-  | ECall call -> check ~r ~context ~fix:fix_expr call
+let check ~r ~(context : context) = function
+  | Call
+      (* Look for `function return f(...) end' and `function() f(...) end'. *)
+      { fn;
+        args =
+          CallArgs
+            { args =
+                Some
+                  (Mono
+                    (Fun
+                      { fun_args = { args_args = None; _ };
+                        fun_body =
+                          [ ( Return { return_vals = Some (Mono (ECall (Call call))); _ }
+                            | SCall (Call call) )
+                          ];
+                        _
+                      }));
+              _
+            }
+      } as c -> (
+      let resolve = IlluaminateData.need context.data R.key context.program in
+      match G.of_expr resolve fn with
+      | Some g when g = string_len && safe_args call.args ->
+          r.e ~fix ~tag ~kind:Call ~source:c
+            "Prefer passing function arguments to pcall, rather than using a closure."
+      | _ -> () )
   | _ -> ()
 
-let fix_stmt =
-  Fixer.fix @@ function
-  | SCall call -> fix call |> Result.map (fun x -> SCall x)
-  | _ -> Error "Not a function call"
+let expr () context r = function
+  | ECall call -> check ~r ~context call
+  | _ -> ()
 
 let stmt () context r = function
-  | SCall call -> check ~r ~context ~fix:fix_stmt call
+  | SCall call -> check ~r ~context call
   | _ -> ()
 
 let linter = make_no_opt ~tags:[ tag ] ~expr ~stmt ()

@@ -28,7 +28,18 @@ end
 type 'a reporter =
   { r :
       'f. ?fix:'a Fixer.t -> ?span:Span.t -> ?detail:(Format.formatter -> unit) ->
-      tag:Error.Tag.t -> ('f, Format.formatter, unit, unit) format4 -> 'f
+      tag:Error.Tag.t -> ('f, Format.formatter, unit, unit) format4 -> 'f;
+        (** Report a problem at the current location, with an optional fixer. *)
+    e :
+      'a 'f. ?fix:'a Fixer.t -> ?span:Span.t -> ?detail:(Format.formatter -> unit) ->
+      tag:Error.Tag.t -> kind:'a Witness.t -> source:'a ->
+      ('f, Format.formatter, unit, unit) format4 -> 'f
+        (** Report a problem on some child node.
+
+            If [~span] is omitted, then we will use the location of the [~source] node instead. If
+            given, the fixer will be applied to the source node, rather than the current one. This
+            may be useful if you are working with nodes which may appear in multiple locations (such
+            as function calls). *)
   }
 
 (** A vertex in a path from the top of a program to the leaves. *)

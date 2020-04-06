@@ -81,7 +81,7 @@ let worker ~store ~data ~tags (Linter linter : t) program =
   let open! Syntax in
   let options = C.Schema.get linter.options store in
   let messages = Notes.Tbl.create 16 in
-  let r ?(fix = Fixer.none) ?span ?detail ~kind ~source ~tag message =
+  let r ?(fix = Fixer.none) ?span ?detail ~tag ~kind ~source message =
     if tags tag then
       let span =
         match span with
@@ -97,7 +97,7 @@ let worker ~store ~data ~tags (Linter linter : t) program =
     else Format.ifprintf Format.std_formatter message
   in
   let visit (type a) (f : (_, a) Linter.visitor) (kind : a Witness.t) ctx (source : a) =
-    f options ctx { r = r ~kind ~source } source
+    f options ctx { r = r ~kind ~source; e = r } source
   in
   let ( |: ) t ctx = { ctx with path = t :: ctx.path } in
   let token = visit linter.token Token in
