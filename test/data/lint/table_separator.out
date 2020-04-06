@@ -1,0 +1,14 @@
+table_separator.lua:[3:17-3:17]: Table fields should be separated by a comma. [format:table-separator]
+   │
+ 3 │ local _ = { a, b; c, d; }
+   │                 ^
+table_separator.lua:[3:23-3:23]: Table fields should be separated by a comma. [format:table-separator]
+   │
+ 3 │ local _ = { a, b; c, d; }
+   │                       ^
+No errors and 2 warnings
+ -- config: (lint (only format:table-separator))
+ 
+-local _ = { a, b; c, d; }
++local _ = { a, b, c, d, }
+ 

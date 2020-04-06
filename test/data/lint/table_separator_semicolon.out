@@ -1,0 +1,14 @@
+table_separator_semicolon.lua:[3:14-3:14]: Table fields should be separated by a semicolon. [format:table-separator]
+   │
+ 3 │ local _ = { a, b; c, d; }
+   │              ^
+table_separator_semicolon.lua:[3:20-3:20]: Table fields should be separated by a semicolon. [format:table-separator]
+   │
+ 3 │ local _ = { a, b; c, d; }
+   │                    ^
+No errors and 2 warnings
+ -- config: (lint (only format:table-separator) (table-separator semicolon))
+ 
+-local _ = { a, b; c, d; }
++local _ = { a; b; c; d; }
+ 

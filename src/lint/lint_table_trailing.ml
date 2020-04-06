@@ -16,9 +16,9 @@ module Separator = struct
     | Comma -> "comma"
     | Semicolon -> "semicolon"
 
-  let token = function
-    | Comma -> Token.Comma
-    | Semicolon -> Token.Semicolon
+  let token : t -> Token.t = function
+    | Comma -> Comma
+    | Semicolon -> Semicolon
 
   let options =
     let open IlluaminateConfig in

@@ -27,6 +27,7 @@ module Linters = struct
   module String_len = Lint_string_len
   module String_lib = Lint_string_lib
   module String_quote = Lint_string_quote
+  module Table_separator = Lint_table_separator
   module Table_trailing = Lint_table_trailing
   module Unbalanced_assign = Lint_unbalanced_assign
   module Undocumented = Lint_undocumented
@@ -63,6 +64,7 @@ module Linters = struct
       String_len.linter;
       String_lib.linter;
       Pcall_eta.linter;
+      Table_separator.linter;
       Table_trailing.linter;
       Unbalanced_assign.linter;
       Unreachable.linter;
