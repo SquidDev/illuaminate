@@ -10,61 +10,58 @@ let arg_tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:undocumented-
 
 let return_tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:undocumented-return"
 
-let check ~notes ~tag ~span description msg =
+let check ~r ~tag ~span description msg =
   match description with
   | Some _ -> ()
-  | None -> notes := note ~span ~tag "%s" msg :: !notes
+  | None -> r.r ~span ~tag "%s" msg
 
-let arg ~notes ~span { arg_description; arg_name; _ } =
+let arg ~r ~span { arg_description; arg_name; _ } =
   Printf.sprintf "Argument `%s` is missing a description" arg_name
-  |> check ~notes ~span ~tag:arg_tag arg_description
+  |> check ~r ~span ~tag:arg_tag arg_description
 
-let return ~notes ~span { ret_description; _ } =
-  check ~notes ~span ~tag:return_tag ret_description "@return tag is missing a description"
+let return ~r ~span { ret_description; _ } =
+  check ~r ~span ~tag:return_tag ret_description "@return tag is missing a description"
 
-let rec value ~notes ~span = function
+let rec value ~r ~span = function
   | Function { args; rets; _ } ->
-      List.iter (List.iter (arg ~notes ~span)) args;
-      List.iter (List.iter (return ~notes ~span)) rets
+      List.iter (List.iter (arg ~r ~span)) args;
+      List.iter (List.iter (return ~r ~span)) rets
   | Table xs ->
       xs
       |> List.iter @@ fun (k, x) ->
-         Printf.sprintf "`%s` is exported, but has no documentation." k |> documented value ~notes x
-  | Type x -> ty ~notes ~span x
+         Printf.sprintf "`%s` is exported, but has no documentation." k |> documented value ~r x
+  | Type x -> ty ~r ~span x
   | Expr _ | Unknown | Undefined -> ()
 
 and documented :
     type a.
-    (notes:Syntax.program note list ref -> span:Span.t -> a -> unit) ->
-    notes:Syntax.program note list ref ->
+    (r:Syntax.program reporter -> span:Span.t -> a -> unit) ->
+    r:Syntax.program reporter ->
     a documented ->
     string ->
     unit =
- fun child ~notes { description; descriptor; definition; _ } message ->
-  check ~notes ~span:definition ~tag description message;
-  child ~notes ~span:definition descriptor
+ fun child ~r { description; descriptor; definition; _ } message ->
+  check ~r ~span:definition ~tag description message;
+  child ~r ~span:definition descriptor
 
-and ty ~notes ~span:_ { type_name; type_members; _ } =
+and ty ~r ~span:_ { type_name; type_members; _ } =
   type_members
   |> List.iter @@ fun { member_name; member_value; _ } ->
      Printf.sprintf "Type member `%s:%s` is exported, but has no documentation." type_name
        member_name
-     |> documented value ~notes member_value
+     |> documented value ~r member_value
 
-let modu ~notes ~span { mod_contents; mod_types; _ } =
+let modu ~r ~span { mod_contents; mod_types; _ } =
   mod_types
   |> List.iter (fun ({ descriptor = { type_name; _ }; _ } as t) ->
          Printf.sprintf "Type '%s' is exported, but has no documentation." type_name
-         |> documented ty ~notes t);
-  value ~notes ~span mod_contents
+         |> documented ty ~r t);
+  value ~r ~span mod_contents
 
 let linter =
   make_no_opt ~tags:[ tag; arg_tag; return_tag ]
-    ~program:(fun () context prog ->
+    ~program:(fun () context r prog ->
       match IlluaminateData.need context.data E.key prog |> E.get_module with
-      | None -> []
-      | Some m ->
-          let notes = ref [] in
-          documented modu ~notes m "Module is missing documentation";
-          !notes)
+      | None -> ()
+      | Some m -> documented modu ~r m "Module is missing documentation")
     ()

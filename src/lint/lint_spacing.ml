@@ -77,46 +77,43 @@ module Fix = struct
 end
 
 module Lint = struct
-  let trailing tok =
-    if has_trailing tok then []
+  let trailing ~r tok =
+    if has_trailing tok then ()
     else
       let name = tok |> Node.contents.get |> Token.show in
-      [ note ~tag:tag_sep_space ~span:(Node.span tok) ~fix:Fix.after "Expected whitespace after %S."
-          name
-      ]
+      r.r ~tag:tag_sep_space ~span:(Node.span tok) ~fix:Fix.after "Expected whitespace after %S."
+        name
 
-  let around show fix prev node =
-    if has_leading prev node && has_trailing node then []
+  let around ~r show fix prev node =
+    if has_leading prev node && has_trailing node then ()
     else
       let name = Node.contents.get node |> show in
-      [ note ~tag:tag_sep_space ~span:(Node.span node) ~fix "Expected whitespace around %S." name ]
+      r.r ~tag:tag_sep_space ~span:(Node.span node) ~fix "Expected whitespace around %S." name
 
-  let rec table_body notes = function
-    | [] -> notes
-    | (RawPair { ident; eq; _ }, _) :: xs ->
-        table_body (around Token.show Fix.expr ident eq @ notes) xs
-    | (ExprPair { close_k; eq; _ }, _) :: xs ->
-        table_body (around Token.show Fix.expr close_k eq @ notes) xs
-    | (Array _, _) :: xs -> table_body notes xs
+  let table_body ~r = function
+    | RawPair { ident; eq; _ }, _ -> around ~r Token.show Fix.expr ident eq
+    | ExprPair { close_k; eq; _ }, _ -> around ~r Token.show Fix.expr close_k eq
+    | Array _, _ -> ()
 
-  let token () _ node =
+  let token () _ r node =
     match Node.contents.get node with
-    | Token.Comma | Token.Semicolon -> trailing node
-    | _ -> []
+    | Token.Comma | Token.Semicolon -> trailing ~r node
+    | _ -> ()
 
-  let expr () _ = function
+  let expr () _ r = function
     | BinOp { binop_lhs; binop_op; _ } ->
-        around BinOp.show Fix.expr (Last.expr.get binop_lhs) binop_op
-    | Table x -> table_body [] x.table_body
-    | _ -> []
+        around ~r BinOp.show Fix.expr (Last.expr.get binop_lhs) binop_op
+    | Table x -> List.iter (table_body ~r) x.table_body
+    | _ -> ()
 
-  let stmt () _ = function
+  let stmt () _ r = function
     | Assign { assign_vars; assign_eq; _ } ->
-        around Token.show Fix.stmt (assign_vars |> SepList1.last.get |> Last.name.get) assign_eq
-    | ForNum { forn_var; forn_eq; _ } -> around Token.show Fix.stmt (Last.var.get forn_var) forn_eq
+        around ~r Token.show Fix.stmt (assign_vars |> SepList1.last.get |> Last.name.get) assign_eq
+    | ForNum { forn_var; forn_eq; _ } ->
+        around ~r Token.show Fix.stmt (Last.var.get forn_var) forn_eq
     | Local { local_vars; local_vals = Some (eql, _); _ } ->
-        around Token.show Fix.stmt (local_vars |> SepList1.last.get |> Last.var.get) eql
-    | _ -> []
+        around ~r Token.show Fix.stmt (local_vars |> SepList1.last.get |> Last.var.get) eql
+    | _ -> ()
 end
 
 let linter =

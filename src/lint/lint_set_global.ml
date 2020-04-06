@@ -33,26 +33,25 @@ let rec is_toplevel = function
 let unallowed { Opt.allow_toplevel_global } path =
   if allow_toplevel_global then not (is_toplevel path) else true
 
-let stmt opts (context : context) = function
+let stmt opts (context : context) r = function
   | AssignFunction { assignf_name = FVar (Var name as var); _ } when unallowed opts context.path
     -> (
       let resolve = IlluaminateData.need context.data R.key context.program in
       match R.get_definition var resolve with
       | { kind = Global; _ } ->
-          [ note ~span:(Spanned.var var) ~tag "Setting unknown global function %S."
-              (Node.contents.get name)
-          ]
-      | _ -> [] )
-  | _ -> []
+          r.r ~span:(Spanned.var var) ~tag "Setting unknown global function %S."
+            (Node.contents.get name)
+      | _ -> () )
+  | _ -> ()
 
-let name opts context name =
+let name opts context r name =
   match (context.path, name) with
   | Bind :: Stmt (Assign _) :: path, NVar (Var name as var) when unallowed opts path -> (
       let resolve = IlluaminateData.need context.data R.key context.program in
       match R.get_definition var resolve with
       | { kind = Global; _ } ->
-          [ note ~tag "Setting unknown global variable %S." (Node.contents.get name) ]
-      | _ -> [] )
-  | _ -> []
+          r.r ~tag "Setting unknown global variable %S." (Node.contents.get name)
+      | _ -> () )
+  | _ -> ()
 
 let linter = make ~options:Opt.parser ~tags:[ tag ] ~stmt ~name ()

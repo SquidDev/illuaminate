@@ -4,28 +4,25 @@ open Linter
 
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Error "syntax:misplaced-dots"
 
-let msg n =
-  note ~tag ~span:(Node.span n) "Varargs can only appear as the last argument to a function."
-
-let check { args_args = args; _ } =
-  let rec go es =
+let check ~r { args_args = args; _ } =
+  let rec go =
     let open SepList1 in
     function
-    | Cons1 (DotArg t, _, xs) -> go (msg t :: es) xs
-    | Cons1 (_, _, xs) -> go es xs
-    | Mono _ -> es
+    | Cons1 (DotArg t, _, xs) ->
+        r.r ~tag ~span:(Node.span t) "Varargs can only appear as the last argument to a function.";
+        go xs
+    | Cons1 (_, _, xs) -> go xs
+    | Mono _ -> ()
   in
-  match args with
-  | None -> []
-  | Some args -> go [] args
+  Option.iter go args
 
-let stmt () _ = function
+let stmt () _ r = function
   | LocalFunction { localf_args = args; _ } | AssignFunction { assignf_args = args; _ } ->
-      check args
-  | _ -> []
+      check ~r args
+  | _ -> ()
 
-let expr () _ = function
-  | Fun { fun_args = args; _ } -> check args
-  | _ -> []
+let expr () _ r = function
+  | Fun { fun_args = args; _ } -> check ~r args
+  | _ -> ()
 
 let linter = make_no_opt ~tags:[ tag ] ~expr ~stmt ()

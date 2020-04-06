@@ -9,11 +9,11 @@ let string_len = G.parse "string.len"
 
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "stdlib:string-len"
 
-let check ~(context : context) ?fix f =
+let check ~(context : context) ~r ?fix f =
   let resolve = IlluaminateData.need context.data R.key context.program in
   match G.of_expr resolve f with
-  | Some g when g = string_len -> [ note ?fix ~tag "Prefer `#` over string.len" ]
-  | _ -> []
+  | Some g when g = string_len -> r.r ?fix ~tag "Prefer `#` over string.len"
+  | _ -> ()
 
 let fix =
   let mk fn arg =
@@ -42,10 +42,10 @@ let fix =
       mk fn a
   | _ -> Error "Not a single application"
 
-let expr () context = function
-  | ECall (Call { fn; args = CallString _ }) -> check ~context ~fix fn
-  | ECall (Call { fn; args = CallArgs { args = Some (Mono _); _ } }) -> check ~context ~fix fn
-  | ECall (Call { fn; _ }) -> check ~context fn
-  | _ -> []
+let expr () context r = function
+  | ECall (Call { fn; args = CallString _ }) -> check ~r ~context ~fix fn
+  | ECall (Call { fn; args = CallArgs { args = Some (Mono _); _ } }) -> check ~r ~context ~fix fn
+  | ECall (Call { fn; _ }) -> check ~r ~context fn
+  | _ -> ()
 
 let linter = make_no_opt ~tags:[ tag ] ~expr ()

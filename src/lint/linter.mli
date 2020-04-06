@@ -25,7 +25,7 @@ module Fixer : sig
 end
 
 (** A linter message which will be attached to a specific node. *)
-type 'a note = private
+type 'a note =
   { message : string;  (** The message used within this warning. *)
     detail : (Format.formatter -> unit) option;  (** Additional detail to the message. *)
     fix : 'a Fixer.t;
@@ -35,14 +35,12 @@ type 'a note = private
     span : Span.t option  (** An optional span to override the node. *)
   }
 
-(** Construct a new {!type:note} *)
-val note :
-  ?fix:'a Fixer.t ->
-  ?span:Span.t ->
-  ?detail:(Format.formatter -> unit) ->
-  tag:Error.Tag.t ->
-  ('f, Format.formatter, unit, 'a note) format4 ->
-  'f
+(** A reporter, which may be used to report notes to the user. *)
+type 'a reporter =
+  { r :
+      'f. ?fix:'a Fixer.t -> ?span:Span.t -> ?detail:(Format.formatter -> unit) ->
+      tag:Error.Tag.t -> ('f, Format.formatter, unit, unit) format4 -> 'f
+  }
 
 (** A vertex in a path from the top of a program to the leaves. *)
 type path_item =
@@ -63,7 +61,7 @@ type context =
   }
 
 (** The primary visitor for each node a linter can consider. *)
-type ('op, 'term) visitor = 'op -> context -> 'term -> 'term note list
+type ('op, 'term) visitor = 'op -> context -> 'term reporter -> 'term -> unit
 
 (** A linter is effectively a visitor which accepts some node and returns various messages for that
     specific node.

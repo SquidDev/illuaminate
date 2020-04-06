@@ -10,9 +10,7 @@ let fix =
   | Semicolon _ -> Ok []
   | _ -> Error "Expected semicolon"
 
-let msg = [ note ~fix ~tag "Redundant semicolon." ]
-
-let stmt () context stmt =
+let stmt () context r stmt =
   match (context.path, stmt) with
   | Block bs :: _, (Semicolon _ as semi) ->
       let rec go before = function
@@ -32,7 +30,7 @@ let stmt () context stmt =
       in
       (* TODO: We shouldn't offer a fix if we've a chain of semicolons, and at least one is
          required. For instance: [(f)() ;;; f()] should offer fixes on all but the first. *)
-      if pointless then msg else []
-  | _ -> []
+      if pointless then r.r ~fix ~tag "Redundant semicolon."
+  | _ -> ()
 
 let linter = make_no_opt ~tags:[ tag ] ~stmt ()

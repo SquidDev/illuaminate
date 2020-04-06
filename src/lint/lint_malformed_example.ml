@@ -6,7 +6,7 @@ module E = Doc.Extract
 
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:malformed-example"
 
-let check ~notes ~span contents =
+let check ~r ~span contents =
   let file = Span.Filename.mk "=input" in
   let program = Lexing.from_string contents |> IlluaminateParser.program file
   and expr = lazy (Lexing.from_string contents |> IlluaminateParser.repl_exprs file) in
@@ -22,9 +22,9 @@ let check ~notes ~span contents =
           (fun out -> Error.display_of_string ~out ~with_summary:false (fun _ -> Some contents))
           errs
       in
-      notes := note ~span ~detail ~tag "Cannot parse example" :: !notes
+      r.r ~span ~detail ~tag "Cannot parse example"
 
-let check_abstract ~notes ~span =
+let check_abstract ~r ~span =
   object
     inherit abstract_iter as super
 
@@ -32,23 +32,21 @@ let check_abstract ~notes ~span =
       let open Omd in
       super#omd node;
       match node with
-      | Code ("lua", code) | Code_block ("lua", code) -> check ~notes ~span code
+      | Code ("lua", code) | Code_block ("lua", code) -> check ~r ~span code
       | _ -> ()
 
     method! example =
       function
-      | RawExample contents -> check ~notes ~span contents
+      | RawExample contents -> check ~r ~span contents
       | RichExample _ as e -> super#example e
   end
 
 let linter =
   make_no_opt ~tags:[ tag ]
-    ~program:(fun () context prog ->
+    ~program:(fun () context r prog ->
       match IlluaminateData.need context.data E.key prog |> E.get_module with
-      | None -> []
+      | None -> ()
       | Some m ->
-          let notes = ref [] in
-          let iter = iter_of (check_abstract ~notes) in
-          iter#documented iter#module_info m;
-          !notes)
+          let iter = iter_of (check_abstract ~r) in
+          iter#documented iter#module_info m)
     ()

@@ -22,9 +22,9 @@ let fix =
            })
   | _ -> Error "Not a valid term"
 
-let name () _ = function
+let name () _ r = function
   | NLookup { key = String { lit_value; _ }; _ } when IlluaminateSemantics.Ident.is lit_value ->
-      [ note ~tag ~fix "String index can be replaced by identifier." ]
-  | _ -> []
+      r.r ~tag ~fix "String index can be replaced by identifier."
+  | _ -> ()
 
 let linter = make_no_opt ~tags:[ tag ] ~name ()

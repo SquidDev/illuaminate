@@ -55,14 +55,13 @@ let fix =
   | Quote.Single -> fix_single
   | Double -> fix_double
 
-let expr quote _ = function
+let expr quote _ r = function
   | String { lit_node; _ } -> (
     match (Node.contents.get lit_node).[0] with
     | ('\'' | '"') as prefix when prefix <> Quote.prefix quote ->
-        [ note ~fix:(fix quote) ~tag "String should use %s quotes (%C)" (Quote.show quote)
-            (Quote.prefix quote)
-        ]
-    | _ -> [] )
-  | _ -> []
+        r.r ~fix:(fix quote) ~tag "String should use %s quotes (%C)" (Quote.show quote)
+          (Quote.prefix quote)
+    | _ -> () )
+  | _ -> ()
 
 let linter = make ~options:Quote.options ~tags:[ tag ] ~expr ()

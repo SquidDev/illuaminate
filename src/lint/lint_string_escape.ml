@@ -4,7 +4,7 @@ open Linter
 
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Error "syntax:string-escape"
 
-let expr () _ = function
+let expr () _ r = function
   | String { lit_node; _ } ->
       let value = Node.contents.get lit_node in
       if
@@ -13,14 +13,11 @@ let expr () _ = function
         && String.contains value '\\'
       then
         let open IlluaminateSemantics.Stringlib.Literal in
-        let rec build out = function
-          | [] -> out
-          | Malformed (chr, span) :: xs ->
-              build (note ~tag ~span "Unknown escape character '\\%c'." chr :: out) xs
-          | _ :: xs -> build out xs
+        let build = function
+          | Malformed (chr, span) -> r.r ~tag ~span "Unknown escape character '\\%c'." chr
+          | _ -> ()
         in
-        parse lit_node |> Option.get |> build []
-      else []
-  | _ -> []
+        parse lit_node |> Option.get |> List.iter build
+  | _ -> ()
 
 let linter = make_no_opt ~tags:[ tag ] ~expr ()

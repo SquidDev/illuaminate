@@ -39,21 +39,20 @@ let fix_stmt =
       Ok (AssignFunction { rest with assignf_args = fix_args args })
   | _ -> Error "Expected function"
 
-let check_args (context : context) fix { args_args; _ } =
+let check_args (context : context) r fix { args_args; _ } =
   match SepList0.last args_args with
   | Some (DotArg dot) -> (
       let resolve = IlluaminateData.need context.data R.key context.program in
       (* If the list argument is a dot, and both it and the implicit {!arg} is unused, then warn. *)
       match R.get_dots_definition dot resolve with
       | { R.dot_usages = []; dot_implicit = Some { usages = []; _ }; _ } ->
-          [ note ~tag:tag_arg ~fix ~span:(Node.span dot) "Unused varargs." ]
-      | _ -> [] )
-  | _ -> []
+          r.r ~tag:tag_arg ~fix ~span:(Node.span dot) "Unused varargs."
+      | _ -> () )
+  | _ -> ()
 
-let var () context (Var name as var) =
+let var () context r (Var name as var) =
   let name = Node.contents.get name in
-  if name = "_" then []
-  else
+  if name <> "_" then
     match context.path with
     | Bind :: _ | Name (NVar _) :: Bind :: _ | FunctionName (FVar _) :: Bind :: _ -> (
         let resolve = IlluaminateData.need context.data R.key context.program in
@@ -65,19 +64,19 @@ let var () context (Var name as var) =
               | Arg _ -> tag_arg
               | _ -> tag_generic
             in
-            [ note ~fix:fix_var ~tag "Unused variable %S." name ]
-        | _ -> [] )
-    | _ -> []
+            r.r ~fix:fix_var ~tag "Unused variable %S." name
+        | _ -> () )
+    | _ -> ()
 
-let stmt () context = function
+let stmt () context r = function
   (* TODO: Ideally we'd have fixers for unused assignments which remove them. For now, we have to
      rely on the fact that pointless_discard will run afterwards. *)
   | LocalFunction { localf_args = args; _ } | AssignFunction { assignf_args = args; _ } ->
-      check_args context fix_stmt args
-  | _ -> []
+      check_args context r fix_stmt args
+  | _ -> ()
 
-let expr () context = function
-  | Fun { fun_args = args; _ } -> check_args context fix_expr args
-  | _ -> []
+let expr () context r = function
+  | Fun { fun_args = args; _ } -> check_args context r fix_expr args
+  | _ -> ()
 
 let linter = make_no_opt ~tags:[ tag_generic; tag_arg; tag_global ] ~var ~expr ~stmt ()

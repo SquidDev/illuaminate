@@ -53,7 +53,7 @@ let unwrap_all =
         Ok e
     | _ -> Error "Expected Parens"
   in
-  [ note ~tag ~fix:(Fixer.fix @@ fix) "Unnecessary parenthesis." ]
+  fun r -> r.r ~tag ~fix:(Fixer.fix @@ fix) "Unnecessary parenthesis."
 
 let unwrap_most =
   (* The fixer attempts to append the leading/trailing trivia to the outer parenthesis. *)
@@ -69,13 +69,13 @@ let unwrap_most =
         |> Result.ok
     | _ -> Error "Expected Parens"
   in
-  [ note ~tag ~fix:(Fixer.fix @@ fix) "Unnecessary parenthesis." ]
+  fun r -> r.r ~tag ~fix:(Fixer.fix @@ fix) "Unnecessary parenthesis."
 
 let contains p = function
   | None -> false
   | Some q -> p == q
 
-let expr { Opt.clarifying } { path; _ } parens =
+let expr { Opt.clarifying } { path; _ } r parens =
   (* Determine whether this term is in a call/index context. *)
   let is_fn_or_tbl () =
     match path with
@@ -131,7 +131,7 @@ let expr { Opt.clarifying } { path; _ } parens =
   in
   match (parens, path) with
   (* Skip parens nested inside others - we'll always pick up the outer one. *)
-  | _, Expr (Parens _) :: _ -> []
+  | _, Expr (Parens _) :: _ -> ()
   | Parens { paren_expr = expr; _ }, _ ->
       let rec go msg = function
         (* Variables _never_ need to be wrapped in parens. *)
@@ -155,7 +155,7 @@ let expr { Opt.clarifying } { path; _ } parens =
             if is_fn_or_tbl () || has_precedence (op ^. Node.contents |> BinOp.precedence) then msg
             else unwrap_all
       in
-      go [] expr
-  | _ -> []
+      go (fun _ -> ()) expr r
+  | _ -> ()
 
 let linter = make ~options:Opt.parse ~tags:[ tag ] ~expr ()

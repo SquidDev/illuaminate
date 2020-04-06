@@ -15,7 +15,7 @@ let safe_args = function
   | CallTable t -> Safe.table t
   | CallString _ -> true
 
-let check ~(context : context) ~fix = function
+let check ~r ~(context : context) ~fix = function
   | Call
       (* Look for `function return f(...) end' and `function() f(...) end'. *)
       { fn;
@@ -38,11 +38,9 @@ let check ~(context : context) ~fix = function
       let resolve = IlluaminateData.need context.data R.key context.program in
       match G.of_expr resolve fn with
       | Some g when g = string_len && safe_args call.args ->
-          [ note ~fix ~tag
-              "Prefer passing function arguments to pcall, rather than using a closure."
-          ]
-      | _ -> [] )
-  | _ -> []
+          r.r ~fix ~tag "Prefer passing function arguments to pcall, rather than using a closure."
+      | _ -> () )
+  | _ -> ()
 
 let fix = function
   | Call
@@ -94,17 +92,17 @@ let fix_expr =
   | ECall call -> fix call |> Result.map (fun x -> ECall x)
   | _ -> Error "Not a function call"
 
-let expr () context = function
-  | ECall call -> check ~context ~fix:fix_expr call
-  | _ -> []
+let expr () context r = function
+  | ECall call -> check ~r ~context ~fix:fix_expr call
+  | _ -> ()
 
 let fix_stmt =
   Fixer.fix @@ function
   | SCall call -> fix call |> Result.map (fun x -> SCall x)
   | _ -> Error "Not a function call"
 
-let stmt () context = function
-  | SCall call -> check ~context ~fix:fix_stmt call
-  | _ -> []
+let stmt () context r = function
+  | SCall call -> check ~r ~context ~fix:fix_stmt call
+  | _ -> ()
 
 let linter = make_no_opt ~tags:[ tag ] ~expr ~stmt ()

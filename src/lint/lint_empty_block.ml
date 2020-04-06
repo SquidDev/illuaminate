@@ -28,7 +28,7 @@ let msg_do =
     | Do { do_body = []; _ } -> Ok []
     | _ -> Error "Expected empty `do' block."
   in
-  [ note ~fix ~tag:tag_do "Empty do statement" ]
+  fun r -> r.r ~fix ~tag:tag_do "Empty do statement"
 
 let fix_else =
   Fixer.fix @@ function
@@ -38,8 +38,8 @@ let fix_else =
 let clause_span { clause_if; clause_then; _ } =
   Span.of_span2 (Node.span clause_if) (Node.span clause_then)
 
-let stmt { Opt.allow_empty_if } _ = function
-  | Do { do_body = []; _ } -> msg_do
+let stmt { Opt.allow_empty_if } _ r = function
+  | Do { do_body = []; _ } -> msg_do r
   | If { if_if; if_elseif; if_else; _ } ->
       let clauses =
         List.fold_left
@@ -55,14 +55,14 @@ let stmt { Opt.allow_empty_if } _ = function
       in
       if allow_empty_if then
         match clauses with
-        | (name, [], span, fix) :: _ -> [ note ~span ~fix ~tag:tag_if "Empty %s clause" name ]
-        | _ -> []
+        | (name, [], span, fix) :: _ -> r.r ~span ~fix ~tag:tag_if "Empty %s clause" name
+        | _ -> ()
       else
-        List.filter_map
+        List.iter
           (function
-            | name, [], span, fix -> Some (note ~span ~fix ~tag:tag_if "Empty %s clause" name)
-            | _ -> None)
+            | name, [], span, fix -> r.r ~span ~fix ~tag:tag_if "Empty %s clause" name
+            | _ -> ())
           clauses
-  | _ -> []
+  | _ -> ()
 
 let linter = make ~options:Opt.parse ~tags:[ tag_do; tag_if ] ~stmt ()

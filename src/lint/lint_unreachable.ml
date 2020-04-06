@@ -10,11 +10,11 @@ let tag_unreach =
 
 let tag_loop = Error.Tag.make ~attr:[ Default ] ~level:Warning "control:loop-once"
 
-let msg_unreach span = [ note ~tag:tag_unreach ~span "Unreachable code" ]
+let msg_unreach ~r span = r.r ~tag:tag_unreach ~span "Unreachable code"
 
-let msg_loop span = [ note ~tag:tag_loop ~span "Loop is executed at most once." ]
+let msg_loop ~r span = r.r ~tag:tag_loop ~span "Loop is executed at most once."
 
-let check_func (func : C.func) =
+let check_func ~r (func : C.func) =
   let check_block (block : C.basic_block) =
     if block.block_id <> func.entry.block_id && CCList.is_empty block.incoming then
       (* FIXME: This test really isn't perfect.
@@ -26,31 +26,30 @@ let check_func (func : C.func) =
          The inverse problem occurs with repeat/until loops, where the test will not be marked
          unreachable, but the loop is marked as only being iterable once.*)
       match block.contents with
-      | Block [] -> []
-      | Block (s :: _) -> msg_unreach (Spanned.stmt s)
-      | Test e -> msg_unreach (Spanned.expr e)
-      | TestFor s -> msg_unreach (Spanned.stmt s)
-      | LoopEnd s -> msg_loop (Spanned.stmt s)
-    else []
+      | Block [] -> ()
+      | Block (s :: _) -> msg_unreach ~r (Spanned.stmt s)
+      | Test e -> msg_unreach ~r (Spanned.expr e)
+      | TestFor s -> msg_unreach ~r (Spanned.stmt s)
+      | LoopEnd s -> msg_loop ~r (Spanned.stmt s)
   in
-  CCList.flat_map check_block func.blocks
+  List.iter check_block func.blocks
 
-let check_args (context : context) args =
+let check_args (context : context) ~r args =
   let control = IlluaminateData.need context.data C.key context.program in
   let func = C.get_func args control in
-  check_func func
+  check_func ~r func
 
-let stmt () context = function
+let stmt () context r = function
   | LocalFunction { localf_args = args; _ } | AssignFunction { assignf_args = args; _ } ->
-      check_args context args
-  | _ -> []
+      check_args context ~r args
+  | _ -> ()
 
-let expr () context = function
-  | Fun { fun_args = args; _ } -> check_args context args
-  | _ -> []
+let expr () context r = function
+  | Fun { fun_args = args; _ } -> check_args context ~r args
+  | _ -> ()
 
-let program () (context : context) (_ : program) =
+let program () (context : context) r (_ : program) =
   let control = IlluaminateData.need context.data C.key context.program in
-  check_func (C.get_program control)
+  check_func ~r (C.get_program control)
 
 let linter = make_no_opt ~tags:[ tag_unreach; tag_loop ] ~expr ~stmt ~program ()

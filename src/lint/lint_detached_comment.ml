@@ -7,9 +7,9 @@ let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:detached-comment"
 
 let linter =
   make_no_opt ~tags:[ tag ]
-    ~program:(fun () context prog ->
+    ~program:(fun () context r prog ->
       IlluaminateData.need context.data E.key prog
       |> E.detached_comments
-      |> List.map (fun { Doc.Comment.source; _ } ->
-             note ~span:source ~tag "Detached doc comment, this will not be processed"))
+      |> List.iter (fun { Doc.Comment.source; _ } ->
+             r.r ~span:source ~tag "Detached doc comment, this will not be processed"))
     ()

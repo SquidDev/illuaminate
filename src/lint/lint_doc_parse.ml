@@ -4,9 +4,9 @@ module D = Doc.Parser.Data
 
 let linter =
   make_no_opt ~tags:Doc.Parser.Tag.all
-    ~program:(fun () context prog ->
+    ~program:(fun () context r prog ->
       IlluaminateData.need context.data D.key prog
       |> D.comments
-      |> CCList.flat_map (fun (x : Doc.Comment.comment) ->
-             List.map (fun (tag, msg) -> note ~span:x.source ~tag "%s" msg) x.Doc.Comment.errors))
+      |> List.iter @@ fun (x : Doc.Comment.comment) ->
+         x.Doc.Comment.errors |> List.iter @@ fun (tag, msg) -> r.r ~span:x.source ~tag "%s" msg)
     ()

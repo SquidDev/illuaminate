@@ -78,25 +78,23 @@ let del_sep =
       Ok (Table { t with table_body = over_last fix table_body })
   | _ -> Error "Expected a table"
 
-let expr sep _ = function
+let expr sep _ r = function
   | Table
       { table_open = Node { span = start; _ }; table_body; table_close = Node { span = fin; _ } }
     -> (
       let multiline = Span.start_line start <> Span.start_line fin in
       match CCList.last_opt table_body with
-      | None -> [] (* If it's an empty table, allow both. *)
+      | None -> () (* If it's an empty table, allow both. *)
       | Some (item, None) when multiline ->
-          [ Separator.token sep |> Token.show
-            |> note
-                 ~fix:(add_sep (Separator.token sep))
-                 ~span:(Spanned.table_item item) ~tag "Expected trailing %S on multiline table"
-          ]
+          Separator.token sep |> Token.show
+          |> r.r
+               ~fix:(add_sep (Separator.token sep))
+               ~span:(Spanned.table_item item) ~tag "Expected trailing %S on multiline table"
       | Some (_, Some tok) when not multiline ->
-          [ Node.contents.get tok |> Token.show
-            |> note ~fix:del_sep ~span:(Node.span tok) ~tag
-                 "Unexpected trailing %S on single line table"
-          ]
-      | _ -> [] )
-  | _ -> []
+          Node.contents.get tok |> Token.show
+          |> r.r ~fix:del_sep ~span:(Node.span tok) ~tag
+               "Unexpected trailing %S on single line table"
+      | _ -> () )
+  | _ -> ()
 
 let linter = make ~options:Separator.options ~tags:[ tag ] ~expr ()

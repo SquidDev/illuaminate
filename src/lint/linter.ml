@@ -21,8 +21,11 @@ type 'a note =
     span : Span.t option
   }
 
-let note ?(fix = Fixer.none) ?span ?detail ~tag message =
-  Format.kasprintf (fun message -> { fix; message; detail; span; tag }) message
+type 'a reporter =
+  { r :
+      'f. ?fix:'a Fixer.t -> ?span:Span.t -> ?detail:(Format.formatter -> unit) ->
+      tag:Error.Tag.t -> ('f, Format.formatter, unit, unit) format4 -> 'f
+  }
 
 type path_item =
   | Expr of Syntax.expr
@@ -38,9 +41,9 @@ type context =
     program : Syntax.program
   }
 
-type ('op, 'term) visitor = 'op -> context -> 'term -> 'term note list
+type ('op, 'term) visitor = 'op -> context -> 'term reporter -> 'term -> unit
 
-let default_visitor : ('op, 'term) visitor = fun _ _ _ -> []
+let default_visitor : ('op, 'term) visitor = fun _ _ _ _ -> ()
 
 type 'op linter_info =
   { options : 'op IlluaminateConfig.Category.key;

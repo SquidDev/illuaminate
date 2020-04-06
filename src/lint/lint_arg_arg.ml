@@ -4,22 +4,21 @@ open Linter
 
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "var:arg-arg"
 
-let msg n = note ~tag ~span:(Node.span n) "Argument named \"arg\"."
-
-let check { args_args = args; _ } =
-  let go es = function
-    | NamedArg (Var name) when Node.contents.get name = "arg" -> msg name :: es
-    | _ -> es
+let check ~r { args_args = args; _ } =
+  let go = function
+    | NamedArg (Var n) when Node.contents.get n = "arg" ->
+        r.r ~tag ~span:(Node.span n) "Argument named \"arg\"."
+    | _ -> ()
   in
-  SepList0.fold_left go [] args
+  SepList0.iter go args
 
-let stmt () _ = function
+let stmt () _ r = function
   | LocalFunction { localf_args = args; _ } | AssignFunction { assignf_args = args; _ } ->
-      check args
-  | _ -> []
+      check ~r args
+  | _ -> ()
 
-let expr () _ = function
-  | Fun { fun_args = args; _ } -> check args
-  | _ -> []
+let expr () _ r = function
+  | Fun { fun_args = args; _ } -> check ~r args
+  | _ -> ()
 
 let linter = make_no_opt ~tags:[ tag ] ~expr ~stmt ()
