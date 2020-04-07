@@ -10,20 +10,9 @@ module BracketSpace = struct
     | Consistent  (** No preference in spaces, but warn when they are inconsistent. *)
     | None  (** We do not care about spacing. *)
 
-  let read = function
-    | "space" -> Ok Space
-    | "no-space" -> Ok NoSpace
-    | "consistent" -> Ok Consistent
-    | "none" -> Ok None
-    | _ -> Error "Expected \"space\", \"no-space\", \"consistent\" or \"none\"."
-
-  let show = function
-    | Space -> "space"
-    | NoSpace -> "no-space"
-    | Consistent -> "consistent"
-    | None -> "none"
-
-  let converter = IlluaminateConfig.Term.Converter.atom ~ty:"string" read show
+  let converter =
+    IlluaminateConfig.Term.Converter.enum ~ty:"spacing"
+      [ ("space", Space); ("no-space", NoSpace); ("consistent", Consistent); ("none", None) ]
 
   let field = IlluaminateConfig.Term.field ~default:Consistent converter
 end

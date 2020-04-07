@@ -15,6 +15,27 @@ module Converter = struct
 
   let atom ~ty parse print : 'a t = Atom (Parser.atom_res ~ty parse, fun x -> Atom (print x))
 
+  let enum ~ty opts =
+    let n = List.length opts in
+    let to_string = Hashtbl.create n and of_string = Hashtbl.create n in
+    opts
+    |> List.iter (fun (str, k) ->
+           if not (Hashtbl.mem to_string k) then Hashtbl.replace to_string k str;
+           Hashtbl.replace of_string str k);
+    let rec pp f = function
+      | [] -> Format.fprintf f "(no valid options)"
+      | [ (str, _) ] -> Format.fprintf f "or %S" str
+      | (str, _) :: xs -> Format.fprintf f "%S " str; pp f xs
+    in
+    let options = Format.asprintf "Unknown %s. Expected %a." ty pp opts in
+    let parse x =
+      match Hashtbl.find_opt of_string x with
+      | Some x -> Ok x
+      | None -> Error options
+    in
+    let show x = Hashtbl.find_opt to_string x |> Option.value ~default:"[unknown]" in
+    Atom (Parser.atom_res ~ty parse, fun x -> Atom (show x))
+
   let rec get_parser : type a. a t -> a Parser.t = function
     | Atom (p, _) -> p
     | List c -> get_parser c |> Parser.list

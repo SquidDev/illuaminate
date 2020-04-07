@@ -7,25 +7,21 @@ module Quote = struct
     | Single
     | Double
 
-  let read = function
-    | "single" | "\'" -> Ok Single
-    | "double" | "\"" -> Ok Double
-    | e -> Error (Printf.sprintf "Unknown separator %S (expected 'single' or 'double')." e)
+  let prefix = function
+    | Single -> '\''
+    | Double -> '"'
 
   let show = function
     | Single -> "single"
     | Double -> "double"
-
-  let prefix = function
-    | Single -> '\''
-    | Double -> '"'
 
   let options =
     let open IlluaminateConfig in
     let open Term in
     let term =
       field ~name:"quote" ~comment:"The preferred quote mark (' or \")." ~default:Double
-        (Converter.atom ~ty:"quote" read show)
+        (Converter.enum ~ty:"quote"
+           [ ("single", Single); ("\'", Single); ("double", Double); ("\"", Double) ])
     in
     Category.add term category
 end

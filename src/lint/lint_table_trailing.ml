@@ -7,18 +7,13 @@ module Separator = struct
     | Comma
     | Semicolon
 
-  let read = function
-    | "comma" | "," -> Ok Comma
-    | "semicolon" | ";" -> Ok Semicolon
-    | e -> Error (Printf.sprintf "Unknown separator %S (expected 'comma' or 'semicolon')." e)
+  let token : t -> Token.t = function
+    | Comma -> Comma
+    | Semicolon -> Semicolon
 
   let show = function
     | Comma -> "comma"
     | Semicolon -> "semicolon"
-
-  let token : t -> Token.t = function
-    | Comma -> Comma
-    | Semicolon -> Semicolon
 
   let options =
     let open IlluaminateConfig in
@@ -27,7 +22,8 @@ module Separator = struct
       field ~name:"table-separator"
         ~comment:"Whether tables entries should be separated by a comma (',') or semicolon (';')."
         ~default:Comma
-        (Converter.atom ~ty:"separator" read show)
+        (Converter.enum ~ty:"separator"
+           [ ("comma", Comma); (",", Comma); ("semicolon", Semicolon); (";", Semicolon) ])
     in
     Category.add term category
 end

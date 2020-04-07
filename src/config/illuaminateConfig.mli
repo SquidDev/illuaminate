@@ -30,6 +30,8 @@ module Term : sig
 
     val list : 'a t -> 'a list t
 
+    val enum : ty:string -> (string * 'a) list -> 'a t
+
     val atom : ty:string -> (string -> ('a, string) result) -> ('a -> string) -> 'a t
   end
 
