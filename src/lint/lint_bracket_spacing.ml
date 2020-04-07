@@ -1,6 +1,7 @@
 open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
+open Lens
 
 (** How terms within brackets should be spaced. *)
 module BracketSpace = struct
@@ -35,6 +36,25 @@ module ActualSpacing = struct
     | (Space | NoSpace) as t -> get t xs
 
   let between l r = NoSpace |> get (Node.trailing_trivia.get l) |> get (Node.leading_trivia.get r)
+
+  let is_comment : Node.trivial Span.spanned -> bool = function
+    | { value = Whitespace _; _ } -> false
+    | { value = BlockComment _ | LineComment _; _ } -> true
+
+  let adjust_trailing ~space ~current =
+    Node.trailing_trivia.over @@ fun trivia ->
+    match (space, current) with
+    (* We insert whitespace on the leading position of the next token, hence need to do nothing when
+       this is a space. *)
+    | _, Newline | true, _ | false, NoSpace -> trivia
+    | false, Space -> List.filter is_comment trivia
+
+  let adjust_leading ~space ~current ~span =
+    Node.leading_trivia.over @@ fun trivia ->
+    match (space, current) with
+    | _, Newline | true, Space | false, NoSpace -> trivia
+    | true, NoSpace -> { span; value = Whitespace " " } :: trivia
+    | false, Space -> List.filter is_comment trivia
 end
 
 module Opt = struct
@@ -67,73 +87,189 @@ end
 
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Note "format:bracket-space"
 
-let check (t : BracketSpace.t) ~r ~before ~left ~right ~after =
-  let message =
-    match (t, ActualSpacing.between before left, ActualSpacing.between right after) with
-    | None, _, _ -> None
-    | _, Newline, _ | _, _, Newline -> None
-    | (Consistent | Space), Space, Space -> None
-    | (Consistent | NoSpace), NoSpace, NoSpace -> None
-    | Space, NoSpace, _ | Space, _, NoSpace -> Some "Should have spaces within the brackets."
-    | NoSpace, _, Space | NoSpace, Space, _ -> Some "Should not have spaces within the brackets."
-    | Consistent, NoSpace, Space ->
-        Some "No space after the opening bracket, but spaces before the closing one."
-    | Consistent, Space, NoSpace ->
-        Some "Spaces after the opening bracket, but no spaces before the closing one."
-  in
+(** Visitors which work on both fixers and checkers. See {!Fix.at} and {!Check.at}. *)
+module Generic = struct
+  let args t ~default ~go = function
+    | { args_args = None; _ } -> default
+    | { args_args = Some _; _ } as a ->
+        go t ~before:Args.args_open ~after:Args.args_close
+          ~left:(Args.args_args -| Lenses.unsafe_option -| SepList1.first -| First.arg)
+          ~right:(Args.args_args -| Lenses.unsafe_option -| SepList1.last -| Last.arg)
+          a
 
-  message
-  |> Option.iter @@ fun m ->
-     r.r
-       ~span:(Span.of_span2 (Node.span before) (Node.span after))
-       ~detail:(fun f -> Format.pp_print_string f m)
-       ~tag "Inconsistent spacing"
+  let last_table_item =
+    let get = function
+      | _, Some s -> s
+      | e, None -> Last.table_item.get e
+    and over f = function
+      | e, Some s -> (e, Some (f s))
+      | e, None -> (Last.table_item.over f e, None)
+    in
+    { get; over }
 
-let check_e t ~within = check t ~left:(First.expr.get within) ~right:(Last.expr.get within)
+  let tbl_left =
+    Table.table_body -| Lenses.head -| Lenses.unsafe_option -| Lenses.fst -| First.table_item
 
-let check_args t ~r = function
-  | { args_args = None; _ } -> ()
-  | { args_open; args_close; args_args = Some args } ->
-      check t ~r ~before:args_open ~after:args_close
-        ~left:(SepList1.first.get args |> First.arg.get)
-        ~right:(SepList1.last.get args |> Last.arg.get)
+  and tbl_right = Table.table_body -| Lenses.last -| Lenses.unsafe_option -| last_table_item
 
-let check_call t ~r call =
-  let (Call { args; _ } | Invoke { args; _ }) = call in
-  match args with
-  | CallArgs { args = None; _ } | CallTable _ | CallString _ -> ()
-  | CallArgs { open_a; args = Some args; close_a } ->
-      check t ~r ~before:open_a ~after:close_a
-        ~left:(SepList1.first.get args |> First.expr.get)
-        ~right:(SepList1.last.get args |> Last.expr.get)
+  let table t ~default ~go = function
+    | { table_body = []; _ } -> default
+    | { table_body = _ :: _; _ } as tbl ->
+        go t ~before:Table.table_open ~after:Table.table_close ~left:tbl_left ~right:tbl_right tbl
+
+  let parens t ~go x =
+    go t ~before:Paren_expr.paren_open ~after:Paren_expr.paren_close
+      ~left:(Paren_expr.paren_expr -| First.expr)
+      ~right:(Paren_expr.paren_expr -| Last.expr)
+      x
+end
+
+let on l f x = x ^. l |> f |> Result.map (fun y -> (l ^= y) x)
+
+module Fix = struct
+  let go (t : BracketSpace.t) ~before ~left ~right ~after =
+    let l = ActualSpacing.between before left and r = ActualSpacing.between right after in
+    let adjust ~space =
+      ActualSpacing.
+        ( adjust_trailing ~space ~current:l before,
+          adjust_leading ~space ~current:l ~span:(Node.span left),
+          adjust_trailing ~space ~current:r,
+          adjust_leading ~space ~current:r ~span:(Node.span after) after )
+      |> Result.ok
+    in
+    match (t, l, r) with
+    | None, _, _ -> Error "Already correct"
+    | _, Newline, _ | _, _, Newline -> Error "Already correct"
+    | (Consistent | Space), Space, Space -> Error "Already correct"
+    | (Consistent | NoSpace), NoSpace, NoSpace -> Error "Already correct"
+    | (Space | Consistent), _, _ ->
+        (* For now, we just assume a "consistent" style should add spaces. *)
+        adjust ~space:true
+    | NoSpace, _, _ -> adjust ~space:false
+
+  let at t ~before ~after ~left ~right x =
+    go t ~before:(x ^. before) ~after:(x ^. after) ~left:(x ^. left) ~right:(x ^. right)
+    |> Result.map @@ fun (b, l, r, a) -> x |> before ^= b |> left %= l |> right %= r |> after ^= a
+
+  let within t ~within ~before ~after =
+    go t ~left:(within ^. First.expr) ~right:(within ^. Last.expr) ~before ~after
+    |> Result.map @@ fun (b, l, r, a) -> (b, within |> First.expr %= l |> Last.expr %= r, a)
+
+  let call_args t =
+    Fixer.fix @@ function
+    | CallArgs { args = None; _ } | CallTable _ | CallString _ -> Error "Malformed args"
+    | CallArgs { open_a; args = Some args; close_a } ->
+        go t ~before:open_a ~after:close_a
+          ~left:(SepList1.first.get args |> First.expr.get)
+          ~right:(SepList1.last.get args |> Last.expr.get)
+        |> Result.map @@ fun (open_a, l, r, close_a) ->
+           CallArgs
+             { open_a;
+               close_a;
+               args =
+                 args
+                 |> (SepList1.first -| First.expr) %= l
+                 |> (SepList1.last -| Last.expr) %= r
+                 |> Option.some
+             }
+
+  let table_item t =
+    Fixer.fix @@ function
+    | ExprPair e ->
+        within t ~before:e.open_k ~within:e.key ~after:e.close_k
+        |> Result.map @@ fun (b, w, a) -> ExprPair { e with open_k = b; close_k = a; key = w }
+    | Array _ | RawPair _ -> Error "Not a pair"
+
+  let name t =
+    Fixer.fix @@ function
+    | NLookup e ->
+        within t ~before:e.open_k ~within:e.key ~after:e.close_k
+        |> Result.map @@ fun (b, w, a) -> NLookup { e with open_k = b; key = w; close_k = a }
+    | NVar _ | NDot _ -> Error "Not a lookup name"
+end
+
+module Check = struct
+  let go (t : BracketSpace.t) ~r ~source ~kind ~fix ~before ~left ~right ~after =
+    let message =
+      match (t, ActualSpacing.between before left, ActualSpacing.between right after) with
+      | None, _, _ -> None
+      | _, Newline, _ | _, _, Newline -> None
+      | (Consistent | Space), Space, Space -> None
+      | (Consistent | NoSpace), NoSpace, NoSpace -> None
+      | Space, NoSpace, _ | Space, _, NoSpace -> Some "Should have spaces within the brackets."
+      | NoSpace, _, Space | NoSpace, Space, _ -> Some "Should not have spaces within the brackets."
+      | Consistent, NoSpace, Space ->
+          Some "No space after the opening bracket, but spaces before the closing one."
+      | Consistent, Space, NoSpace ->
+          Some "Spaces after the opening bracket, but no spaces before the closing one."
+    in
+
+    message
+    |> Option.iter @@ fun m ->
+       r.e
+         ~span:(Span.of_span2 (Node.span before) (Node.span after))
+         ~detail:(fun f -> Format.pp_print_string f m)
+         ~source ~kind ~fix:(fix t) ~tag "Inconsistent spacing"
+
+  let at t ~r ~source ~kind ~fix ~before ~after ~left ~right x =
+    go t ~r ~source ~kind ~fix ~before:(x ^. before) ~after:(x ^. after) ~left:(x ^. left)
+      ~right:(x ^. right)
+
+  let expr t ~within = go t ~left:(First.expr.get within) ~right:(Last.expr.get within)
+
+  let call t ~r call =
+    let (Call { args; _ } | Invoke { args; _ }) = call in
+    match args with
+    | CallArgs { args = None; _ } | CallTable _ | CallString _ -> ()
+    | CallArgs { open_a; args = Some a; close_a } ->
+        go t ~r ~source:args ~kind:CallArgs ~fix:Fix.call_args ~before:open_a ~after:close_a
+          ~left:(SepList1.first.get a |> First.expr.get)
+          ~right:(SepList1.last.get a |> Last.expr.get)
+
+  let args t ~r source =
+    Generic.args t ~default:()
+      ~go:
+        (at ~r ~source ~kind:Args ~fix:(fun t ->
+             Fixer.fix @@ Generic.args t ~default:(Error "Empty args") ~go:Fix.at))
+      source
+end
 
 let expr (t : Opt.t) _ r = function
-  | Table { table_open; table_close; table_body = (e, _) :: _ as es } ->
-      let right =
-        match CCList.last_opt es |> Option.get with
-        | _, Some s -> s
-        | e, None -> Last.table_item.get e
-      in
-      check ~r t.table ~before:table_open ~left:(First.table_item.get e) ~right ~after:table_close;
+  | Table tbl as source ->
+      Generic.table t.table ~default:()
+        ~go:
+          (Check.at ~r ~source ~kind:Expr ~fix:(fun t ->
+               Fixer.fix
+               @@ on Expr._Table (Generic.table t ~default:(Error "Empty table") ~go:Fix.at)))
+        tbl;
 
       let go_item = function
-        | ExprPair e, _ -> check_e t.index ~r ~before:e.open_k ~within:e.key ~after:e.close_k
+        | (ExprPair e as source), _ ->
+            Check.expr t.index ~r ~kind:TableItem ~source ~fix:Fix.table_item ~before:e.open_k
+              ~within:e.key ~after:e.close_k
         | Array _, _ | RawPair _, _ -> ()
       in
-      List.iter go_item es
-  | ECall c -> check_call t.call ~r c
-  | Parens e -> check_e t.parens ~r ~before:e.paren_open ~within:e.paren_expr ~after:e.paren_close
-  | Fun e -> check_args t.args ~r e.fun_args
+      List.iter go_item tbl.table_body
+  | ECall c -> Check.call t.call ~r c
+  | Parens e as source ->
+      Generic.parens t.parens
+        ~go:
+          (Check.at ~r ~source ~kind:Expr ~fix:(fun t ->
+               Fixer.fix @@ on Expr._Parens (Generic.parens t ~go:Fix.at)))
+        e
+  | Fun e -> Check.args t.args ~r e.fun_args
   | _ -> ()
 
 let name (t : Opt.t) _ r = function
-  | NLookup e -> check_e t.index ~r ~before:e.open_k ~within:e.key ~after:e.close_k
+  | NLookup e as source ->
+      Check.expr t.index ~r ~kind:Name ~source ~fix:Fix.name ~before:e.open_k ~within:e.key
+        ~after:e.close_k
   | NVar _ | NDot _ -> ()
 
 let stmt (t : Opt.t) _ r = function
   | LocalFunction { localf_args = args; _ } | AssignFunction { assignf_args = args; _ } ->
-      check_args t.args ~r args
-  | SCall c -> check_call t.call ~r c
+      Check.args t.args ~r args
+  | SCall c -> Check.call t.call ~r c
   | _ -> ()
 
 let linter = make ~options:Opt.options ~expr ~stmt ~name ~tags:[ tag ] ()

@@ -41,4 +41,24 @@ module Lenses = struct
 
   (** A lens which just returns itself. *)
   let id = { get = Fun.id; over = ( @@ ) }
+
+  (** An unsafe lens operating on the contents of an option. *)
+  let unsafe_option = { get = Option.get; over = Option.map }
+
+  (** A lens operating on the last element of a list. *)
+  let last =
+    let rec over f = function
+      | [] -> f None |> CCOpt.to_list
+      | [ x ] -> f (Some x) |> CCOpt.to_list
+      | x :: xs -> x :: over f xs
+    in
+    { get = CCList.last_opt; over }
+
+  (** A lens operating on the first element of a list. *)
+  let head =
+    let over f = function
+      | [] -> f None |> CCOpt.to_list
+      | x :: xs -> CCList.cons_maybe (f (Some x)) xs
+    in
+    { get = CCList.head_opt; over }
 end
