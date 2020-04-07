@@ -50,8 +50,8 @@ let gen ~loc ~path:_ ((_, tds) : rec_flag * type_declaration list) : structure =
                      if many then
                        [%expr
                          fun f -> function
-                         | [%p pat] -> [%e mk]
-                         | x -> x]
+                           | [%p pat] -> [%e mk]
+                           | x -> x]
                      else [%expr fun f [%p pat] -> [%e mk]]
                    in
                    Some

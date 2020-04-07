@@ -124,8 +124,6 @@ module Generic = struct
       x
 end
 
-let on l f x = x ^. l |> f |> Result.map (fun y -> (l ^= y) x)
-
 module Fix = struct
   let go (t : BracketSpace.t) ~before ~left ~right ~after =
     let l = ActualSpacing.between before left and r = ActualSpacing.between right after in
@@ -226,21 +224,22 @@ module Check = struct
           ~left:(SepList1.first.get a |> First.expr.get)
           ~right:(SepList1.last.get a |> Last.expr.get)
 
+  let on l f x = x ^. l |> f |> Result.map (fun y -> (l ^= y) x)
+
+  let apply ~r ~source ~kind ~check ~lens ~fix x =
+    check ~go:(at ~r ~source ~kind ~fix:(fun t -> Fixer.fix @@ on lens (fix t ~go:Fix.at))) x
+
   let args t ~r source =
-    Generic.args t ~default:()
-      ~go:
-        (at ~r ~source ~kind:Args ~fix:(fun t ->
-             Fixer.fix @@ Generic.args t ~default:(Error "Empty args") ~go:Fix.at))
+    apply ~r ~source ~kind:Args ~check:(Generic.args t ~default:()) ~lens:Lenses.id
+      ~fix:(Generic.args ~default:(Error "Empty args"))
       source
 end
 
 let expr (t : Opt.t) _ r = function
   | Table tbl as source ->
-      Generic.table t.table ~default:()
-        ~go:
-          (Check.at ~r ~source ~kind:Expr ~fix:(fun t ->
-               Fixer.fix
-               @@ on Expr._Table (Generic.table t ~default:(Error "Empty table") ~go:Fix.at)))
+      Check.apply ~r ~source ~kind:Expr ~lens:Expr._Table
+        ~check:(Generic.table t.table ~default:())
+        ~fix:(Generic.table ~default:(Error "Empty table"))
         tbl;
 
       let go_item = function
@@ -252,11 +251,8 @@ let expr (t : Opt.t) _ r = function
       List.iter go_item tbl.table_body
   | ECall c -> Check.call t.call ~r c
   | Parens e as source ->
-      Generic.parens t.parens
-        ~go:
-          (Check.at ~r ~source ~kind:Expr ~fix:(fun t ->
-               Fixer.fix @@ on Expr._Parens (Generic.parens t ~go:Fix.at)))
-        e
+      Check.apply ~r ~source ~kind:Expr ~lens:Expr._Parens ~check:(Generic.parens t.parens)
+        ~fix:Generic.parens e
   | Fun e -> Check.args t.args ~r e.fun_args
   | _ -> ()
 
