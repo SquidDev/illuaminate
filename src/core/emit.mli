@@ -37,6 +37,15 @@ val name : Format.formatter -> name -> unit
 (** Write a function call to a formatter. *)
 val call : Format.formatter -> call -> unit
 
+(** Write a function call's arguments to a formatter. *)
+val call_args : Format.formatter -> call_args -> unit
+
+(** Write a function definition's arguments to a formatter. *)
+val args : Format.formatter -> args -> unit
+
+(** Write a table_item to a formatter. *)
+val table_item : Format.formatter -> table_item -> unit
+
 (** Write an expression to a formatter. *)
 val expr : Format.formatter -> expr -> unit
 

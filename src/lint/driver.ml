@@ -34,32 +34,41 @@ module Node = struct
 
   let equal (Node (lw, l)) (Node (rw, r)) =
     match (lw, rw) with
-    | Stmt, Stmt -> l == r
-    | Program, Program -> l == r
-    | Token, Token -> l == r
+    | Args, Args -> l == r
     | BinOp, BinOp -> l == r
-    | Name, Name -> l == r
-    | Var, Var -> l == r
     | Call, Call -> l == r
+    | CallArgs, CallArgs -> l == r
+    | Name, Name -> l == r
+    | Program, Program -> l == r
+    | TableItem, TableItem -> l == r
+    | Token, Token -> l == r
+    | Var, Var -> l == r
+    | Stmt, Stmt -> l == r
     | Expr, Expr -> (
       match (l, r) with
       | String l, String r -> l == r
       | Table l, Table r -> l == r
       | l, r -> l == r )
-    | (Stmt | Program | Token | BinOp | Name | Expr | Var | Call), _ -> false
+    | (Stmt | Program | Token | BinOp | Name | Expr | Var | Call | Args | CallArgs | TableItem), _
+      ->
+        false
 end
 
 let extract (type a) (l : a Witness.t) (Note.Note ({ kind = r; _ } as note)) : a Note.t =
   match (l, r) with
-  | Stmt, Stmt -> note
-  | Program, Program -> note
-  | Token, Token -> note
+  | Args, Args -> note
   | BinOp, BinOp -> note
-  | Name, Name -> note
-  | Var, Var -> note
-  | Expr, Expr -> note
   | Call, Call -> note
-  | (Stmt | Program | Token | BinOp | Name | Expr | Var | Call), _ -> failwith "Witness mismatch!"
+  | CallArgs, CallArgs -> note
+  | Expr, Expr -> note
+  | Name, Name -> note
+  | Program, Program -> note
+  | Stmt, Stmt -> note
+  | TableItem, TableItem -> note
+  | Token, Token -> note
+  | Var, Var -> note
+  | (Stmt | Program | Token | BinOp | Name | Expr | Var | Call | Args | CallArgs | TableItem), _ ->
+      failwith "Witness mismatch!"
 
 module Notes = struct
   module Tbl = Hashtbl.Make (Node)
@@ -347,7 +356,12 @@ let fix prog (fixes : Notes.t) =
 
        method! expr x = fix_all fixes Expr x |> super#expr
 
+       method! args x = fix_all fixes Args x |> super#args
+
+       method! table_item x = fix_all fixes TableItem x |> super#table_item
+
        method! call_args args =
+         let args = fix_all fixes CallArgs args in
          let rewrap = function
            | Table t -> CallTable t
            | String t -> CallString t

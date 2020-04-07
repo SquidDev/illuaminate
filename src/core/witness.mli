@@ -6,12 +6,15 @@
 open Syntax
 
 type 'a t =
+  | Args : args t
   | BinOp : BinOp.t Node.t t
   | Call : call t
+  | CallArgs : call_args t
   | Expr : expr t
   | Name : name t
   | Program : program t
   | Stmt : stmt t
+  | TableItem : table_item t
   | Token : token t
   | Var : var t
 

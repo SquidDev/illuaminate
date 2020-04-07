@@ -792,11 +792,17 @@ module First = struct
     in
     { get; over }
 
-  and call_args = function
-    | CallArgs { open_a; _ } -> open_a
-    | CallTable x -> table.get x
-    | CallString { lit_node = h; lit_value } ->
-        Node.with_contents (Token.String (lit_value, h ^. Node.contents)) h
+  let call_args =
+    let get = function
+      | CallArgs { close_a; _ } -> close_a
+      | CallTable x -> table.get x
+      | CallString x -> lit_string.get x
+    and over f = function
+      | CallArgs ({ close_a; _ } as rest) -> CallArgs { rest with close_a = f close_a }
+      | CallTable x -> CallTable (table.over f x)
+      | CallString x -> CallString (lit_string.over f x)
+    in
+    { get; over }
 
   let program =
     let get { program; eof } =
@@ -1034,6 +1040,10 @@ module Spanned = struct
   let function_name = project First.function_name Last.function_name
 
   let arg = project First.arg Last.arg
+
+  let args = project First.args Last.args
+
+  let call_args = project First.call_args Last.call_args
 end
 
 module Precedence = struct
