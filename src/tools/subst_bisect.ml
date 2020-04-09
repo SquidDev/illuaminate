@@ -41,8 +41,7 @@ let rec has_bisect = function
 
 let inject ~contents ~at extra = CCString.take at contents ^ extra ^ CCString.drop at contents
 
-let process ~root (path : Fpath.t) =
-  let name = Fpath.relativize ~root path |> Option.get |> Fpath.to_string in
+let process_ast ~path ~name =
   let contents = CCIO.with_in (Fpath.to_string path) CCIO.read_all in
   match
     Lexing.from_string contents |> parse (Span.Filename.mk ~path ~name (Fpath.to_string path))
@@ -68,6 +67,10 @@ let process ~root (path : Fpath.t) =
       in
       find rest
   | Ok _ -> Logs.warn (fun f -> f "Skipping %s as it has no library" name)
+
+let process ~root (path : Fpath.t) =
+  let name = Fpath.relativize ~root path |> Option.get |> Fpath.to_string in
+  process_ast ~path ~name
 
 let () =
   Logs.set_level ~all:true (Some Info);
