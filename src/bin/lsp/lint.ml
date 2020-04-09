@@ -75,7 +75,7 @@ let to_code_action ~program (i, (Driver.Note.Note { message; fix; _ } as note)) 
           ()
       in
       Some (`CodeAction action)
-  (* bisect_ppx doesn't work well with GADTs *) [@@coverage off]
+  [@@coverage off]
 
 let code_actions store program range : CodeActionResult.t =
   D.get (Store.data store) notes program

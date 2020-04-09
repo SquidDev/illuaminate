@@ -13,10 +13,6 @@ module Note = struct
       kind : 'a Witness.t
     }
 
-  (* let span (type a) : a t -> Span.t = function
-   *   | { note = { span = Some span; _ }; _ } -> span
-   *   | { kind; source; _ } -> Witness.span kind source *)
-
   let report err { detail; tag; span; message; _ } =
     match detail with
     | None -> Error.report err tag span message
@@ -52,6 +48,7 @@ module Node = struct
     | (Stmt | Program | Token | BinOp | Name | Expr | Var | Call | Args | CallArgs | TableItem), _
       ->
         false
+    [@@coverage off]
 end
 
 let extract (type a) (l : a Witness.t) (Note.Note ({ kind = r; _ } as note)) : a Note.t =
@@ -69,6 +66,7 @@ let extract (type a) (l : a Witness.t) (Note.Note ({ kind = r; _ } as note)) : a
   | Var, Var -> note
   | (Stmt | Program | Token | BinOp | Name | Expr | Var | Call | Args | CallArgs | TableItem), _ ->
       failwith "Witness mismatch!"
+  [@@coverage off]
 
 module Notes = struct
   module Tbl = Hashtbl.Make (Node)

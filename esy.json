@@ -31,6 +31,7 @@
     "@opam/qcheck-core": "*",
     "@opam/omnomnom": "*",
     "@opam/odoc": "*",
+    "@opam/bisect_ppx": "*",
     "@opam/ocamlformat": "*",
     "@opam/opam-file-format": "*"
   },

@@ -22,6 +22,7 @@ depends: [
   "qcheck-core" {with-test}
   "omnomnom" {with-test}
   "odoc" {with-doc}
+  "bisect_ppx" {dev}
   "ocamlformat" {dev}
   "opam-file-format" {dev}
   "cmdliner"
