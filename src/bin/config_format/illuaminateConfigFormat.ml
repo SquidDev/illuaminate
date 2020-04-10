@@ -27,7 +27,8 @@ type doc_options =
   { site_title : string option;
     index : Fpath.t option;
     destination : Fpath.t;
-    source_link : Span.t -> string option
+    source_link : Span.t -> string option;
+    json_index : bool
   }
 
 let doc_options_term =
@@ -80,6 +81,12 @@ let doc_options_term =
         \ - sline/eline: The start and end line of the variable's definition.\n\
         \ - commit: The current commit hash, as returned by git rev-parse HEAD." ~default:None
       (option ~ty:"template" template)
+  and+ json_index =
+    field ~name:"json-index"
+      ~comment:
+        "Whether to create an index.json file, with a dump of all terms. This may be useful for \
+         querying externally."
+      ~default:true Converter.bool
   in
   fun root ->
     let git_commit =
@@ -123,7 +130,8 @@ let doc_options_term =
     { site_title;
       index = Option.map (Fpath.append root) index;
       destination = Fpath.append root destination;
-      source_link
+      source_link;
+      json_index
     }
 
 let doc_options = Category.add doc_options_term IlluaminateSemantics.Doc.Extract.Config.workspace

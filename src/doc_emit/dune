@@ -3,6 +3,6 @@
  (public_name illuaminate.doc_emit)
  (synopsis "Emits documentation to HTML")
  (libraries containers illuaminate.html illuaminate.core
-   illuaminate.semantics illuaminate.parser fpath omd)
+   illuaminate.semantics illuaminate.parser fpath omd yojson)
  (preprocess
   (pps jsx)))

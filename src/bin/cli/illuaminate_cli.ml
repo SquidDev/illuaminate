@@ -115,7 +115,9 @@ let doc_gen path =
        let fmt = Format.formatter_of_out_channel out in
        Html.Default.emit_doc fmt node; Format.pp_print_flush fmt ()
      in
-     let { Config.site_title; index; destination; source_link } = Config.get_doc_options config in
+     let { Config.site_title; index; destination; source_link; json_index } =
+       Config.get_doc_options config
+     in
      let index =
        let open Html.Default in
        match index with
@@ -155,7 +157,12 @@ let doc_gen path =
      let path = Fpath.(destination / "index.html") in
      E.Html_main.emit_modules ?site_title ~resolve:Fun.id ~modules index
      |> emit_doc
-     |> CCIO.with_out (Fpath.to_string path) );
+     |> CCIO.with_out (Fpath.to_string path);
+
+     if json_index then
+       let path = Fpath.(destination / "index.json") in
+       E.Flat_index.(of_modules ~source_link modules |> to_json)
+       |> Yojson.Safe.to_file (Fpath.to_string path) );
   Error.display_of_files errs;
   if Error.has_problems errs then exit 1
 
