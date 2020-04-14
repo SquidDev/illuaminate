@@ -1,1 +1,1 @@
-val tests : Omnomnom.Tests.tests
+include Omnomnom.S
