@@ -46,6 +46,9 @@ val args : Format.formatter -> args -> unit
 (** Write a table_item to a formatter. *)
 val table_item : Format.formatter -> table_item -> unit
 
+(** Write a function name to a formatter. *)
+val function_name : Format.formatter -> function_name -> unit
+
 (** Write an expression to a formatter. *)
 val expr : Format.formatter -> expr -> unit
 

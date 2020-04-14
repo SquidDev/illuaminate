@@ -35,6 +35,7 @@ module Node = struct
     | Call, Call -> l == r
     | CallArgs, CallArgs -> l == r
     | Name, Name -> l == r
+    | FunctionName, FunctionName -> l == r
     | Program, Program -> l == r
     | TableItem, TableItem -> l == r
     | Token, Token -> l == r
@@ -45,8 +46,9 @@ module Node = struct
       | String l, String r -> l == r
       | Table l, Table r -> l == r
       | l, r -> l == r )
-    | (Stmt | Program | Token | BinOp | Name | Expr | Var | Call | Args | CallArgs | TableItem), _
-      ->
+    | ( ( Stmt | Program | Token | BinOp | Name | FunctionName | Expr | Var | Call | Args | CallArgs
+        | TableItem ),
+        _ ) ->
         false
     [@@coverage off]
 end
@@ -58,13 +60,16 @@ let extract (type a) (l : a Witness.t) (Note.Note ({ kind = r; _ } as note)) : a
   | Call, Call -> note
   | CallArgs, CallArgs -> note
   | Expr, Expr -> note
+  | FunctionName, FunctionName -> note
   | Name, Name -> note
   | Program, Program -> note
   | Stmt, Stmt -> note
   | TableItem, TableItem -> note
   | Token, Token -> note
   | Var, Var -> note
-  | (Stmt | Program | Token | BinOp | Name | Expr | Var | Call | Args | CallArgs | TableItem), _ ->
+  | ( ( Stmt | Program | Token | BinOp | Name | Expr | FunctionName | Var | Call | Args | CallArgs
+      | TableItem ),
+      _ ) ->
       failwith "Witness mismatch!"
   [@@coverage off]
 

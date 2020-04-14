@@ -3,36 +3,34 @@ open Syntax
 open Lsp_convert
 
 type node =
-  | Var of var
   | DotArg of token
-  | Name of name
-  | FunctionName of function_name
   | Expr of expr
-  | TableItem of table_item
-  | Stmt of stmt
+  | FunctionName of function_name
+  | Name of name
   | Program of program
+  | Stmt of stmt
+  | TableItem of table_item
+  | Var of var
 
-let pp_node out : node -> unit = function
-  | Var _ -> Format.fprintf out "Var"
-  | DotArg _ -> Format.fprintf out "DotArg"
-  | Name _ -> Format.fprintf out "Name"
-  | FunctionName _ -> Format.fprintf out "FunctionName"
-  | TableItem _ -> Format.fprintf out "TableItem"
-  | Expr e -> Format.fprintf out "Expr %a" Emit.expr e
-  | Stmt s -> Format.fprintf out "Stmt %a" Emit.stmt s
-  | Program p -> Format.fprintf out "Program %a" Emit.program p
+type boxed = Node : 'a Witness.t * 'a -> boxed
 
-let node_kind : node -> string = function
-  | Var _ -> "Var"
-  | DotArg _ -> "DotArg"
-  | Name _ -> "Name"
-  | FunctionName _ -> "FunctionName"
-  | TableItem _ -> "TableItem"
-  | Expr _ -> "Expr"
-  | Stmt _ -> "Stmt"
-  | Program _ -> "Program"
+let to_witness : node -> boxed = function
+  | DotArg x -> Node (Token, x)
+  | Expr x -> Node (Expr, x)
+  | FunctionName x -> Node (FunctionName, x)
+  | Name x -> Node (Name, x)
+  | Program x -> Node (Program, x)
+  | Stmt x -> Node (Stmt, x)
+  | TableItem x -> Node (TableItem, x)
+  | Var x -> Node (Var, x)
 
-let pp_node_short out f = Format.fprintf out "%s" (node_kind f)
+let pp_node out node =
+  let (Node (w, n)) = to_witness node in
+  Format.fprintf out "%s %a" (Witness.name w) (Witness.emit w) n
+
+let pp_node_short out node =
+  let (Node (w, _)) = to_witness node in
+  Format.fprintf out "%s" (Witness.name w)
 
 let ( <|> ) x d = Option.value ~default:d x [@@inline]
 

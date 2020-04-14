@@ -6,6 +6,7 @@ type 'a t =
   | Call : call t
   | CallArgs : call_args t
   | Expr : expr t
+  | FunctionName : function_name t
   | Name : name t
   | Program : program t
   | Stmt : stmt t
@@ -13,12 +14,27 @@ type 'a t =
   | Token : token t
   | Var : var t
 
+let name (type a) : a t -> string = function
+  | Args -> "Args"
+  | BinOp -> "Binop"
+  | Call -> "Call"
+  | CallArgs -> "CallArgs"
+  | Expr -> "Expr"
+  | FunctionName -> "FunctioName"
+  | Name -> "Name"
+  | Program -> "Program"
+  | Stmt -> "Stmt"
+  | TableItem -> "TableItem"
+  | Token -> "Token"
+  | Var -> "Var"
+
 let first (type a) : a t -> (a, token) Lens.lens' = function
   | Args -> First.args
   | BinOp -> Node.lens_embed BinOp.token
   | Call -> First.call
   | CallArgs -> First.call_args
   | Expr -> First.expr
+  | FunctionName -> First.function_name
   | Name -> First.name
   | Program -> First.program
   | Stmt -> First.stmt
@@ -32,6 +48,7 @@ let last (type a) : a t -> (a, token) Lens.lens' = function
   | Call -> Last.call
   | CallArgs -> Last.call_args
   | Expr -> Last.expr
+  | FunctionName -> Last.function_name
   | Name -> Last.name
   | Program -> Last.program
   | Stmt -> Last.stmt
@@ -47,6 +64,7 @@ let span (type a) : a t -> a -> Span.t = function
   | Call -> Spanned.call
   | CallArgs -> Spanned.call_args
   | Expr -> Spanned.expr
+  | FunctionName -> Spanned.function_name
   | Name -> Spanned.name
   | Program -> Spanned.program
   | Stmt -> Spanned.stmt
@@ -60,6 +78,7 @@ let emit (type a) : a t -> Format.formatter -> a -> unit = function
   | Call -> Emit.call
   | CallArgs -> Emit.call_args
   | Expr -> Emit.expr
+  | FunctionName -> Emit.function_name
   | Name -> Emit.name
   | Program -> Emit.program
   | Stmt -> Emit.stmt

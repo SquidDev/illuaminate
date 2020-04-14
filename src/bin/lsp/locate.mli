@@ -1,14 +1,14 @@
 open IlluaminateCore.Syntax
 
 type node =
-  | Var of var
   | DotArg of token
-  | Name of name
-  | FunctionName of function_name
   | Expr of expr
-  | TableItem of table_item
-  | Stmt of stmt
+  | FunctionName of function_name
+  | Name of name
   | Program of program
+  | Stmt of stmt
+  | TableItem of table_item
+  | Var of var
 
 val pp_node : Format.formatter -> node -> unit
 

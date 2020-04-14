@@ -11,12 +11,16 @@ type 'a t =
   | Call : call t
   | CallArgs : call_args t
   | Expr : expr t
+  | FunctionName : function_name t
   | Name : name t
   | Program : program t
   | Stmt : stmt t
   | TableItem : table_item t
   | Token : token t
   | Var : var t
+
+(** Get the name of this witness. *)
+val name : 'a t -> string
 
 (** A lens to return the first token in the term, much like with {!First}. *)
 val first : 'a t -> ('a, token) Lens.lens'
