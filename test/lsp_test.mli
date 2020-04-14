@@ -16,20 +16,29 @@ end
 module Testable : sig
   include module type of Alcotest
 
-  val json : ('a -> Yojson.Safe.t) -> 'a Alcotest.testable
+  type 'a t := 'a testable
 
-  val locations :
-    Location.t Alcotest.testable ->
-    LocationLink.t Alcotest.testable ->
-    Locations.t Alcotest.testable
+  val yojson : Yojson.Safe.t t
 
-  val diagnostic : Diagnostic.t testable
+  val json : ('a -> Yojson.Safe.t) -> 'a t
 
-  val location : Location.t testable
+  val locations : Location.t t -> LocationLink.t t -> Locations.t t
 
-  val location_link : LocationLink.t testable
+  val diagnostic : Diagnostic.t t
 
-  val document_highlight : DocumentHighlight.t testable
+  val location : Location.t t
+
+  val location_link : LocationLink.t t
+
+  val document_highlight : DocumentHighlight.t t
+
+  val command :
+    ?title:string t -> ?command:string t -> ?arguments:Yojson.Safe.t t -> unit -> Command.t testable
+
+  val code_action :
+    ?title:string t -> ?diagnostic:Diagnostic.t t -> ?command:Command.t t -> unit -> CodeAction.t t
+
+  val code_action_result : Command.t t -> CodeAction.t t -> CodeActionResult.t testable
 end
 
 type t
@@ -46,6 +55,12 @@ val get_notification : t -> (Server_notification.t -> 'a option) -> 'a
 
 (** Open a file relative to the current workspace. *)
 val open_file : t -> string -> DocumentUri.t
+
+(** Get the contents of a file. *)
+val contents : t -> DocumentUri.t -> string
+
+(** Wait for a request and apply it. *)
+val apply_edits : t -> unit
 
 val range : int -> int -> int -> int -> Range.t
 

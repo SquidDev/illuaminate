@@ -42,10 +42,11 @@ let () =
          Config_format.tests;
          group "Documentation" [ Doc_parser.tests; Doc_extract.tests; Doc_emit_index.tests ];
          group "Language server"
-           [ Lsp_diagnostic.tests;
-             Lsp_definition.tests;
+           [ Lsp_code_action.tests;
              Lsp_declaration.tests;
-             Lsp_reference.tests;
-             Lsp_highlight.tests
+             Lsp_definition.tests;
+             Lsp_diagnostic.tests;
+             Lsp_highlight.tests;
+             Lsp_reference.tests
            ]
        ]

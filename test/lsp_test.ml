@@ -3,14 +3,16 @@ open Lsp
 open Lsp.Types
 include IlluaminateLsp
 
+let pp_json out x = Format.pp_print_string out (Yojson.Safe.pretty_to_string x)
+
+let json_pp pp out x = pp_json out (pp x)
+
 module Check = struct
   let ok ~pp : ('a, 'e) Result.t -> 'a = function
     | Ok k -> k
     | Error e -> Alcotest.failf "Unexpected error:\n %a" pp e
 
-  let pp_json out x = Format.pp_print_string out (Yojson.Safe.pretty_to_string x)
-
-  let ok_json ~pp e = ok ~pp:(fun out x -> pp_json out (pp x)) e
+  let ok_json ~pp e = ok ~pp:(json_pp pp) e
 
   let json_err { Jsonrpc.Response.Error.message; data; _ } =
     let bnds : (string * Yojson.Safe.t) list = [] in
@@ -29,29 +31,31 @@ end
 module Testable = struct
   include Alcotest
 
-  let json (type a) pp : a Alcotest.testable =
+  let mk (type a) ~eq ~pp : a testable =
     ( module struct
       type t = a
 
-      let pp out x = Check.pp_json out (pp x)
+      let pp = pp
 
-      let equal = ( = )
+      let equal = eq
     end )
 
-  let locations location link : Locations.t Alcotest.testable =
-    ( module struct
-      type t = Locations.t
+  let yojson : Yojson.Safe.t testable = mk ~pp:pp_json ~eq:( = )
 
-      let pp out = function
-        | `Location l -> pp (list location) out l
-        | `LocationLink l -> pp (list link) out l
+  let json pp : 'a Alcotest.testable = mk ~pp:(json_pp pp) ~eq:( = )
 
-      let equal l r =
-        match (l, r) with
-        | `Location l, `Location r -> equal (list location) l r
-        | `LocationLink l, `LocationLink r -> equal (list link) l r
-        | (`Location _ | `LocationLink _), _ -> false
-    end )
+  let locations location link : Locations.t testable =
+    let pp out = function
+      | `Location l -> pp (list location) out l
+      | `LocationLink l -> pp (list link) out l
+    in
+    let eq l r =
+      match (l, r) with
+      | `Location l, `Location r -> equal (list location) l r
+      | `LocationLink l, `LocationLink r -> equal (list link) l r
+      | (`Location _ | `LocationLink _), _ -> false
+    in
+    mk ~pp ~eq
 
   let diagnostic = json Diagnostic.yojson_of_t
 
@@ -60,6 +64,59 @@ module Testable = struct
   let location_link = json LocationLink.yojson_of_t
 
   let document_highlight = json DocumentHighlight.yojson_of_t
+
+  let command ?(title = string) ?(command = string) ?arguments () : Command.t testable =
+    let arguments = Option.value ~default:yojson arguments |> list |> option in
+    mk
+      ~pp:(fun out ({ title = t; command = c; arguments = a } : Command.t) ->
+        Format.pp_open_vbox out 2;
+        Format.fprintf out "Title: %a@;" (pp title) t;
+        Format.fprintf out "Command: %a@;" (pp command) c;
+        Format.fprintf out "Arguments: %a" (pp arguments) a;
+        Format.pp_close_box out ())
+      ~eq:(fun (x : Command.t) (y : Command.t) ->
+        equal title x.title y.title && equal command x.command y.command
+        && equal arguments x.arguments y.arguments)
+
+  let def_command = command ()
+
+  let workspace_edit = json WorkspaceEdit.yojson_of_t
+
+  let code_action_kind = json CodeActionKind.yojson_of_t
+
+  let code_action ?(title = string) ?(diagnostic = diagnostic) ?(command = def_command) () =
+    mk
+      ~pp:
+        (fun out
+             ({ title = t; kind; diagnostics = d; isPreferred; edit; command = c } : CodeAction.t) ->
+        Format.pp_open_vbox out 2;
+        Format.fprintf out "Title: %a@;" (pp title) t;
+        Format.fprintf out "Kind: %a@;" (Fmt.option (pp code_action_kind)) kind;
+        Format.fprintf out "Diagnostics: %a@;" Fmt.(option (list (pp diagnostic))) d;
+        Format.fprintf out "Is Preferred: %a@;" Fmt.(option bool) isPreferred;
+        Format.fprintf out "Edit: %a@;" Fmt.(option (pp workspace_edit)) edit;
+        Format.fprintf out "Command: %a" (pp (option command)) c;
+        Format.pp_close_box out ())
+      ~eq:(fun (l : CodeAction.t) (r : CodeAction.t) ->
+        equal title l.title r.title
+        && equal (option code_action_kind) l.kind r.kind
+        && equal (option (list diagnostic)) l.diagnostics r.diagnostics
+        && equal (option bool) l.isPreferred r.isPreferred
+        && equal (option workspace_edit) l.edit r.edit
+        && equal (option command) l.command r.command)
+
+  let code_action_result command code_action : CodeActionResult.t testable =
+    mk
+      ~pp:(fun out x ->
+        match x with
+        | `Command x -> pp command out x
+        | `CodeAction x -> pp code_action out x)
+      ~eq:(fun x y ->
+        match (x, y) with
+        | `Command x, `Command y -> equal command x y
+        | `CodeAction x, `CodeAction y -> equal code_action x y
+        | `Command _, `CodeAction _ | `CodeAction _, `Command _ -> false)
+    |> list |> option
 end
 
 type message =
@@ -71,6 +128,7 @@ let capabilities = ClientCapabilities.create ()
 type t =
   { outgoing : message Queue.t;
     workspace : Fpath.t;
+    files : (DocumentUri.t, string) Hashtbl.t;
     client : client_channel;
     server : server_channel
   }
@@ -95,7 +153,7 @@ let test ~name ?workspace run =
         in
         InitializeParams.create ~capabilities ~rootUri ()
         |> server.initialize client |> Check.ok_s |> ignore;
-        run { outgoing; workspace; server; client } )
+        run { outgoing; workspace; server; client; files = Hashtbl.create 2 } )
 
 type some_request = Request : 'a Lsp.Server_request.t -> some_request
 
@@ -117,15 +175,42 @@ let rec get_notification t f =
     | Some x -> x
     | None -> get_notification t f )
 
-let open_file { workspace; client; server; _ } f =
+let open_file { workspace; client; server; files; _ } f =
   let path = Fpath.(append workspace (v f) |> to_string) in
   let uri = Uri.of_path path |> Uri.to_string in
   let text = CCIO.(with_in path read_all) in
-
+  Hashtbl.replace files uri text;
   server.notify client
     (TextDocumentDidOpen { textDocument = { uri; languageId = "lua"; version = 0; text } })
   |> Check.ok_s;
   uri
+
+let contents { files; _ } filename = Hashtbl.find files filename
+
+let apply_edits ({ files; _ } as t) =
+  let apply_edit uri edits =
+    let content = Hashtbl.find files uri in
+    List.fold_left
+      (fun c { TextEdit.range; newText } ->
+        Logs.info (fun f -> f "Applying edit at %a: %s" (json_pp Range.yojson_of_t) range newText);
+        Text_document_text.apply_change c range newText)
+      content edits
+    |> Hashtbl.replace files uri
+  in
+  let apply_doc_edit ({ textDocument = { uri; _ }; edits } : TextDocumentEdit.t) =
+    apply_edit uri edits
+  in
+  let apply_change = function
+    | `TextDocumentEdit x -> apply_doc_edit x
+    | `CreateFile _ | `RenameFile _ | `DeleteFile _ ->
+        Alcotest.fail "File operations not yet supported"
+  in
+  get_request t @@ function
+  | Request (WorkspaceApplyEdit { edit = { changes; documentChanges; _ }; _ }) ->
+      Option.iter (List.iter (fun (f, e) -> apply_edit f e)) changes;
+      Option.iter (List.iter apply_change) documentChanges;
+      Some ()
+  | _ -> Alcotest.fail "Expecting workspace edit"
 
 let range l1 c1 l2 c2 =
   Range.create

@@ -85,7 +85,7 @@ let code_actions store program range : CodeActionResult.t =
   |> CCList.of_std_seq_rev |> Option.some
 
 let get_whole_range before witness =
-  let start = (Witness.first witness).get before and finish = (Witness.first witness).get before in
+  let start = (Witness.first witness).get before and finish = (Witness.last witness).get before in
   let start =
     match start with
     | SimpleNode _ -> assert false
