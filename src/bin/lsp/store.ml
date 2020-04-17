@@ -28,7 +28,9 @@ module Filename = struct
     | true -> "file:///"
     | false -> "file://"
 
-  let get_path uri = Uri.to_string uri |> CCString.chop_prefix ~pre:protocol |> Option.map Fpath.v
+  let get_path uri =
+    if Uri.to_string uri |> CCString.prefix ~pre:protocol then Some (Uri.to_path uri |> Fpath.v)
+    else None
 
   let of_uri uri = Span.Filename.mk ?path:(get_path uri) (Uri.to_string uri)
 

@@ -8,7 +8,8 @@ module Filename = struct
 
   let mk ?path ?name id =
     ( match path with
-    | Some p when not (Fpath.is_abs p) -> invalid_arg "Filename.mk: path must be absolute"
+    | Some p when not (Fpath.is_abs p) ->
+        Format.asprintf "Filename.mk: path %a must be absolute" Fpath.pp p |> invalid_arg
     | _ -> () );
     { name = Option.value ~default:id name; path; id; hash = Hashtbl.hash id }
 

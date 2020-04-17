@@ -21,19 +21,21 @@ type t =
     mutable configs : Config.t option StringMap.t
   }
 
+let normalise_p p = Fpath.(normalize p |> rem_empty_seg)
+
 let create ?root errors =
-  let relative = CCOpt.get_lazy (fun () -> Fpath.(Sys.getcwd () |> v |> normalize)) root in
+  let relative = CCOpt.get_lazy (fun () -> Fpath.(Sys.getcwd () |> v |> normalise_p)) root in
   { relative; errors; configs = StringMap.empty }
 
 let mk_name ~loader:{ relative; _ } path =
   let path_s = Fpath.to_string path in
   let name =
-    Fpath.(relativize ~root:relative path |> Option.map (fun f -> normalize f |> to_string))
+    Fpath.(relativize ~root:relative path |> Option.map (fun f -> normalise_p f |> to_string))
   in
   Span.Filename.mk ?name ~path path_s
 
 let rec get_config ~loader dir =
-  let dir = Fpath.normalize dir in
+  let dir = normalise_p dir in
   match StringMap.find_opt (Fpath.to_string dir) loader.configs with
   | Some c -> c
   | None ->
@@ -92,7 +94,7 @@ let builder files file_store builder =
 let keys m = StringMap.to_seq m |> Seq.map snd |> List.of_seq
 
 let load_from ~loader path =
-  let path = Fpath.(append loader.relative path |> normalize) in
+  let path = Fpath.(append loader.relative path |> normalise_p) in
   get_config_for ~loader path
   |> Option.map @@ fun config ->
      let files = ref StringMap.empty in
@@ -105,7 +107,7 @@ let load_from_many ~loader paths =
   let file_store = FileStore.create () in
   paths
   |> List.iter (fun path ->
-         let path = Fpath.(append loader.relative path |> normalize) in
+         let path = Fpath.(append loader.relative path |> normalise_p) in
          get_config_for ~loader path
          |> Option.iter (fun config -> do_load_from ~loader ~files ~file_store ~config path));
   (keys !files, builder !files file_store)

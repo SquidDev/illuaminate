@@ -56,7 +56,10 @@ jobs:
       run: esy i
 
     - name: Build
-      run: esy b --install
+      run: esy b --install --release
+
+    - name: Test
+      run: esy b dune runtest
 
     - name: Extract executable
       run: |
