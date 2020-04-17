@@ -40,7 +40,12 @@ let () =
          Data.tests;
          Span.tests;
          Config_format.tests;
-         group "Documentation" [ Doc_parser.tests; Doc_extract.tests; Doc_emit_index.tests ];
+         group "Documentation"
+           [ Doc_parser.tests;
+             Doc_extract.tests;
+             Doc_emit.Json_summary.tests;
+             Doc_emit.Html_module.tests
+           ];
          group "Language server"
            [ Lsp_code_action.tests;
              Lsp_declaration.tests;

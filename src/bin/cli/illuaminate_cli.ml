@@ -161,7 +161,7 @@ let doc_gen path =
 
      if json_index then
        let path = Fpath.(destination / "index.json") in
-       E.Flat_index.(of_modules ~source_link modules |> to_json)
+       E.Summary.(everything ~source_link modules |> to_json)
        |> Yojson.Safe.to_file (Fpath.to_string path) );
   Error.display_of_files errs;
   if Error.has_problems errs then exit 1

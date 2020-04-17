@@ -3,9 +3,8 @@ open IlluaminateSemantics
 open IlluaminateConfig
 module Doc = Doc.Extract
 module D = IlluaminateData
-open CCFun
 
-let process ~name contents out =
+let process ~go ~name contents out =
   let lexbuf = Lexing.from_string contents in
   let name = Span.Filename.mk name in
   let errs = Error.make () in
@@ -29,17 +28,31 @@ let process ~name contents out =
       let data = D.get data Doc.key parsed in
       Doc.errors data
       |> List.iter (fun (e : Error.Error.t) -> Error.report errs e.tag e.span e.message);
-      Doc.get_module data
-      |> Option.iter (fun m ->
-             IlluaminateDocEmit.Flat_index.(
-               of_modules ~source_link:(Option.some % Span.show) [ m ] |> to_json)
-             |> Yojson.Safe.pretty_print out) );
+      Doc.get_module data |> Option.iter (fun m -> go out m) );
 
   Error.display_of_string ~out (fun _ -> Some contents) errs
 
-let process ~name contents = Format.asprintf "%t" (process ~name contents)
+let process ~go ~name contents = Format.asprintf "%t" (process ~go ~name contents)
 
-let tests =
-  OmnomnomGolden.of_directory process ~group:"Emit index" ~directory:"data/doc-extract"
-    ~rename:(fun x -> x ^ ".json")
+let tests ~extension ~group go =
+  OmnomnomGolden.of_directory (process ~go) ~group ~directory:"data/doc-extract"
+    ~rename:(fun x -> Printf.sprintf "%s.%s" x extension)
     ~extension:".lua" ()
+
+let source_link x = Span.show x |> Option.some
+
+module Json_summary = struct
+  let tests =
+    tests ~extension:"json" ~group:"Json summary" @@ fun out m ->
+    IlluaminateDocEmit.Summary.(everything ~source_link [ m ] |> to_json)
+    |> Yojson.Safe.pretty_print out
+end
+
+module Html_module = struct
+  let tests =
+    tests ~extension:"html" ~group:"Html page" @@ fun out m ->
+    Format.fprintf out "<!DOCTYPE html>@\n";
+    IlluaminateDocEmit.Html_main.emit_module ~site_title:"My title" ~resolve:Fun.id ~source_link
+      ~modules:[] m
+    |> Html.Default.emit_pretty out
+end

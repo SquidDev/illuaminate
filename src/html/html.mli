@@ -49,6 +49,9 @@ end) : sig
   (** Emit a node. *)
   val emit : Format.formatter -> node -> unit
 
+  (** Emit a node, with additional whitespace. *)
+  val emit_pretty : Format.formatter -> node -> unit
+
   (** Emit a document, including the DOCTYPE header. *)
   val emit_doc : Format.formatter -> node -> unit
 end

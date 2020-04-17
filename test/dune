@@ -5,7 +5,7 @@
    illuaminate.config illuaminate.data illuaminate.parser illuaminate.lint
    omd fpath illuaminate.semantics illuaminate.pattern illuaminate.doc_emit
    illuaminateConfigFormat illuaminateLsp lsp lsp.stdune logs cmdliner yojson
-   result alcotest fmt ppx_yojson_conv_lib qcheck-core)
+   result alcotest fmt ppx_yojson_conv_lib qcheck-core html)
  (variants unix)
  (deps
   (source_tree data))

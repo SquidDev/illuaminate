@@ -55,8 +55,7 @@ let of_type ~source_link =
   in
   fun ~name x -> of_documented ~source_link ~body:ty ~name x
 
-let of_module ~source_link ({ descriptor = { mod_name; mod_types; mod_contents; _ }; _ } as d) =
+let everything ~source_link =
+  CCList.flat_map @@ fun ({ descriptor = { mod_name; mod_types; mod_contents; _ }; _ } as d) ->
   of_term ~source_link ~name:mod_name { d with descriptor = mod_contents }
   @ CCList.flat_map (of_type ~source_link ~name:mod_name) mod_types
-
-let of_modules ~source_link = CCList.flat_map (of_module ~source_link)

@@ -51,33 +51,43 @@ struct
     in
     loop_pure 0
 
-  let emit out node =
+  let do_emit ~indent =
     let open Format in
-    let rec go = function
-      | Many xs -> List.iter go xs
-      | Nil -> ()
-      | Raw x -> pp_print_string out x
-      | Text x -> pp_print_string out (html_escape x)
+    let skip _ () = () in
+    let cut out = if indent then pp_print_cut out () else () in
+    let break out = if indent then pp_print_break out 0 2 else () in
+    let attr out (k, v) = fprintf out " %s=\"%s\"" k v in
+    let open_box fmt = if indent then pp_open_hvbox fmt 0 else () in
+    let close_box fmt = if indent then pp_close_box fmt () else () in
+    let non_empty prev out go =
+      if prev then cut out;
+      go ();
+      true
+    in
+    let rec go out prev = function
+      | Many xs -> list prev out xs
+      | Nil | Text "" | Raw "" -> prev
+      | Raw x -> non_empty prev out @@ fun () -> pp_print_string out x
+      | Text x -> non_empty prev out @@ fun () -> pp_print_string out (html_escape x)
       | Element
           { tag = ("br" | "img" | "link" | "meta") as tag; attributes; children = []; events = [] }
-        -> (
-        match attributes with
-        | [] -> fprintf out "<%s />" tag
-        | _ ->
-            fprintf out "<%s" tag;
-            attributes |> List.iter (fun (k, v) -> fprintf out " %s=\"%s\"" k v);
-            pp_print_string out " />" )
+        ->
+          non_empty prev out @@ fun () ->
+          fprintf out "<%s%a />" tag (pp_print_list ~pp_sep:skip attr) attributes
       | Element { tag; attributes; children; events = [] } ->
-          ( match attributes with
-          | [] -> fprintf out "<%s>" tag
-          | _ ->
-              fprintf out "<%s" tag;
-              attributes |> List.iter (fun (k, v) -> fprintf out " %s=\"%s\"" k v);
-              pp_print_string out ">" );
-          List.iter go children; fprintf out "</%s>" tag
+          non_empty prev out @@ fun () ->
+          open_box out;
+          fprintf out "<%s%a>%t%t%a%t%t</%s>" tag (pp_print_list ~pp_sep:skip attr) attributes break
+            open_box list' children close_box cut tag;
+          close_box out
       | Element { events = _ :: _; _ } -> failwith "Cannot emit event handlers to a formatter."
-    in
-    go node
+    and list prev out = List.fold_left (go out) prev
+    and list' out xs = list false out xs |> ignore in
+    fun out node -> go out false node |> ignore
+
+  let emit = do_emit ~indent:false
+
+  let emit_pretty = do_emit ~indent:true
 
   let emit_doc out node =
     Format.fprintf out "<!DOCTYPE html>";

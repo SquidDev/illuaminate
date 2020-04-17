@@ -12,5 +12,5 @@ type t =
 val to_json : t list -> Yojson.Safe.t
 
 (** Convert a list of documented modules into a flat list of index terms. *)
-val of_modules :
+val everything :
   source_link:(IlluaminateCore.Span.t -> string option) -> module_info documented list -> t list
