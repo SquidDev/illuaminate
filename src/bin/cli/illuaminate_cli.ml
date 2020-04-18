@@ -76,7 +76,8 @@ let fix paths =
         { Loader.parsed = Some newm; _ } )
       when oldm != newm -> (
       try
-        CCIO.with_out ~flags:[ Open_binary ] (Fpath.to_string path) @@ fun ch ->
+        CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path)
+        @@ fun ch ->
         let fmt = Format.formatter_of_out_channel ch in
         Emit.program fmt newm; Format.pp_print_flush fmt ()
       with e -> Log.err (fun f -> f "Error fixing %s (%s).\n" name (Printexc.to_string e)) )
@@ -153,12 +154,12 @@ let doc_gen path =
             in
             E.Html_main.emit_module ?site_title ~resolve ~source_link ~modules modu
             |> emit_doc
-            |> CCIO.with_out ~flags:[ Open_binary ] (Fpath.to_string path));
+            |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path));
 
      let path = Fpath.(destination / "index.html") in
      E.Html_main.emit_modules ?site_title ~resolve:Fun.id ~modules index
      |> emit_doc
-     |> CCIO.with_out ~flags:[ Open_binary ] (Fpath.to_string path);
+     |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path);
 
      if json_index then
        let path = Fpath.(destination / "index.json") in
@@ -171,7 +172,7 @@ let init_config config force =
   if (not force) && Sys.file_exists config then (
     Printf.eprintf "File already exists";
     exit 1 );
-  CCIO.with_out ~flags:[ Open_binary ] config @@ fun ch ->
+  CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] config @@ fun ch ->
   let formatter = Format.formatter_of_out_channel ch in
   Config.generate formatter;
   Format.pp_print_flush formatter ()

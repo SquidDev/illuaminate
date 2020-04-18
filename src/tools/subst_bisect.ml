@@ -54,8 +54,9 @@ let process_ast ~path ~name =
             let updated =
               inject ~contents ~at:(Span.finish_offset.get pos) "\n (preprocess (pps bisect_ppx))"
             in
-            CCIO.with_out ~flags:[ Open_binary ] (Fpath.to_string path)
-              (Fun.flip output_string updated)
+            CCIO.with_out
+              ~flags:[ Open_creat; Open_trunc; Open_binary ]
+              (Fpath.to_string path) (Fun.flip output_string updated)
         | List (pos, Atom (_, "preprocess") :: xs) :: _ ->
             if List.exists has_bisect xs then
               Logs.info (fun f -> f "%s already uses bisect_ppx. Doing nothing." name)
@@ -63,8 +64,9 @@ let process_ast ~path ~name =
               Logs.info (fun f -> f "%s has existing pre-processor. Adding bisect_ppx to it." name);
 
               let updated = inject ~contents ~at:(Span.finish_offset.get pos - 1) " bisect_ppx" in
-              CCIO.with_out ~flags:[ Open_binary ] (Fpath.to_string path)
-                (Fun.flip output_string updated) )
+              CCIO.with_out
+                ~flags:[ Open_creat; Open_trunc; Open_binary ]
+                (Fpath.to_string path) (Fun.flip output_string updated) )
         | _ :: xs -> find xs
       in
       find rest
