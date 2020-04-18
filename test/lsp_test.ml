@@ -1,4 +1,3 @@
-open Stdlib
 open Lsp
 open Lsp.Types
 include IlluaminateLsp

@@ -1,4 +1,3 @@
-open Stdlib
 open Github_types
 open IlluaminateCore
 open CCResult.Infix
