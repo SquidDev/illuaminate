@@ -72,13 +72,14 @@ let fix paths =
   in
   let rewrite old_module new_module =
     match (old_module, new_module) with
-    | { Loader.file; parsed = Some oldm; _ }, { Loader.parsed = Some newm; _ } when oldm != newm
-      -> (
+    | ( { Loader.file = { name; path = Some path; _ }; parsed = Some oldm; _ },
+        { Loader.parsed = Some newm; _ } )
+      when oldm != newm -> (
       try
-        let ch = open_out file.id in
+        CCIO.with_out ~flags:[ Open_binary ] (Fpath.to_string path) @@ fun ch ->
         let fmt = Format.formatter_of_out_channel ch in
-        Emit.program fmt newm; Format.pp_print_flush fmt (); close_out ch
-      with e -> Log.err (fun f -> f "Error fixing %s (%s).\n" file.name (Printexc.to_string e)) )
+        Emit.program fmt newm; Format.pp_print_flush fmt ()
+      with e -> Log.err (fun f -> f "Error fixing %s (%s).\n" name (Printexc.to_string e)) )
     | _ -> ()
   in
   List.iter2 rewrite modules modules';
@@ -152,12 +153,12 @@ let doc_gen path =
             in
             E.Html_main.emit_module ?site_title ~resolve ~source_link ~modules modu
             |> emit_doc
-            |> CCIO.with_out (Fpath.to_string path));
+            |> CCIO.with_out ~flags:[ Open_binary ] (Fpath.to_string path));
 
      let path = Fpath.(destination / "index.html") in
      E.Html_main.emit_modules ?site_title ~resolve:Fun.id ~modules index
      |> emit_doc
-     |> CCIO.with_out (Fpath.to_string path);
+     |> CCIO.with_out ~flags:[ Open_binary ] (Fpath.to_string path);
 
      if json_index then
        let path = Fpath.(destination / "index.json") in
@@ -170,11 +171,10 @@ let init_config config force =
   if (not force) && Sys.file_exists config then (
     Printf.eprintf "File already exists";
     exit 1 );
-  let out = open_out config in
-  let formatter = Format.formatter_of_out_channel out in
+  CCIO.with_out ~flags:[ Open_binary ] config @@ fun ch ->
+  let formatter = Format.formatter_of_out_channel ch in
   Config.generate formatter;
-  Format.pp_print_flush formatter ();
-  close_out out
+  Format.pp_print_flush formatter ()
 
 module Args = struct
   include Cmdliner
