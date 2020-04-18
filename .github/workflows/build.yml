@@ -58,9 +58,6 @@ jobs:
     - name: Build
       run: esy b --install
 
-    - name: Test
-      run: esy b dune runtest
-
     - name: Extract executable
       run: |
         mkdir bin
@@ -71,6 +68,11 @@ jobs:
       with:
         name: illuaminate-windows-x86-64
         path: bin/
+
+    - name: Test
+      run: |
+        esy b dune clean
+        esy b dune runtest -f
 
   upload_archives:
     name: Upload archives
