@@ -195,7 +195,8 @@ let of_pos2 lines (start : Lexing.position) (fin : Lexing.position) =
     finish = (if fin.pos_cnum <= start.pos_cnum then start.pos_cnum else fin.pos_cnum - 1)
   }
 
-let of_span2 { lines; start; _ } { finish; _ } = { lines; start; finish }
+let of_span2 ({ lines; start; _ } as s) ({ finish; _ } as f) =
+  if s == f then s else { lines; start; finish }
 
 let finish s = { s with start = s.finish }
 

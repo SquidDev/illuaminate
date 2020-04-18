@@ -43,16 +43,22 @@ let source_link x = Span.show x |> Option.some
 
 module Json_summary = struct
   let tests =
-    tests ~extension:"json" ~group:"Json summary" @@ fun out m ->
+    tests ~extension:"json" ~group:"JSON summary" @@ fun out m ->
     IlluaminateDocEmit.Summary.(everything ~source_link [ m ] |> to_json)
     |> Yojson.Safe.pretty_print out
 end
 
 module Html_module = struct
   let tests =
-    tests ~extension:"html" ~group:"Html page" @@ fun out m ->
+    tests ~extension:"html" ~group:"HTML page" @@ fun out m ->
+    let time = Unix.time () |> Unix.gmtime in
+    let date =
+      Printf.sprintf "%04d-%02d-%02d" (time.tm_year + 1900) (time.tm_mon + 1) time.tm_mday
+    in
     Format.fprintf out "<!DOCTYPE html>@\n";
     IlluaminateDocEmit.Html_main.emit_module ~site_title:"My title" ~resolve:Fun.id ~source_link
       ~modules:[] m
-    |> Html.Default.emit_pretty out
+    |> Format.asprintf "%a" Html.Default.emit_pretty
+    |> (fun x -> CCString.replace ~sub:date ~by:"xxxx-xx-xx" x)
+    |> Format.pp_print_string out
 end

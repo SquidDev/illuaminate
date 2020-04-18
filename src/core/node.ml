@@ -39,15 +39,24 @@ let span = function
   | Node { span; _ } -> span
   | SimpleNode _ -> failwith "No span."
 
-(** Get the span of this node, including trivia of this node. *)
-let trivia_span = function
-  | Node { span; leading_trivia; trailing_trivia; _ } -> (
-    match (leading_trivia, CCList.last_opt trailing_trivia) with
-    | [], None -> span
-    | [], Some t -> Span.of_span2 span t.span
-    | l :: _, None -> Span.of_span2 l.span span
-    | l :: _, Some t -> Span.of_span2 l.span t.span )
+(** Get the span of the first trivia node, or the current node *)
+let trivia_start = function
+  | Node { span; leading_trivia; _ } -> (
+    match leading_trivia with
+    | [] -> span
+    | t :: _ -> t.span )
   | SimpleNode _ -> failwith "No span."
+
+(** Get the span of the last trivia node, or the current node *)
+let trivia_finish = function
+  | Node { span; trailing_trivia; _ } -> (
+    match CCList.last_opt trailing_trivia with
+    | None -> span
+    | Some t -> t.span )
+  | SimpleNode _ -> failwith "No span."
+
+(** Get the span of this node, including trivia of this node. *)
+let trivia_span n = Span.of_span2 (trivia_start n) (trivia_finish n)
 
 open Lens
 

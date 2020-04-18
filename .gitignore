@@ -2,7 +2,6 @@
 /_*
 .merlin
 *.install
-*.coverage
 /node_modules
 
 # Parser files

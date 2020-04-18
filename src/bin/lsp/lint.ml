@@ -85,20 +85,10 @@ let code_actions store program range : CodeActionResult.t =
   |> CCList.of_std_seq_rev |> Option.some
 
 let get_whole_range before witness =
-  let start = (Witness.first witness).get before and finish = (Witness.last witness).get before in
-  let start =
-    match start with
-    | SimpleNode _ -> assert false
-    | Node { span; leading_trivia = []; _ } | Node { leading_trivia = { span; _ } :: _; _ } -> span
-  and finish =
-    match finish with
-    | SimpleNode _ -> assert false
-    | Node { span; trailing_trivia; _ } -> (
-      match CCList.last_opt trailing_trivia with
-      | None -> span
-      | Some { span; _ } -> span )
-  in
-  { Range.start = span_start start; end_ = span_finish finish }
+  let open Lens in
+  let start = before ^. Witness.first witness |> Node.trivia_start |> span_start
+  and end_ = before ^. Witness.last witness |> Node.trivia_finish |> span_finish in
+  { Range.start; end_ }
 
 let make_edit (type a) (before : a) (witness : a Witness.t) (after : a) : TextEdit.t =
   let range = get_whole_range before witness in
