@@ -35,7 +35,7 @@ let process ~go ~name contents out =
 let process ~go ~name contents = Format.asprintf "%t" (process ~go ~name contents)
 
 let tests ~extension ~group go =
-  OmnomnomGolden.of_directory (process ~go) ~group ~directory:"data/doc-extract"
+  OmnomnomGolden.of_directory (process ~go) ~group ~directory:"data/doc-emit"
     ~rename:(fun x -> Printf.sprintf "%s.%s" x extension)
     ~extension:".lua" ()
 
@@ -61,4 +61,11 @@ module Html_module = struct
     |> Format.asprintf "%a" Html.Default.emit_pretty
     |> (fun x -> CCString.replace ~sub:date ~by:"xxxx-xx-xx" x)
     |> Format.pp_print_string out
+end
+
+module Dump_sexp = struct
+  let tests =
+    tests ~extension:"sexp" ~group:"Dump" @@ fun out m ->
+    let open Lens in
+    Doc_sexp.Syntax.(documented (Doc_sexp.one' % module_info) m) |> CCSexp.pp out
 end
