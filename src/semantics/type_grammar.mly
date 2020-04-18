@@ -46,12 +46,12 @@ let arg :=
 let args_rest :=
   | { [] }
   | "[" ; "," ; ~ = arg ; ~ = args_rest ; "]" ; { { arg with opt = true } :: args_rest }
-  | "," ;  ~ = arg ; ~ = args_rest ;            { { arg with opt = true } :: args_rest }
+  | "," ;  ~ = arg ; ~ = args_rest ;            { { arg with opt = false } :: args_rest }
 
 let args :=
   | { [] }
   | "[" ; ~ = arg ; ~ = args_rest ; "]" ; { { arg with opt = true } :: args_rest }
-  | ~ = arg ; ~ = args_rest ;             { { arg with opt = true } :: args_rest }
+  | ~ = arg ; ~ = args_rest ;             { { arg with opt = false } :: args_rest }
 
 let return :=
   |                                       { ([], None) }

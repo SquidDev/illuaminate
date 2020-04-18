@@ -23,7 +23,7 @@ let md ~resolve x =
                 ] )
           | [ ("module", Some modu); ("sec", Some sec) ] ->
               ( "a",
-                [ ("href", Some (resolve ("module/" ^ modu ^ ".html") ^ "#sec:" ^ sec));
+                [ ("href", Some (resolve ("module/" ^ modu ^ ".html") ^ "#" ^ sec));
                   ("class", Some "reference")
                 ] )
           | [ ("href", Some href) ] -> ("a", [ ("href", Some href); ("class", Some "reference") ])

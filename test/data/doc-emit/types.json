@@ -1,0 +1,33 @@
+{
+  "types": { "name": "types", "source": "types.lua[4:13-4:14]" },
+  "types.opt": {
+    "name": "types.opt([a])",
+    "source": "types.lua[43:9-43:23]",
+    "summary": "Optional arguments\n\n"
+  },
+  "types.ref": {
+    "name": "types.ref(a, b)",
+    "source": "types.lua[38:9-38:26]",
+    "summary": "Type references\n\n"
+  },
+  "types.ty_3": {
+    "name": "types.ty_3(a, b, c)",
+    "source": "types.lua[32:10-32:30]",
+    "summary": "Table syntax\n\n"
+  },
+  "types.ty_2": {
+    "name": "types.ty_2(a, b, c, d, e, f, g)",
+    "source": "types.lua[25:10-25:26]",
+    "summary": "Function type syntax\n\n"
+  },
+  "types.ty_1": {
+    "name": "types.ty_1(a, b)",
+    "source": "types.lua[15:10-15:27]"
+  },
+  "types.no_clue": {
+    "name": "types.no_clue",
+    "source": "types.lua[8:13-8:14]",
+    "summary": "A basic exported value\n\n"
+  },
+  "types": { "name": "types", "source": "types.lua[6:8-44:1]" }
+}

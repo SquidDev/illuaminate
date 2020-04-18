@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>types</title>
+    <link rel="stylesheet" href="styles.css" type="text/css" />
+  </head>
+  <body>
+    <div id="container">
+      <div id="main">
+        <nav><h1>My title</h1></nav>
+        <section id="content">
+          <h1><code>types</code> library</h1>
+          <table class="definition-list">
+            <tr>
+              <th class="definition-name">
+                <a href="#v:no_clue">no_clue</a>
+              </th>
+              <td>A basic exported <em>value</em></td>
+            </tr>
+            <tr>
+              <th class="definition-name">
+                <a href="#v:ty_1">ty_1(a, b)</a>
+              </th>
+              <td></td>
+            </tr>
+            <tr>
+              <th class="definition-name">
+                <a href="#v:ty_2">ty_2(a, b, c, d, e, f, g)</a>
+              </th>
+              <td>Function type syntax</td>
+            </tr>
+            <tr>
+              <th class="definition-name">
+                <a href="#v:ty_3">ty_3(a, b, c)</a>
+              </th>
+              <td>Table syntax</td>
+            </tr>
+            <tr>
+              <th class="definition-name"><a href="#v:ref">ref(a, b)</a></th>
+              <td>Type references</td>
+            </tr>
+            <tr>
+              <th class="definition-name"><a href="#v:opt">opt([a])</a></th>
+              <td>Optional arguments</td>
+            </tr>
+          </table>
+          <dl class="definition">
+            <dt>
+              <a name="v:no_clue" href="#v:no_clue"></a>
+              <span class="definition-name">no_clue</span>
+              <a href="types.lua[8:13-8:14]" class="source-link">Source</a>
+            </dt>
+            <dd><p>A basic exported <em>value</em>.</p>
+</dd>
+            <dt>
+              <a name="v:ty_1" href="#v:ty_1"></a>
+              <span class="definition-name">ty_1(a, b)</span>
+              <a href="types.lua[15:10-15:27]" class="source-link">Source</a>
+            </dt>
+            <dd>
+              <h3>Parameters</h3>
+              <ol class="parameter-list">
+                <li><span class="parameter">a</span>  </li>
+                <li><span class="parameter">b</span>  </li>
+              </ol>
+            </dd>
+            <dt>
+              <a name="v:ty_2" href="#v:ty_2"></a>
+              <span class="definition-name">ty_2(a, b, c, d, e, f, g)</span>
+              <a href="types.lua[25:10-25:26]" class="source-link">Source</a>
+            </dt>
+            <dd>
+              <p>Function type syntax</p>
+
+              <h3>Parameters</h3>
+              <ol class="parameter-list">
+                <li>
+                  <span class="parameter">a</span>
+                   
+                  <span class="type">
+                    function(
+                    )
+                    :
+                    <span class="reference">number</span>
+                     | 
+                    <a href="https://www.lua.org/manual/5.1/manual.html#5.4" class="reference">
+                      string
+                    </a>
+                  </span>
+                   
+                </li>
+                <li>
+                  <span class="parameter">b</span>
+                   
+                  <span class="type">
+                    function(
+                    <a href="https://www.lua.org/manual/5.1/manual.html#5.4" class="reference">
+                      string
+                    </a>
+                    )
+                  </span>
+                   
+                </li>
+                <li>
+                  <span class="parameter">c</span>
+                   
+                  <span class="type">
+                    function(
+                    f: 
+                    <a href="https://www.lua.org/manual/5.1/manual.html#5.4" class="reference">
+                      string
+                    </a>
+                    )
+                  </span>
+                   
+                </li>
+                <li>
+                  <span class="parameter">d</span>
+                   
+                  <span class="type">
+                    function(
+                    [
+                    <a href="https://www.lua.org/manual/5.1/manual.html#5.4" class="reference">
+                      string
+                    </a>
+                    ]
+                    )
+                  </span>
+                   
+                </li>
+                <li>
+                  <span class="parameter">e</span>
+                   
+                  <span class="type">
+                    function(
+                    [f: 
+                    <a href="https://www.lua.org/manual/5.1/manual.html#5.4" class="reference">
+                      string
+                    </a>
+                    ]
+                    )
+                  </span>
+                   
+                </li>
+                <li>
+                  <span class="parameter">f</span>
+                   
+                  <span class="type">
+                    function(
+                    x: 
+                    <span class="reference reference-unresolved">int</span>
+                    [, f: 
+                    <a href="https://www.lua.org/manual/5.1/manual.html#5.4" class="reference">
+                      string
+                    </a>
+                    ]
+                    )
+                  </span>
+                   
+                </li>
+                <li>
+                  <span class="parameter">g</span>
+                   
+                  <span class="type">
+                    function(
+                    x: 
+                    <span class="reference reference-unresolved">int</span>
+                    , f: 
+                    <a href="https://www.lua.org/manual/5.1/manual.html#5.4" class="reference">
+                      string
+                    </a>
+                    )
+                  </span>
+                   
+                </li>
+              </ol>
+            </dd>
+            <dt>
+              <a name="v:ty_3" href="#v:ty_3"></a>
+              <span class="definition-name">ty_3(a, b, c)</span>
+              <a href="types.lua[32:10-32:30]" class="source-link">Source</a>
+            </dt>
+            <dd>
+              <p>Table syntax</p>
+
+              <h3>Parameters</h3>
+              <ol class="parameter-list">
+                <li>
+                  <span class="parameter">a</span>
+                   
+                  <span class="type">
+                    { foo = <span class="reference">number</span> }
+                  </span>
+                   
+                </li>
+                <li>
+                  <span class="parameter">b</span>
+                   
+                  <span class="type">
+                    { 
+                    foo
+                    <span class="optional" title="This field is optional">
+                      ?
+                    </span>
+                     = 
+                    <span class="reference">number</span>
+                     }
+                  </span>
+                   
+                </li>
+                <li>
+                  <span class="parameter">c</span>
+                   
+                  <span class="type">
+                    { 
+                    [
+                    <a href="https://www.lua.org/manual/5.1/manual.html#5.4" class="reference">
+                      string
+                    </a>
+                    ]
+                     = 
+                    <span class="reference">number</span>
+                     }
+                  </span>
+                   
+                </li>
+              </ol>
+            </dd>
+            <dt>
+              <a name="v:ref" href="#v:ref"></a>
+              <span class="definition-name">ref(a, b)</span>
+              <a href="types.lua[38:9-38:26]" class="source-link">Source</a>
+            </dt>
+            <dd>
+              <p>Type references</p>
+
+              <h3>Parameters</h3>
+              <ol class="parameter-list">
+                <li>
+                  <span class="parameter">a</span>
+                   
+                  <span class="type">
+                    <span class="reference reference-unresolved">
+                      no_clue
+                    </span>
+                  </span>
+                   
+                </li>
+                <li>
+                  <span class="parameter">b</span>
+                   
+                  <span class="type">
+                    <a href="module/types.html#ty:Foo" class="reference">
+                      Foo
+                    </a>
+                  </span>
+                   
+                </li>
+              </ol>
+            </dd>
+            <dt>
+              <a name="v:opt" href="#v:opt"></a>
+              <span class="definition-name">opt([a])</span>
+              <a href="types.lua[43:9-43:23]" class="source-link">Source</a>
+            </dt>
+            <dd>
+              <p>Optional arguments</p>
+
+              <h3>Parameters</h3>
+              <ol class="parameter-list">
+                <li>
+                  <span class="parameter">
+                    a
+                    <span class="optional" title="This argument is optional">
+                      ?
+                    </span>
+                  </span>
+                   
+                  <span class="type">
+                    <a href="https://www.lua.org/manual/5.1/manual.html#5.4" class="reference">
+                      string
+                    </a>
+                  </span>
+                   
+                </li>
+              </ol>
+            </dd>
+          </dl>
+          <h2>Types</h2>
+          <h3><a name="ty:Foo" href="#ty:Foo"></a> <span>Foo</span></h3>
+          <dl class="definition"></dl>
+        </section>
+      </div>
+      <footer>Last updated on xxxx-xx-xx</footer>
+    </div>
+  </body>
+</html>
