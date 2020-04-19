@@ -1,1 +1,7 @@
-{ "local": { "name": "local", "source": "local.lua[3:8-6:1]" } }
+{
+  "local": {
+    "name": "local",
+    "source": "local.lua[3:8-6:1]",
+    "module": "local"
+  }
+}

@@ -1,33 +1,54 @@
 {
-  "types": { "name": "types", "source": "types.lua[4:13-4:14]" },
+  "types.Foo": {
+    "name": "types.Foo",
+    "source": "types.lua[4:13-4:14]",
+    "module": "types",
+    "section": "ty:Foo"
+  },
   "types.opt": {
     "name": "types.opt([a])",
     "source": "types.lua[43:9-43:23]",
-    "summary": "Optional arguments\n\n"
+    "summary": "Optional arguments",
+    "module": "types",
+    "section": "v:opt"
   },
   "types.ref": {
     "name": "types.ref(a, b)",
     "source": "types.lua[38:9-38:26]",
-    "summary": "Type references\n\n"
+    "summary": "Type references",
+    "module": "types",
+    "section": "v:ref"
   },
   "types.ty_3": {
     "name": "types.ty_3(a, b, c)",
     "source": "types.lua[32:10-32:30]",
-    "summary": "Table syntax\n\n"
+    "summary": "Table syntax",
+    "module": "types",
+    "section": "v:ty_3"
   },
   "types.ty_2": {
     "name": "types.ty_2(a, b, c, d, e, f, g)",
     "source": "types.lua[25:10-25:26]",
-    "summary": "Function type syntax\n\n"
+    "summary": "Function type syntax",
+    "module": "types",
+    "section": "v:ty_2"
   },
   "types.ty_1": {
     "name": "types.ty_1(a, b)",
-    "source": "types.lua[15:10-15:27]"
+    "source": "types.lua[15:10-15:27]",
+    "module": "types",
+    "section": "v:ty_1"
   },
   "types.no_clue": {
     "name": "types.no_clue",
     "source": "types.lua[8:13-8:14]",
-    "summary": "A basic exported value\n\n"
+    "summary": "A basic exported value",
+    "module": "types",
+    "section": "v:no_clue"
   },
-  "types": { "name": "types", "source": "types.lua[6:8-44:1]" }
+  "types": {
+    "name": "types",
+    "source": "types.lua[6:8-44:1]",
+    "module": "types"
+  }
 }

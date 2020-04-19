@@ -5,7 +5,9 @@ type t =
   { name : string;
     full_name : string;
     summary : string option;
-    source : string option
+    source : string option;
+    in_module : string;
+    section : string option
   }
 
 (** Convert a list of index items into a JSON index. *)
