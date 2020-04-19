@@ -7,6 +7,20 @@
     "name": "references",
     "source": "references.lua[3:16-3:17]"
   },
+  "references.module_1": {
+    "name": "references.module_1()",
+    "source": "references.lua[46:14-46:28]",
+    "summary": "references\n\n"
+  },
+  "references.builtin_2": {
+    "name": "references.builtin_2()",
+    "source": "references.lua[43:15-43:29]",
+    "summary": "string.match, string and number\n\n"
+  },
+  "references.builtin_1": {
+    "name": "references.builtin_1()",
+    "source": "references.lua[40:15-40:29]"
+  },
   "references.method_1": {
     "name": "references.method_1()",
     "source": "references.lua[35:14-35:27]",
@@ -50,6 +64,6 @@
   },
   "references": {
     "name": "references",
-    "source": "references.lua[7:8-37:1]"
+    "source": "references.lua[7:8-47:1]"
   }
 }

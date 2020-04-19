@@ -130,7 +130,15 @@ module Link = struct
     let buf = Lexing.from_string "" in
     Span.Lines.using filename buf @@ fun l -> Span.of_pos2 l buf.lex_curr_p buf.lex_curr_p
 
-  let of_tag tags label =
+  let malformed attrs =
+    invalid_arg
+    @@ Format.asprintf "Malformed attributes: <i:ref %a>_</>"
+         Format.(
+           pp_print_list (fun out (k, v) ->
+               fprintf out "%s=%a" k (pp_print_option pp_print_string) v))
+         attrs
+
+  let of_tag attrs label =
     let make r = function
       | [ ("style", Some style) ] ->
           let style =
@@ -140,16 +148,16 @@ module Link = struct
             | _ -> invalid_arg "Invalid style"
           in
           { link_reference = r; link_style = style; link_label = Description label }
-      | _ -> invalid_arg "Malformed tag"
+      | _ -> malformed attrs
     in
-    match tags with
+    match attrs with
     | ("module", Some in_module) :: ("sec", Some name) :: attrs ->
         make (Internal { in_module; name = Value name; definition }) attrs
     | ("module", Some in_module) :: attrs ->
         make (Internal { in_module; name = Module; definition }) attrs
     | ("href", Some url) :: attrs -> make (External { url = Some url; name = "" }) attrs
     | ("link", Some link) :: attrs -> make (Unknown link) attrs
-    | _ -> invalid_arg "Malformed tag"
+    | attrs -> make (External { url = None; name = "" }) attrs
 
   let to_tag { link_reference; link_label = Description label; link_style } : Omd.element =
     let style =

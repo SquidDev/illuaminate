@@ -34,4 +34,14 @@ return {
   --- See @{MyType:meth} and @{MyType.meth}
   method_1 = function() end,
 
+  --- @see string.match
+  -- @see string
+  -- @see number
+  builtin_1 = function () end,
+
+  --- @{string.match}, @{string} and @{number}
+  builtin_2 = function () end,
+
+  --- @{references}
+  module_1 = function () end,
 }

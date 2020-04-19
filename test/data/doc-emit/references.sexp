@@ -33,6 +33,25 @@
     (method_1
      ((description
        "See <illuaminate:ref module='references' sec='ty:MyType:meth' style='code'>MyType:meth</illuaminate:ref> and <illuaminate:ref link='MyType.meth' style='code'>MyType.meth</illuaminate:ref>\n\n")
+      (body (args))))
+    (builtin_1
+     ((body (args)) (see (ref ((name number))) (label number))
+      (see
+       (ref
+        ((name string) (url https://www.lua.org/manual/5.1/manual.html#5.4)))
+       (label string))
+      (see
+       (ref
+        ((name string.match)
+         (url https://www.lua.org/manual/5.1/manual.html#string.match)))
+       (label string.match))))
+    (builtin_2
+     ((description
+       "<illuaminate:ref href='https://www.lua.org/manual/5.1/manual.html#string.match' style='code'>string.match</illuaminate:ref>, <illuaminate:ref href='https://www.lua.org/manual/5.1/manual.html#5.4' style='code'>string</illuaminate:ref> and <illuaminate:ref style='code'>number</illuaminate:ref>\n\n")
+      (body (args))))
+    (module_1
+     ((description
+       "<illuaminate:ref module='references' style='code'>references</illuaminate:ref>\n\n")
       (body (args))))))
   (type
    (body (name MyType)
