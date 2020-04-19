@@ -10,14 +10,14 @@ return {
   --- @see unknown
   unknown_1 = function() end,
 
-  --- See @{unknown}
+  --- See @{unknown} and @{unknown|custom label}.
   unknown_2 = function() end,
 
   --- @see my_term
   -- @see references.my_term
   term_1 = function() end,
 
-  --- See @{my_term} and @{references.my_term}
+  --- See @{my_term}, @{references.my_term} and @{my_term|custom label}.
   term_2 = function() end,
 
   --- @see my_term

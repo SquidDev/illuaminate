@@ -654,20 +654,12 @@ module Resolve = struct
   let go_desc context (Description x) =
     let open Omd in
     let visit = function
-      | Html ("illuaminate:ref", [ ("link", Some link) ], label) ->
-          Some
-            [ ( match resolve context ~types_only:false link with
-              | Internal { in_module; name; _ } -> (
-                match Reference.section_of_name name with
-                | None -> Html ("illuaminate:ref", [ ("module", Some in_module) ], label)
-                | Some s ->
-                    Html ("illuaminate:ref", [ ("module", Some in_module); ("sec", Some s) ], label)
-                )
-              | External { url = Some url; _ } ->
-                  Html ("illuaminate:ref", [ ("href", Some url) ], label)
-              | External { url = None; _ } -> Html ("illuaminate:ref", [], label)
-              | Unknown _ -> Html ("illuaminate:ref", [ ("link", Some link) ], label) )
-            ]
+      | Html ("illuaminate:ref", tags, label) ->
+          let { C.link_reference = Reference link; link_label = Description d; link_style } =
+            C.Link.of_tag tags label
+          in
+          let r = resolve context ~types_only:false link in
+          Some [ Link.to_tag { link_reference = r; link_label = Description d; link_style } ]
       | _ -> None
     in
     Description (Omd_representation.visit visit x)

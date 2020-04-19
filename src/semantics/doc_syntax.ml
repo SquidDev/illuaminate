@@ -122,3 +122,49 @@ let iter_of f =
 
     method! abstract_syntax = f
   end
+
+module Link = struct
+  let definition =
+    let open Span in
+    let filename = Filename.mk @@ "=[" ^ __MODULE__ ^ ".Link]" in
+    let buf = Lexing.from_string "" in
+    Span.Lines.using filename buf @@ fun l -> Span.of_pos2 l buf.lex_curr_p buf.lex_curr_p
+
+  let of_tag tags label =
+    let make r = function
+      | [ ("style", Some style) ] ->
+          let style =
+            match style with
+            | "text" -> `Text
+            | "code" -> `Code
+            | _ -> invalid_arg "Invalid style"
+          in
+          { link_reference = r; link_style = style; link_label = Description label }
+      | _ -> invalid_arg "Malformed tag"
+    in
+    match tags with
+    | ("module", Some in_module) :: ("sec", Some name) :: attrs ->
+        make (Internal { in_module; name = Value name; definition }) attrs
+    | ("module", Some in_module) :: attrs ->
+        make (Internal { in_module; name = Module; definition }) attrs
+    | ("href", Some url) :: attrs -> make (External { url = Some url; name = "" }) attrs
+    | ("link", Some link) :: attrs -> make (Unknown link) attrs
+    | _ -> invalid_arg "Malformed tag"
+
+  let to_tag { link_reference; link_label = Description label; link_style } : Omd.element =
+    let style =
+      match link_style with
+      | `Code -> "code"
+      | `Text -> "text"
+    in
+    let attrs = [ ("style", Some style) ] in
+    let make a : Omd.element = Html ("illuaminate:ref", a, label) in
+    match link_reference with
+    | Internal { in_module; name; _ } -> (
+      match Reference.section_of_name name with
+      | None -> make (("module", Some in_module) :: attrs)
+      | Some s -> make (("module", Some in_module) :: ("sec", Some s) :: attrs) )
+    | External { url = Some url; _ } -> make (("href", Some url) :: attrs)
+    | External { url = None; _ } -> make attrs
+    | Unknown link -> make (("link", Some link) :: attrs)
+end

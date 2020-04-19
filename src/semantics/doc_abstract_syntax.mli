@@ -11,6 +11,13 @@ module type S = sig
 
   type description = Description of Omd.t
 
+  (** A link to a string, within a {!description}. *)
+  type link =
+    { link_reference : reference;  (** The name this link points to. *)
+      link_label : description;  (** The description of this link. *)
+      link_style : [ `Text | `Code ]  (** Whether this label can be considered as text or code. *)
+    }
+
   (** A link to another name. *)
   type see =
     { see_reference : reference;  (** The name this see link points to. *)

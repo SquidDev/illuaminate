@@ -9,6 +9,13 @@ module type S = sig
 
   type description = Description of Omd.t
 
+  (** A link to a string, within a {!description}. *)
+  type link =
+    { link_reference : reference;
+      link_label : description;
+      link_style : [ `Text | `Code ]
+    }
+
   type see =
     { see_reference : reference;
       see_label : string;
@@ -66,6 +73,12 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
   module Type = X.Type
 
   type description = Description of Omd.t
+
+  type link =
+    { link_reference : reference;
+      link_label : description;
+      link_style : [ `Text | `Code ]
+    }
 
   type see =
     { see_reference : reference;

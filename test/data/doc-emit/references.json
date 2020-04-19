@@ -29,7 +29,7 @@
   "references.term_2": {
     "name": "references.term_2()",
     "source": "references.lua[21:12-21:25]",
-    "summary": "See my_term and references.my_term\n\n"
+    "summary": "See my_term, references.my_term and custom label.\n\n"
   },
   "references.term_1": {
     "name": "references.term_1()",
@@ -38,7 +38,7 @@
   "references.unknown_2": {
     "name": "references.unknown_2()",
     "source": "references.lua[14:15-14:28]",
-    "summary": "See unknown\n\n"
+    "summary": "See unknown and custom label.\n\n"
   },
   "references.unknown_1": {
     "name": "references.unknown_1()",

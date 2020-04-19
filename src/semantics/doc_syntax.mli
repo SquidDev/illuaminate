@@ -86,3 +86,11 @@ class iter :
   end
 
 val iter_of : (span:Span.t -> abstract_iter) -> iter
+
+module Link : sig
+  (** Convert a tag back to a link. Note, this will not preserve all data, such as definition
+      positions. *)
+  val of_tag : (string * string option) list -> Omd.t -> link
+
+  val to_tag : link -> Omd.element
+end

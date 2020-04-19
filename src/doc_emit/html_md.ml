@@ -13,24 +13,34 @@ let md ~resolve x =
   in
   let preprocess node =
     match node with
-    | Html ("illuaminate:ref", attrs, label) ->
-        let tag, attrs =
-          match attrs with
-          | [ ("module", Some modu) ] ->
-              ( "a",
-                [ ("href", Some (resolve ("module/" ^ modu ^ ".html")));
-                  ("class", Some "reference")
-                ] )
-          | [ ("module", Some modu); ("sec", Some sec) ] ->
-              ( "a",
-                [ ("href", Some (resolve ("module/" ^ modu ^ ".html") ^ "#" ^ sec));
-                  ("class", Some "reference")
-                ] )
-          | [ ("href", Some href) ] -> ("a", [ ("href", Some href); ("class", Some "reference") ])
-          | [] -> ("span", [ ("class", Some "reference") ])
-          | _ -> ("span", [ ("class", Some "reference reference-unresolved") ])
+    | Html ("illuaminate:ref", attrs, label) -> (
+        let { link_reference; link_label = Description label; link_style } =
+          Link.of_tag attrs label
         in
-        Some [ Html (tag, attrs, label) ]
+
+        let link =
+          match link_reference with
+          | Internal { in_module; name = Module; _ } ->
+              Some (resolve ("module/" ^ in_module ^ ".html"))
+          | Internal { in_module; name = Value v | Type v | Member (v, _); _ } ->
+              Some (resolve ("module/" ^ in_module ^ ".html") ^ "#" ^ v)
+          | External { url = Some url; _ } -> Some url
+          | External { url = None; _ } -> None
+          | Unknown _ -> None
+        in
+        let classes =
+          match link_style with
+          | `Text -> "reference reference-text"
+          | `Code -> "reference reference-code"
+        in
+        let classes =
+          match link_reference with
+          | Unknown _ -> classes ^ " reference-unresolved"
+          | _ -> classes
+        in
+        match link with
+        | None -> Some [ Html ("span", [ ("class", Some classes) ], label) ]
+        | Some url -> Some [ Html ("a", [ ("href", Some url); ("class", Some classes) ], label) ] )
     | Html ("illuaminate:colour", [ ("colour", Some colour) ], label) ->
         Some
           [ Html

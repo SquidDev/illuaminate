@@ -36,8 +36,10 @@ let check_abstract ~r ~span =
       let open Omd in
       super#omd node;
       match node with
-      | Html ("illuaminate:ref", [ ("link", Some x) ], _) ->
-          r.r ~span ~tag "Unknown reference %S." x
+      | Html ("illuaminate:ref", attrs, label) -> (
+        match Link.of_tag attrs label with
+        | { link_reference = Unknown x; _ } -> r.r ~span ~tag "Unknown reference %S." x
+        | _ -> () )
       | _ -> ()
   end
 

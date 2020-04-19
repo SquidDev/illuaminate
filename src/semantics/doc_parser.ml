@@ -7,13 +7,19 @@ type doc_flag =
 
 let parse_description =
   let open Omd_representation in
-  let make link name = Html ("illuaminate:ref", [ ("link", Some link) ], [ Text name ]) in
   (* Gobble everything from | to }. *)
   let rec gobble_name link accum r p = function
     | Newlines 0 :: _ | [] -> None
     | Cbrace :: l ->
         let name = Omd_lexer.string_of_tokens (List.rev accum) in
-        Some (make link name :: r, Cbrace :: p, l)
+        let tag =
+          Link.to_tag
+            { link_reference = Reference link;
+              link_label = Description [ Text name ];
+              link_style = `Text
+            }
+        in
+        Some (tag :: r, Cbrace :: p, l)
     | Newline :: l -> gobble_name link (Space :: accum) r (Newline :: p) l
     | x :: l -> gobble_name link (x :: accum) r (x :: p) l
   in
@@ -23,7 +29,14 @@ let parse_description =
     | Newline :: _ | [] -> None
     | Cbrace :: l ->
         let link = Omd_lexer.string_of_tokens (List.rev accum) in
-        Some (make link link :: r, Cbrace :: p, l)
+        let tag =
+          Link.to_tag
+            { link_reference = Reference link;
+              link_label = Description [ Text link ];
+              link_style = `Code
+            }
+        in
+        Some (tag :: r, Cbrace :: p, l)
     | Bar :: l ->
         let link = Omd_lexer.string_of_tokens (List.rev accum) in
         gobble_name link [] r (Bar :: p) l
