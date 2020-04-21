@@ -8,7 +8,10 @@ include Doc_abstract_syntax.Make (struct
   module Type = Type_syntax.Unresolved
 end)
 
-type module_info = { mod_name : string } [@@unboxed]
+type module_info =
+  { mod_name : string;
+    mod_kind : module_kind option
+  }
 
 type type_info = { type_name : string } [@@unboxed]
 
@@ -22,6 +25,7 @@ type comment =
     examples : example list;
     local : bool;
     includes : reference list;
+    export : bool;
     (* Functions. *)
     arguments : arg list list;
     returns : return list list;

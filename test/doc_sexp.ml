@@ -90,6 +90,7 @@ module Comment = struct
     |> fields "example" example c.examples
     |> field_bool "local" c.local
     |> fields "include" (one % reference) c.includes
+    |> field_bool "export" c.export
     |> fields "args" (List.map arg) c.arguments
     |> fields "returns" (List.map return) c.returns
     |> fields "throws" description c.throws

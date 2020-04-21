@@ -12,7 +12,8 @@ type 'a documented =
     definition : Span.t;  (** The location this node was defined at *)
     examples : example list;  (** One or more examples *)
     see : see list;  (** List of references to other symbols. *)
-    local : bool  (** If this definition should not be exposed. *)
+    local : bool;  (** If this definition should not be exposed. *)
+    export : bool  (** Whether this term should be exported. *)
   }
 
 (** A value or expression which may be used in a documented program. *)

@@ -14,7 +14,8 @@ type 'a documented =
     definition : Span.t;
     examples : example list;
     see : see list;
-    local : bool
+    local : bool;
+    export : bool
   }
 
 type value =
@@ -97,7 +98,7 @@ class iter =
       | Expr { ty; value = _ } -> (self#abstract_syntax ~span)#type_ ty
 
     method documented : 'a. (span:Span.t -> 'a -> unit) -> 'a documented -> unit =
-      fun child { description; descriptor; definition; examples; see; local = _ } ->
+      fun child { description; descriptor; definition; examples; see; local = _; export = _ } ->
         let abs = self#abstract_syntax ~span:definition in
         Option.iter abs#description description;
         child ~span:definition descriptor;

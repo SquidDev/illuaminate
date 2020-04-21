@@ -1,0 +1,5 @@
+((source module.lua[1:1-1:15]) (module foo))
+((source module.lua[3:1-3:24]) (module foo))
+((source module.lua[5:1-5:23]) (module foo))
+((source module.lua[7:1-7:24]) (module foo))
+doc:unknown-flag: @module has unknown flag 'unknown'

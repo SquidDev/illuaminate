@@ -32,6 +32,7 @@ type state =
     resolve : R.t;
     vars : value documented ref VarTbl.t;
     globals : value documented ref;
+    mutable export : value documented ref option;
     mutable types : type_info documented StringMap.t
   }
 
@@ -85,7 +86,8 @@ module Value = struct
       descriptor = get_value ~state comment;
       examples = List.map (Lift.example lift) comment.examples;
       see = List.map (Lift.see lift) comment.see;
-      local = comment.local
+      local = comment.local;
+      export = comment.export
     }
 end
 
@@ -100,7 +102,8 @@ module Merge = struct
       descriptor = merge implicit.definition implicit.descriptor explicit.descriptor;
       examples = implicit.examples @ explicit.examples;
       see = implicit.see @ explicit.see;
-      local = implicit.local || explicit.local
+      local = implicit.local || explicit.local;
+      export = implicit.export || explicit.export
     }
 
   let value ~errs pos implicit explicit =
@@ -189,7 +192,14 @@ end
 module Infer = struct
   (** Construct a simple documented node, which has no additional information. *)
   let simple_documented descriptor definition =
-    { description = None; descriptor; definition; examples = []; see = []; local = false }
+    { description = None;
+      descriptor;
+      definition;
+      examples = [];
+      see = [];
+      local = false;
+      export = false
+    }
 
   (** Annotate a value with documentation comments. *)
   let document state ~before ~after value =
@@ -241,11 +251,14 @@ module Infer = struct
 
   (** Add a {!R.var} to the current scope. *)
   let add_resolved_var state var def =
-    (* Add this term to the type map. Oh boy, this is almost definitely wrong *)
-    let update_type = function
+    let update_info def =
+      (* Add this term to the type map. Oh boy, this is almost definitely wrong *)
+      ( match !def with
       | { descriptor = Type ({ type_name; _ } as ty); _ } as def ->
           state.types <- StringMap.add type_name { def with descriptor = ty } state.types
-      | _ -> ()
+      | _ -> () );
+      (* Export this variable if required. *)
+      if !def.export then state.export <- Some def
     in
     ( if not (VarTbl.mem state.vars var) then
       match var with
@@ -258,12 +271,11 @@ module Infer = struct
       | _ -> () );
     match VarTbl.find_opt state.vars var with
     | None ->
-        VarTbl.add state.vars var (ref def);
-        update_type def
+        let def = ref def in
+        VarTbl.add state.vars var def; update_info def
     | Some existing ->
-        let def = Merge.doc_value ~errs:state.errs !existing def in
-        existing := def;
-        update_type def
+        existing := Merge.doc_value ~errs:state.errs !existing def;
+        update_info existing
 
   (** Add a {!var} to the current scope. *)
   let add_var state var def = add_resolved_var state (R.get_definition var state.resolve) def
@@ -465,6 +477,7 @@ module Infer = struct
         resolve;
         vars = VarTbl.create 16;
         globals = env;
+        export = None;
         types = StringMap.empty
       }
     in
@@ -475,6 +488,7 @@ module Infer = struct
       | Some x -> (Library, x)
       | None -> (Module, !env)
     in
+    let body = Option.fold ~none:body ~some:(fun x -> !x) state.export in
     let body = { body with descriptor = DropLocal.value body.descriptor } in
     let module_comment =
       match P.comment (First.program.get program) state.comments |> fst |> CCList.last_opt with
@@ -489,10 +503,10 @@ module Infer = struct
     let mod_types = StringMap.bindings state.types |> List.map snd |> DropLocal.mod_types in
     let result =
       match module_comment with
-      | Some ({ module_info = Some { mod_name }; _ } as comment) ->
+      | Some ({ module_info = Some { mod_name; mod_kind = k }; _ } as comment) ->
           let merge pos implicit body =
             let mod_contents = Merge.value ~errs:state.errs pos implicit body in
-            { mod_name; mod_contents; mod_types; mod_kind }
+            { mod_name; mod_contents; mod_types; mod_kind = Option.value ~default:mod_kind k }
           in
           Named (Value.get_documented ~state comment |> Merge.documented merge body)
       | Some ({ module_info = None; _ } as comment) ->
@@ -615,14 +629,15 @@ module Resolve = struct
     | Unknown n -> resolve context ~types_only n
     | (External _ | Internal _) as r -> r
 
-  let go_documented lift go_child { description; descriptor : 'a; definition; examples; see; local }
-      =
+  let go_documented lift go_child
+      { description; descriptor : 'a; definition; examples; see; local; export } =
     { description = Option.map (Lift.description lift) description;
       descriptor = go_child lift descriptor;
       definition;
       examples = List.map (Lift.example lift) examples;
       see = List.map (Lift.see lift) see;
-      local
+      local;
+      export
     }
 
   let rec go_value ~cache lift = function

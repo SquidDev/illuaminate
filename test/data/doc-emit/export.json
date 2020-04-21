@@ -1,0 +1,13 @@
+{
+  "export.a": {
+    "name": "export.a = 1",
+    "source": "export.lua[4:7-4:7]",
+    "module": "export",
+    "section": "v:a"
+  },
+  "export": {
+    "name": "export",
+    "source": "export.lua[3:18-5:1]",
+    "module": "export"
+  }
+}

@@ -6,7 +6,10 @@ include
   Doc_abstract_syntax.S with type reference := reference and module Type = Type_syntax.Unresolved
 
 (** Information about this module. *)
-type module_info = { mod_name : string  (** The name of this module. *) } [@@unboxed]
+type module_info =
+  { mod_name : string;  (** The name of this module. *)
+    mod_kind : module_kind option  (** This kind of this module. *)
+  }
 
 (** Information about this type/class. *)
 type type_info = { type_name : string } [@@unboxed]
@@ -25,6 +28,7 @@ type comment =
     examples : example list;  (** All [@usage] tags. *)
     local : bool;  (** Whether this term was tagged as [@local], and so should not be exported. *)
     includes : reference list;  (** Other terms to include. *)
+    export : bool;  (** Whether this term is the "root" of this documentation node. *)
     (* Functions. *)
     arguments : arg list list;  (** A list of possible function argument signatures. *)
     returns : return list list;  (** A list of possible function return signatures. *)

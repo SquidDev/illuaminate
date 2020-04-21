@@ -212,6 +212,7 @@ type comment_builder =
     mutable b_usages : example list;
     mutable b_includes : reference list;
     mutable b_local : bool;
+    mutable b_export : bool;
     (* Functions. *)
     mutable b_args : arg grouped;
     mutable b_rets : return grouped;
@@ -231,6 +232,7 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
       b_usages = [];
       b_includes = [];
       b_local = false;
+      b_export = false;
       b_args = empty_group;
       b_rets = empty_group;
       b_throws = [];
@@ -277,6 +279,10 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
         (* TODO: Verify not defined as local twice *)
         (* TODO: Handle non-empty body. *)
         b.b_local <- true
+    | "export", flags, "" ->
+        (* TODO: As above. *)
+        List.iter (unknown "@export") flags;
+        b.b_export <- true
     (*******************************
      * Function tags
      *******************************)
@@ -419,12 +425,20 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
      * Other types
      *******************************)
     | "module", flags, name -> (
-        List.iter (unknown "@module") flags;
+        let mod_kind =
+          List.fold_left
+            (fun kind flag ->
+              match flag with
+              | Marker "library" -> Some Library
+              | Marker "module" -> Some Module
+              | f -> unknown "@module" f; kind)
+            None flags
+        in
         match b.b_module with
         | Some { mod_name = inner_name; _ } ->
             Printf.sprintf "Duplicate @module definitions (named '%s' and '%s')" inner_name name
             |> report Tag.duplicate_definitions
-        | None -> b.b_module <- Some { mod_name = name } )
+        | None -> b.b_module <- Some { mod_name = name; mod_kind } )
     | "type", flags, name -> (
         List.iter (unknown "@type") flags;
         match b.b_type with
@@ -449,6 +463,7 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
     examples = List.rev b.b_usages;
     local = b.b_local;
     includes = List.rev b.b_includes;
+    export = b.b_export;
     arguments = get_group b.b_args;
     returns = get_group b.b_rets;
     throws = List.rev b.b_throws;
