@@ -1,5 +1,5 @@
 --- @module export
 
-local exported = {
-  a = 1,
-} --- @export
+local exported = {} --- @export
+exported.a = 1
+exported.b = 2

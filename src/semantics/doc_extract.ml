@@ -106,13 +106,14 @@ module Merge = struct
       export = implicit.export || explicit.export
     }
 
-  let value ~errs pos implicit explicit =
-    match (explicit, implicit) with
+  (** Right biased union of two values. *)
+  let value ~errs pos left right =
+    match (left, right) with
     (* The trivial cases *)
     | Unknown, x | x, Unknown -> x
     | Undefined, _ | _, Undefined -> Undefined
     | Table x, Table y -> Table (x @ y) (* TODO: Merge keys *)
-    | Function _, Function _ -> explicit (* TODO: Validate matching args *)
+    | Function _, Function _ -> right (* TODO: Validate matching args *)
     | Expr { ty; value }, Expr other when ty = other.ty -> (
       (* Expressions of the same type are merged. We really need a better strategy for this - it's
          only designed to detect constants. *)
@@ -148,9 +149,9 @@ module Merge = struct
           }
     | _ ->
         Printf.sprintf "Conflicting definitions, cannot merge `%s` and `%s`"
-          (Value.debug_name implicit) (Value.debug_name explicit)
+          (Value.debug_name left) (Value.debug_name right)
         |> Error.report errs Tag.kind_mismatch pos;
-        explicit
+        right
 
   (** Merge two documented values. *)
   let doc_value ~errs = documented (value ~errs)
