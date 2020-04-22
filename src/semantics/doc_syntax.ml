@@ -153,7 +153,15 @@ module Link = struct
     in
     match attrs with
     | ("module", Some in_module) :: ("sec", Some name) :: attrs ->
-        make (Internal { in_module; name = Value name; definition }) attrs
+        let name : Reference.name_of =
+          match CCString.chop_prefix ~pre:"v:" name with
+          | Some v -> Value v
+          | None -> (
+            match CCString.chop_prefix ~pre:"ty:" name with
+            | None -> invalid_arg ("Unknown name " ^ name)
+            | Some t -> Type t )
+        in
+        make (Internal { in_module; name; definition }) attrs
     | ("module", Some in_module) :: attrs ->
         make (Internal { in_module; name = Module; definition }) attrs
     | ("href", Some url) :: attrs -> make (External { url = Some url; name = "" }) attrs

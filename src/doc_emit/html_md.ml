@@ -6,9 +6,11 @@ open Html.Default
 let reference_attrs ~resolve (reference : Reference.resolved) style =
   let link =
     match reference with
-    | Internal { in_module; name = Module; _ } -> Some (resolve ("module/" ^ in_module ^ ".html"))
-    | Internal { in_module; name = Value v | Type v | Member (v, _); _ } ->
-        Some (resolve ("module/" ^ in_module ^ ".html") ^ "#" ^ v)
+    | Internal { in_module; name; _ } ->
+        Reference.section_of_name name
+        |> Option.fold ~none:"" ~some:(fun x -> "#" ^ x)
+        |> Printf.sprintf "module/%s.html%s" in_module
+        |> resolve |> Option.some
     | External { url = Some url; _ } -> Some url
     | External { url = None; _ } -> None
     | Unknown _ -> None
