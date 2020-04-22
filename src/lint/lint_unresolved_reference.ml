@@ -6,13 +6,13 @@ module E = Doc.Extract
 
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:unresolved-reference"
 
-let check ~r ~span = function
-  | Reference.Unknown x -> r.r ~span ~tag "Unknown reference %S." x
+let check ~r ~span ~kind = function
+  | Reference.Unknown x -> r.r ~span ~tag "Unknown %s %S." kind x
   | Internal _ | External _ -> ()
 
 let rec type_ ~r ~span = function
   | Type.NilTy | BoolTy _ | IntTy _ | NumberTy _ | StringTy _ -> ()
-  | Named (n, _) -> check ~r ~span n
+  | Named (n, _) -> check ~r ~span ~kind:"type" n
   | Function { args; return = rs, rest } ->
       List.iter (fun { Type.ty; _ } -> type_ ~r ~span ty) args;
       List.iter (type_ ~r ~span) rs;
@@ -28,7 +28,7 @@ let check_abstract ~r ~span =
   object
     inherit abstract_iter as super
 
-    method! reference = check ~r ~span
+    method! reference = check ~r ~span ~kind:"reference"
 
     method! type_ = type_ ~r ~span
 

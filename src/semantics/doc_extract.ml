@@ -148,8 +148,8 @@ module Merge = struct
                        { member_name; member_is_method; member_value }) )
           }
     | _ ->
-        Printf.sprintf "Conflicting definitions, cannot merge `%s` and `%s`"
-          (Value.debug_name left) (Value.debug_name right)
+        Printf.sprintf "Conflicting definitions, cannot merge `%s` and `%s`" (Value.debug_name left)
+          (Value.debug_name right)
         |> Error.report errs Tag.kind_mismatch pos;
         right
 

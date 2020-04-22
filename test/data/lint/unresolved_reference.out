@@ -6,11 +6,11 @@ unresolved_reference.lua:[21:14-21:28]: Unknown reference "UnknownExample". [doc
     │
  21 │   has_docs = function(f) end,
     │              ^^^^^^^^^^^^^^^
-unresolved_reference.lua:[21:14-21:28]: Unknown reference "UnknownRetType". [doc:unresolved-reference]
+unresolved_reference.lua:[21:14-21:28]: Unknown type "UnknownRetType". [doc:unresolved-reference]
     │
  21 │   has_docs = function(f) end,
     │              ^^^^^^^^^^^^^^^
-unresolved_reference.lua:[21:14-21:28]: Unknown reference "UnknownArgType". [doc:unresolved-reference]
+unresolved_reference.lua:[21:14-21:28]: Unknown type "UnknownArgType". [doc:unresolved-reference]
     │
  21 │   has_docs = function(f) end,
     │              ^^^^^^^^^^^^^^^

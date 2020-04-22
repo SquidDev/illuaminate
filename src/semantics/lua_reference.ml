@@ -17,6 +17,7 @@ let lookup_type = function
   | "table" -> InManual "5.5"
   | "nil" | "number" | "integer" | "boolean" | "function" ->
       Undocumented (* Could do 2.2, but seems a little dubious *)
+  | "any" -> Undocumented
   | _ -> Unknown
   [@@coverage off]
 
@@ -54,5 +55,8 @@ let lookup_name = function
     | "table.insert" | "table.maxn" | "table.remove" | "table.sort" | "tonumber" | "tostring"
     | "type" | "unpack" | "xpcall" ) as x ->
       InManual x
+  | "true" | "false" | "nil" ->
+      (* As with types, could do 2.5, but somewhat dubious. *)
+      Undocumented
   | x -> lookup_type x
   [@@coverage off]
