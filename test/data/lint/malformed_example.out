@@ -1,4 +1,4 @@
-lint_malformed_example.lua:[31:1-31:33]: Cannot parse example [doc:malformed-example]
+malformed_example.lua:[31:1-31:33]: Cannot parse example [doc:malformed-example]
 
   =input:[1:5-1:10]: Unexpected `fenced`: Unexpected token after variable. [parse:syntax-error]
      │
@@ -8,7 +8,7 @@ lint_malformed_example.lua:[31:1-31:33]: Cannot parse example [doc:malformed-exa
     │
  31 │ function x.description_fail() end
     │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-lint_malformed_example.lua:[40:1-40:22]: Cannot parse example [doc:malformed-example]
+malformed_example.lua:[42:1-42:22]: Cannot parse example [doc:malformed-example]
 
   =input:[1:10-1:11]: Unexpected `in`: Unexpected token after variable. [parse:syntax-error]
      │
@@ -16,9 +16,9 @@ lint_malformed_example.lua:[40:1-40:22]: Cannot parse example [doc:malformed-exa
      │          ^^
   
     │
- 40 │ function x.usage() end
+ 42 │ function x.usage() end
     │ ^^^^^^^^^^^^^^^^^^^^^^
-lint_malformed_example.lua:[40:1-40:22]: Cannot parse example [doc:malformed-example]
+malformed_example.lua:[42:1-42:22]: Cannot parse example [doc:malformed-example]
 
   =input:[1:8-1:9]: Unexpected `in`: Unexpected token after variable. [parse:syntax-error]
      │
@@ -26,9 +26,9 @@ lint_malformed_example.lua:[40:1-40:22]: Cannot parse example [doc:malformed-exa
      │        ^^
   
     │
- 40 │ function x.usage() end
+ 42 │ function x.usage() end
     │ ^^^^^^^^^^^^^^^^^^^^^^
-lint_malformed_example.lua:[40:1-40:22]: Cannot parse example [doc:malformed-example]
+malformed_example.lua:[42:1-42:22]: Cannot parse example [doc:malformed-example]
 
   =input:[1:7-1:7]: Unexpected `-`: Unexpected token after variable. [parse:syntax-error]
      │
@@ -36,6 +36,6 @@ lint_malformed_example.lua:[40:1-40:22]: Cannot parse example [doc:malformed-exa
      │       ^
   
     │
- 40 │ function x.usage() end
+ 42 │ function x.usage() end
     │ ^^^^^^^^^^^^^^^^^^^^^^
 No errors and 4 warnings

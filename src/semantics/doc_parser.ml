@@ -66,8 +66,15 @@ let parse_description =
       method to_string = "Extension"
     end
   in
+  let fix_lang =
+    Omd_representation.visit @@ function
+    | Code_block ("__auto", contents) -> Some [ Code_block ("lua", contents) ]
+    | Code ("__auto", contents) -> Some [ Code ("", contents) ]
+    | _ -> None
+  in
+
   fun ?(default_lang = "") x ->
-    Description (x |> String.trim |> Omd.of_string ~extensions:[ ext ] ~default_lang)
+    Description (x |> String.trim |> Omd.of_string ~extensions:[ ext ] ~default_lang |> fix_lang)
 
 module Tag = struct
   let malformed_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:malformed-tag"
@@ -253,7 +260,9 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
         let usage =
           match String.index_opt body '\n' with
           | None -> RawExample body
-          | Some _ -> RichExample (parse_description ~default_lang:"lua" body)
+          | Some _ ->
+              let desc = parse_description ~default_lang:"__auto" body in
+              RichExample desc
         in
         b.b_usages <- usage :: b.b_usages
     | ("example" as tag), flags, body ->

@@ -37,6 +37,8 @@ function x.description_fail() end
 -- ```
 --
 --     Indented in example
+--
+-- Inline `code should be fine`.
 function x.usage() end
 
 return x
