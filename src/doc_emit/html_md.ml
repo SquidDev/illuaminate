@@ -1,5 +1,29 @@
-open IlluaminateSemantics.Doc.Syntax
+open IlluaminateSemantics
+open Doc.Syntax
 open Html.Default
+
+(** Return the URL and class of a reference. *)
+let reference_attrs ~resolve (reference : Reference.resolved) style =
+  let link =
+    match reference with
+    | Internal { in_module; name = Module; _ } -> Some (resolve ("module/" ^ in_module ^ ".html"))
+    | Internal { in_module; name = Value v | Type v | Member (v, _); _ } ->
+        Some (resolve ("module/" ^ in_module ^ ".html") ^ "#" ^ v)
+    | External { url = Some url; _ } -> Some url
+    | External { url = None; _ } -> None
+    | Unknown _ -> None
+  in
+  let classes =
+    match style with
+    | `Text -> "reference reference-text"
+    | `Code -> "reference reference-code"
+  in
+  let classes =
+    match reference with
+    | Unknown _ -> classes ^ " reference-unresolved"
+    | _ -> classes
+  in
+  (link, classes)
 
 let md ~resolve x =
   let open Omd in
@@ -17,27 +41,7 @@ let md ~resolve x =
         let { link_reference; link_label = Description label; link_style } =
           Link.of_tag attrs label
         in
-
-        let link =
-          match link_reference with
-          | Internal { in_module; name = Module; _ } ->
-              Some (resolve ("module/" ^ in_module ^ ".html"))
-          | Internal { in_module; name = Value v | Type v | Member (v, _); _ } ->
-              Some (resolve ("module/" ^ in_module ^ ".html") ^ "#" ^ v)
-          | External { url = Some url; _ } -> Some url
-          | External { url = None; _ } -> None
-          | Unknown _ -> None
-        in
-        let classes =
-          match link_style with
-          | `Text -> "reference reference-text"
-          | `Code -> "reference reference-code"
-        in
-        let classes =
-          match link_reference with
-          | Unknown _ -> classes ^ " reference-unresolved"
-          | _ -> classes
-        in
+        let link, classes = reference_attrs ~resolve link_reference link_style in
         match link with
         | None -> Some [ Html ("span", [ ("class", Some classes) ], label) ]
         | Some url -> Some [ Html ("a", [ ("href", Some url); ("class", Some classes) ], label) ] )

@@ -1,6 +1,5 @@
 open Html.Default;
 open! IlluaminateSemantics.Doc.Syntax.Type;
-open IlluaminateSemantics.Reference;
 
 let show_opt = (~kind, optional) =>
   if (optional) {
@@ -12,24 +11,13 @@ let show_opt = (~kind, optional) =>
     nil;
   };
 
-let show_reference = (~resolve, x, label) =>
-  switch (x) {
-  | Internal({in_module, name, _}) =>
-    let section =
-      switch (section_of_name(name)) {
-      | None => ""
-      | Some(x) => "#" ++ x
-      };
-    <a
-      href={resolve("module/" ++ in_module ++ ".html" ++ section)}
-      class_="reference">
-      label
-    </a>;
-  | External({url: Some(url), _}) =>
-    <a href=url class_="reference"> label </a>
-  | External({url: None, _}) => <span class_="reference"> label </span>
-  | Unknown(_) => <span class_="reference reference-unresolved"> label </span>
+let show_reference = (~resolve, x, label) => {
+  let (link, class_) = Html_md.reference_attrs(~resolve, x, `Code);
+  switch (link) {
+  | Some(href) => <a href class_> label </a>
+  | None => <span class_> label </span>
   };
+};
 
 let rec show_type = (~resolve, x) =>
   switch (x) {
