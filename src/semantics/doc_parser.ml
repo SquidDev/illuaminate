@@ -83,7 +83,7 @@ module Tag = struct
 
   let bad_index = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:bad-index"
 
-  let wrong_throws = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:wrong-throws"
+  let wrong_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:wrong-tag"
 
   let all =
     [ malformed_tag;
@@ -92,7 +92,7 @@ module Tag = struct
       unknown_tag;
       duplicate_definitions;
       bad_index;
-      wrong_throws
+      wrong_tag
     ]
 end
 
@@ -256,6 +256,9 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
           | Some _ -> RichExample (parse_description ~default_lang:"lua" body)
         in
         b.b_usages <- usage :: b.b_usages
+    | ("example" as tag), flags, body ->
+        Printf.sprintf "Use @usage instead of '@%s" tag |> report Tag.wrong_tag;
+        tag_worker ("usage", flags, body)
     | "see", flags, body -> (
         List.iter (unknown "@see") flags;
         match match_word body 0 with
@@ -419,7 +422,7 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
         List.iter (unknown "Throws annotation") flags;
         b.b_throws <- parse_description body :: b.b_throws
     | (("throw" | "raise" | "raises") as tag), flags, body ->
-        Printf.sprintf "Use @throws instead of '@%s" tag |> report Tag.wrong_throws;
+        Printf.sprintf "Use @throws instead of '@%s" tag |> report Tag.wrong_tag;
         tag_worker ("throws", flags, body)
     (*******************************
      * Other types

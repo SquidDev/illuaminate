@@ -50,7 +50,7 @@ module Tag : sig
 
   val bad_index : IlluaminateCore.Error.Tag.t
 
-  val wrong_throws : IlluaminateCore.Error.Tag.t
+  val wrong_tag : IlluaminateCore.Error.Tag.t
 
   val all : IlluaminateCore.Error.Tag.t list
 end
