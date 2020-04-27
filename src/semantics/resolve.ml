@@ -370,6 +370,8 @@ let get_dots dots { dots_defs; dots_usages; _ } =
   | Some (BoundDots { dots; _ }) -> Some dots
   | None -> Some (TokenTbl.find dots_defs dots)
 
+let globals { globals; _ } = Hashtbl.to_seq_values globals
+
 module VarTbl = Hashtbl.Make (struct
   type t = var
 

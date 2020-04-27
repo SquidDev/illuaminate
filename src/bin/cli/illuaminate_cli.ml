@@ -1,6 +1,7 @@
 open IlluaminateCore
 open IlluaminateLint
 module StringMap = Map.Make (String)
+module StringSet = Set.Make (String)
 module Config = IlluaminateConfigFormat
 
 let src = Logs.Src.create ~doc:"The core CLI for illuaminate" __MODULE__
@@ -168,6 +169,40 @@ let doc_gen path =
   Error.display_of_files errs;
   if Error.has_problems errs then exit 1
 
+let dump_globals ~defined paths =
+  let errs = Error.make () in
+  let loader = Loader.create errs in
+  let modules, builder = Loader.load_from_many ~loader paths in
+  let data = IlluaminateData.Builder.(empty |> builder |> build) in
+  let gather =
+    Seq.fold_left (fun (unbound, defined) var ->
+        let open IlluaminateSemantics.Resolve in
+        match var.definitions with
+        | [] -> (StringSet.add var.name unbound, defined)
+        | _ :: _ -> (unbound, StringSet.add var.name defined))
+  in
+  let dump name xs =
+    if not (StringSet.is_empty xs) then (
+      Printf.printf "%s:\n" name;
+      StringSet.iter (Printf.printf " - %s\n") xs )
+  in
+  let unbound_names, defined_names =
+    List.fold_left
+      (fun (unbound, defined) program ->
+        match program with
+        | { Loader.parsed = None; _ } -> (unbound, defined)
+        | { parsed = Some parsed; _ } ->
+            IlluaminateData.get data IlluaminateSemantics.Resolve.key parsed
+            |> IlluaminateSemantics.Resolve.globals
+            |> gather (unbound, defined))
+      (StringSet.empty, StringSet.empty)
+      modules
+  and module_names =
+    IlluaminateData.get data IlluaminateSemantics.Module_resolve.global_modules ()
+  in
+  dump "Undefined globals" (StringSet.diff unbound_names module_names);
+  if defined then dump "Defined globals" defined_names
+
 let init_config config force =
   if (not force) && Sys.file_exists config then (
     Printf.eprintf "File already exists";
@@ -292,6 +327,18 @@ let run () =
     in
     (term, Term.info "fix" ~doc ~man:[ `Blocks common_docs ])
   in
+  let dump_global_cmd =
+    let doc = "Dumps all usages of \"undefined\" globals, and global definitions." in
+    let term =
+      let+ common = common
+      and+ files = files_arg
+      and+ defined =
+        value & flag & info ~doc:"Display definitions of global variables." [ "d"; "defined" ]
+      in
+      setup_common common; dump_globals ~defined files
+    in
+    (term, Term.info "dump-global" ~doc ~man:[ `Blocks common_docs ])
+  in
   let doc_gen_cmd =
     let doc = "Generates HTML documentation" in
     let term =
@@ -326,4 +373,6 @@ let run () =
     (Term.(ret term), Term.info "illuaminate" ~doc ~exits:Term.default_exits)
   in
 
-  Term.exit @@ Term.eval_choice default_cmd [ lint_cmd; fix_cmd; doc_gen_cmd; init_config_cmd ]
+  Term.exit
+  @@ Term.eval_choice default_cmd
+       [ lint_cmd; fix_cmd; doc_gen_cmd; dump_global_cmd; init_config_cmd ]

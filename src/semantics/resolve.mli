@@ -93,3 +93,6 @@ val get_dots_usage : Syntax.token -> t -> dots_usage
 
 (** Get the underlying dots instance. *)
 val get_dots : Syntax.token -> t -> dots option
+
+(** Get all globals, either used or defined. *)
+val globals : t -> var Seq.t

@@ -30,3 +30,6 @@ val get_name : t -> Syntax.name -> (Reference.t * value documented) option
 (** Determine if a documented node is "interesting". Something is interesting, if it comes from
     another module or it has a doc comment. *)
 val is_interesting : Reference.t -> value documented -> bool
+
+(** The name of all global modules. *)
+val global_modules : (unit, Set.Make(String).t) IlluaminateData.Key.t

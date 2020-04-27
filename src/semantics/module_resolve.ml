@@ -113,3 +113,18 @@ let is_interesting r value =
   match Reference.root r with
   | `Reference (Unknown _) | `Var _ -> Doc_syntax.is_documented value
   | `Reference (Internal _ | External _) -> true
+
+let global_modules =
+  let open IlluaminateData in
+  let module SSet = Set.Make (String) in
+  let module SMap = Map.Make (String) in
+  let get data () =
+    let modules = need data Doc_extract.get_modules () in
+    SMap.fold
+      (fun _ m modules ->
+        match m with
+        | { descriptor = { mod_kind = Library; _ }; _ } -> modules
+        | { descriptor = { mod_name; mod_kind = Module; _ }; _ } -> SSet.add mod_name modules)
+      modules SSet.empty
+  in
+  Key.key ~name:(__MODULE__ ^ ".global_modules") ~eq_v:SSet.equal get
