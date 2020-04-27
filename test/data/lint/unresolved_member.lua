@@ -23,3 +23,7 @@ do
   local tbl_4 = { x = 1 } --- Documented
   print(tbl_4.y)
 end
+
+local a_module = require("a_module")
+print(a_module.a) --- Documented
+print(a_module.unknown) --- Undocumented

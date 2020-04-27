@@ -10,4 +10,8 @@ unresolved_member.lua:[24:9-24:15]: Unknown field y in tbl_4 [var:unresolved-mem
     │
  24 │   print(tbl_4.y)
     │         ^^^^^^^
-No errors and 3 warnings
+unresolved_member.lua:[29:7-29:22]: Unknown field unknown in a_module [var:unresolved-member]
+    │
+ 29 │ print(a_module.unknown) --- Undocumented
+    │       ^^^^^^^^^^^^^^^^
+No errors and 4 warnings
