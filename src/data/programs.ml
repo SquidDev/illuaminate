@@ -38,9 +38,13 @@ module FileStore = struct
       mutable file_list : Span.filename list option
     }
 
-  let builder store builder =
-    let get_file path _ = Tbl.find_opt store.files path in
+  let lazy_builder store builder =
+    let get_file path _ =
+      let store = Lazy.force store in
+      Tbl.find_opt store.files path
+    in
     let get_files () _ =
+      let store = Lazy.force store in
       match store.file_list with
       | Some x -> x
       | None ->
@@ -49,6 +53,8 @@ module FileStore = struct
           files
     in
     builder |> Core.Builder.oracle Files.file get_file |> Core.Builder.oracle Files.files get_files
+
+  let builder store = lazy_builder (lazy store)
 
   let create () = { files = Tbl.create 16; file_list = None }
 

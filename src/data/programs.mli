@@ -37,6 +37,9 @@ module FileStore : sig
   (** Add implementations for the {!Files} keys using the given file store. *)
   val builder : t -> Core.Builder.t -> Core.Builder.t
 
+  (** Add implementations for the {!Files} keys using the given file store. *)
+  val lazy_builder : t Lazy.t -> Core.Builder.t -> Core.Builder.t
+
   (** Update a file's program. You should call {!Core.refresh} after calling this. *)
   val update : t -> Span.filename -> Syntax.program option -> unit
 end

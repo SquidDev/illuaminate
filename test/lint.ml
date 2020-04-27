@@ -13,6 +13,51 @@ let only =
   in
   Category.add field Linter.category
 
+let schema =
+  List.fold_left
+    (fun s (Linter.Linter l) -> Schema.union s (Schema.singleton l.options))
+    (Schema.singleton only) Linters.all
+  |> Schema.union (Schema.singleton Doc.Extract.Config.key)
+
+let parse_schema program =
+  match program ^. Syntax.First.program with
+  | Node { leading_trivia = { value = LineComment c | BlockComment (_, c); _ } :: _; _ } -> (
+      let c =
+        c
+        |> CCString.drop_while (fun c -> c == '-')
+        |> String.trim
+        |> CCString.chop_prefix ~pre:"config:"
+      in
+      match c with
+      | Some c ->
+          let buf = Lexing.from_string c in
+          Schema.to_parser schema |> Parser.fields
+          |> Parser.parse_buf (Span.Filename.mk "=config") buf
+          |> Result.fold ~ok:Fun.id ~error:(fun (_, x) -> failwith x)
+      | None -> Schema.default schema )
+  | _ -> Schema.default schema
+
+let files out =
+  lazy
+    (let module FileStore = D.Programs.FileStore in
+    let dir = Fpath.(v (Sys.getcwd ()) / "data" / "lint" / "extra") in
+    let files = FileStore.create () in
+    let errs = Error.make () in
+    Sys.readdir (Fpath.to_string dir)
+    |> Array.iter (fun d ->
+           let file = Fpath.(dir / d) in
+           let name = Span.Filename.mk ~path:file d in
+           let program =
+             CCIO.with_in (Fpath.to_string file)
+               (IlluaminateParser.program name % Lexing.from_channel)
+           in
+           Result.iter_error
+             (fun (err : _ Span.spanned) -> IlluaminateParser.Error.report errs err.span err.value)
+             program;
+           Result.to_option program |> FileStore.update files name);
+    Error.display_of_files ~out ~with_summary:false errs;
+    files)
+
 let process ~name contents out =
   let lexbuf = Lexing.from_string contents in
   let name = Span.Filename.mk name in
@@ -22,30 +67,7 @@ let process ~name contents out =
       IlluaminateParser.Error.report errs err.span err.value;
       Error.display_of_string ~out (fun _ -> Some contents) errs
   | Ok parsed ->
-      let store =
-        let schema =
-          List.fold_left
-            (fun s (Linter.Linter l) -> Schema.union s (Schema.singleton l.options))
-            (Schema.singleton only) Linters.all
-          |> Schema.union (Schema.singleton Doc.Extract.Config.key)
-        in
-        match parsed ^. Syntax.First.program with
-        | Node { leading_trivia = { value = LineComment c | BlockComment (_, c); _ } :: _; _ } -> (
-            let c =
-              c
-              |> CCString.drop_while (fun c -> c == '-')
-              |> String.trim
-              |> CCString.chop_prefix ~pre:"config:"
-            in
-            match c with
-            | Some c ->
-                let buf = Lexing.from_string c in
-                Schema.to_parser schema |> Parser.fields
-                |> Parser.parse_buf (Span.Filename.mk "=config") buf
-                |> Result.fold ~ok:Fun.id ~error:(fun (_, x) -> failwith x)
-            | None -> Schema.default schema )
-        | _ -> Schema.default schema
-      in
+      let store = parse_schema parsed in
       let only = Schema.get only store in
       let only =
         List.map
@@ -59,7 +81,7 @@ let process ~name contents out =
       let data =
         let open D.Builder in
         empty
-        |> D.Programs.FileStore.(create () |> builder)
+        |> D.Programs.FileStore.lazy_builder (files out)
         |> oracle D.Programs.Context.key (fun _ _ -> context)
         |> build
       in
