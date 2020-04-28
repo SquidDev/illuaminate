@@ -104,7 +104,7 @@ We provide [plugins for Emacs and VS Code][editor_tree]. Currently one must
 build-from source, or copy into your own setup as we do not currently publish
 them on the package repositories - this will change as illuaminate matures.
 
-The server can be downloaded as with [normal illuaminate][#usage] - just change
+The server can be downloaded as with [normal illuaminate](#usage) - just change
 the executable to `illuaminate-lsp`.
 
 The language server has support for the following features:
@@ -138,10 +138,11 @@ action to apply it.
 </p>
 
 
-[opam]: https://opam.ocaml.org/doc/Install.html
-[omnomnom]: https://github.com/SquidDev/omnomnom
-[actions]: https://github.com/features/actions
+[opam]: https://opam.ocaml.org/doc/Install.html "Installing opam"
+[omnomnom]: https://github.com/SquidDev/omnomnom "omnomnom on GitHub"
+[actions]: https://github.com/features/actions "An introduction to GitHub actions"
 [esy]: https://esy.sh/
-[lsp]: https://microsoft.github.io/language-server-protocol
+[lsp]: https://microsoft.github.io/language-server-protocol "The Language Server Protocol"
 [lsp_editors]: https://microsoft.github.io/language-server-protocol/implementors/tools
 [editor_tree]: https://github.com/SquidDev/illuaminate/tree/master/src/editor
+[upx]: https://github.com/upx/upx "upx on GitHub"
