@@ -42,6 +42,7 @@ module Linters : sig
   module Table_trailing = Lint_table_trailing
   module Unbalanced_assign = Lint_unbalanced_assign
   module Undocumented = Lint_undocumented
+  module Unknown_global = Lint_unknown_global
   module Unreachable = Lint_unreachable
   module Unresolved_member = Lint_unresolved_member
   module Unresolved_reference = Lint_unresolved_reference

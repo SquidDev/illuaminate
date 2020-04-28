@@ -258,6 +258,14 @@ and resolve_stmt s (stmt : S.stmt) =
       | Some v -> add_def s v (OfFunction (assignf_args, assignf_body))
       | None -> () );
       let fun_scope = mk_args (fresh_fun s) assignf_args in
+      let fun_scope =
+        match assignf_name with
+        | FVar _ | FDot _ -> fun_scope
+        | FSelf _ ->
+            let context, var = mk_local' (Arg fun_scope.active_scope) fun_scope "self" in
+            var.definitions <- (None, Declare) :: var.definitions;
+            context
+      in
       resolve_stmts fun_scope assignf_body;
       s
   | If { if_if; if_elseif; if_else; _ } ->

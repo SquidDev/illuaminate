@@ -32,6 +32,7 @@ module Linters = struct
   module Table_trailing = Lint_table_trailing
   module Unbalanced_assign = Lint_unbalanced_assign
   module Undocumented = Lint_undocumented
+  module Unknown_global = Lint_unknown_global
   module Unreachable = Lint_unreachable
   module Unresolved_member = Lint_unresolved_member
   module Unresolved_reference = Lint_unresolved_reference
@@ -46,6 +47,7 @@ module Linters = struct
       Doc_parse.linter;
       Doc_extract.linter;
       Undocumented.linter;
+      Unknown_global.linter;
       Unresolved_reference.linter;
       Malformed_example.linter;
       Detached_comment.linter;

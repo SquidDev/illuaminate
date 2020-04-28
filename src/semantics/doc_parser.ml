@@ -509,7 +509,7 @@ let extract node =
     | [] -> cs
     | { Span.value = Node.BlockComment (_, c); span } :: xs when String.length c > 0 && c.[0] == '-'
       ->
-        let documented = parse c |> build span in
+        let documented = CCString.drop 1 c |> parse |> build span in
         extract_comments (documented :: cs) xs
     | { Span.value = Node.LineComment c; span } :: xs
       when String.length c > 0
