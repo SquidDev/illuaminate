@@ -1,7 +1,7 @@
 {
   [@@@coverage exclude_file]
-  exception Error of (string * Lexing.position * Lexing.position)
-  let lexeme_spanned lexbuf x = (x, Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)
+  exception Error of string * Lexing.position * Lexing.position
+  let mk_error lexbuf x : exn = Error (x, Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)
 
   type token =
     | Open
@@ -26,7 +26,7 @@ rule token l = parse
 | id+                   { String (Lexing.lexeme lexbuf) }
 | '\"'                  { string (Buffer.create 17) l lexbuf }
 | eof                   { End }
-| _                     { raise (Error (lexeme_spanned lexbuf (Printf.sprintf "Unexpected character %S." (Lexing.lexeme lexbuf)))) }
+| _                     { raise (mk_error lexbuf (Printf.sprintf "Unexpected character %S." (Lexing.lexeme lexbuf))) }
 
 and string value l = parse
 | '\"'              { String (Buffer.contents value) }
@@ -55,6 +55,6 @@ and string value l = parse
                     { Buffer.add_string value x;
                       string value l lexbuf }
 
-| eof               { raise (Error (lexeme_spanned lexbuf "Expected '\"' at end of file.")) }
-| '\n'              { raise (Error (lexeme_spanned lexbuf "Expected '\"' at end of line.")) }
-| _                 { raise (Error (lexeme_spanned lexbuf (Printf.sprintf "Unexpected character %S in string." (Lexing.lexeme lexbuf)))) }
+| eof               { raise (mk_error lexbuf "Expected '\"' at end of file.") }
+| '\n'              { raise (mk_error lexbuf "Expected '\"' at end of line.") }
+| _                 { raise (mk_error lexbuf (Printf.sprintf "Unexpected character %S in string." (Lexing.lexeme lexbuf))) }

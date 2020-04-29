@@ -9,11 +9,9 @@ let send_diagnostics client store ?version doc =
   client.Store.notify (PublishDiagnostics { uri = Uri.to_string doc.uri; version; diagnostics })
 
 let worker client store : Client_notification.t -> (unit, string) result = function
-  | TextDocumentDidOpen { textDocument = { uri; version; text; languageId } } ->
+  | TextDocumentDidOpen ({ textDocument = { version; languageId; _ } } as d) ->
       if languageId = "lua" then (
-        let doc =
-          Store.open_file store (Text_document.make ~version (Store.Filename.box uri) text)
-        in
+        let doc = Store.open_file store (Text_document.make d) in
         send_diagnostics client store ~version doc;
         () );
       Ok ()
