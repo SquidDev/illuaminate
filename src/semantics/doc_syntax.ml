@@ -139,7 +139,7 @@ module Link = struct
                fprintf out "%s=%a" k (pp_print_option pp_print_string) v))
          attrs
 
-  let of_tag attrs label =
+  let of_tag attrs description =
     let make r = function
       | [ ("style", Some style) ] ->
           let style =
@@ -148,7 +148,10 @@ module Link = struct
             | "code" -> `Code
             | _ -> invalid_arg "Invalid style"
           in
-          { link_reference = r; link_style = style; link_label = Description label }
+          { link_reference = r;
+            link_style = style;
+            link_label = { description; description_pos = None }
+          }
       | _ -> malformed attrs
     in
     match attrs with
@@ -168,14 +171,14 @@ module Link = struct
     | ("link", Some link) :: attrs -> make (Unknown link) attrs
     | attrs -> make (External { url = None; name = "" }) attrs
 
-  let to_tag { link_reference; link_label = Description label; link_style } : Omd.element =
+  let to_tag { link_reference; link_label = { description; _ }; link_style } : Omd.element =
     let style =
       match link_style with
       | `Code -> "code"
       | `Text -> "text"
     in
     let attrs = [ ("style", Some style) ] in
-    let make a : Omd.element = Html ("illuaminate:ref", a, label) in
+    let make a : Omd.element = Html ("illuaminate:ref", a, description) in
     match link_reference with
     | Internal { in_module; name; _ } -> (
       match Reference.section_of_name name with

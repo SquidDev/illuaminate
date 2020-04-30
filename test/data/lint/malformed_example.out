@@ -1,4 +1,4 @@
-malformed_example.lua:[31:1-31:33]: Cannot parse example [doc:malformed-example]
+malformed_example.lua:[21:5-30:6]: Cannot parse example [doc:malformed-example]
 
   =input:[1:5-1:10]: Unexpected `fenced`: Unexpected token after variable. [parse:syntax-error]
      │
@@ -6,29 +6,9 @@ malformed_example.lua:[31:1-31:33]: Cannot parse example [doc:malformed-example]
      │     ^^^^^^
   
     │
- 31 │ function x.description_fail() end
-    │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-malformed_example.lua:[42:1-42:22]: Cannot parse example [doc:malformed-example]
-
-  =input:[1:10-1:11]: Unexpected `in`: Unexpected token after variable. [parse:syntax-error]
-     │
-   1 │ Indented in example
-     │          ^^
-  
-    │
- 42 │ function x.usage() end
-    │ ^^^^^^^^^^^^^^^^^^^^^^
-malformed_example.lua:[42:1-42:22]: Cannot parse example [doc:malformed-example]
-
-  =input:[1:8-1:9]: Unexpected `in`: Unexpected token after variable. [parse:syntax-error]
-     │
-   1 │ Fenced in example
-     │        ^^
-  
-    │
- 42 │ function x.usage() end
-    │ ^^^^^^^^^^^^^^^^^^^^^^
-malformed_example.lua:[42:1-42:22]: Cannot parse example [doc:malformed-example]
+ 21 │ --- Descriptions which don't work
+    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+malformed_example.lua:[33:12-33:28]: Cannot parse example [doc:malformed-example]
 
   =input:[1:7-1:7]: Unexpected `-`: Unexpected token after variable. [parse:syntax-error]
      │
@@ -36,6 +16,26 @@ malformed_example.lua:[42:1-42:22]: Cannot parse example [doc:malformed-example]
      │       ^
   
     │
- 42 │ function x.usage() end
-    │ ^^^^^^^^^^^^^^^^^^^^^^
+ 33 │ --- @usage Single-line usage
+    │            ^^^^^^^^^^^^^^^^^
+malformed_example.lua:[34:11-41:32]: Cannot parse example [doc:malformed-example]
+
+  =input:[1:10-1:11]: Unexpected `in`: Unexpected token after variable. [parse:syntax-error]
+     │
+   1 │ Indented in example
+     │          ^^
+  
+    │
+ 34 │ -- @usage Multiline-code block usage
+    │           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+malformed_example.lua:[34:11-41:32]: Cannot parse example [doc:malformed-example]
+
+  =input:[1:8-1:9]: Unexpected `in`: Unexpected token after variable. [parse:syntax-error]
+     │
+   1 │ Fenced in example
+     │        ^^
+  
+    │
+ 34 │ -- @usage Multiline-code block usage
+    │           ^^^^^^^^^^^^^^^^^^^^^^^^^^
 No errors and 4 warnings

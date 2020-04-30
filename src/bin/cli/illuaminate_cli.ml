@@ -135,7 +135,7 @@ let doc_gen path =
            match Fpath.get_ext path with
            | ".html" | ".htm" -> raw contents
            | ".md" | ".markdown" ->
-               let (Description x) = Doc.Parser.parse_description contents in
+               let x = Doc.Parser.parse_description contents in
                E.Html_md.md ~resolve:Fun.id x
            | ".txt" | "" -> create_node ~tag:"pre" ~children:[ str contents ] ()
            | ext ->

@@ -40,7 +40,7 @@ let md ~resolve x =
   let preprocess node =
     match node with
     | Html ("illuaminate:ref", attrs, label) -> (
-        let { link_reference; link_label = Description label; link_style } =
+        let { link_reference; link_label = { description = label; _ }; link_style } =
           Link.of_tag attrs label
         in
         let link, classes = reference_attrs ~resolve link_reference link_style in
@@ -78,12 +78,12 @@ let rec md_inline ~resolve = function
 
 let show_desc ~resolve = function
   | None -> nil
-  | Some (Description x) -> md ~resolve x
+  | Some (d : description) -> md ~resolve d.description
 
 let show_summary ~resolve = function
   | None -> nil
-  | Some (Description x) -> Helpers.get_summary x |> md_inline ~resolve
+  | Some (d : description) -> Helpers.get_summary d.description |> md_inline ~resolve
 
 let show_desc_inline ~resolve = function
   | None -> nil
-  | Some (Description x) -> md_inline ~resolve x
+  | Some (d : description) -> md_inline ~resolve d.description

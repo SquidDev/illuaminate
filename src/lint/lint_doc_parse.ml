@@ -8,5 +8,5 @@ let linter =
       IlluaminateData.need context.data D.key prog
       |> D.comments
       |> List.iter @@ fun (x : Doc.Comment.comment) ->
-         x.Doc.Comment.errors |> List.iter @@ fun (tag, msg) -> r.r ~span:x.source ~tag "%s" msg)
+         x.Doc.Comment.errors |> List.iter @@ fun (tag, span, msg) -> r.r ~span ~tag "%s" msg)
     ()

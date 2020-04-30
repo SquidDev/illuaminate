@@ -26,21 +26,29 @@ and table_entry ~r ~span = function
 
 let check_abstract ~r ~span =
   object
-    inherit abstract_iter as super
+    val span = span
+
+    inherit abstract_iter
 
     method! reference = check ~r ~span ~kind:"reference"
 
     method! type_ = type_ ~r ~span
 
-    method! omd node =
+    method! see { see_reference; see_label = _; see_span = span; see_description } =
+      check ~r ~span ~kind:"reference" see_reference;
+      Option.iter {<span>}#description see_description
+
+    method! description { description; description_pos } =
+      let span = Option.value ~default:span description_pos in
       let open Omd in
-      super#omd node;
-      match node with
-      | Html ("illuaminate:ref", attrs, label) -> (
-        match Link.of_tag attrs label with
-        | { link_reference = Unknown x; _ } -> r.r ~span ~tag "Unknown reference %S." x
-        | _ -> () )
-      | _ -> ()
+      let omd = function
+        | Html ("illuaminate:ref", attrs, label) -> (
+          match Link.of_tag attrs label with
+          | { link_reference = Unknown x; _ } -> r.r ~span ~tag "Unknown reference %S." x
+          | _ -> () )
+        | _ -> ()
+      in
+      Doc.AbstractSyntax.Omd'.iter omd description
   end
 
 let linter =
@@ -49,6 +57,7 @@ let linter =
       match IlluaminateData.need context.data E.key prog |> E.get_module with
       | None -> ()
       | Some m ->
+          Printf.printf "Has docs\n%!";
           let iter = iter_of (check_abstract ~r) in
           iter#documented iter#module_info m)
     ()

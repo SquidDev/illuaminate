@@ -28,16 +28,18 @@ let check_abstract ~r ~span =
   object
     inherit abstract_iter as super
 
-    method! omd node =
+    method! description { description; description_pos } =
+      let span = Option.value ~default:span description_pos in
       let open Omd in
-      super#omd node;
-      match node with
-      | Code ("lua", code) | Code_block ("lua", code) -> check ~r ~span code
-      | _ -> ()
+      let omd = function
+        | Code ("lua", code) | Code_block ("lua", code) -> check ~r ~span code
+        | _ -> ()
+      in
+      Doc.AbstractSyntax.Omd'.iter omd description
 
     method! example =
       function
-      | RawExample contents -> check ~r ~span contents
+      | RawExample { span; value } -> check ~r ~span value
       | RichExample _ as e -> super#example e
   end
 

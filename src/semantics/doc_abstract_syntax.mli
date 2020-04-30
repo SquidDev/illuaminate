@@ -1,15 +1,26 @@
+open IlluaminateCore
+
 type module_kind =
   | Module
       (** A legacy module, using the "module" directive. Global variables declared in this file are
           considered as exported by this file. *)
   | Library  (** A standard module, which returns the term that it exports. *)
 
+module Omd' : sig
+  val iter_element : (Omd.element -> unit) -> Omd.element -> unit
+
+  val iter : (Omd.element -> unit) -> Omd.t -> unit
+end
+
 module type S = sig
   type reference
 
   module Type : Type_syntax.S with type reference = reference
 
-  type description = Description of Omd.t
+  type description =
+    { description : Omd.t;
+      description_pos : Span.t option
+    }
 
   (** A link to a string, within a {!description}. *)
   type link =
@@ -22,12 +33,13 @@ module type S = sig
   type see =
     { see_reference : reference;  (** The name this see link points to. *)
       see_label : string;  (** Textual representation of the reference. *)
+      see_span : Span.t;  (** The position of the label. *)
       see_description : description option  (** An optional description of this name. *)
     }
 
   (** An example of how to use this code. *)
   type example =
-    | RawExample of string  (** An example with no associated description. *)
+    | RawExample of string Span.spanned  (** An example with no associated description. *)
     | RichExample of description  (** A rich markdown block, with some associated comments. *)
 
   (** An argument to a function. *)
@@ -58,8 +70,6 @@ module type S = sig
       method reference : reference -> unit
 
       method description : description -> unit
-
-      method omd : Omd.element -> unit
 
       (** Visit a type. Note, by default this does not visit any references within this type. *)
       method type_ : Type.t -> unit

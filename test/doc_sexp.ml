@@ -13,6 +13,12 @@ let one' : t -> t list = function
 
 let atom' = one % atom
 
+let list' = function
+  | [ x ] -> x
+  | xs -> list xs
+
+let span = atom' % Span.show
+
 let record = list % List.rev
 
 let record' key xs = list (atom key :: List.rev xs)
@@ -23,6 +29,8 @@ let field' name f value rest : t list =
   match value with
   | None -> rest
   | Some value -> field name (f value) rest
+
+let spanned f (x : _ Span.spanned) = [] |> field "value" (f x.value) |> field "span" (span x.span)
 
 let fields name f = List.fold_right (fun v rest -> field name (f v) rest)
 
@@ -36,7 +44,7 @@ struct
 
   let reference = X.sexp
 
-  let description (Description d) = Omd.to_markdown d |> atom'
+  let description (d : description) = Omd.to_markdown d.description |> atom'
 
   let rec type_ = function
     | Type.NilTy -> atom' "nil"
@@ -47,28 +55,29 @@ struct
     | Named (x, _) -> [ reference x ]
     | Function _ -> atom' "function(...)"
     | Table _ -> atom' "{...}"
-    | Union xs -> atom "union" :: List.map (record' "union" % type_) xs
+    | Union xs -> [ `List (atom "union" :: List.map (list' % type_) xs) ]
 
-  let see { see_reference; see_label; see_description } =
+  let see { see_reference; see_label; see_description; see_span } =
     []
     |> field "ref" [ reference see_reference ]
     |> field "label" (atom' see_label)
+    |> field "span" (span see_span)
     |> field' "description" description see_description
     |> record
 
   let example = function
-    | RawExample x -> atom' x
+    | RawExample x -> spanned atom' x
     | RichExample x -> description x
 
   let arg { arg_name; arg_opt; arg_type; arg_description } =
-    []
+    atom' "arg"
     |> field "name" (atom' arg_name)
     |> field_bool "opt" arg_opt |> field' "type" type_ arg_type
     |> field' "description" description arg_description
     |> record
 
   let return { ret_type; ret_many; ret_description } =
-    [] |> field' "type" type_ ret_type |> field_bool "many" ret_many
+    atom' "return" |> field' "type" type_ ret_type |> field_bool "many" ret_many
     |> field' "description" description ret_description
     |> record
 end
@@ -89,7 +98,7 @@ module Comment = struct
     |> fields "see" (one' % see) c.see
     |> fields "example" example c.examples
     |> field_bool "local" c.local
-    |> fields "include" (one % reference) c.includes
+    |> fields "include" (spanned (one % reference)) c.includes
     |> field_bool "export" c.export
     |> fields "args" (List.map arg) c.arguments
     |> fields "returns" (List.map return) c.returns
@@ -117,7 +126,7 @@ module Syntax = struct
       | Unknown x -> atom x
   end)
 
-  let documented body d =
+  let documented body (d : _ documented) =
     []
     |> field' "description" description d.description
     |> field "body" (body d.descriptor)

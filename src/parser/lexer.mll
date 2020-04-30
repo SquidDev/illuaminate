@@ -25,7 +25,7 @@
     | Some f -> Token (Number (f, c))
 }
 
-let white = [' ' '\t' ]
+let white = [' ' '\t']
 
 
 let digit = ['0'-'9']

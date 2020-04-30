@@ -1,13 +1,39 @@
+open IlluaminateCore
+
 type module_kind =
   | Module
   | Library
+
+module Omd' = struct
+  open Omd
+
+  let iter_element f =
+    let rec go x =
+      f x;
+      match x with
+      | H1 x | H2 x | H3 x | H4 x | H5 x | H6 x | Paragraph x | Emph x | Bold x -> List.iter go x
+      | Url (_, x, _) | Blockquote x | Html (_, _, x) | Html_block (_, _, x) -> List.iter go x
+      | Ul xs | Ol xs | Ulp xs | Olp xs -> List.iter (List.iter go) xs
+      | Ref (_, _, _, f) | Img_ref (_, _, _, f) -> List.iter go f#to_t
+      | Text _ | Code _ | Code_block _ | Br | Hr | NL | Html_comment _ | Raw _ | Raw_block _ | Img _
+        ->
+          ()
+      | X f -> Option.iter (List.iter go) (f#to_t [])
+    in
+    go
+
+  let iter f = List.iter (iter_element f)
+end
 
 module type S = sig
   type reference
 
   module Type : Type_syntax.S with type reference = reference
 
-  type description = Description of Omd.t
+  type description =
+    { description : Omd.t;
+      description_pos : Span.t option
+    }
 
   (** A link to a string, within a {!description}. *)
   type link =
@@ -19,11 +45,12 @@ module type S = sig
   type see =
     { see_reference : reference;
       see_label : string;
+      see_span : Span.t;
       see_description : description option
     }
 
   type example =
-    | RawExample of string
+    | RawExample of string Span.spanned
     | RichExample of description
 
   type arg =
@@ -49,8 +76,6 @@ module type S = sig
 
       method description : description -> unit
 
-      method omd : Omd.element -> unit
-
       method type_ : Type.t -> unit
 
       method see : see -> unit
@@ -72,7 +97,10 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
 
   module Type = X.Type
 
-  type description = Description of Omd.t
+  type description =
+    { description : Omd.t;
+      description_pos : Span.t option
+    }
 
   type link =
     { link_reference : reference;
@@ -83,11 +111,12 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
   type see =
     { see_reference : reference;
       see_label : string;
+      see_span : Span.t;
       see_description : description option
     }
 
   type example =
-    | RawExample of string
+    | RawExample of string Span.spanned
     | RichExample of description
 
   type arg =
@@ -111,25 +140,11 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
     object (self)
       method reference (_ : reference) = ()
 
-      method description (Description d) = List.iter self#omd d
-
-      method omd =
-        let open Omd in
-        function
-        | H1 x | H2 x | H3 x | H4 x | H5 x | H6 x | Paragraph x | Emph x | Bold x ->
-            List.iter self#omd x
-        | Url (_, x, _) | Blockquote x | Html (_, _, x) | Html_block (_, _, x) ->
-            List.iter self#omd x
-        | Ul xs | Ol xs | Ulp xs | Olp xs -> List.iter (List.iter self#omd) xs
-        | Ref (_, _, _, f) | Img_ref (_, _, _, f) -> List.iter self#omd f#to_t
-        | Text _ | Code _ | Code_block _ | Br | Hr | NL | Html_comment _ | Raw _ | Raw_block _
-        | Img _ ->
-            ()
-        | X f -> Option.iter (List.iter self#omd) (f#to_t [])
+      method description (_ : description) = ()
 
       method type_ (_ : Type.t) = ()
 
-      method see { see_reference; see_label = _; see_description } =
+      method see { see_reference; see_label = _; see_span = _; see_description } =
         self#reference see_reference;
         Option.iter self#description see_description
 
@@ -161,9 +176,10 @@ module Lift (L : S) (R : S) = struct
     | RawExample e -> RawExample e
     | RichExample d -> RichExample (description lift d)
 
-  let see lift { L.see_reference; see_label; see_description } =
+  let see lift { L.see_reference; see_label; see_span; see_description } =
     { R.see_reference = lift.any_ref see_reference;
       see_label;
+      see_span;
       see_description = Option.map (description lift) see_description
     }
 

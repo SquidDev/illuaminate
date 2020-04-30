@@ -53,7 +53,10 @@ module Value = struct
   let mk_ref (Reference.Reference x) = Reference.Unknown x
 
   let lift : Lift.t =
-    { any_ref = mk_ref; type_ref = mk_ref; description = (fun (Description x) -> Description x) }
+    { any_ref = mk_ref;
+      type_ref = mk_ref;
+      description = (fun { description; description_pos } -> { description; description_pos })
+    }
 
   let debug_name = function
     | Function _ as x -> "function" ^ get_suffix x
@@ -667,18 +670,24 @@ module Resolve = struct
     in
     { type_name; type_members = List.map go_member type_members }
 
-  let go_desc context (Description x) =
+  let go_desc context { description; description_pos } =
     let open Omd in
     let visit = function
       | Html ("illuaminate:ref", tags, label) ->
-          let { C.link_reference = Reference link; link_label = Description d; link_style } =
+          let { C.link_reference = Reference link;
+                link_label = { description; description_pos };
+                link_style
+              } =
             C.Link.of_tag tags label
           in
           let r = resolve context ~types_only:false link in
-          Some [ Link.to_tag { link_reference = r; link_label = Description d; link_style } ]
+          Some
+            [ Link.to_tag
+                { link_reference = r; link_label = { description; description_pos }; link_style }
+            ]
       | _ -> None
     in
-    Description (Omd_representation.visit visit x)
+    { description = Omd_representation.visit visit description; description_pos }
 
   let context modules current_module =
     let context = { modules; current_module } in

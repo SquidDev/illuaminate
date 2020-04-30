@@ -43,7 +43,8 @@ let of_documented ~in_module ~name ~section ?(suffix = Fun.const "") ~source_lin
         source = source_link definition;
         summary =
           Option.map
-            (fun (Description m) -> Helpers.get_summary m |> Omd.to_text |> String.trim)
+            (fun (d : description) ->
+              Helpers.get_summary d.description |> Omd.to_text |> String.trim)
             description;
         in_module;
         section = Reference.section_of_name section

@@ -59,7 +59,7 @@ module Hover = struct
         let value =
           match description with
           | None -> title
-          | Some (Description d) -> Printf.sprintf "%s\n%s" title (Omd.to_markdown d)
+          | Some (d : description) -> Printf.sprintf "%s\n%s" title (Omd.to_markdown d.description)
         in
         Hover.create
           ~range:(range (Syntax.Spanned.name name))

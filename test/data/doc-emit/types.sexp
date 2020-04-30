@@ -2,39 +2,38 @@
   (contents
    (table
     (no_clue ((description "A basic exported *value*.\n\n") (body table)))
-    (ty_1 ((body (args ((name a)) ((name b))))))
+    (ty_1 ((body (args (arg (name a)) (arg (name b))))))
     (ty_2
      ((description "Function type syntax\n\n")
       (body
        (args
-        ((name a)
-         (type union (union "function(...)")
-          (union
+        (arg (name a)
+         (type
+          (union "function(...)"
            ((name string)
-            (url https://www.lua.org/manual/5.1/manual.html#5.4))))
-         (description )) ((name b) (type "function(...)") (description ))
-        ((name c) (type "function(...)") (description ))
-        ((name d) (type "function(...)") (description ))
-        ((name e) (type "function(...)") (description ))
-        ((name f) (type "function(...)") (description ))
-        ((name g) (type "function(...)") (description ))))))
+            (url https://www.lua.org/manual/5.1/manual.html#5.4)))))
+        (arg (name b) (type "function(...)"))
+        (arg (name c) (type "function(...)"))
+        (arg (name d) (type "function(...)"))
+        (arg (name e) (type "function(...)"))
+        (arg (name f) (type "function(...)"))
+        (arg (name g) (type "function(...)"))))))
     (ty_3
      ((description "Table syntax\n\n")
       (body
-       (args ((name a) (type {...}) (description ))
-        ((name b) (type {...}) (description ))
-        ((name c) (type {...}) (description ))))))
+       (args (arg (name a) (type {...})) (arg (name b) (type {...}))
+        (arg (name c) (type {...}))))))
     (ref
      ((description "Type references\n\n")
       (body
-       (args ((name a) (type no_clue) (description ))
-        ((name b) (type ((in-module types) (name ty:Foo))) (description ))))))
+       (args (arg (name a) (type no_clue))
+        (arg (name b) (type ((in-module types) (name ty:Foo))))))))
     (opt
      ((description "Optional arguments\n\n")
       (body
        (args
-        ((name a) (opt)
+        (arg (name a) (opt)
          (type
           ((name string)
-           (url https://www.lua.org/manual/5.1/manual.html#5.4)))
-         (description )))))))) (type (body (name Foo)))))
+           (url https://www.lua.org/manual/5.1/manual.html#5.4))))))))))
+  (type (body (name Foo)))))

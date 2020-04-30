@@ -103,7 +103,7 @@ let show_function = (~resolve, args, rets, throws) =>
       }
     )
     |> many,
-    List.map((Description(x)) => md(~resolve, x), throws)
+    List.map((x: description) => md(~resolve, x.description), throws)
     |> show_list("Throws"),
   ]
   |> many;
@@ -111,11 +111,13 @@ let show_function = (~resolve, args, rets, throws) =>
 let show_example = (~resolve, example) =>
   switch (example) {
   | RawExample(x) =>
-    <pre class_="highlight highlight-lua"> {Html_highlight.lua(x)} </pre>
-  | RichExample(Description(x)) => md(~resolve, x)
+    <pre class_="highlight highlight-lua">
+      {Html_highlight.lua(x.value)}
+    </pre>
+  | RichExample((x: description)) => md(~resolve, x.description)
   };
 
-let show_see = (~resolve, {see_reference, see_label, see_description}) =>
+let show_see = (~resolve, {see_reference, see_label, see_description, _}) =>
   [
     <strong>
       {show_reference(~resolve, see_reference, str(see_label))}

@@ -1,11 +1,10 @@
 open IlluaminateCore
 open Doc_comment
+module IntMap = Map.Make (Int)
 
-type doc_flag =
-  | Marker of string
-  | Named of string * string
-
+(** Parse a markdown string into a description. *)
 let parse_description =
+  let desc x = { description = x; description_pos = None } in
   let open Omd_representation in
   (* Gobble everything from | to }. *)
   let rec gobble_name link accum r p = function
@@ -14,10 +13,7 @@ let parse_description =
         let name = Omd_lexer.string_of_tokens (List.rev accum) in
         let tag =
           Link.to_tag
-            { link_reference = Reference link;
-              link_label = Description [ Text name ];
-              link_style = `Text
-            }
+            { link_reference = Reference link; link_label = desc [ Text name ]; link_style = `Text }
         in
         Some (tag :: r, Cbrace :: p, l)
     | Newline :: l -> gobble_name link (Space :: accum) r (Newline :: p) l
@@ -31,10 +27,7 @@ let parse_description =
         let link = Omd_lexer.string_of_tokens (List.rev accum) in
         let tag =
           Link.to_tag
-            { link_reference = Reference link;
-              link_label = Description [ Text link ];
-              link_style = `Code
-            }
+            { link_reference = Reference link; link_label = desc [ Text link ]; link_style = `Code }
         in
         Some (tag :: r, Cbrace :: p, l)
     | Bar :: l ->
@@ -74,7 +67,7 @@ let parse_description =
   in
 
   fun ?(default_lang = "") x ->
-    Description (x |> String.trim |> Omd.of_string ~extensions:[ ext ] ~default_lang |> fix_lang)
+    x |> String.trim |> Omd.of_string ~extensions:[ ext ] ~default_lang |> fix_lang
 
 module Tag = struct
   let malformed_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:malformed-tag"
@@ -93,148 +86,149 @@ module Tag = struct
   let wrong_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:wrong-tag"
 
   let all =
-    [ malformed_tag;
+    [ bad_index;
+      duplicate_definitions;
+      malformed_tag;
       malformed_type;
       unknown_flag;
       unknown_tag;
-      duplicate_definitions;
-      bad_index;
       wrong_tag
     ]
 end
 
-(** Extracts a string until a condition is met, but also taking into account balancing of brackets. *)
-let match_string terminate str start =
-  let n = String.length str in
-  let rec find_start pos =
-    if pos >= n then pos
-    else
-      match str.[pos] with
-      | ' ' | '\t' | '\n' -> find_start (pos + 1)
-      | _ -> pos
-  in
-  let rec worker pos closes =
-    if pos >= n then
-      match closes with
-      | [] -> Some pos
-      | _ -> None
-    else
-      match (str.[pos], closes) with
-      (* Close bracket *)
-      | x, c :: cs when x = c -> worker (pos + 1) cs
-      | '(', _ -> worker (pos + 1) (')' :: closes)
-      | '{', _ -> worker (pos + 1) ('}' :: closes)
-      | '[', _ -> worker (pos + 1) (']' :: closes)
-      (* End of string *)
-      | x, [] when terminate x -> Some pos
-      (* Boring character *)
-      | _ -> worker (pos + 1) closes
-  in
-  let start = find_start start in
-  match worker start [] with
-  | None -> None
-  | Some pos -> Some (String.sub str start (pos - start), pos)
+module Lex = struct
+  include Doc_lexer
 
-(** Extracts a string until observing whitespace, taking into account balancing of brackets. *)
-let match_word =
-  match_string (function
-    | ' ' | '\t' | '\n' -> true
-    | _ -> false)
+  type 'a ranged =
+    { contents : 'a;
+      offset : int;
+      mapping : Span.t IntMap.t
+    }
 
-let tag_start =
-  (* ^[ \t]*@([a-zA-Z0-9_]+) *)
-  let open Re in
-  seq [ bol; rep (set " \t"); char '@'; group (rep1 (alt [ alnum; char '_' ])) ] |> compile
+  let lex_of_ranged { contents; offset; mapping } =
+    let contents = Lexing.from_string contents in
+    { contents; offset; mapping }
 
-module IntMap = Map.Make (CCInt)
+  (** Construct a lexer from a list of spanned strings. *)
+  let lex_of_lines xs =
+    let len = List.fold_left (fun a l -> a + String.length l.Span.value) 0 xs in
+    (* TODO: Ideally we could get away without a string buffer here. Instead we can build an array
+       of strings, and swap out the buffer between them. *)
+    let b = Buffer.create len in
+    let _, mapping =
+      List.fold_left
+        (fun (i, m) { Span.value; span } ->
+          if i > 0 then Buffer.add_char b '\n';
+          Buffer.add_string b value;
+          (i + String.length value + 1, IntMap.add i span m))
+        (0, IntMap.empty) xs
+    in
+    { contents = Buffer.contents b |> Lexing.from_string; mapping; offset = 0 }
 
-type 'a grouped =
-  { all : 'a list IntMap.t;
-    last : int option
-  }
+  let mk_span { offset; mapping; _ } start finish =
+    let start = start + offset and finish = finish + offset in
+    let start_pos, start_span = IntMap.find_last (fun x -> x <= start) mapping
+    and finish_pos, finish_span = IntMap.find_last (fun x -> x <= finish) mapping in
+    let open Lens in
+    start_span
+    |> Span.start_offset ^= ((start_span ^. Span.start_offset) + start - start_pos)
+    |> Span.finish_offset ^= ((finish_span ^. Span.start_offset) + finish - finish_pos)
 
-let empty_group = { all = IntMap.empty; last = None }
+  let mk_span' lbuf start finish =
+    let finish = if finish <= start then start else finish - 1 in
+    mk_span lbuf start finish
 
-let add_group idx x group =
-  let idx =
-    match (idx, group.last) with
-    | Some idx, _ -> idx
-    | None, Some idx -> idx
-    | None, None -> 1
-  in
-  { all =
-      IntMap.add idx
-        ( match IntMap.find_opt idx group.all with
-        | None -> [ x ]
-        | Some xs -> x :: xs )
-        group.all;
-    last = Some idx
-  }
+  let to_span ({ contents; _ } as lbuf : string ranged) = mk_span' lbuf 0 (String.length contents)
 
-let get_group (group : 'a grouped) : 'a list list =
-  group.all |> IntMap.bindings |> List.map (fun (_, v) -> List.rev v)
+  let to_spanned ({ contents; _ } as lbuf : string ranged) : string Span.spanned =
+    { value = contents; span = to_span lbuf }
 
-(** Parse a doc comment, extracting the description and any tags. *)
-let parse comment =
-  (* Find the next tag after a position *)
-  match Re.all tag_start comment with
-  | [] -> (comment, [])
-  | group :: groups ->
-      let description = CCString.take (Re.Group.start group 0) comment in
-      let get_flags start group_end =
-        if start >= group_end || comment.[start] <> '[' then ([], start)
-        else
-          let rec go flags pos =
-            if pos >= group_end then (flags, pos)
-            else if comment.[pos] = ']' then (flags, pos + 1)
-            else
-              match match_string (fun x -> x == ',' || x == ']') comment pos with
-              | None -> (flags, pos)
-              | Some (flag, pos) -> go (Marker (String.trim flag) :: flags) pos
-          in
-          go [] (start + 1)
-      in
-      let rec get_tags group groups xs =
-        let tag_name = Re.Group.get group 1 and tag_end = Re.Group.stop group 0 in
-        let group_end =
-          match groups with
-          | group :: _ -> Re.Group.start group 0
-          | [] -> String.length comment
-        in
-        let flags, tag_end = get_flags tag_end group_end in
-        let xs =
-          (tag_name, flags, String.sub comment tag_end (group_end - tag_end) |> String.trim) :: xs
-        in
-        match groups with
-        | [] -> List.rev xs
-        | g :: gs -> get_tags g gs xs
-      in
-      (description, get_tags group groups [])
+  let with_span (lbuf : Lexing.lexbuf ranged) parse : 'a Span.spanned =
+    let start = lbuf.contents.lex_curr_p.pos_cnum in
+    let value = parse lbuf.contents in
+    let finish = lbuf.contents.lex_curr_p.pos_cnum in
+    { value; span = mk_span' lbuf start finish }
 
-type comment_builder =
-  { mutable b_unknown : string list;
-    mutable b_errors : (Error.Tag.t * string) list;
-    (* General. *)
-    mutable b_see : see list;
-    mutable b_usages : example list;
-    mutable b_includes : reference list;
-    mutable b_local : bool;
-    mutable b_export : bool;
-    (* Functions. *)
-    mutable b_args : arg grouped;
-    mutable b_rets : return grouped;
-    mutable b_throws : description list;
-    (* Other *)
-    mutable b_module : module_info option;
-    mutable b_type : type_info option
-  }
+  let with_range (lbuf : Lexing.lexbuf ranged) parse : 'a ranged =
+    let start = lbuf.contents.lex_curr_p.pos_cnum in
+    let contents = parse lbuf.contents in
+    { contents; offset = lbuf.offset + start; mapping = lbuf.mapping }
 
-(** Extract a {!documented} term from a comment and series of tags. *)
-let build span (description, (tags : (string * doc_flag list * string) list)) =
-  (* Temporary state for error reporting *)
-  let b =
-    { b_unknown = [];
-      b_errors = [];
+  let run (lbuf : Lexing.lexbuf ranged) parse = parse lbuf.contents
+
+  let word { offset; mapping; contents } =
+    let lbuf = Lexing.from_string contents in
+    let word = Doc_lexer.word (Buffer.create 8) lbuf in
+    match word with
+    | "" -> None
+    | _ ->
+        Doc_lexer.white lbuf;
+        let len = lbuf.lex_curr_p.pos_cnum in
+        Some
+          ( { offset; mapping; contents = word },
+            { offset = offset + len; mapping; contents = CCString.drop len contents } )
+
+  let description ?default_lang (ranged : string ranged) =
+    { description = parse_description ?default_lang ranged.contents;
+      description_pos = Some (to_span ranged)
+    }
+
+  let description' ?default_lang (ranged : string ranged) =
+    match ranged.contents with
+    | "" -> None
+    | _ -> Some (description ?default_lang ranged)
+end
+
+type doc_flag =
+  | Marker of string Lex.ranged
+  | Named of string Span.spanned * string Lex.ranged
+
+module Build = struct
+  type 'a grouped =
+    { all : 'a list IntMap.t;
+      last : int option
+    }
+
+  let empty_group = { all = IntMap.empty; last = None }
+
+  let add_group idx x group =
+    let idx =
+      match (idx, group.last) with
+      | Some idx, _ -> idx
+      | None, Some idx -> idx
+      | None, None -> 1
+    in
+    { all =
+        IntMap.add idx
+          ( match IntMap.find_opt idx group.all with
+          | None -> [ x ]
+          | Some xs -> x :: xs )
+          group.all;
+      last = Some idx
+    }
+
+  let get_group (group : 'a grouped) : 'a list list =
+    group.all |> IntMap.bindings |> List.map (fun (_, v) -> List.rev v)
+
+  type t =
+    { mutable b_errors : (Error.Tag.t * Span.t * string) list;
+      (* General. *)
+      mutable b_see : see list;
+      mutable b_usages : example list;
+      mutable b_includes : reference Span.spanned list;
+      mutable b_local : bool;
+      mutable b_export : bool;
+      (* Functions. *)
+      mutable b_args : arg grouped;
+      mutable b_rets : return grouped;
+      mutable b_throws : description list;
+      (* Other *)
+      mutable b_module : module_info option;
+      mutable b_type : type_info option
+    }
+
+  let create () =
+    { b_errors = [];
       b_see = [];
       b_usages = [];
       b_includes = [];
@@ -246,282 +240,376 @@ let build span (description, (tags : (string * doc_flag list * string) list)) =
       b_module = None;
       b_type = None
     }
-  in
-  let report tag x = b.b_errors <- (tag, x) :: b.b_errors in
-  let unknown name (Named (flag, _) | Marker flag) =
-    Printf.sprintf "%s has unknown flag '%s'" name flag |> report Tag.unknown_flag
-  in
-  let rec tag_worker = function
+
+  let report b tag span f = Format.kasprintf (fun x -> b.b_errors <- (tag, span, x) :: b.b_errors) f
+
+  let unknown b name x =
+    let span, value =
+      match x with
+      | Named ({ span; value }, _) -> (span, value)
+      | Marker x -> (Lex.to_span x, x.contents)
+    in
+    report b Tag.unknown_flag span "%s has unknown flag '%s'" name value
+
+  let parse_arg b arg =
+    (None, arg)
+    |> List.fold_left @@ fun (idx, arg) flag ->
+       let name = arg.arg_name in
+       match flag with
+       | Marker ({ contents = "opt"; _ } as m) ->
+           if arg.arg_opt then
+             report b Tag.malformed_tag (Lex.to_span m) "Parameter '%s' is marked as optional twice"
+               name;
+           (idx, { arg with arg_opt = true })
+       | Named ({ value = "type"; span }, ty) -> (
+           if Option.is_some arg.arg_type then
+             report b Tag.duplicate_definitions span "Parameter '%s' has multiple types." name;
+           match Type_parser.parse ty.contents with
+           | Ok ty -> (idx, { arg with arg_type = Some ty })
+           | Error msg ->
+               (* TODO: Adjust to correct position. *)
+               report b Tag.malformed_type (Lex.to_span ty)
+                 "Parameter '%s' has malformed type '%s' ('%s')" name ty.contents msg;
+               (idx, arg) )
+       | Marker cont -> (
+         match CCInt.of_string cont.contents with
+         | Some new_idx ->
+             Option.iter
+               (fun idx ->
+                 report b Tag.duplicate_definitions (Lex.to_span cont)
+                   "Parameter '%s' has argument set '%d' and '%d'" name idx new_idx)
+               idx;
+             (* Check the group is consistent. *)
+             ( match b.b_args.last with
+             | None when new_idx <> 1 ->
+                 report b Tag.bad_index (Lex.to_span cont)
+                   "Parameter '%s' is part of parameter set '%d', but is the first parameter!" name
+                   new_idx
+             | Some idx when new_idx <> idx + 1 && new_idx <> idx ->
+                 report b Tag.bad_index (Lex.to_span cont)
+                   "Parameter '%s' is part of parameter set '%d', but the previous arg is part of \
+                    '%d'"
+                   name new_idx idx
+             | _ -> () );
+             (Some new_idx, arg)
+         | None ->
+             unknown b (Printf.sprintf "Parameter '%s'" name) flag;
+             (idx, arg) )
+       | Named _ ->
+           unknown b (Printf.sprintf "Parameter '%s'" name) flag;
+           (idx, arg)
+
+  let parse_return b body =
+    (None, body)
+    |> List.fold_left @@ fun (idx, ret) flag ->
+       match flag with
+       | Named ({ value = "type"; span }, ty) -> (
+           if Option.is_some ret.ret_type then
+             report b Tag.duplicate_definitions span "Return value has multiple types";
+           match Type_parser.parse_vararg ty.contents with
+           | Ok (many, ty) -> (idx, { ret with ret_type = Some ty; ret_many = many })
+           | Error msg ->
+               report b Tag.malformed_type (Lex.to_span ty)
+                 "Return value has malformed type '%s' ('%s')" ty.contents msg;
+               (idx, ret) )
+       | Marker cont -> (
+         match CCInt.of_string cont.contents with
+         | Some new_idx ->
+             Option.iter
+               (fun idx ->
+                 report b Tag.duplicate_definitions (Lex.to_span cont)
+                   "Return value is part of set '%d' and '%d'" idx new_idx)
+               idx;
+             ( match b.b_rets.last with
+             | None when new_idx <> 1 ->
+                 report b Tag.bad_index (Lex.to_span cont)
+                   "The first return value should be part of set [1] (is actually '%d')" new_idx
+             | Some idx when new_idx <> idx + 1 && new_idx <> idx ->
+                 report b Tag.bad_index (Lex.to_span cont)
+                   "Return value is part of return set '%d', but the previous arg is part of '%d'"
+                   new_idx idx
+             | _ -> () );
+             (Some new_idx, ret)
+         | None -> unknown b "Return value" flag; (idx, ret) )
+       | Named _ -> unknown b "Return value" flag; (idx, ret)
+
+  (** Extract a {!documented} term from a comment and series of tags. *)
+  let rec add_flag b (tag : string Span.spanned) (flags : doc_flag list) (body : string Lex.ranged)
+      : unit =
+    match tag.value with
     (*******************************
      * General tags
      *******************************)
-    | "usage", flags, body ->
-        List.iter (unknown "@usage") flags;
+    | "usage" ->
+        List.iter (unknown b "@usage") flags;
         let usage =
-          match String.index_opt body '\n' with
-          | None -> RawExample body
+          match String.index_opt body.contents '\n' with
+          | None -> RawExample (Lex.to_spanned body)
           | Some _ ->
-              let desc = parse_description ~default_lang:"__auto" body in
+              let desc = Lex.description ~default_lang:"__auto" body in
               RichExample desc
         in
         b.b_usages <- usage :: b.b_usages
-    | ("example" as tag), flags, body ->
-        Printf.sprintf "Use @usage instead of '@%s" tag |> report Tag.wrong_tag;
-        tag_worker ("usage", flags, body)
-    | "see", flags, body -> (
-        List.iter (unknown "@see") flags;
-        match match_word body 0 with
-        | None ->
-            Printf.sprintf "Expected type name (from body %S)" (String.escaped body)
-            |> report Tag.malformed_tag
-        | Some (refr, cont) ->
-            let refr = String.trim refr in
-            let see_description =
-              match CCString.drop cont body |> String.trim with
-              | "" -> None
-              | x -> Some (parse_description x)
-            in
+    | "example" ->
+        report b Tag.wrong_tag tag.span "Use @usage instead of '@%s" tag.value;
+        add_flag b { tag with value = "usage" } flags body
+    | "see" -> (
+        List.iter (unknown b "@see") flags;
+        match Lex.word body with
+        | None -> report b Tag.malformed_tag (Lex.to_span body) "Expected type name."
+        | Some (refr, body) ->
+            let see_description = Lex.description' body in
             b.b_see <-
-              { see_reference = Reference refr; see_label = refr; see_description } :: b.b_see )
-    | "include", flags, body ->
-        List.iter (unknown "@include") flags;
-        b.b_includes <- Reference body :: b.b_includes
-    | "local", flags, "" ->
-        List.iter (unknown "@local") flags;
+              { see_reference = Reference refr.contents;
+                see_label = refr.contents;
+                see_span = Lex.to_span refr;
+                see_description
+              }
+              :: b.b_see )
+    | "include" ->
+        List.iter (unknown b "@include") flags;
+        b.b_includes <- { value = Reference body.contents; span = Lex.to_span body } :: b.b_includes
+    | "local" ->
+        List.iter (unknown b "@local") flags;
         (* TODO: Verify not defined as local twice *)
         (* TODO: Handle non-empty body. *)
         b.b_local <- true
-    | "export", flags, "" ->
+    | "export" ->
         (* TODO: As above. *)
-        List.iter (unknown "@export") flags;
+        List.iter (unknown b "@export") flags;
         b.b_export <- true
     (*******************************
      * Function tags
      *******************************)
     (* Convert @tparam x into @param[type=x] *)
-    | "tparam", flags, body -> (
-      match match_word body 0 with
-      | None ->
-          Printf.sprintf "Expected type for parameter (from body '%s')" (String.escaped body)
-          |> report Tag.malformed_tag
-      | Some (ty, cont) -> tag_worker ("param", Named ("type", ty) :: flags, CCString.drop cont body)
-      )
-    (* Extract the parameter name and then process flags *)
-    | "param", flags, body -> (
-      match match_word body 0 with
-      | None ->
-          Printf.sprintf "Expected method name for @tparam with '%s'" (String.escaped body)
-          |> report Tag.malformed_tag
-      | Some (name, cont) ->
-          let idx, arg =
-            List.fold_left
-              (fun (idx, arg) flag ->
-                match flag with
-                | Marker "opt" ->
-                    if arg.arg_opt then
-                      Printf.sprintf "Parameter '%s' is marked as optional twice" name
-                      |> report Tag.malformed_tag;
-                    (idx, { arg with arg_opt = true })
-                | Named ("type", ty) -> (
-                    Option.iter
-                      (fun _ ->
-                        Printf.sprintf "Parameter '%s' has multiple types." name
-                        |> report Tag.duplicate_definitions)
-                      arg.arg_type;
-                    match Type_parser.parse ty with
-                    | Ok ty -> (idx, { arg with arg_type = Some ty })
-                    | Error msg ->
-                        Printf.sprintf "Parameter '%s' has malformed type '%s' ('%s')" name ty msg
-                        |> report Tag.malformed_type;
-                        (idx, arg) )
-                | Marker cont -> (
-                  match CCInt.of_string cont with
-                  | Some new_idx ->
-                      Option.iter
-                        (fun idx ->
-                          Printf.sprintf "Parameter '%s' has argument set '%d' and '%d'" name idx
-                            new_idx
-                          |> report Tag.duplicate_definitions)
-                        idx;
-                      ( match b.b_args.last with
-                      | None when new_idx <> 1 ->
-                          Printf.sprintf
-                            "Parameter '%s' is part of parameter set '%d', but is the first \
-                             parameter!"
-                            name new_idx
-                          |> report Tag.bad_index
-                      | Some idx when new_idx <> idx + 1 && new_idx <> idx ->
-                          Printf.sprintf
-                            "Parameter '%s' is part of parameter set '%d', but the previous arg is \
-                             part of '%d'"
-                            name new_idx idx
-                          |> report Tag.bad_index
-                      | _ -> () );
-                      (Some new_idx, arg)
-                  | None ->
-                      unknown (Printf.sprintf "Parameter '%s'" name) flag;
-                      (idx, arg) )
-                | Named _ ->
-                    unknown (Printf.sprintf "Parameter '%s'" name) flag;
-                    (idx, arg))
-              ( None,
-                { arg_name = name;
-                  arg_opt = false;
-                  arg_type = None;
-                  arg_description = Some (CCString.drop cont body |> parse_description)
-                } )
-              flags
-          in
-          b.b_args <- add_group idx arg b.b_args )
-    (* Convert @treturn x into @return[type=x] *)
-    | "treturn", flags, body -> (
-      match match_word body 0 with
-      | None ->
-          Printf.sprintf "Expected type for return (from body '%s')" (String.escaped body)
-          |> report Tag.malformed_tag
+    | "tparam" -> (
+      match Lex.word body with
+      | None -> report b Tag.malformed_tag (Lex.to_span body) "Expected type."
       | Some (ty, cont) ->
-          tag_worker ("return", Named ("type", ty) :: flags, CCString.drop cont body) )
+          add_flag b { tag with value = "param" }
+            (Named ({ span = Lex.to_span body; value = "type" }, ty) :: flags)
+            cont )
+    (* Extract the parameter name and then process flags *)
+    | "param" ->
+        let name, desc =
+          match Lex.word body with
+          | None ->
+              report b Tag.malformed_tag (Lex.to_span body) "Expected argument name.";
+              ("?", None)
+          | Some (name, body) -> (name.contents, Lex.description' body)
+        in
+        let idx, arg =
+          parse_arg b
+            { arg_name = name; arg_opt = false; arg_type = None; arg_description = desc }
+            flags
+        in
+        b.b_args <- add_group idx arg b.b_args
+    (* Convert @treturn x into @return[type=x] *)
+    | "treturn" -> (
+      match Lex.word body with
+      | None -> report b Tag.malformed_tag (Lex.to_span body) "Expected return type."
+      | Some (ty, cont) ->
+          add_flag b { tag with value = "return" }
+            (Named ({ span = Lex.to_span body; value = "type" }, ty) :: flags)
+            cont )
     (* And add a return value, processing flags *)
-    | "return", flags, body ->
+    | "return" ->
         let idx, ret =
-          List.fold_left
-            (fun (idx, ret) flag ->
-              match flag with
-              | Named ("type", ty) -> (
-                  Option.iter
-                    (fun _ -> "Return value has multiple types" |> report Tag.duplicate_definitions)
-                    ret.ret_type;
-                  match Type_parser.parse_vararg ty with
-                  | Ok (many, ty) -> (idx, { ret with ret_type = Some ty; ret_many = many })
-                  | Error msg ->
-                      Printf.sprintf "Return value has malformed type '%s' ('%s')" ty msg
-                      |> report Tag.malformed_type;
-                      (idx, ret) )
-              | Marker cont -> (
-                match CCInt.of_string cont with
-                | Some new_idx ->
-                    Option.iter
-                      (fun idx ->
-                        Printf.sprintf "Return value is part of set '%d' and '%d'" idx new_idx
-                        |> report Tag.duplicate_definitions)
-                      idx;
-                    ( match b.b_rets.last with
-                    | None when new_idx <> 1 ->
-                        Printf.sprintf
-                          "The first return value should be part of set [1] (is actually '%d')"
-                          new_idx
-                        |> report Tag.bad_index
-                    | Some idx when new_idx <> idx + 1 && new_idx <> idx ->
-                        Printf.sprintf
-                          "Return value is part of return set '%d', but the previous arg is part \
-                           of '%d'"
-                          new_idx idx
-                        |> report Tag.bad_index
-                    | _ -> () );
-                    (Some new_idx, ret)
-                | None -> unknown "Return value" flag; (idx, ret) )
-              | Named _ -> unknown "Return value" flag; (idx, ret))
-            ( None,
-              { ret_type = None; ret_many = false; ret_description = Some (parse_description body) }
-            )
+          parse_return b
+            { ret_type = None; ret_many = false; ret_description = Lex.description' body }
             flags
         in
         b.b_rets <- add_group idx ret b.b_rets
-    | "throws", flags, body ->
-        List.iter (unknown "Throws annotation") flags;
-        b.b_throws <- parse_description body :: b.b_throws
-    | (("throw" | "raise" | "raises") as tag), flags, body ->
-        Printf.sprintf "Use @throws instead of '@%s" tag |> report Tag.wrong_tag;
-        tag_worker ("throws", flags, body)
+    | "throws" ->
+        List.iter (unknown b "Throws annotation") flags;
+        b.b_throws <- Lex.description body :: b.b_throws
+    | "throw" | "raise" | "raises" ->
+        report b Tag.wrong_tag tag.span "Use @throws instead of '@%s" tag.value;
+        add_flag b { tag with value = "throws" } flags body
     (*******************************
      * Other types
      *******************************)
-    | "module", flags, name -> (
+    | "module" -> (
         let mod_kind =
           List.fold_left
             (fun kind flag ->
               match flag with
-              | Marker "library" -> Some Library
-              | Marker "module" -> Some Module
-              | f -> unknown "@module" f; kind)
+              | Marker { contents = "library"; _ } -> Some Library
+              | Marker { contents = "module"; _ } -> Some Module
+              | f -> unknown b "@module" f; kind)
             None flags
         in
         match b.b_module with
         | Some { mod_name = inner_name; _ } ->
-            Printf.sprintf "Duplicate @module definitions (named '%s' and '%s')" inner_name name
-            |> report Tag.duplicate_definitions
-        | None -> b.b_module <- Some { mod_name = name; mod_kind } )
-    | "type", flags, name -> (
-        List.iter (unknown "@type") flags;
+            report b Tag.duplicate_definitions tag.span
+              "Duplicate @module definitions (named '%s' and '%s')" inner_name body.contents
+        | None -> b.b_module <- Some { mod_name = body.contents; mod_kind } )
+    | "type" -> (
+        List.iter (unknown b "@type") flags;
         match b.b_type with
         | Some { type_name = inner_name; _ } ->
-            Printf.sprintf "Duplicate @type definitions (named '%s' and '%s')" inner_name name
-            |> report Tag.duplicate_definitions
-        | None -> b.b_type <- Some { type_name = name } )
-    | tag, _, _ -> b.b_unknown <- tag :: b.b_unknown
+            report b Tag.duplicate_definitions tag.span
+              "Duplicate @type definitions (named '%s' and '%s')" inner_name body.contents
+        | None -> b.b_type <- Some { type_name = body.contents } )
+    | _ -> report b Tag.unknown_tag tag.span "Unknown tag @%s" tag.value
+end
+
+(** Parse a doc comment, extracting the description and any tags. *)
+let parse span lbuf =
+  let rec gobble_flags xs =
+    Lex.(run lbuf white);
+    let key = Lex.(with_span lbuf key) in
+    let value = Lex.(with_range lbuf @@ value (Buffer.create 8)) in
+    let xs =
+      match (key.value, value.contents) with
+      | Some k, _ -> Named ({ key with value = k }, value) :: xs
+      | None, "" -> xs (* TODO: Warn. *)
+      | None, _ -> Marker value :: xs
+    in
+
+    Lex.(run lbuf white);
+    match Lex.(run lbuf tag_stop) with
+    | Separator -> gobble_flags xs
+    | Stop -> xs
+    | Unknown -> (* TODO: Warn. *) xs
   in
-  List.iter tag_worker tags;
-  ( match List.sort_uniq String.compare b.b_unknown with
-  | [] -> ()
-  | [ x ] -> "Using unknown tag @" ^ x |> report Tag.unknown_tag
-  | xs -> "Using unknown tags @" ^ String.concat ", @" xs |> report Tag.unknown_tag );
+
+  let gobble_description () =
+    let start = lbuf.contents.lex_curr_p.pos_cnum in
+    let b = Buffer.create 0 in
+    let rec go line =
+      let next = Lex.(with_span lbuf maybe_tag) in
+      match next.value with
+      | Tag t -> (Buffer.contents b, Some { next with value = t })
+      | Eof -> (Buffer.contents b, None)
+      | NotTag ->
+          if line then Buffer.add_char b '\n';
+          let line = Lex.(run lbuf until_line) in
+          Buffer.add_string b line;
+          go Lex.(run lbuf line)
+    in
+    let description, tag = go false in
+    ({ Lex.contents = description; offset = start; mapping = lbuf.mapping }, tag)
+  in
+
+  let b = Build.create () in
+
+  let rec gobble_tags tag =
+    let flags = if Lex.(run lbuf tag_start) then gobble_flags [] |> List.rev else [] in
+    Lex.(run lbuf white);
+    let description, next = gobble_description () in
+    Build.add_flag b tag flags description;
+    Option.iter gobble_tags next
+  in
+
+  let description, tag = gobble_description () in
+  Option.iter gobble_tags tag;
   { source = span;
     errors = b.b_errors;
-    description =
-      ( match description with
-      | "" -> None
-      | _ -> Some (parse_description description) );
+    description = Lex.description' description;
     see = List.rev b.b_see;
     examples = List.rev b.b_usages;
     local = b.b_local;
     includes = List.rev b.b_includes;
     export = b.b_export;
-    arguments = get_group b.b_args;
-    returns = get_group b.b_rets;
+    arguments = Build.get_group b.b_args;
+    returns = Build.get_group b.b_rets;
     throws = List.rev b.b_throws;
     module_info = b.b_module;
     type_info = b.b_type
   }
 
+(** Utilities for handling indented doc comments. *)
+module Indent = struct
+  let get line =
+    let is_whitespace = function
+      | ' ' | '\t' -> true
+      | _ -> false
+    in
+    let len = String.length line in
+    let i = ref 0 in
+    while !i < len && is_whitespace (String.unsafe_get line !i) do
+      incr i
+    done;
+    if !i >= len then None else Some !i
+
+  (** Get a common indent from all input lines. *)
+  let get_common =
+    List.fold_left
+      (fun acc line ->
+        match (get line.Span.value, acc) with
+        | None, None -> None
+        | (Some _ as x), None | None, (Some _ as x) -> x
+        | Some x, Some y -> Some (min x y))
+      None
+
+  (** Drop i characters from a string and adjust its span. *)
+  let drop i { Span.value; span } =
+    { Span.value = (if i >= String.length value then "" else CCString.drop i value);
+      span = (span |> Lens.(Span.start_offset %= fun p -> p + i))
+    }
+
+  (** Drop a common indent from all input lines. *)
+  let drop_common xs =
+    match get_common xs with
+    | None | Some 0 -> xs
+    | Some i -> List.map (drop i) xs
+
+  (** For input list [x :: xs], drop any amount of indent from the first line, and a common indent
+      from all remaining ones. *)
+  let drop_rest = function
+    | [] -> []
+    | x :: xs ->
+        let x =
+          match get x.Span.value with
+          | None | Some 0 -> x
+          | Some i -> drop i x
+        in
+        x :: drop_common xs
+end
+
+(** Extract multiple single-line comments and merge them into one. Returns the last position. *)
+let rec extract_block line column lines = function
+  (* Skip whitespace *)
+  | { Span.value = Node.Whitespace _; _ } :: xs -> extract_block line column lines xs
+  (* Comments aligned with this one on successive lines are included *)
+  | { Span.value = Node.LineComment value; span } :: xs
+    when Span.start_line span = line + 1 && Span.start_col.get span = column ->
+      let span = span |> Lens.(Span.start_offset %= fun p -> p + 2) in
+      extract_block (line + 1) column ({ Span.span; value } :: lines) xs
+  | xs -> (List.rev lines, (List.hd lines).span, xs)
+
 let extract node =
-  (* Add a substring to the buffer, dropping the first character if it is whitespace. This is a
-     little naive - it'd be better to trim if all lines have the same indent. *)
-  let add_trimmed buffer str start =
-    if String.length str > start && str.[start] == ' ' then
-      Buffer.add_substring buffer str (start + 1) (String.length str - start - 1)
-    else Buffer.add_substring buffer str start (String.length str - start)
-  in
-  (* Extract multiple single-line comments and merge them into one. Returns the last position. *)
-  let rec extract_block buffer last line column = function
-    | { Span.value = Node.Whitespace _; _ } :: xs ->
-        (* Skip whitespace *)
-        extract_block buffer last line column xs
-    | { Span.value = Node.LineComment c; span } :: xs
-      when Span.start_line span = line + 1 && Span.start_col.get span = column ->
-        (* Comments aligned with this one on successive lines are included *)
-        Buffer.add_char buffer '\n';
-        add_trimmed buffer c 0;
-        extract_block buffer span (Span.start_line span) column xs
-    | xs -> (last, xs)
-  in
   (* Extract all comments before this token *)
   let rec extract_comments cs = function
     | [] -> cs
-    | { Span.value = Node.BlockComment (_, c); span } :: xs when String.length c > 0 && c.[0] == '-'
+    | { Span.value = Node.BlockComment (n, c); span } :: xs when String.length c > 0 && c.[0] == '-'
       ->
-        let documented = CCString.drop 1 c |> parse |> build span in
+        let lbuf =
+          Lex.lex_of_ranged
+            { contents = CCString.drop 1 c;
+              offset = 0;
+              mapping = IntMap.singleton 0 (Lens.(Span.start_offset %= fun p -> p + n + 5) span)
+            }
+        in
+        let documented = parse span lbuf in
         extract_comments (documented :: cs) xs
     | { Span.value = Node.LineComment c; span } :: xs
       when String.length c > 0
            && c.[0] == '-'
            && (* Skip comments which start with a line entirely composed of '-'. *)
            (String.length c = 1 || CCString.exists (fun x -> x <> '-') c) ->
-        let buffer = Buffer.create 16 in
-        Buffer.add_substring buffer c 1 (String.length c - 1);
-        let last, xs =
-          extract_block buffer span (Span.start_line span) (Span.start_col.get span) xs
+        let lines, last, xs =
+          extract_block (Span.start_line span) (Span.start_col.get span)
+            [ { span = (span |> Lens.(Span.start_offset %= fun p -> p + 3));
+                value = CCString.drop 1 c
+              }
+            ]
+            xs
         in
-        let documented = Buffer.contents buffer |> parse |> build (Span.of_span2 span last) in
+        let documented =
+          Indent.drop_rest lines |> Lex.lex_of_lines |> parse (Span.of_span2 span last)
+        in
         extract_comments (documented :: cs) xs
     | _ :: xs -> extract_comments cs xs
   in

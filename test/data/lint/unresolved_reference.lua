@@ -1,5 +1,5 @@
 --- config: (lint (only doc:unresolved-reference))
---- Foo
+-- Foo
 -- @module
 
 --- @type Foo

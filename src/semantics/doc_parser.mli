@@ -1,20 +1,9 @@
 open IlluaminateCore
 open Doc_comment
 
-(** A flag for a specific tag. *)
-type doc_flag =
-  | Marker of string
-  | Named of string * string
-
 (** Parse a markdown string to a {!description}. This includes all extensions to the Markdown
     grammar. *)
-val parse_description : ?default_lang:string -> string -> description
-
-(** Parse a documentation comment. *)
-val parse : string -> string * (string * doc_flag list * string) list
-
-(** Build a parsed comment into a {!doc_comment} *)
-val build : Span.t -> string * (string * doc_flag list * string) list -> comment
+val parse_description : ?default_lang:string -> string -> Omd.t
 
 (** Extract all doc comments from an annotated node.
 

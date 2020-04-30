@@ -2,4 +2,8 @@
 ((source module.lua[3:1-3:24]) (module foo))
 ((source module.lua[5:1-5:23]) (module foo))
 ((source module.lua[7:1-7:24]) (module foo))
-doc:unknown-flag: @module has unknown flag 'unknown'
+module.lua:[7:13-7:19]: @module has unknown flag 'unknown' [doc:unknown-flag]
+   │
+ 7 │ --- @module[unknown] foo
+   │             ^^^^^^^
+1 errors and 0 warnings
