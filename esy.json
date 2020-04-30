@@ -21,7 +21,7 @@
     "@opam/lsp": "*"
   },
   "devDependencies": {
-    "@opam/js_of_ocaml-compiler": "*",
+    "@opam/js_of_ocaml-compiler": ">=3.6.0",
     "@opam/js_of_ocaml-ppx": "*",
     "@opam/ppx_deriving": "*",
     "@opam/ppxlib": "*",

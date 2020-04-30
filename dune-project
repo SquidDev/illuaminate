@@ -21,7 +21,7 @@
 
     ;; Build-time
     (dune (>= 2.3)) ; While a build-tool, dune shouldn't be build-time only
-    (js_of_ocaml-compiler :build)
+    (js_of_ocaml-compiler (and :build (>= 3.6.0)))
     (js_of_ocaml-ppx :build)
     (ppx_deriving :build)
     (ppxlib :build)

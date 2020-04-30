@@ -12,7 +12,7 @@ bug-reports: "https://github.com/squiddev/illuaminate/issues"
 depends: [
   "ocaml" {>= "4.08" & < "4.10"}
   "dune" {>= "2.3"}
-  "js_of_ocaml-compiler" {build}
+  "js_of_ocaml-compiler" {build & >= "3.6.0"}
   "js_of_ocaml-ppx" {build}
   "ppx_deriving" {build}
   "ppxlib" {build}
