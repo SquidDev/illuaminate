@@ -10,7 +10,7 @@ license: "BSD-3-Clause"
 homepage: "https://github.com/squiddev/illuaminate"
 bug-reports: "https://github.com/squiddev/illuaminate/issues"
 depends: [
-  "ocaml" {>= "4.08"}
+  "ocaml" {>= "4.08" & < "4.10"}
   "dune" {>= "2.3"}
   "js_of_ocaml-compiler" {build}
   "js_of_ocaml-ppx" {build}

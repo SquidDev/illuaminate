@@ -30,10 +30,10 @@ let dep_of_value ~os : value -> dep_kind * string * string = function
       let rec build (kind, version) = function
         | [] -> (kind, version)
         | Ident (_, ("with-test" | "with-doc" | "build" | "dev")) :: xs -> build (Dev, version) xs
-        | Prefix_relop (_, op, String (_, v)) :: xs -> (
-          match version with
-          | Some _ -> Printf.sprintf "Multiple versions for '%s'" p |> failwith
-          | None -> build (kind, Some (OpamPrinter.relop op ^ " " ^ v)) xs )
+        | Prefix_relop (_, op, String (_, v)) :: xs ->
+            let this = OpamPrinter.relop op ^ v in
+            let version = Option.fold ~some:(Printf.sprintf "%s %s" this) ~none:this version in
+            build (kind, Some version) xs
         | Relop (_, `Neq, Ident (_, "os-family"), String (_, this_os)) :: xs ->
             if this_os <> os then build (kind, version) xs else (Skip, version)
         | c :: _ ->
