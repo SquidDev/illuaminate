@@ -4,7 +4,7 @@ module J = Yojson.Safe
 module Versions = struct
   let omnomnom = "1e9e6a2c3269d4b8add8b15837379c5d45e6fedc"
 
-  let lsp = "23bcd4fb65666be2b9ded59b2166b1daf09a9ab0"
+  let lsp = "0185da2b91624e65a855c6e77389bd7015ee6dd7"
 end
 
 let rec json_of_value : value -> J.t = function

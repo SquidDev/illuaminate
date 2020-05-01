@@ -54,6 +54,7 @@ let () =
         let open IlluaminateLsp in
         let server = server () in
         let add_store r = Result.map (fun x -> ((), x)) r in
+        let add_store' r = add_store r |> Fiber.return in
         let wrap rpc : client_channel =
           { notify = Lsp.Rpc.send_notification rpc;
             request = (fun r -> Ugly_hacks.send_request rpc r)
@@ -61,11 +62,12 @@ let () =
         in
         Log.info (fun f -> f "Starting server");
         Lsp.Rpc.start ()
-          { on_initialize = (fun rpc () p -> server.initialize (wrap rpc) p |> add_store);
-            on_request = (fun rpc () cap req -> server.request (wrap rpc) cap req |> add_store);
-            on_notification = (fun rpc () noti -> server.notify (wrap rpc) noti)
+          { on_initialize = (fun rpc () p -> server.initialize (wrap rpc) p |> add_store');
+            on_request = (fun rpc () cap req -> server.request (wrap rpc) cap req |> add_store');
+            on_notification = (fun rpc () noti -> server.notify (wrap rpc) noti |> Fiber.return)
           }
-          stdin stdout;
+          stdin stdout
+        |> Fiber.run;
         Log.info (fun f -> f "Stopping server"))
   in
 
