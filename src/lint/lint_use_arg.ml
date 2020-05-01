@@ -11,7 +11,8 @@ let name () (context : context) r = function
       let resolve = IlluaminateData.need context.data R.key context.program in
       let var = R.get_var var resolve in
       match var with
-      | { R.kind = ImplicitArg _; _ } -> r.r ~tag "Using implicit vararg variable \"arg\"."
+      | { R.kind = ImplicitArg { kind = `Arg; _ }; _ } ->
+          r.r ~tag "Using implicit vararg variable \"arg\"."
       | _ -> () )
   | _ -> ()
 

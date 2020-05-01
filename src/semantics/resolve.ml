@@ -12,10 +12,23 @@ type function_scope = scope
 
 type kind =
   | Global
-  | Arg of function_scope
-  | ImplicitArg of function_scope
-  | Local of scope
-  | Loop of scope
+  | Arg of
+      { scope : function_scope;
+        def : Syntax.var
+      }
+  | ImplicitArg of
+      { scope : function_scope;
+        kind : [ `Self | `Arg ];
+        def : Syntax.args
+      }
+  | Local of
+      { scope : scope;
+        def : Syntax.var
+      }
+  | Loop of
+      { scope : scope;
+        def : Syntax.var
+      }
 
 type definition =
   | Declare
@@ -28,14 +41,15 @@ type var =
     kind : kind;
     shadows : var option;
     mutable usages : var_usage list;
-    mutable definitions : (Syntax.var option * definition) list;
+    mutable definitions : (var_usage option * definition) list;
     mutable captured : bool;
     mutable upvalue_mutated : bool
   }
 
 and var_usage =
   { var : var;
-    node : Syntax.var
+    node : Syntax.var;
+    snapshot : var StringMap.t
   }
 
 type dots =
@@ -101,25 +115,29 @@ let mk_local' kind context name =
 let mk_local kind context (S.Var name as syntax) =
   let name = name ^. Node.contents in
   let context, var = mk_local' kind context name in
-  (context, (var, syntax))
+  (context, (var, { var; node = syntax; snapshot = context.variables }))
 
-let add_def context (var, node) def =
-  var.definitions <- (Some node, def) :: var.definitions;
-  SVarTbl.add context.store.var_defs node var;
+let add_def context (var, use) def =
+  var.definitions <- (Some use, def) :: var.definitions;
+  SVarTbl.add context.store.var_defs use.node var;
   match var.kind with
   | Global -> ()
-  | Local sc | Loop sc | Arg sc | ImplicitArg sc ->
-      if sc.fun_id <> context.active_scope.fun_id then var.upvalue_mutated <- true
+  | Local { scope; _ } | Loop { scope; _ } | Arg { scope; _ } | ImplicitArg { scope; _ } ->
+      if scope.fun_id <> context.active_scope.fun_id then var.upvalue_mutated <- true
 
-let mk_locals kind = S.SepList1.map_with' (mk_local kind)
+let mk_locals kind = S.SepList1.map_with' (fun s v -> mk_local (kind v) s v)
 
-let mk_arg context (arg : S.arg) =
+let mk_arg args context (arg : S.arg) =
   match arg with
   | S.NamedArg name ->
-      let context, var = mk_local (Arg context.active_scope) context name in
+      let context, var = mk_local (Arg { scope = context.active_scope; def = name }) context name in
       add_def context var Declare; context
   | S.DotArg dot ->
-      let context, arg = mk_local' (ImplicitArg context.active_scope) context "arg" in
+      let context, arg =
+        mk_local'
+          (ImplicitArg { scope = context.active_scope; def = args; kind = `Arg })
+          context "arg"
+      in
       arg.definitions <- (None, Declare) :: arg.definitions;
       let var =
         { dot_scope = context.active_scope;
@@ -131,7 +149,7 @@ let mk_arg context (arg : S.arg) =
       TokenTbl.add context.store.dots_defs dot var;
       { context with active_dots = Some var }
 
-let mk_args s { S.args_args; _ } = S.SepList0.fold_left mk_arg s args_args
+let mk_args s ({ S.args_args; _ } as a) = S.SepList0.fold_left (mk_arg a) s args_args
 
 let get_and_incr x =
   let v = !x in
@@ -172,15 +190,18 @@ let find_var s (S.Var var) =
         in
         Hashtbl.add s.store.globals var v; v )
 
+let var_usage s node =
+  let var = find_var s node in
+  (var, { var; node; snapshot = s.variables })
+
 let use_var s name =
-  let var = find_var s name in
-  let usage = { var; node = name } in
-  var.usages <- { var; node = name } :: var.usages;
+  let var, usage = var_usage s name in
+  var.usages <- usage :: var.usages;
   SVarTbl.add s.store.var_usages name usage;
   match var.kind with
   | Global -> ()
-  | Local sc | Loop sc | Arg sc | ImplicitArg sc ->
-      if s.active_scope.fun_id <> sc.fun_id then var.captured <- true
+  | Local { scope; _ } | Loop { scope; _ } | Arg { scope; _ } | ImplicitArg { scope; _ } ->
+      if s.active_scope.fun_id <> scope.fun_id then var.captured <- true
 
 let rec resolve_stmts scope stmts = CCList.fold_left resolve_stmt scope stmts |> ignore
 
@@ -194,7 +215,7 @@ and resolve_stmt s (stmt : S.stmt) =
   | Assign { assign_vars = vs; assign_vals = es; _ } ->
       let maybe_bind v e =
         match v with
-        | S.NVar v -> add_def s (find_var s v, v) e
+        | S.NVar v -> add_def s (var_usage s v) e
         | n -> resolve_name s n
       in
       let rec go vs es =
@@ -216,7 +237,9 @@ and resolve_stmt s (stmt : S.stmt) =
       resolve_expr scope t; s
   | ForNum { forn_var; forn_start; forn_limit; forn_step; forn_body; _ } ->
       let s' = fresh_scope s in
-      let scope, counter = mk_local (Loop s'.active_scope) s' forn_var in
+      let scope, counter =
+        mk_local (Loop { scope = s'.active_scope; def = forn_var }) s' forn_var
+      in
       add_def scope counter Declare;
       resolve_expr s forn_start;
       resolve_expr s forn_limit;
@@ -225,13 +248,17 @@ and resolve_stmt s (stmt : S.stmt) =
       s
   | ForIn { forp_vars; forp_iter; forp_body; _ } ->
       let s' = fresh_scope s in
-      let scope, names = mk_locals (Loop s'.active_scope) s' forp_vars in
+      let scope, names =
+        mk_locals (fun def -> Loop { scope = s'.active_scope; def }) s' forp_vars
+      in
       List.iter (fun d -> add_def scope d Declare) names;
       resolve_exprs s forp_iter;
       resolve_stmts scope forp_body;
       s
   | Local { local_vars; local_vals; _ } ->
-      let var_scope, vs = mk_locals (Local s.active_scope) s local_vars in
+      let var_scope, vs =
+        mk_locals (fun def -> Local { scope = s.active_scope; def }) s local_vars
+      in
       ( match local_vals with
       | None -> List.iter (fun v -> add_def s v Declare) vs
       | Some (_, es) ->
@@ -248,7 +275,9 @@ and resolve_stmt s (stmt : S.stmt) =
           resolve_exprs s es; go vs es );
       var_scope
   | LocalFunction { localf_var; localf_args; localf_body; _ } ->
-      let var_scope, name = mk_local (Local s.active_scope) s localf_var in
+      let var_scope, name =
+        mk_local (Local { scope = s.active_scope; def = localf_var }) s localf_var
+      in
       add_def var_scope name (OfFunction (localf_args, localf_body));
       let fun_scope = mk_args (fresh_fun var_scope) localf_args in
       resolve_stmts fun_scope localf_body;
@@ -262,7 +291,11 @@ and resolve_stmt s (stmt : S.stmt) =
         match assignf_name with
         | FVar _ | FDot _ -> fun_scope
         | FSelf _ ->
-            let context, var = mk_local' (Arg fun_scope.active_scope) fun_scope "self" in
+            let context, var =
+              mk_local'
+                (ImplicitArg { scope = fun_scope.active_scope; kind = `Self; def = assignf_args })
+                fun_scope "self"
+            in
             var.definitions <- (None, Declare) :: var.definitions;
             context
       in
@@ -284,7 +317,7 @@ and resolve_stmt s (stmt : S.stmt) =
   | Break _ | Semicolon _ -> s
 
 and resolve_function_name s = function
-  | S.FVar var -> Some (find_var s var, var)
+  | S.FVar var -> Some (var_usage s var)
   | n ->
       let rec go = function
         | S.FVar var -> use_var s var
@@ -379,6 +412,8 @@ let get_dots dots { dots_defs; dots_usages; _ } =
   | None -> Some (TokenTbl.find dots_defs dots)
 
 let globals { globals; _ } = Hashtbl.to_seq_values globals
+
+let get_global { globals; _ } = Hashtbl.find_opt globals
 
 module VarTbl = Hashtbl.Make (struct
   type t = var

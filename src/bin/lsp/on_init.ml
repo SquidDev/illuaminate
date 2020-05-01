@@ -11,12 +11,13 @@ let init_info : InitializeResult.t =
       ~hoverProvider:(`Bool true) ~definitionProvider:(`Bool true) ~referencesProvider:(`Bool true)
       ~declarationProvider:(`Bool true) ~documentHighlightProvider:(`Bool true)
       ~codeActionProvider:(`Bool true)
+      ~renameProvider:(`RenameOptions (RenameOptions.create ~prepareProvider:true ()))
       ~workspace:
-        { workspaceFolders =
-            Some
-              (WorkspaceFoldersServerCapabilities.create ~supported:true
-                 ~changeNotifications:(`Bool true) ())
-        }
+        (ServerCapabilities.create_workspace
+           ~workspaceFolders:
+             (WorkspaceFoldersServerCapabilities.create ~supported:true
+                ~changeNotifications:(`Bool true) ())
+           ())
       ~executeCommandProvider:(ExecuteCommandOptions.create ~commands:[ "illuaminate/fix" ] ())
       ()
   in

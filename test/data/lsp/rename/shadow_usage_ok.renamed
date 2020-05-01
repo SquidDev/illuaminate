@@ -1,0 +1,11 @@
+local x
+x = 1
+print(x)
+
+do
+  local x
+  x = 2
+  print(x)
+end
+
+print(x)

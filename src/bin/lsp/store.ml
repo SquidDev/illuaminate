@@ -193,11 +193,11 @@ module Workspace = struct
     let workspace = workspace_for ~root workspaces name in
     match workspace with
     | None ->
-        Log.warn (fun f -> f "Default linters for %a" (CCOpt.pp Fpath.pp) name.path);
+        Log.info (fun f -> f "Default linters for %a" (CCOpt.pp Fpath.pp) name.path);
         Config.(get_linters default ())
     | Some workspace ->
         let config = need store config workspace in
-        Log.warn (fun f -> f "Getting linters for %a" (CCOpt.pp Fpath.pp) name.path);
+        Log.info (fun f -> f "Getting linters for %a" (CCOpt.pp Fpath.pp) name.path);
         Config.get_linters config ?path:name.path ()
 end
 
@@ -325,7 +325,7 @@ let close_file store uri =
 let update_workspace store ?root ~add ~remove () =
   Log.info (fun f ->
       let pp xs = List.map (fun { WorkspaceFolder.uri; _ } -> uri) xs |> String.concat ", " in
-      f "Setting root to %s, adding workspaces to [%s] and removing [%s]"
+      f "Setting root to %s, adding workspaces [%s] and removing [%s]"
         (Option.fold ~none:"none" ~some:Uri.to_string root)
         (pp add) (pp remove));
 

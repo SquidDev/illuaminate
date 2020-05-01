@@ -32,6 +32,12 @@ module Testable : sig
 
   val document_highlight : DocumentHighlight.t t
 
+  val position : Position.t t
+
+  val range : Range.t t
+
+  val workspace_edit : WorkspaceEdit.t t
+
   val command :
     ?title:string t -> ?command:string t -> ?arguments:Yojson.Safe.t t -> unit -> Command.t testable
 
@@ -53,11 +59,17 @@ val get_request : t -> (some_request -> 'a option) -> 'a
 (** Assert the server sent a notification matching a predicate, and return its result. *)
 val get_notification : t -> (Server_notification.t -> 'a option) -> 'a
 
+(** Read the contents of a file. *)
+val read_file : t -> string -> string
+
 (** Open a file relative to the current workspace. *)
 val open_file : t -> string -> DocumentUri.t
 
 (** Get the contents of a file. *)
 val contents : t -> DocumentUri.t -> string
+
+(** Apply a {!WorkspaceEdit} to the current documents. *)
+val apply_change : t -> WorkspaceEdit.t -> unit
 
 (** Wait for a request and apply it. *)
 val apply_edits : t -> unit

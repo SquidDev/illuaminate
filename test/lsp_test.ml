@@ -83,6 +83,10 @@ module Testable = struct
 
   let code_action_kind = json CodeActionKind.yojson_of_t
 
+  let position = json Position.yojson_of_t
+
+  let range = json Range.yojson_of_t
+
   let code_action ?(title = string) ?(diagnostic = diagnostic) ?(command = def_command) () =
     mk
       ~pp:
@@ -174,6 +178,10 @@ let rec get_notification t f =
     | Some x -> x
     | None -> get_notification t f )
 
+let read_file { workspace; _ } f =
+  let path = Fpath.(append workspace (v f) |> to_string) in
+  CCIO.(with_in path read_all)
+
 let open_file { workspace; client; server; files; _ } f =
   let path = Fpath.(append workspace (v f) |> to_string) in
   let uri = Uri.of_path path |> Uri.to_string in
@@ -186,7 +194,7 @@ let open_file { workspace; client; server; files; _ } f =
 
 let contents { files; _ } filename = Hashtbl.find files filename
 
-let apply_edits ({ files; _ } as t) =
+let apply_change { files; _ } { WorkspaceEdit.changes; documentChanges; _ } =
   let apply_edit uri edits =
     let content = Hashtbl.find files uri in
     List.fold_left
@@ -204,11 +212,12 @@ let apply_edits ({ files; _ } as t) =
     | `CreateFile _ | `RenameFile _ | `DeleteFile _ ->
         Alcotest.fail "File operations not yet supported"
   in
+  Option.iter (List.iter (fun (f, e) -> apply_edit f e)) changes;
+  Option.iter (List.iter apply_change) documentChanges
+
+let apply_edits t =
   get_request t @@ function
-  | Request (WorkspaceApplyEdit { edit = { changes; documentChanges; _ }; _ }) ->
-      Option.iter (List.iter (fun (f, e) -> apply_edit f e)) changes;
-      Option.iter (List.iter apply_change) documentChanges;
-      Some ()
+  | Request (WorkspaceApplyEdit { edit; _ }) -> apply_change t edit; Some ()
   | _ -> Alcotest.fail "Expecting workspace edit"
 
 let range l1 c1 l2 c2 =

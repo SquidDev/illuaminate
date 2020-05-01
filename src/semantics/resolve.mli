@@ -13,10 +13,23 @@ type function_scope = scope
 (** The kind of this variable. *)
 type kind = private
   | Global
-  | Arg of function_scope  (** An argument to a function. *)
-  | ImplicitArg of function_scope  (** The implicit "arg" table. *)
-  | Local of scope  (** A variable captured in a bound variable. *)
-  | Loop of scope  (** A loop bound variable. *)
+  | Arg of
+      { scope : function_scope;
+        def : Syntax.var
+      }  (** An argument to a function. *)
+  | ImplicitArg of
+      { scope : function_scope;
+        kind : [ `Self | `Arg ];  (** The name of this implicit argument. *)
+        def : Syntax.args  (** The arguments where this function was introduced. *)
+      }  (** An implicitly introduced argument. *)
+  | Local of
+      { scope : scope;
+        def : Syntax.var
+      }  (** A variable captured in a bound variable. *)
+  | Loop of
+      { scope : scope;
+        def : Syntax.var
+      }  (** A loop bound variable. *)
 
 (** Where this variable is defined. *)
 type definition =
@@ -35,16 +48,19 @@ type var = private
     kind : kind;  (** The kind of this variable. *)
     shadows : var option;  (** The variable we shadow. *)
     mutable usages : var_usage list;
-    mutable definitions : (Syntax.var option * definition) list;
-        (** The list of all definitions. *)
+    mutable definitions : (var_usage option * definition) list;
+        (** The list of all definitions. If this is {!None}, this is a "magic" variable, such as
+            [self] or [arg]. *)
     mutable captured : bool;  (** Whether this variable is captured in a closure. *)
     mutable upvalue_mutated : bool  (** Whether this variable is mutated in a closure. *)
   }
 
-(** The usage of a variable. *)
+(** A location a variable is used. Unlike the {!recfield:usages} field, this corresponds to both
+    assignments and definitions. *)
 and var_usage = private
   { var : var;  (** The variable which is bound. *)
-    node : Syntax.var
+    node : Syntax.var;  (** The node where this variable is used. *)
+    snapshot : var Map.Make(String).t  (** A snapshot of the current scope. *)
   }
 
 type dots = private
@@ -96,3 +112,6 @@ val get_dots : Syntax.token -> t -> dots option
 
 (** Get all globals, either used or defined. *)
 val globals : t -> var Seq.t
+
+(** Look up a global if it was used within this program. *)
+val get_global : t -> string -> var option

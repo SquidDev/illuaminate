@@ -53,6 +53,7 @@ let () =
              Lsp_diagnostic.tests;
              Lsp_highlight.tests;
              Lsp_locate.tests;
-             Lsp_reference.tests
+             Lsp_reference.tests;
+             Lsp_rename.tests
            ]
        ]

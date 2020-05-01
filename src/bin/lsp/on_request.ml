@@ -30,15 +30,17 @@ let dots_range = function
   | Resolve.IllegalDots -> assert false
   | BoundDots { node; _ } -> Node.span node
 
-let make_edit ~uri ~version edits =
+let make_edit ~uri ?version edits =
+  match edits with
+  | [] -> WorkspaceEdit.create ()
+  | _ :: _ ->
+      WorkspaceEdit.create
+        ~documentChanges:[ `TextDocumentEdit { textDocument = { uri; version }; edits } ]
+        ()
+
+let apply_edit ~uri ?version edits =
   Server_request.WorkspaceApplyEdit
-    (ApplyWorkspaceEditParams.create
-       ~edit:
-         (WorkspaceEdit.create
-            ~documentChanges:
-              [ `TextDocumentEdit { textDocument = { uri; version = Some version }; edits } ]
-            ())
-       ())
+    (ApplyWorkspaceEditParams.create ~edit:(make_edit ~uri ?version edits) ())
 
 (** Get documentation of a node. *)
 module Hover = struct
@@ -80,14 +82,15 @@ end
 (** Get the initial assignment to a variable. *)
 module Declarations = struct
   let of_resolved_var (var : Resolve.var) : Locations.t option =
-    let rec get : _ -> Locations.t option = function
+    let rec get : (Resolve.var_usage option * Resolve.definition) list -> Locations.t option =
+      function
       | [] -> None
-      | (Some var, Resolve.Declare) :: _ -> Some (`Location [ location (Syntax.Spanned.var var) ])
+      | (Some v, Resolve.Declare) :: _ -> Some (`Location [ location (Syntax.Spanned.var v.node) ])
       | [ (Some v, _) ] -> (
         match var.kind with
         | Local _ ->
             (* If we're a local, use the first assignment as our alternative. *)
-            Some (`Location [ location (Syntax.Spanned.var v) ])
+            Some (`Location [ location (Syntax.Spanned.var v.node) ])
         | _ -> None )
       | _ :: xs -> get xs
     in
@@ -125,7 +128,7 @@ end
 module Definitions = struct
   let of_resolved_var (var : Resolve.var) : Locations.t option =
     let get_one = function
-      | Some var, _ -> Some (location (Syntax.Spanned.var var))
+      | Some v, _ -> Some (location (Syntax.Spanned.var v.Resolve.node))
       | _ -> None
     in
     match List.filter_map get_one var.definitions with
@@ -189,7 +192,8 @@ module Highlights = struct
         and definitions =
           List.to_seq definitions
           |> Seq.filter_map (function
-               | Some v, _ -> Some { kind = Some Write; range = range (Syntax.Spanned.var v) }
+               | Some v, _ ->
+                   Some { kind = Some Write; range = range (Syntax.Spanned.var v.Resolve.node) }
                | None, _ -> None)
         in
         build usages definitions
@@ -216,7 +220,7 @@ module Highlights = struct
         []
 end
 
-let worker (type res) client store (_ : ClientCapabilities.t) :
+let worker (type res) (client : Store.client_channel) store (_ : ClientCapabilities.t) :
     res Client_request.t -> (res, Jsonrpc.Response.Error.t) result = function
   | Shutdown -> Ok ()
   | TextDocumentHover { textDocument = { uri }; position } ->
@@ -229,6 +233,18 @@ let worker (type res) client store (_ : ClientCapabilities.t) :
       on_program' ~default:None store ~uri (non_empty % References.find ~store ~position)
   | TextDocumentHighlight { textDocument = { uri }; position; _ } ->
       on_program' ~default:None store ~uri (non_empty % Highlights.find ~store ~position)
+  | TextDocumentPrepareRename { textDocument = { uri }; position } ->
+      on_program' ~default:None store ~uri (Rename.check (Store.data store) position)
+  | TextDocumentRename { textDocument = { uri }; position; newName } ->
+      let make_edit = function
+        | Ok edits -> make_edit ~uri edits
+        | Error m ->
+            Log.err (fun f -> f "Cannot rename: %s" m);
+            client.notify (ShowMessage { type_ = Error; message = m });
+            make_edit ~uri []
+      in
+      on_program' ~default:(WorkspaceEdit.create ()) store ~uri
+        (make_edit % Rename.rename (Store.data store) position newName)
   | CodeAction { textDocument = { uri }; range; _ } ->
       on_program' ~default:None store ~uri (fun p -> Lint.code_actions store p range)
   | ExecuteCommand { command = "illuaminate/fix"; arguments } -> (
@@ -243,8 +259,8 @@ let worker (type res) client store (_ : ClientCapabilities.t) :
             match fixed with
             | Error msg -> Error { code = ContentModified; message = msg; data = None }
             | Ok edit ->
-                make_edit ~uri:duri ~version:(Text_document.version contents) [ edit ]
-                |> client.Store.request;
+                apply_edit ~uri:duri ~version:(Text_document.version contents) [ edit ]
+                |> client.request;
                 Ok `Null )
         | _ -> Ok `Null )
     | _ -> Error { code = InternalError; message = "Invalid arguments"; data = None } )

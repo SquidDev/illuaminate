@@ -296,8 +296,7 @@ let rec rebuild ({ version; results; _ } as store) k container =
         (container, result)
     | Some result when skip k (rebuild store) result ->
         (* If all our dependencies are up-to-date, then continue. *)
-        Log.debug (fun f ->
-            f "Skipping %a" BoxedKey.pp k);
+        Log.debug (fun f -> f "Skipping %a" BoxedKey.pp k);
         (container, { result with checked_at = version })
     | previous ->
         (* Rebuild and update the key. *)
