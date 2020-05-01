@@ -8,12 +8,6 @@ module StringMap = Map.Make (String)
 
 let err f = Format.kasprintf Result.error f
 
-(** Get the definition of an argument. *)
-let get_def = function
-  | { kind = ImplicitArg { def; _ }; _ } -> Syntax.Spanned.args def
-  | { kind = Loop { def; _ } | Local { def; _ } | Arg { def; _ }; _ } -> Syntax.Spanned.var def
-  | { kind = Global; _ } -> failwith "Getting position of global."
-
 (** Whether this variable is suitable for renaming. *)
 let check_renamable { definitions; kind; name; _ } =
   match kind with
@@ -102,7 +96,7 @@ let rename data position new_name program =
               (Node.contents.get node)
               (Node.span node |> Span.start_line)
               new_name
-              (get_def def |> Span.start_line)
+              (Kind.definition def.kind |> Option.get |> Span.start_line)
         | None -> (
           (* Find a previous definition of this variable at the given point. *)
           match

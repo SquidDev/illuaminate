@@ -81,25 +81,10 @@ end
 
 (** Get the initial assignment to a variable. *)
 module Declarations = struct
-  let of_resolved_var (var : Resolve.var) : Locations.t option =
-    let rec get : (Resolve.var_usage option * Resolve.definition) list -> Locations.t option =
-      function
-      | [] -> None
-      | (Some v, Resolve.Declare) :: _ -> Some (`Location [ location (Syntax.Spanned.var v.node) ])
-      | [ (Some v, _) ] -> (
-        match var.kind with
-        | Local _ ->
-            (* If we're a local, use the first assignment as our alternative. *)
-            Some (`Location [ location (Syntax.Spanned.var v.node) ])
-        | _ -> None )
-      | _ :: xs -> get xs
-    in
-    get var.definitions
-
   let of_var ~store program v =
     let resolved = D.get (Store.data store) Resolve.key program in
     match Resolve.get_var v resolved with
-    | v -> of_resolved_var v
+    | v -> Resolve.Kind.definition v.kind |> Option.map (fun s -> `Location [ location s ])
     | exception Not_found -> None
 
   let of_name ~store program name : Locations.t option =

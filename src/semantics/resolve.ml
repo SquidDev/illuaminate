@@ -30,6 +30,15 @@ type kind =
         def : Syntax.var
       }
 
+module Kind = struct
+  type t = kind
+
+  let definition = function
+    | ImplicitArg { def; _ } -> Some (Syntax.Spanned.args def)
+    | Loop { def; _ } | Local { def; _ } | Arg { def; _ } -> Some (Syntax.Spanned.var def)
+    | Global -> None
+end
+
 type definition =
   | Declare
   | OfExpr of Syntax.expr

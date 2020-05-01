@@ -97,6 +97,5 @@ let tests =
 
           contents t uri
           |> Alcotest.(check string) "Renamed all usages" (read_file t "shadow_usage_ok.renamed");
-          ());
-
+          ())
     ]

@@ -31,6 +31,13 @@ type kind = private
         def : Syntax.var
       }  (** A loop bound variable. *)
 
+module Kind : sig
+  type t = kind
+
+  (** Get the position of a variable from its kind. *)
+  val definition : t -> Span.t option
+end
+
 (** Where this variable is defined. *)
 type definition =
   | Declare
@@ -55,7 +62,7 @@ type var = private
     mutable upvalue_mutated : bool  (** Whether this variable is mutated in a closure. *)
   }
 
-(** A location a variable is used. Unlike the {!recfield:usages} field, this corresponds to both
+(** A location a variable is used. Unlike the {!field:usages} field, this corresponds to both
     assignments and definitions. *)
 and var_usage = private
   { var : var;  (** The variable which is bound. *)
