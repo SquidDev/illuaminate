@@ -57,7 +57,6 @@ let linter =
       match IlluaminateData.need context.data E.key prog |> E.get_module with
       | None -> ()
       | Some m ->
-          Printf.printf "Has docs\n%!";
           let iter = iter_of (check_abstract ~r) in
           iter#documented iter#module_info m)
     ()

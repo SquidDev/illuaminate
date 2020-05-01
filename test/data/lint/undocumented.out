@@ -14,4 +14,8 @@ undocumented.lua:[14:13-14:30]: Argument `a` is missing a description [doc:undoc
     │
  14 │   no_args = function(a, b) end,
     │             ^^^^^^^^^^^^^^^^^^
-No errors and 4 warnings
+undocumented.lua:[19:17-19:34]: Argument `b` is missing a description [doc:undocumented-arg]
+    │
+ 19 │   no_arg_desc = function(a, b) end,
+    │                 ^^^^^^^^^^^^^^^^^^
+No errors and 5 warnings

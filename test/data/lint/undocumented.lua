@@ -12,4 +12,10 @@ return {
 
   --- Has description
   no_args = function(a, b) end,
+
+  --- Has description
+  -- @param a Has description
+  -- @param b
+  no_arg_desc = function(a, b) end,
+
 }

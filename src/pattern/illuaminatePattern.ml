@@ -39,7 +39,7 @@ let iter_pats iter ~root path pats =
   let rec visit path =
     let path_s = Fpath.to_string path in
     if not (Sys.file_exists path_s) then
-      Log.warn (fun f -> f "File %a does not exist" Fpath.pp path)
+      Log.info (fun f -> f "File %a does not exist" Fpath.pp path)
     else if Sys.is_directory path_s then (
       Log.debug (fun f -> f "Scanning directory %a" Fpath.pp path);
       match Sys.readdir path_s with

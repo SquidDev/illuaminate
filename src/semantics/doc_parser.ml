@@ -52,8 +52,6 @@ let parse_description =
               ( Html ("illuaminate:colour", [ ("colour", Some w) ], [ Text ("#" ^ w) ]) :: r,
                 Word w :: Hash :: p,
                 l )
-        | Hash :: Word w :: _ -> Printf.printf "#%S\n" w; None
-        | Hash :: Number w :: _ -> Printf.printf "#Number %S\n" w; None
         | _ -> None
 
       method to_string = "Extension"

@@ -4,6 +4,10 @@ open IlluaminateLint
 module Pattern = IlluaminatePattern
 module TagSet = Set.Make (Error.Tag)
 
+let src = Logs.Src.create __MODULE__
+
+module Log = (val Logs.src_log src)
+
 (** A specification of a tag. Either all tags, or specific one. *)
 type tag_spec =
   | All
@@ -94,7 +98,7 @@ let doc_options_term =
             IlluaminateExec.exec "git" [| "git"; "-C"; Fpath.to_string root; "rev-parse"; "HEAD" |]
           with
         | Error e ->
-            Printf.eprintf "Cannot find git commit (%s)\n%!" e;
+            Log.err (fun f -> f "Cannot find git commit (%s)\n%!" e);
             None
         | Ok l -> Some (String.trim l) )
     in

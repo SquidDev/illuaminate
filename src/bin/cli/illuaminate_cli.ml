@@ -269,7 +269,7 @@ module Args = struct
 
     let l =
       match verbose with
-      | [] -> None
+      | [] -> Some Logs.Warning
       | [ _ ] -> Some Logs.Info
       | _ :: _ :: _ -> Some Logs.Debug
     in
