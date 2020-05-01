@@ -232,6 +232,10 @@ let worker (type res) (client : Store.client_channel) store (_ : ClientCapabilit
         (make_edit % Rename.rename (Store.data store) position newName)
   | CodeAction { textDocument = { uri }; range; _ } ->
       on_program' ~default:None store ~uri (fun p -> Lint.code_actions store p range)
+  | WorkspaceSymbol { query } ->
+      D.get (Store.data store) Workspace_symbol.key ()
+      |> Workspace_symbol.find_modules query
+      |> Option.some |> Result.ok
   | ExecuteCommand { command = "illuaminate/fix"; arguments } -> (
     match arguments with
     | Some [ uri; `Int id ] -> (

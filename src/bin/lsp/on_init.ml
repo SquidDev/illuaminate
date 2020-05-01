@@ -12,6 +12,7 @@ let init_info : InitializeResult.t =
       ~declarationProvider:(`Bool true) ~documentHighlightProvider:(`Bool true)
       ~codeActionProvider:(`Bool true)
       ~renameProvider:(`RenameOptions (RenameOptions.create ~prepareProvider:true ()))
+      ~workspaceSymbolProvider:true
       ~workspace:
         (ServerCapabilities.create_workspace
            ~workspaceFolders:

@@ -120,6 +120,20 @@ module Testable = struct
         | `CodeAction x, `CodeAction y -> equal code_action x y
         | `Command _, `CodeAction _ | `CodeAction _, `Command _ -> false)
     |> list |> option
+
+  let symbol_information ?(location = location) () : SymbolInformation.t testable =
+    mk
+      ~pp:(fun out { SymbolInformation.name; kind; location = loc; deprecated; containerName } ->
+        Format.pp_open_vbox out 2;
+        Format.fprintf out "Name: %s (%a)@;" name (json_pp SymbolKind.yojson_of_t) kind;
+        Option.iter (Format.fprintf out "Deprecated: %b@;") deprecated;
+        Option.iter (Format.fprintf out "Container: %s@;") containerName;
+        Format.fprintf out "Location: %a" (pp location) loc;
+        Format.pp_close_box out ())
+      ~eq:(fun (x : SymbolInformation.t) (y : SymbolInformation.t) ->
+        equal location x.location y.location
+        && x.name = y.name && x.kind = y.kind && x.deprecated = y.deprecated
+        && x.containerName = y.containerName)
 end
 
 type message =
@@ -182,10 +196,11 @@ let read_file { workspace; _ } f =
   let path = Fpath.(append workspace (v f) |> to_string) in
   CCIO.(with_in path read_all)
 
-let open_file { workspace; client; server; files; _ } f =
-  let path = Fpath.(append workspace (v f) |> to_string) in
-  let uri = Uri.of_path path |> Uri.to_string in
-  let text = CCIO.(with_in path read_all) in
+let resolve_file { workspace; _ } f =
+  Fpath.(append workspace (v f) |> to_string) |> Uri.of_path |> Uri.to_string
+
+let open_file ({ client; server; files; _ } as t) f =
+  let text = read_file t f and uri = resolve_file t f in
   Hashtbl.replace files uri text;
   server.notify client
     (TextDocumentDidOpen { textDocument = { uri; languageId = "lua"; version = 0; text } })

@@ -44,7 +44,9 @@ module Testable : sig
   val code_action :
     ?title:string t -> ?diagnostic:Diagnostic.t t -> ?command:Command.t t -> unit -> CodeAction.t t
 
-  val code_action_result : Command.t t -> CodeAction.t t -> CodeActionResult.t testable
+  val code_action_result : Command.t t -> CodeAction.t t -> CodeActionResult.t t
+
+  val symbol_information : ?location:Location.t t -> unit -> SymbolInformation.t t
 end
 
 type t
@@ -61,6 +63,9 @@ val get_notification : t -> (Server_notification.t -> 'a option) -> 'a
 
 (** Read the contents of a file. *)
 val read_file : t -> string -> string
+
+(** Resolve a URI relative to the current workspace. *)
+val resolve_file : t -> string -> DocumentUri.t
 
 (** Open a file relative to the current workspace. *)
 val open_file : t -> string -> DocumentUri.t

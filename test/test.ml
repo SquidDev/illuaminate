@@ -54,6 +54,7 @@ let () =
              Lsp_highlight.tests;
              Lsp_locate.tests;
              Lsp_reference.tests;
-             Lsp_rename.tests
+             Lsp_rename.tests;
+             Lsp_workspace_symbol.tests
            ]
        ]
