@@ -8,7 +8,7 @@ function Foo.b() end
 Foo.c = 123
 
 return {
-  a = function() end,
+  a = function() end, --- @deprecated
   b = 123,
   c = (function() end)(),
 }

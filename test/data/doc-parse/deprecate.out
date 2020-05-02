@@ -1,0 +1,9 @@
+((source deprecate.lua[1:1-3:14]) (description "Deprecated twice\n\n")
+ (deprecated))
+deprecate.lua:[3:4-3:14]: Duplicate @deprecated tags [doc:duplicate-definitions]
+   │
+ 3 │ -- @deprecated
+   │    ^^^^^^^^^^^
+1 errors and 0 warnings
+((source deprecate.lua[5:1-6:30]) (description "With a message\n\n")
+ (deprecated "Don't use this!\n\n"))

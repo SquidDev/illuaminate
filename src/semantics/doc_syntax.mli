@@ -13,7 +13,8 @@ type 'a documented =
     examples : example list;  (** One or more examples *)
     see : see list;  (** List of references to other symbols. *)
     local : bool;  (** If this definition should not be exposed. *)
-    export : bool  (** Whether this term should be exported. *)
+    export : bool;  (** Whether this term is the root exported term. *)
+    deprecated : deprecation option  (** Whether this term is deprecated. *)
   }
 
 (** A value or expression which may be used in a documented program. *)

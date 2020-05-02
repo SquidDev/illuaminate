@@ -26,6 +26,7 @@ type comment =
     local : bool;
     includes : reference Span.spanned list;
     export : bool;
+    deprecated : deprecation option;
     (* Functions. *)
     arguments : arg list list;
     returns : return list list;

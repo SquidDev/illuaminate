@@ -65,6 +65,9 @@ struct
     |> field' "description" description see_description
     |> record
 
+  let deprecation { deprecation_message } =
+    Option.fold ~none:[] ~some:description deprecation_message
+
   let example = function
     | RawExample x -> spanned atom' x
     | RichExample x -> description x
@@ -100,6 +103,7 @@ module Comment = struct
     |> field_bool "local" c.local
     |> fields "include" (spanned (one % reference)) c.includes
     |> field_bool "export" c.export
+    |> field' "deprecated" deprecation c.deprecated
     |> fields "args" (List.map arg) c.arguments
     |> fields "returns" (List.map return) c.returns
     |> fields "throws" description c.throws
@@ -132,7 +136,9 @@ module Syntax = struct
     |> field "body" (body d.descriptor)
     |> fields "example" example d.examples
     |> fields "see" (one' % see) d.see
-    |> field_bool "local" d.local |> record
+    |> field_bool "local" d.local |> field_bool "export" d.export
+    |> field' "deprecated" deprecation d.deprecated
+    |> record
 
   let rec value = function
     | Function { args; rets; throws; has_self } ->

@@ -49,6 +49,8 @@ module type S = sig
       see_description : description option
     }
 
+  type deprecation = { deprecation_message : description option } [@@unboxed]
+
   type example =
     | RawExample of string Span.spanned
     | RichExample of description
@@ -79,6 +81,8 @@ module type S = sig
       method type_ : Type.t -> unit
 
       method see : see -> unit
+
+      method deprecation : deprecation -> unit
 
       method example : example -> unit
 
@@ -115,6 +119,8 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
       see_description : description option
     }
 
+  type deprecation = { deprecation_message : description option } [@@unboxed]
+
   type example =
     | RawExample of string Span.spanned
     | RichExample of description
@@ -147,6 +153,8 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
       method see { see_reference; see_label = _; see_span = _; see_description } =
         self#reference see_reference;
         Option.iter self#description see_description
+
+      method deprecation { deprecation_message } = Option.iter self#description deprecation_message
 
       method example =
         function
@@ -182,6 +190,9 @@ module Lift (L : S) (R : S) = struct
       see_span;
       see_description = Option.map (description lift) see_description
     }
+
+  let deprecation lift { L.deprecation_message } =
+    { R.deprecation_message = Option.map (description lift) deprecation_message }
 
   module Ty_lift = Type_syntax.Lift (L.Type) (R.Type)
 

@@ -16,7 +16,8 @@ let a_module =
     SymbolInformation.create ~name:"a" ~kind:Method ~containerName:"a_module.Foo" ~location ();
     SymbolInformation.create ~name:"b" ~kind:Method ~containerName:"a_module.Foo" ~location ();
     SymbolInformation.create ~name:"c" ~kind:Number ~containerName:"a_module.Foo" ~location ();
-    SymbolInformation.create ~name:"a" ~kind:Function ~containerName:"a_module" ~location ();
+    SymbolInformation.create ~name:"a" ~kind:Function ~containerName:"a_module" ~deprecated:true
+      ~location ();
     SymbolInformation.create ~name:"b" ~kind:Number ~containerName:"a_module" ~location ();
     SymbolInformation.create ~name:"c" ~kind:Variable ~containerName:"a_module" ~location ()
   ]

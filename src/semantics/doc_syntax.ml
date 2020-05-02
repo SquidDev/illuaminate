@@ -15,7 +15,8 @@ type 'a documented =
     examples : example list;
     see : see list;
     local : bool;
-    export : bool
+    export : bool;
+    deprecated : deprecation option
   }
 
 type value =
@@ -98,12 +99,14 @@ class iter =
       | Expr { ty; value = _ } -> (self#abstract_syntax ~span)#type_ ty
 
     method documented : 'a. (span:Span.t -> 'a -> unit) -> 'a documented -> unit =
-      fun child { description; descriptor; definition; examples; see; local = _; export = _ } ->
+      fun child
+          { description; descriptor; definition; examples; see; deprecated; local = _; export = _ } ->
         let abs = self#abstract_syntax ~span:definition in
         Option.iter abs#description description;
         child ~span:definition descriptor;
         List.iter abs#example examples;
         List.iter abs#see see;
+        Option.iter abs#deprecation deprecated;
         ()
 
     method member { member_name = _; member_is_method = _; member_value; _ } =

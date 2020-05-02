@@ -49,6 +49,7 @@ let add_top ~name ?container ~kind d =
   Trie.add name
     (SymbolInformation.create ~name ~kind ?containerName:container
        ~location:(Lsp_convert.location d.definition)
+       ?deprecated:(Option.map (fun _ -> true) d.deprecated)
        ())
 
 let add ~container = add_top ~container

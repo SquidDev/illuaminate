@@ -216,6 +216,7 @@ module Build = struct
       mutable b_includes : reference Span.spanned list;
       mutable b_local : bool;
       mutable b_export : bool;
+      mutable b_deprecated : deprecation option;
       (* Functions. *)
       mutable b_args : arg grouped;
       mutable b_rets : return grouped;
@@ -232,6 +233,7 @@ module Build = struct
       b_includes = [];
       b_local = false;
       b_export = false;
+      b_deprecated = None;
       b_args = empty_group;
       b_rets = empty_group;
       b_throws = [];
@@ -376,6 +378,11 @@ module Build = struct
         (* TODO: As above. *)
         List.iter (unknown b "@export") flags;
         b.b_export <- true
+    | "deprecated" ->
+        List.iter (unknown b "@deprecated") flags;
+        if Option.is_some b.b_deprecated then
+          report b Tag.duplicate_definitions tag.span "Duplicate @deprecated tags";
+        b.b_deprecated <- Some { deprecation_message = Lex.description' body }
     (*******************************
      * Function tags
      *******************************)
@@ -510,6 +517,7 @@ let parse span lbuf =
     local = b.b_local;
     includes = List.rev b.b_includes;
     export = b.b_export;
+    deprecated = b.b_deprecated;
     arguments = Build.get_group b.b_args;
     returns = Build.get_group b.b_rets;
     throws = List.rev b.b_throws;

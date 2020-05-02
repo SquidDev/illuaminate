@@ -29,6 +29,7 @@ type comment =
     local : bool;  (** Whether this term was tagged as [@local], and so should not be exported. *)
     includes : reference Span.spanned list;  (** Other terms to include. *)
     export : bool;  (** Whether this term is the "root" of this documentation node. *)
+    deprecated : deprecation option;  (** Whether this term is deprecated. *)
     (* Functions. *)
     arguments : arg list list;  (** A list of possible function argument signatures. *)
     returns : return list list;  (** A list of possible function return signatures. *)

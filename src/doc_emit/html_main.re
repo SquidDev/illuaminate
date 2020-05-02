@@ -108,6 +108,21 @@ let show_function = (~resolve, args, rets, throws) =>
   ]
   |> many;
 
+let show_preamble = (~resolve, {description, deprecated, _}) =>
+  [
+    switch (deprecated) {
+    | None => nil
+    | Some({deprecation_message}) =>
+      <div class_="deprecated">
+        <strong> {str("Deprecated")} </strong>
+        {str(" ")}
+        {show_desc_inline(~resolve, deprecation_message)}
+      </div>
+    },
+    show_desc(~resolve, description),
+  ]
+  |> many;
+
 let show_example = (~resolve, example) =>
   switch (example) {
   | RawExample(x) =>
@@ -173,7 +188,7 @@ and show_member =
 
 and show_documented_term = (~options as {resolve, _} as options, value) =>
   [
-    show_desc(~resolve, value.description),
+    show_preamble(~resolve, value),
     show_value(~options, value.descriptor),
     show_common(~resolve, value),
   ]
@@ -228,7 +243,7 @@ and show_value = (~options as {resolve, _} as options, value) => {
 let show_type =
     (
       ~options as {resolve, _} as options,
-      {description, descriptor: {type_name, type_members}, _} as desc,
+      {descriptor: {type_name, type_members}, _} as desc,
     ) => {
   let sec = Option.get(section_of_name(Type(type_name)));
   [
@@ -237,7 +252,7 @@ let show_type =
       {str(" ")}
       <span> {str(type_name)} </span>
     </h3>,
-    show_desc(~resolve, description),
+    show_preamble(~resolve, desc),
     show_common(~resolve, desc),
     <dl class_="definition">
       ...{List.map(show_member(~options, type_name), type_members)}
@@ -334,7 +349,7 @@ let emit_module =
   let options = {resolve, source_link};
   let content = [
     <h1> <code> {str(mod_name)} </code> {str(" library")} </h1>,
-    show_desc(~resolve, self.description),
+    show_preamble(~resolve, self),
     show_common(~resolve, self),
     show_value(~options, mod_contents),
     ...switch (mod_types) {

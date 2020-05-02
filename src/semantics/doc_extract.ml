@@ -90,23 +90,22 @@ module Value = struct
       examples = List.map (Lift.example lift) comment.examples;
       see = List.map (Lift.see lift) comment.see;
       local = comment.local;
-      export = comment.export
+      export = comment.export;
+      deprecated = Option.map (Lift.deprecation lift) comment.deprecated
     }
 end
 
 module Merge = struct
   let documented (merge : Span.t -> 'a -> 'b -> 'c) (implicit : 'a documented)
       (explicit : 'b documented) =
-    { description =
-        ( match implicit.description with
-        | None -> explicit.description
-        | Some _ -> implicit.description );
+    { description = CCOpt.or_ ~else_:explicit.description implicit.description;
       definition = implicit.definition;
       descriptor = merge implicit.definition implicit.descriptor explicit.descriptor;
       examples = implicit.examples @ explicit.examples;
       see = implicit.see @ explicit.see;
       local = implicit.local || explicit.local;
-      export = implicit.export || explicit.export
+      export = implicit.export || explicit.export;
+      deprecated = CCOpt.or_ ~else_:explicit.deprecated implicit.deprecated
     }
 
   (** Right biased union of two values. *)
@@ -202,7 +201,8 @@ module Infer = struct
       examples = [];
       see = [];
       local = false;
-      export = false
+      export = false;
+      deprecated = None
     }
 
   (** Annotate a value with documentation comments. *)
@@ -634,14 +634,15 @@ module Resolve = struct
     | (External _ | Internal _) as r -> r
 
   let go_documented lift go_child
-      { description; descriptor : 'a; definition; examples; see; local; export } =
+      { description; descriptor : 'a; definition; examples; see; local; export; deprecated } =
     { description = Option.map (Lift.description lift) description;
       descriptor = go_child lift descriptor;
       definition;
       examples = List.map (Lift.example lift) examples;
       see = List.map (Lift.see lift) see;
       local;
-      export
+      export;
+      deprecated = Option.map (Lift.deprecation lift) deprecated
     }
 
   let rec go_value ~cache lift = function

@@ -16,6 +16,7 @@ module Linters : sig
 
   module Arg_arg = Lint_arg_arg
   module Bracket_spacing = Lint_bracket_spacing
+  module Deprecated = Lint_deprecated
   module Detached_comment = Lint_detached_comment
   module Doc_extract = Lint_doc_extract
   module Doc_parse = Lint_doc_parse

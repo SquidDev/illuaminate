@@ -37,6 +37,11 @@ module type S = sig
       see_description : description option  (** An optional description of this name. *)
     }
 
+  (** This term has been deprecated. *)
+  type deprecation =
+    { deprecation_message : description option  (** The reason this term has been deprecated. *) }
+  [@@unboxed]
+
   (** An example of how to use this code. *)
   type example =
     | RawExample of string Span.spanned  (** An example with no associated description. *)
@@ -76,6 +81,8 @@ module type S = sig
 
       method see : see -> unit
 
+      method deprecation : deprecation -> unit
+
       method example : example -> unit
 
       method arg : arg -> unit
@@ -103,6 +110,8 @@ module Lift (L : S) (R : S) : sig
   val description : t -> L.description -> R.description
 
   val see : t -> L.see -> R.see
+
+  val deprecation : t -> L.deprecation -> R.deprecation
 
   val example : t -> L.example -> R.example
 
