@@ -56,12 +56,10 @@ let () =
         let add_store r = Result.map (fun x -> ((), x)) r in
         let add_store' r = add_store r |> Fiber.return in
         let wrap rpc : client_channel =
-          { notify = Lsp.Rpc.send_notification rpc;
-            request = (fun r -> Ugly_hacks.send_request rpc r)
-          }
+          { notify = Lsp.Server.send_notification rpc; request = Ugly_hacks.send_request }
         in
         Log.info (fun f -> f "Starting server");
-        Lsp.Rpc.start ()
+        Lsp.Server.start ()
           { on_initialize = (fun rpc () p -> server.initialize (wrap rpc) p |> add_store');
             on_request = (fun rpc () cap req -> server.request (wrap rpc) cap req |> add_store');
             on_notification = (fun rpc () noti -> server.notify (wrap rpc) noti |> Fiber.return)
