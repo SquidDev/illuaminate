@@ -127,4 +127,4 @@ let global_modules =
         | { descriptor = { mod_name; mod_kind = Module; _ }; _ } -> SSet.add mod_name modules)
       modules SSet.empty
   in
-  Key.key ~name:(__MODULE__ ^ ".global_modules") ~eq_v:SSet.equal get
+  Key.key ~name:(__MODULE__ ^ ".global_modules") ~eq:SSet.equal get

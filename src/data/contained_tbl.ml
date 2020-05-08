@@ -189,3 +189,13 @@ let strong (type k) ?(hash = Hashtbl.hash) ~eq () =
     let hash = hash
   end) : KeyContainer
     with type t = k )
+
+let weak (type k) ?(hash = Hashtbl.hash) ~eq () =
+  ( module WeakContainer (struct
+    type t = k
+
+    let equal = eq
+
+    let hash = hash
+  end) : KeyContainer
+    with type t = k )

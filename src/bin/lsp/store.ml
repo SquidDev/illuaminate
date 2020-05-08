@@ -1,6 +1,7 @@
 open IlluaminateCore
 open Lsp
 open Lsp.Types
+open Data
 module Data = IlluaminateData
 module UriTbl = Hashtbl.Make (Uri)
 module Config = IlluaminateConfigFormat
@@ -42,71 +43,6 @@ module Filename = struct
   let of_path path = Span.Filename.mk ~path (Fpath.to_string path |> Uri.of_path |> Uri.to_string)
 end
 
-module FileDigest = struct
-  type 'a t =
-    { digest : Digest.t;
-      time : Mtime.t;
-      value : 'a
-    }
-
-  let default_duration = Mtime.Span.of_uint64_ns 30_000_000_000L (* 30s *)
-
-  let equal ~eq_v l r = l == r || (l.digest = r.digest && l.time = r.time && eq_v l.value r.value)
-
-  (** Read a file and perform some processing function (such as parsing) if the contents has changed
-      since last time we checked. Limited to 5 seconds. *)
-  let with_change ?(delay = default_duration) ~process ~path (previous : 'a t option) =
-    let path_s = Fpath.to_string path in
-    let error msg =
-      Log.warn (fun f -> f "Error reading file %S (%s)" path_s msg);
-      None
-    in
-    let result ~digest value = Some { digest; time = Mtime_clock.now (); value } in
-    let read ~new_digest =
-      match open_in path_s with
-      | exception Sys_error e -> error e
-      | ic -> (
-        match process ic with
-        | res -> close_in ic; result ~digest:new_digest res
-        | exception Sys_error e -> close_in_noerr ic; error e
-        | exception e ->
-            let bt = Printexc.get_raw_backtrace () in
-            close_in ic;
-            Printexc.raise_with_backtrace e bt )
-    in
-
-    match previous with
-    | Some ({ time; _ } as result)
-      when Mtime.Span.compare (Mtime.span (Mtime_clock.now ()) time) delay < 0 ->
-        (* Skip if we changed in strictly less than "delay" time. *)
-        Some result
-    | Some { digest; value; _ } -> (
-      match Digest.file path_s with
-      | new_digest ->
-          Log.debug (fun f ->
-              f "Checking digest for %S (previously %s, now %s)" path_s (Digest.to_hex digest)
-                (Digest.to_hex new_digest));
-          if new_digest = digest then result ~digest value else read ~new_digest
-      | exception Sys_error msg -> error msg )
-    | None -> (
-      match Digest.file path_s with
-      | new_digest -> read ~new_digest
-      | exception Sys_error msg -> error msg )
-
-  let oracle ?delay ?container_k ?(eq_v = ( == )) ~name process =
-    let open Data in
-    let compute path previous =
-      Option.join previous |> with_change ?delay ~process:(process path) ~path
-    in
-    let compute_key =
-      Key.oracle ~pp:Fpath.pp
-        ~eq_v:(Option.equal (equal ~eq_v))
-        ?container_k ~name:(name ^ ".compute") compute
-    in
-    Key.key ~pp:Fpath.pp ?container_k ~eq_v:(Option.equal eq_v) ~name @@ fun store key ->
-    need store compute_key key |> Option.map (fun x -> x.value)
-end
-
 module Workspace = struct
   type t =
     { uri : Uri.t;
@@ -138,10 +74,10 @@ module Workspace = struct
         UriMap.fold get_name workspaces None |> Option.map fst |> CCOpt.or_ ~else_:root
 
   let workspaces : (unit, workspaces) Data.Key.t =
-    let eq_v a b =
+    let eq a b =
       CCOpt.equal ( == ) a.root b.root && UriMap.equal ( == ) a.workspaces b.workspaces
     in
-    Data.Key.deferred ~eq_v ~name:(__MODULE__ ^ ".Workspace.workspaces") ()
+    Data.Key.deferred ~eq ~name:(__MODULE__ ^ ".Workspace.workspaces") ()
 
   let config : (t, Config.t) Data.Key.t =
     let open Data in
@@ -173,18 +109,20 @@ module Workspace = struct
     let delay = Mtime.Span.of_uint64_ns 60_000_000_000L (* 60s *) in
     let name = __MODULE__ ^ ".Workspace.sources" in
     let open Data in
-    let compute config = function
-      | Some (time, value) when Mtime.Span.compare (Mtime.span (Mtime_clock.now ()) time) delay < 0
-        ->
-          (time, value)
-      | _ ->
-          let files = ref [] in
-          Config.all_files (fun f -> files := f :: !files) config;
-          (Mtime_clock.now (), !files)
+    rate_limit ~delay ~name @@ fun store key previous ->
+    let config = need store config key in
+    let files = ref [] in
+    let add f = files := f :: !files in
+    ( match key.path with
+    | None -> Config.all_files add config
+    | Some p -> Config.files add config p );
+    let changed =
+      match previous with
+      | Absent -> Key.RecomputeChange
+      | Recompute c | DependencyChange c ->
+          if CCList.equal Fpath.equal c !files then Key.RecomputeSame else RecomputeChange
     in
-    let compute_key = Key.oracle ~eq_v:( = ) ~name:(name ^ ".compute") compute in
-    Key.key ~pp ~eq_v:( = ) ~name @@ fun store key ->
-    need store config key |> need store compute_key |> snd
+    { value = !files; changed }
 
   let linters : (Span.filename, Error.Tag.filter * IlluaminateConfig.Schema.store) Data.Key.t =
     let open Data in
@@ -209,17 +147,17 @@ type parsed_file =
   | Unknown
 
 let parsed_file : (Span.filename, parsed_file) Data.Key.t =
-  let eq_v l r =
+  let eq l r =
     if l == r then true
     else
       match (l, r) with
       | Unknown, Unknown -> true
-      | OnDisk l, OnDisk r -> FileDigest.equal ~eq_v:( == ) l r
+      | OnDisk l, OnDisk r -> FileDigest.equal ~eq:( == ) l r
       | Open l, Open r -> l == r
       | _, _ -> false
   in
-  Data.Key.deferred ~pp:Span.Filename.pp ~eq_v
-    ~container_k:(module Data.Container.Strong (Span.Filename))
+  Data.Key.deferred ~pp:Span.Filename.pp ~eq
+    ~container:(module Data.Container.Strong (Span.Filename))
     ~name:(__MODULE__ ^ ".parsed_file") ()
 
 let default_context : Data.Programs.Context.t =

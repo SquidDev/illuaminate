@@ -6,13 +6,28 @@ type values = ..
 
 type providers = ..
 
-type ('store, 'k, 'v) provider =
-  | Tracing of ('store -> 'k -> 'v)
-  | Oracle of ('k -> 'v option -> 'v)
-
 let src = Logs.Src.create ~doc:"A basic system for incremental computation" __MODULE__
 
 module Log = (val Logs.src_log src)
+
+module KeyInfo = struct
+  type 'a reason =
+    | Absent
+    | DependencyChange of 'a
+    | Recompute of 'a
+
+  type change =
+    | NoChange
+    | RecomputeChange
+    | RecomputeSame
+
+  type 'a result =
+    { value : 'a;
+      changed : change
+    }
+end
+
+type ('s, 'k, 'v) provider = 's -> 'k -> 'v KeyInfo.reason -> 'v KeyInfo.result
 
 module type Key = sig
   type key
@@ -101,9 +116,7 @@ module KeyTbl = Contained_tbl.Make (BoxedKey)
     any garbage. *)
 type version = int
 
-type trace =
-  | Depends of result KeyTbl.container list
-  | Oracle
+type trace = Depends of result KeyTbl.container list [@@unboxed]
 
 and result =
   { changed_at : version;
@@ -127,9 +140,14 @@ type context =
   }
 
 module Key = struct
+  include KeyInfo
+
   type ('k, 'v) t = (module Key with type key = 'k and type value = 'v and type store = context)
 
   let name (type k v) ((module Key) : (k, v) t) = Key.name
+
+  let pp (type k v) ((module Key) : (k, v) t) out (k : k) =
+    Format.fprintf out "%s(%a)" Key.name Key.pp k
 
   (** Extract the value from {!values}. Raises {!Invalid_argument} if there is a type mismatch. *)
   let value (type k v) ((module Key) : (k, v) t) v : v =
@@ -140,8 +158,7 @@ module Key = struct
   type ('k, 'v, 'f) factory =
     name:string ->
     ?pp:(Format.formatter -> 'k -> unit) ->
-    ?container_k:(module Contained_tbl.KeyContainer with type t = 'k) ->
-    ?eq_v:('v -> 'v -> bool) ->
+    ?container:(module Contained_tbl.KeyContainer with type t = 'k) ->
     'f ->
     ('k, 'v) t
 
@@ -149,16 +166,17 @@ module Key = struct
 
   let default_pp out _ = Format.pp_print_string out "?"
 
-  let factory (type k v) : (k, v, (context, k, v) provider option) factory =
-   fun ~name ?pp ?container_k ?eq_v factory ->
+  let fail_eq (_ : 'a) (_ : 'a) : bool = failwith "Cannot compare non-deferred keys"
+
+  let factory (type k v) ~eq : (k, v, (context, k, v) provider option) factory =
+   fun ~name ?pp ?container factory ->
     let id = !next_id in
     incr next_id;
     let container =
-      match container_k with
+      match container with
       | Some k -> k
       | None -> Contained_tbl.strong ~eq:( == ) ()
     in
-    let eq = Option.value ~default:( == ) eq_v in
     let pp = Option.value ~default:default_pp pp in
     ( module struct
       type key = k
@@ -186,11 +204,28 @@ module Key = struct
       type providers += Provider of (store, key, value) provider
     end )
 
-  let key ~name ?pp ?container_k ?eq_v f = factory ~name ?pp ?container_k ?eq_v (Some (Tracing f))
+  let builtin ~name ?pp ?container f = factory ~name ~eq:fail_eq ?pp ?container (Some f)
 
-  let oracle ~name ?pp ?container_k ?eq_v f = factory ~name ?pp ?container_k ?eq_v (Some (Oracle f))
+  let mk_oracle ~eq f _ key = function
+    | Absent -> { value = f key None; changed = RecomputeChange }
+    | Recompute old | DependencyChange old ->
+        let value = f key (Some old) in
+        { value; changed = (if eq old value then RecomputeSame else RecomputeChange) }
 
-  let deferred ~name ?pp ?container_k ?eq_v () = factory ~name ?pp ?container_k ?eq_v None
+  let oracle ?(eq = ( == )) ~name ?pp ?container f =
+    factory ~name ~eq:fail_eq ?pp ?container (Some (mk_oracle ~eq f))
+
+  let mk_key ~eq f store key = function
+    | Absent -> { value = f store key; changed = RecomputeChange }
+    | Recompute value -> { value; changed = NoChange }
+    | DependencyChange old ->
+        let value = f store key in
+        { value; changed = (if eq old value then RecomputeSame else RecomputeChange) }
+
+  let key ?(eq = ( == )) ~name ?pp ?container f =
+    factory ~name ~eq:fail_eq ?pp ?container (Some (mk_key ~eq f))
+
+  let deferred ?(eq = ( == )) ~name ?pp ?container () = factory ~name ~eq ?pp ?container None
 end
 
 module Builder = struct
@@ -198,16 +233,18 @@ module Builder = struct
 
   let empty = IntMap.empty
 
-  let add_deferred (type k v) ((module Key) : (k, v) Key.t) provider providers =
+  let builtin (type k v) ((module Key) : (k, v) Key.t) provider providers =
     if Option.is_some Key.factory then
       invalid_arg (Printf.sprintf "Builder.add_deferred : %s is not a deferred key" Key.name);
     if IntMap.mem Key.id providers then
       invalid_arg (Printf.sprintf "Builder.add_deferred : Multiple factories for %s" Key.name);
     IntMap.add Key.id (Key.Provider provider) providers
 
-  let key key f providers = add_deferred key (Tracing f) providers
+  let get_eq (type k v) ((module K) : (k, v) Key.t) = K.eq
 
-  let oracle key f providers = add_deferred key (Oracle f) providers
+  let key key f providers = builtin key (Key.mk_key ~eq:(get_eq key) f) providers
+
+  let oracle key f providers = builtin key (Key.mk_oracle ~eq:(get_eq key) f) providers
 
   let build providers = { version = 0; providers; results = KeyTbl.create 32 }
 end
@@ -222,9 +259,12 @@ let with_context ~store ~tracing f =
 
 (** Build a single term and return the result. This does not do dependency checking, nor does it
     update the store. *)
-let build_result store (Mk ((module K), key) as bkey : BoxedKey.t) previous : result =
+let build_result (type k v) store (k : (k, v) Key.t) (key : k) ~has_change ~previous : result =
+  let module K = (val k) in
   let start = Sys.time () in
-  Log.debug (fun f -> f "Building %a" BoxedKey.pp bkey);
+  Log.debug (fun f ->
+      f "Building %a (has_change=%b, previous=%b)" (Key.pp k) key has_change
+        (Option.is_some previous));
   let version = store.version in
   let contents, trace =
     let provider =
@@ -232,86 +272,97 @@ let build_result store (Mk ((module K), key) as bkey : BoxedKey.t) previous : re
       | Some f -> f
       | None -> (
         match IntMap.find_opt K.id store.providers with
-        | None -> Printf.sprintf "No oracle for %S" K.name |> invalid_arg
+        | None -> Printf.sprintf "No provider for %S" K.name |> invalid_arg
         | Some (K.Provider f) -> f
-        | Some _ -> Printf.sprintf "Incorrect oracle for %S" K.name |> failwith )
+        | Some _ -> Printf.sprintf "Incorrect provider for %S" K.name |> failwith )
     in
-    match provider with
-    | Tracing f ->
-        (* The use of magic here is terribly ugly, but it's not clear how else to convert from the
-           abstract store to the concrete one without introducing another open union. There's only
-           one possible type here, so our use of magic shouldn't ever be incorrect. *)
-        let res, trace = with_context ~store ~tracing:true (fun t -> f (Obj.magic t) key) in
-        (res, Depends trace)
-    | Oracle f ->
-        let previous =
-          match previous with
-          | Some ({ contents = K.Value c; _ } : result) -> Some c
-          | _ -> None
-        in
-        (f key previous, Oracle)
+    let previous =
+      match previous with
+      | Some (previous : result) ->
+          let c = Key.value k previous.contents in
+          if has_change then KeyInfo.DependencyChange c else KeyInfo.Recompute c
+      | _ -> KeyInfo.Absent
+    in
+    let res, trace = with_context ~store ~tracing:true (fun t -> provider t key previous) in
+    (res, Depends trace)
   in
+
   let delta = Sys.time () -. start in
-  let log kind = Log.info (fun f -> f "Finished %a in %.2f (%s)" BoxedKey.pp bkey delta kind) in
   let result =
     { checked_at = version;
       changed_at = version;
       built_at = version;
-      contents = K.Value contents;
+      contents = K.Value contents.value;
       trace
     }
   in
+  let log kind = Log.info (fun f -> f "Finished %a in %.2f (%s)" (Key.pp k) key delta kind) in
   match previous with
-  | Some { contents = K.Value contents2; changed_at; _ } when K.eq contents contents2 ->
-      (* If our value hasn't'changed, then don't update the changed_at timestamp. *)
-      log "no change"; { result with changed_at }
-  | Some _ -> log "changed"; result
-  | None -> log "new"; result
+  | Some ({ changed_at; _ } as old) -> (
+    match contents.changed with
+    | NoChange ->
+        log "did nothing";
+        ( match trace with
+        | Depends [] -> ()
+        | Depends (_ :: _) -> failwith "Key returned NoChange, but has dependencies!" );
+        { old with contents = K.Value contents.value; checked_at = version }
+    | RecomputeChange -> log "changed"; result
+    | RecomputeSame -> log "same"; { result with changed_at } )
+  | _ ->
+      ( match contents.changed with
+      | NoChange -> failwith "Key returned NoChange for a new key!"
+      | _ -> () );
+      log "new"; result
 
-(** Determine if this step can be skipped (namely, all its dependencies haven't changed). *)
-let skip source build : result -> bool = function
-  | { trace = Oracle; _ } -> false
+let build_result store (Mk (k, key) : BoxedKey.t) ~has_change ~previous : result =
+  (* The use of magic here is terribly ugly, but it's not clear how else to convert from the
+     abstract store to the concrete one without introducing another open union. There's only one
+     possible type here, so our use of magic shouldn't ever be incorrect. *)
+  build_result store (Obj.magic k) key ~has_change ~previous
+
+(** Determine if any of this task's dependencies have changed. *)
+let has_change source build : result -> bool = function
   | { built_at; trace = Depends trace; _ } ->
-      let skip container =
+      let has container =
         match BoxedKey.get_key container with
-        | None -> false
+        | None ->
+            Log.debug (fun f ->
+                f "Rebuilding: %a - %a is missing from the cache" BoxedKey.pp source
+                  BoxedKey.pp_container container);
+
+            true
         | Some key ->
-            let _, result = build key (Some container) in
-            if result.changed_at <= built_at then true
+            let _, result = build key container in
+            if result.changed_at <= built_at then false
             else (
               Log.debug (fun f ->
                   f "Rebuilding: %a - %a was built more recently (%d > %d)" BoxedKey.pp source
                     BoxedKey.pp_container container result.changed_at built_at);
-              false )
+              true )
       in
-      List.for_all skip trace
+      List.exists has trace
 
 (** Get a result, rebuilding it if required. *)
-let rec rebuild ({ version; results; _ } as store) k container =
-  match container with
-  | Some container -> (
+let rebuild ({ version; results; _ } as store) =
+  let rec go k container =
     match BoxedKey.get_data container with
     | Some ({ checked_at; _ } as result) when checked_at = version ->
         (* If we already checked this version, then don't check dependencies. *)
         (container, result)
-    | Some result when skip k (rebuild store) result ->
-        (* If all our dependencies are up-to-date, then continue. *)
-        Log.debug (fun f -> f "Skipping %a" BoxedKey.pp k);
-        (container, { result with checked_at = version })
     | previous ->
         (* Rebuild and update the key. *)
-        let result = build_result store k previous in
+        let has_change = Option.fold ~none:true ~some:(has_change k go) previous in
+        let result = build_result store k ~has_change ~previous in
         BoxedKey.set_data container result;
-        (container, result) )
-  | None ->
-      (* Update and insert. We require that the key isn't in the table *)
-      assert (KeyTbl.find results k |> Option.is_none);
-
-      let result = build_result store k None in
-      let container = KeyTbl.insert results k result in
-      (container, result)
-
-let rebuild store key = KeyTbl.find store.results key |> rebuild store key
+        (container, result)
+  in
+  fun key ->
+    match KeyTbl.find results key with
+    | Some container -> go key container
+    | None ->
+        let result = build_result store key ~has_change:true ~previous:None in
+        let container = KeyTbl.insert results key result in
+        (container, result)
 
 let get (type k v) store (key : (k, v) Key.t) (k : k) : v =
   let module K = (val key) in

@@ -6,22 +6,20 @@ module Context = struct
       config : IlluaminateConfig.Schema.store
     }
 
-  let eq_v a b = a.root = b.root && a.config == b.config
+  let eq a b = a.root = b.root && a.config == b.config
 
   let key : (Span.filename, t) Core.Key.t =
-    Core.Key.deferred ~pp:Span.Filename.pp ~eq_v ~name:(__MODULE__ ^ ".Context") ()
+    Core.Key.deferred ~pp:Span.Filename.pp ~eq ~name:(__MODULE__ ^ ".Context") ()
 end
 
 module Files = struct
   let file : (Span.filename, Syntax.program option) Core.Key.t =
     Core.Key.deferred ~pp:Span.Filename.pp
-      ~container_k:(module Contained_tbl.StrongContainer (Span.Filename))
-      ~eq_v:(Option.equal ( == )) ~name:(__MODULE__ ^ ".Files.file") ()
+      ~container:(module Contained_tbl.StrongContainer (Span.Filename))
+      ~eq:(Option.equal ( == )) ~name:(__MODULE__ ^ ".Files.file") ()
 
   let files : (unit, Span.filename list) Core.Key.t =
-    Core.Key.deferred
-      ~eq_v:(CCList.equal Span.Filename.equal)
-      ~name:(__MODULE__ ^ ".Files.files") ()
+    Core.Key.deferred ~eq:(CCList.equal Span.Filename.equal) ~name:(__MODULE__ ^ ".Files.files") ()
 end
 
 module FileStore = struct
@@ -72,18 +70,10 @@ end
 
 type 'a key = (Syntax.program, 'a) Core.Key.t
 
-module WeakProgram = Contained_tbl.WeakContainer (struct
-  type t = Syntax.program
-
-  let equal = ( == )
-
-  let hash = Hashtbl.hash
-end)
-
 let key ~name build =
   Core.Key.key ~name
     ~pp:(fun f k -> Syntax.Spanned.program k |> Span.filename |> Span.Filename.pp f)
-    ~container_k:(module WeakProgram)
+    ~container:(Contained_tbl.weak ~eq:( == ) ())
     build
 
 let need_for data key file = Core.need data Files.file file |> Option.map (Core.need data key)

@@ -66,3 +66,6 @@ module Make (M : KeyContainer) : S with type key = M.t and type 'a container = '
 
 val strong :
   ?hash:('a -> int) -> eq:('a -> 'a -> bool) -> unit -> (module KeyContainer with type t = 'a)
+
+val weak :
+  ?hash:('a -> int) -> eq:('a -> 'a -> bool) -> unit -> (module KeyContainer with type t = 'a)

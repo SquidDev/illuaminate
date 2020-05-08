@@ -2,6 +2,32 @@ open Omnomnom.Tests
 
 (** A reporter which enables logging. *)
 let logging : Omnomnom.Ingredients.reporter =
+  let reporter () =
+    let open Omnomnom.Formatting in
+    let app_name =
+      match Array.length Sys.argv with
+      | 0 -> Filename.basename Sys.executable_name
+      | _ -> Filename.basename Sys.argv.(0)
+    in
+    let pp_with out style h =
+      Format.fprintf out "%s: [" app_name;
+      printf style out "%s" h;
+      Format.fprintf out "] "
+    in
+    let pp_header out (level, header) =
+      let style, default =
+        match level with
+        | Logs.App -> (DullColor Cyan, "APP")
+        | Logs.Error -> (DullColor Red, "ERROR")
+        | Logs.Warning -> (DullColor Yellow, "WARN")
+        | Logs.Info -> (DullColor Blue, "INFO")
+        | Logs.Debug -> (DullColor Green, "DEBG")
+      in
+      pp_with out style (Option.value ~default header)
+    in
+    Logs.format_reporter ~pp_header ()
+  in
+
   ( module struct
     type options = { verbose : int }
 
@@ -17,7 +43,7 @@ let logging : Omnomnom.Ingredients.reporter =
       Term.(const (fun v -> { verbose = List.length v }) $ verbose)
 
     let run verbose =
-      Logs.format_reporter () |> Logs.set_reporter;
+      reporter () |> Logs.set_reporter;
       let level =
         match verbose with
         | { verbose = 0 } -> Logs.Error
