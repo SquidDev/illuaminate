@@ -19,23 +19,26 @@ let schema =
     (Schema.singleton only) Linters.all
   |> Schema.union (Schema.singleton Doc.Extract.Config.key)
 
+let parse_schema : Node.trivial Span.spanned -> _ = function
+  | { value = LineComment c | BlockComment (_, c); _ } ->
+      c
+      |> CCString.drop_while (fun c -> c == '-')
+      |> String.trim
+      |> CCString.chop_prefix ~pre:"config:"
+      |> Option.map @@ fun c ->
+         let buf = Lexing.from_string c in
+         Schema.to_parser schema |> Parser.fields
+         |> Parser.parse_buf (Span.Filename.mk "=config") buf
+         |> Result.fold ~ok:Fun.id ~error:(fun (_, x) -> failwith x)
+  | { value = Whitespace _; _ } -> None
+
 let parse_schema program =
-  match program ^. Syntax.First.program with
-  | Node { leading_trivia = { value = LineComment c | BlockComment (_, c); _ } :: _; _ } -> (
-      let c =
-        c
-        |> CCString.drop_while (fun c -> c == '-')
-        |> String.trim
-        |> CCString.chop_prefix ~pre:"config:"
-      in
-      match c with
-      | Some c ->
-          let buf = Lexing.from_string c in
-          Schema.to_parser schema |> Parser.fields
-          |> Parser.parse_buf (Span.Filename.mk "=config") buf
-          |> Result.fold ~ok:Fun.id ~error:(fun (_, x) -> failwith x)
-      | None -> Schema.default schema )
-  | _ -> Schema.default schema
+  program ^. (Syntax.First.program -| Node.leading_trivia)
+  |> CCList.find_map parse_schema
+  |> CCOpt.get_lazy @@ fun () ->
+     program ^. (Syntax.Last.program -| Node.trailing_trivia)
+     |> CCList.find_map parse_schema
+     |> CCOpt.get_lazy @@ fun () -> Schema.default schema
 
 let files out =
   lazy

@@ -63,5 +63,20 @@ let linter =
     ~program:(fun () context r prog ->
       match IlluaminateData.need context.data E.key prog |> E.get_module with
       | None -> ()
-      | Some m -> documented modu ~r m "Module is missing documentation")
+      | Some { description; descriptor; definition; _ } ->
+          (* Modules are a little odd, as we allow any module with the same name to have
+             documentation. *)
+          ( match description with
+          | Some _ -> ()
+          | None ->
+              let module M = Map.Make (String) in
+              let has_any =
+                IlluaminateData.need context.data E.get_modules ()
+                |> M.find_opt descriptor.mod_name
+                |> CCOpt.flat_map (fun (x : _ documented) -> x.description)
+                |> Option.is_some
+              in
+              if not has_any then r.r ~span:definition ~tag "Module is missing documentation" );
+
+          modu ~r ~span:definition descriptor)
     ()
