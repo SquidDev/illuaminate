@@ -212,12 +212,16 @@ let contents { files; _ } filename = Hashtbl.find files filename
 let apply_change { files; _ } { WorkspaceEdit.changes; documentChanges; _ } =
   let apply_edit uri edits =
     let content = Hashtbl.find files uri in
+    let doc = TextDocumentItem.create ~uri ~languageId:"_" ~version:0 ~text:content in
+    let doc = DidOpenTextDocumentParams.create ~textDocument:doc |> Text_document.make in
     List.fold_left
       (fun c { TextEdit.range; newText } ->
         Logs.info (fun f -> f "Applying edit at %a: %s" (json_pp Range.yojson_of_t) range newText);
-        Text_document_text.apply_change c range newText)
-      content edits
-    |> Hashtbl.replace files uri
+        Text_document.apply_content_change
+          (TextDocumentContentChangeEvent.create ~range ~text:newText ())
+          c)
+      doc edits
+    |> Text_document.text |> Hashtbl.replace files uri
   in
   let apply_doc_edit ({ textDocument = { uri; _ }; edits } : TextDocumentEdit.t) =
     apply_edit uri edits

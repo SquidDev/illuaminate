@@ -4,8 +4,8 @@
   (:standard \ illuaminate_lsp ugly_hacks))
  (libraries cmdliner containers containers.data fpath illuaminate.config
    illuaminateConfigFormat illuaminate.core illuaminate.data illuaminate.lint
-   illuaminate.parser illuaminate.semantics logs lsp lsp.stdune mtime
-   mtime.clock.os omd result str yojson ppx_yojson_conv_lib))
+   illuaminate.parser illuaminate.semantics logs str lsp lsp.stdune mtime
+   mtime.clock.os omd result yojson ppx_yojson_conv_lib))
 
 (executable
  (name illuaminate_lsp)
