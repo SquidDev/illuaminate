@@ -4,7 +4,7 @@ module J = Yojson.Safe
 module Versions = struct
   let omnomnom = "1e9e6a2c3269d4b8add8b15837379c5d45e6fedc"
 
-  let lsp = "c57f67def73c011dbfefe159ae02471f86ea08b7"
+  let lsp = "c2e9d337402948d449afa5a5d365fa6a49fe94fd"
 end
 
 let rec json_of_value : value -> J.t = function
@@ -100,7 +100,9 @@ let () =
               [ ( "@opam/omnomnom",
                   `String ("git://github.com/SquidDev/omnomnom:omnomnom.opam#" ^ Versions.omnomnom)
                 );
-                ("@opam/lsp", `String ("git://github.com/ocaml/ocaml-lsp:lsp.opam#" ^ Versions.lsp))
+                ( "@opam/lsp",
+                  `String ("git://github.com/SquidDev/ocaml-lsp-subtree:lsp.opam#" ^ Versions.lsp)
+                )
               ] );
           ( "scripts",
             `Assoc

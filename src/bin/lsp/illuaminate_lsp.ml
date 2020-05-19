@@ -65,7 +65,7 @@ let () =
             on_notification = (fun rpc () noti -> server.notify (wrap rpc) noti |> Fiber.return)
           }
           stdin stdout
-        |> Fiber.run;
+        |> Fiber.run |> Option.value ~default:();
         Log.info (fun f -> f "Stopping server"))
   in
 

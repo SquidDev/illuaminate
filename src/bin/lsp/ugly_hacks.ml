@@ -3,7 +3,7 @@ open Lsp
 let { Logger.log } = Logger.for_section "lsp"
 
 (** {!Rpc.IO.send}, but public. Thanks, I hate it. *)
-let send (packet : Rpc.Io.packet) =
+let send (packet : Jsonrpc.packet) =
   let json =
     match packet with
     | Request r -> Jsonrpc.Request.yojson_of_t r
