@@ -105,3 +105,6 @@ val compute : (context -> 'a) -> t -> 'a
 (** Increment the internal version number. This causes builtin keys to be recomputed. This should
     have no effect if keys have not changed. *)
 val refresh : t -> unit
+
+(** Dump the current state of the cache. *)
+val pp_store : all:bool -> Format.formatter -> t -> unit

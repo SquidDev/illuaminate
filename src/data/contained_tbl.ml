@@ -87,6 +87,14 @@ module type S = sig
   val find : 'a t -> key -> 'a container option
 
   val insert : 'a t -> key -> 'a -> 'a container
+
+  val pp :
+    key:(Format.formatter -> key -> unit) ->
+    value:(Format.formatter -> 'a -> unit) ->
+    all:bool ->
+    Format.formatter ->
+    'a t ->
+    unit
 end
 
 module Make (H : KeyContainer) = struct
@@ -178,6 +186,19 @@ module Make (H : KeyContainer) = struct
       | Cons (_, _, next) -> replace_bucket next
     in
     replace_bucket l
+
+  let pp ~key ~value ~all out { data; _ } =
+    let rec print_one = function
+      | Empty -> ()
+      | Cons (_, c, next) ->
+          ( match (H.get_key c, H.get_data c) with
+          | Some k, Some v -> Format.fprintf out "%a => %a@," key k value v
+          | Some k, None -> if all then Format.fprintf out "%a => _@," key k
+          | None, Some v -> if all then Format.fprintf out "_ => %a@," value v
+          | None, None -> () );
+          print_one next
+    in
+    Format.fprintf out "@[<v 2>{ "; Array.iter print_one data; Format.fprintf out "@] }"
 end
 
 let strong (type k) ?(hash = Hashtbl.hash) ~eq () =

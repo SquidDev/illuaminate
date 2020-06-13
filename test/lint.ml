@@ -40,7 +40,7 @@ let parse_schema program =
      |> CCList.find_map parse_schema
      |> CCOpt.get_lazy @@ fun () -> Schema.default schema
 
-let files out =
+let files ?out () =
   lazy
     (let module FileStore = D.Programs.FileStore in
     let dir = Fpath.(v (Sys.getcwd ()) / "data" / "lint" / "extra") in
@@ -58,7 +58,7 @@ let files out =
              (fun (err : _ Span.spanned) -> IlluaminateParser.Error.report errs err.span err.value)
              program;
            Result.to_option program |> FileStore.update files name);
-    Error.display_of_files ~out ~with_summary:false errs;
+    Error.display_of_files ?out ~with_summary:false errs;
     files)
 
 let process ~name contents out =
@@ -84,7 +84,7 @@ let process ~name contents out =
       let data =
         let open D.Builder in
         empty
-        |> D.Programs.FileStore.lazy_builder (files out)
+        |> D.Programs.FileStore.lazy_builder (files ~out ())
         |> oracle D.Programs.Context.key (fun _ _ -> context)
         |> build
       in
@@ -104,8 +104,38 @@ let process ~name contents out =
 
 let process ~name contents = Format.asprintf "%t" (process ~name contents)
 
+let leak =
+  let open Leak in
+  let name = Span.Filename.mk "=stdin" in
+  let store = Schema.default schema in
+  let context = { D.Programs.Context.root = None; config = store } in
+  let data =
+    let open D.Builder in
+    empty
+    |> D.Programs.FileStore.lazy_builder (files ())
+    |> oracle D.Programs.Context.key (fun _ _ -> context)
+    |> build
+  in
+
+  OmnomnomAlcotest.mk_alcotest_case "Memory leaks" `Slow @@ fun () ->
+  Leak.run_unit ~n:1000
+    ( action ~name:"Parse file" (fun () ->
+          let contents = "print('hello world')" in
+          match Lexing.from_string contents |> IlluaminateParser.program name with
+          | Error err ->
+              let errs = Error.make () in
+              IlluaminateParser.Error.report errs err.span err.value;
+              Alcotest.failf "%t" (fun out ->
+                  Error.display_of_string ~out (fun _ -> Some contents) errs)
+          | Ok parsed -> parsed)
+    >-> action ~name:"Lint and fix" (fun prog ->
+            Driver.lint_and_fix_all ~store ~data Linters.all prog |> fst)
+    >-> action ~name:"Lint fixed program" (fun prog ->
+            List.iter (fun l -> Driver.lint ~store ~data l prog |> ignore) Linters.all) )
+
 let tests =
   group "Linting"
     [ OmnomnomGolden.of_directory process ~group:"Basic lints" ~directory:"data/lint"
-        ~extension:".lua" ()
+        ~extension:".lua" ();
+      leak
     ]

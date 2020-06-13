@@ -377,3 +377,6 @@ let need (type k v) ({ store; _ } as context) (key : (k, v) Key.t) (k : k) : v =
   Key.value key result.contents
 
 let compute f store = with_context ~store ~tracing:false f |> fst
+
+let pp_store ~all out { results; _ } =
+  KeyTbl.pp ~all ~key:BoxedKey.pp ~value:(fun out _ -> Format.pp_print_string out "?") out results

@@ -59,6 +59,14 @@ module type S = sig
 
   (** Add or insert a key. *)
   val insert : 'a t -> key -> 'a -> 'a container
+
+  val pp :
+    key:(Format.formatter -> key -> unit) ->
+    value:(Format.formatter -> 'a -> unit) ->
+    all:bool ->
+    Format.formatter ->
+    'a t ->
+    unit
 end
 
 (** Construct a new open-hash table. *)
