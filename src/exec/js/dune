@@ -3,6 +3,5 @@
  (public_name illuaminate.exec.js)
  (implements illuaminate.exec)
  (libraries js_of_ocaml)
- (variant js)
  (preprocess
   (pps js_of_ocaml-ppx jsx)))

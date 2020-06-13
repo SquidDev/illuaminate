@@ -1,6 +1,5 @@
 (lang dune 2.3)
 (using menhir 2.0)
-(using library_variants 0.2)
 (implicit_transitive_deps false)
 (generate_opam_files true)
 (allow_approximate_merlin)

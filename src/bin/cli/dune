@@ -14,20 +14,18 @@
 
 (executable
  (name illuaminate)
- (libraries illuaminate_cli)
  (modules illuaminate)
- (modes exe)
- (variants unix))
+ (libraries illuaminate_cli illuaminate.exec.unix)
+ (modes exe))
 
 (executable
  (name illuaminate_js)
  (modules illuaminate_js)
- (libraries illuaminate_cli)
+ (libraries illuaminate_cli illuaminate.exec.js)
  (modes js)
- (variants js)
  (js_of_ocaml
   (javascript_files runtime.js)
-  (flags "--opt=3" "--custom-header=#!/usr/bin/env node")))
+  (flags "--custom-header=#!/usr/bin/env node")))
 
 (rule
  (target illuaminate.min.exe)

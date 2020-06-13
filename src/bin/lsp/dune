@@ -11,8 +11,8 @@
  (name illuaminate_lsp)
  (modules illuaminate_lsp ugly_hacks)
  (modes exe)
- (variants unix)
- (libraries illuaminateLsp cmdliner lsp logs yojson lsp.stdune lsp.fiber))
+ (libraries illuaminateLsp cmdliner lsp logs yojson lsp.stdune lsp.fiber
+   illuaminate.exec.unix))
 
 (rule
  (target illuaminate_lsp.min.exe)

@@ -4,9 +4,6 @@
    illuaminate.semantics illuaminate.lint illuaminate.config illuaminate.html
    illuaminate.data)
  (modes js)
- (variants js)
- (js_of_ocaml
-  (flags --opt=3))
  ;; (flags "--pretty" "--no-inline" "--debug-info" "--source-map"))
  (preprocess
   (pps js_of_ocaml-ppx jsx)))
