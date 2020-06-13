@@ -150,10 +150,10 @@ type t =
     server : server_channel
   }
 
-let test ~name ?workspace run =
+let test ~name ?(speed = `Quick) ?workspace run =
   OmnomnomAlcotest.of_alcotest_case
     ( name,
-      `Quick,
+      speed,
       fun () ->
         let workspace =
           Option.value ~default:"default" workspace
@@ -206,6 +206,10 @@ let open_file ({ client; server; files; _ } as t) f =
     (TextDocumentDidOpen { textDocument = { uri; languageId = "lua"; version = 0; text } })
   |> Check.ok_s;
   uri
+
+let close_file { client; server; files; _ } uri =
+  Hashtbl.remove files uri;
+  server.notify client (TextDocumentDidClose { textDocument = { uri } }) |> Check.ok_s
 
 let contents { files; _ } filename = Hashtbl.find files filename
 

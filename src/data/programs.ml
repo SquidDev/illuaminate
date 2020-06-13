@@ -9,7 +9,9 @@ module Context = struct
   let eq a b = a.root = b.root && a.config == b.config
 
   let key : (Span.filename, t) Core.Key.t =
-    Core.Key.deferred ~pp:Span.Filename.pp ~eq ~name:(__MODULE__ ^ ".Context") ()
+    Core.Key.deferred ~pp:Span.Filename.pp
+      ~container:(module Contained_tbl.StrongContainer (Span.Filename))
+      ~eq ~name:(__MODULE__ ^ ".Context") ()
 end
 
 module Files = struct

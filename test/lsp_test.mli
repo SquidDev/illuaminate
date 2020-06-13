@@ -51,7 +51,12 @@ end
 
 type t
 
-val test : name:string -> ?workspace:string -> (t -> unit) -> Omnomnom.Tests.tests
+val test :
+  name:string ->
+  ?speed:Alcotest.speed_level ->
+  ?workspace:string ->
+  (t -> unit) ->
+  Omnomnom.Tests.tests
 
 type some_request = Request : 'a Server_request.t -> some_request
 
@@ -69,6 +74,9 @@ val resolve_file : t -> string -> DocumentUri.t
 
 (** Open a file relative to the current workspace. *)
 val open_file : t -> string -> DocumentUri.t
+
+(** Close a file in the current workspace. *)
+val close_file : t -> DocumentUri.t -> unit
 
 (** Get the contents of a file. *)
 val contents : t -> DocumentUri.t -> string

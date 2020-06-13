@@ -126,7 +126,11 @@ module Workspace = struct
 
   let linters : (Span.filename, Error.Tag.filter * IlluaminateConfig.Schema.store) Data.Key.t =
     let open Data in
-    Key.key ~pp:Span.Filename.pp ~name:(__MODULE__ ^ ".Workspace.linters") @@ fun store name ->
+    Key.key
+      ~container:(module Container.Strong (Span.Filename))
+      ~pp:Span.Filename.pp
+      ~name:(__MODULE__ ^ ".Workspace.linters")
+    @@ fun store name ->
     let { root; workspaces } = need store workspaces () in
     let workspace = workspace_for ~root workspaces name in
     match workspace with

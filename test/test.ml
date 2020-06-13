@@ -81,6 +81,7 @@ let () =
              Lsp_locate.tests;
              Lsp_reference.tests;
              Lsp_rename.tests;
-             Lsp_workspace_symbol.tests
+             Lsp_workspace_symbol.tests;
+             Lsp_leak.tests
            ]
        ]
