@@ -253,3 +253,5 @@ let pos l c = Position.create ~line:l ~character:c
 let request { client; server; _ } r = server.request client capabilities r
 
 let notify { client; server; _ } r = server.notify client r
+
+let drain { outgoing; _ } = Queue.clear outgoing

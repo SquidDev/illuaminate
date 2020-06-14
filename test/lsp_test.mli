@@ -94,3 +94,5 @@ val pos : int -> int -> Position.t
 val request : t -> 'a Client_request.t -> ('a, Jsonrpc.Response.Error.t) result
 
 val notify : t -> Client_notification.t -> (unit, string) result
+
+val drain : t -> unit

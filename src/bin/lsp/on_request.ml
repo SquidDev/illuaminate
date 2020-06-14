@@ -253,9 +253,6 @@ let worker (type res) (client : Store.client_channel) store (_ : ClientCapabilit
                 Ok `Null )
         | _ -> Ok `Null )
     | _ -> Error { code = InternalError; message = "Invalid arguments"; data = None } )
-  | UnknownRequest ("$/illuaminate/dump", _) ->
-      Format.asprintf "%a" (D.pp_store ~all:false) (Store.data store) |> Printf.printf "%s";
-      Ok ()
   | _ ->
       Log.err (fun f -> f "Unknown message (not implemented)");
       Error { code = InternalError; message = "Not implemented"; data = None }

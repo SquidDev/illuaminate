@@ -9,7 +9,7 @@ val ( >-> ) : ('a, 'b) action -> ('b, 'c) action -> ('a, 'c) action
 
 (** Run our actions in a loop [n] times, with some initial state. If we use leak than [threshold]
     bytes of memory, then error. *)
-val run : ?n:int -> ?threshold:int -> init:'a -> ('a, 'a) action -> unit
+val run : ?error:('a -> unit) -> ?n:int -> ?threshold:int -> init:'a -> ('a, 'a) action -> unit
 
 (** The same as {!run}, but with no external state. *)
-val run_unit : ?n:int -> ?threshold:int -> (unit, unit) action -> unit
+val run_unit : ?error:(unit -> unit) -> ?n:int -> ?threshold:int -> (unit, unit) action -> unit

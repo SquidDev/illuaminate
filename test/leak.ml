@@ -16,6 +16,10 @@ let rec eval : 'a 'b. ('a, 'b) action -> 'a -> 'b =
   | One (_, f) -> f s
   | Action (f, g) -> eval f s |> eval g
 
+let eval_n ~actions ~eval ~n =
+  let rec go n state = if n <= 0 then state else eval actions state |> go (n - 1) in
+  go n
+
 let rec eval_trace : 'a 'b. ('a, 'b) action -> 'a -> 'b =
  fun f s ->
   match f with
@@ -29,7 +33,7 @@ let rec eval_trace : 'a 'b. ('a, 'b) action -> 'a -> 'b =
       result
   | Action (f, g) -> eval_trace f s |> eval_trace g
 
-let run ?(n = 1000) ?(threshold = 100_000) ~init:state actions =
+let run ?error ?(n = 1000) ?(threshold = 100_000) ~init:state actions =
   (* We run the iteration once - hopefully should get us in a stable state. Then we run n times,
      monitoring memory before and after. If we think we have a leak, then we run a final time,
      tracking how much data is allocated. *)
@@ -38,8 +42,7 @@ let run ?(n = 1000) ?(threshold = 100_000) ~init:state actions =
   Gc.full_major ();
   let before = Gc.stat () in
 
-  let rec eval_n n state = if n <= 0 then state else eval actions state |> eval_n (n - 1) in
-  let state = eval_n n state in
+  let state = eval_n ~eval ~actions ~n state in
 
   Gc.full_major ();
   let after = Gc.stat () in
@@ -51,7 +54,9 @@ let run ?(n = 1000) ?(threshold = 100_000) ~init:state actions =
   in
 
   if change > threshold then (
-    eval_trace actions state |> ignore;
+    Option.iter (fun f -> Printf.printf "== Dump ==\n"; f state) error;
+    Printf.printf "== Trace ==\n";
+    eval_n ~eval:eval_trace ~actions ~n:5 state |> ignore;
     Alcotest.fail msg )
   else Printf.printf "%s\n" msg
 
