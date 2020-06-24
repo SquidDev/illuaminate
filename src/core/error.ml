@@ -194,10 +194,10 @@ let display_of_files ?(out = Format.err_formatter) ?(with_summary = true) store 
          let line =
            match (Span.filename span).path with
            | None -> ""
-           | Some path ->
+           | Some path -> (
                let ch = get_channel (Fpath.to_string path) in
                seek_in ch (Span.start_bol span);
-               input_line ch
+               try input_line ch with End_of_file -> "" )
          in
          display_line out line err);
   ( match !last with
