@@ -32,7 +32,7 @@ type comment =
     returns : return list list;
     throws : description list;
     (* Modules. *)
-    module_info : module_info option;
+    module_info : module_info Span.spanned option;
     (* Types. *)
     type_info : type_info option
   }

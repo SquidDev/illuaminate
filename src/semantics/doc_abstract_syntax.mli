@@ -5,6 +5,7 @@ type module_kind =
       (** A legacy module, using the "module" directive. Global variables declared in this file are
           considered as exported by this file. *)
   | Library  (** A standard module, which returns the term that it exports. *)
+  | Custom of string  (** A custom module kind. *)
 
 module Omd' : sig
   val iter_element : (Omd.element -> unit) -> Omd.element -> unit
@@ -68,6 +69,7 @@ module type S = sig
         (** A legacy module, using the "module" directive. Global variables declared in this file
             are considered as exported by this file. *)
     | Library  (** A standard module, which returns the term that it exports. *)
+    | Custom of string  (** A custom module kind. *)
 
   (** A base class for visitors over the document syntax tree. *)
   class abstract_iter :

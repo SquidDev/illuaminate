@@ -222,7 +222,7 @@ module Build = struct
       mutable b_rets : return grouped;
       mutable b_throws : description list;
       (* Other *)
-      mutable b_module : module_info option;
+      mutable b_module : module_info Span.spanned option;
       mutable b_type : type_info option
     }
 
@@ -439,16 +439,22 @@ module Build = struct
           List.fold_left
             (fun kind flag ->
               match flag with
-              | Marker { contents = "library"; _ } -> Some Library
-              | Marker { contents = "module"; _ } -> Some Module
+              | Named ({ value = "kind"; _ }, { contents = "library"; _ })
+              | Marker { contents = "library"; _ } ->
+                  Some Library
+              | Named ({ value = "kind"; _ }, { contents = "module"; _ })
+              | Marker { contents = "module"; _ } ->
+                  Some Module
+              | Named ({ value = "kind"; _ }, { contents; _ }) -> Some (Custom contents)
               | f -> unknown b "@module" f; kind)
             None flags
         in
         match b.b_module with
-        | Some { mod_name = inner_name; _ } ->
+        | Some { value = { mod_name = inner_name; _ }; _ } ->
             report b Tag.duplicate_definitions tag.span
               "Duplicate @module definitions (named '%s' and '%s')" inner_name body.contents
-        | None -> b.b_module <- Some { mod_name = body.contents; mod_kind } )
+        | None ->
+            b.b_module <- Some { value = { mod_name = body.contents; mod_kind }; span = tag.span } )
     | "type" -> (
         List.iter (unknown b "@type") flags;
         match b.b_type with

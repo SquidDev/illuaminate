@@ -507,7 +507,7 @@ module Infer = struct
     let mod_types = StringMap.bindings state.types |> List.map snd |> DropLocal.mod_types in
     let result =
       match module_comment with
-      | Some ({ module_info = Some { mod_name; mod_kind = k }; _ } as comment) ->
+      | Some ({ module_info = Some { value = { mod_name; mod_kind = k }; _ }; _ } as comment) ->
           let merge pos implicit body =
             let mod_contents = Merge.value ~errs:state.errs pos implicit body in
             { mod_name; mod_contents; mod_types; mod_kind = Option.value ~default:mod_kind k }
@@ -712,7 +712,15 @@ module Resolve = struct
 end
 
 module Config = struct
-  type t = { module_path : (string * string) list }
+  type custom_kind =
+    { id : string;
+      display : string
+    }
+
+  type t =
+    { module_path : (string * string) list;
+      module_kinds : custom_kind list
+    }
 
   let workspace = Category.create ~name:"doc" ~comment:"Controls documentation generation." ()
 
@@ -732,15 +740,19 @@ module Config = struct
              files, it is ignored when an explicit @module annotation is provided."
           ~default:[]
           Converter.(list (atom ~ty:"path" parse_path print_path))
+      and+ module_kinds =
+        field ~name:"module-kinds" ~comment:"A list of custom module kinds and their display names."
+          ~default:[]
+          Converter.(list (pair string string))
       in
-      { module_path }
+      { module_path; module_kinds = List.map (fun (id, display) -> { id; display }) module_kinds }
     in
     Category.add term workspace
 
   let get : D.Programs.Context.t -> (Fpath.t * string) list = function
     | { root = None; _ } -> []
     | { root = Some root; config } ->
-        let { module_path } = Schema.get key config in
+        let { module_path; module_kinds = _ } = Schema.get key config in
         List.map (fun (p, ext) -> (Fpath.(root // v p), ext)) module_path
 end
 

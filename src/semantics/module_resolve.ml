@@ -123,7 +123,7 @@ let global_modules =
     SMap.fold
       (fun _ m modules ->
         match m with
-        | { descriptor = { mod_kind = Library; _ }; _ } -> modules
+        | { descriptor = { mod_kind = Library | Custom _; _ }; _ } -> modules
         | { descriptor = { mod_name; mod_kind = Module; _ }; _ } -> SSet.add mod_name modules)
       modules SSet.empty
   in

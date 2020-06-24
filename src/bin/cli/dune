@@ -5,7 +5,7 @@
  (modules
   (:standard \ illuaminate illuaminate_js))
  (libraries containers cmdliner fpath illuaminate.core illuaminate.data
-   illuaminate.parser illuaminate.semantics illuaminate.lint
+   illuaminate.parser illuaminate.semantics illuaminate.lint illuaminate.config
    illuaminateConfigFormat illuaminate.html illuaminate.pattern
    illuaminate.doc_emit illuaminate.exec omd result logs yojson
    ppx_deriving_yojson.runtime)

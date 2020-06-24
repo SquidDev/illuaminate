@@ -3,6 +3,7 @@ open IlluaminateCore
 type module_kind =
   | Module
   | Library
+  | Custom of string
 
 module Omd' = struct
   open Omd
@@ -71,6 +72,7 @@ module type S = sig
   type nonrec module_kind = module_kind =
     | Module
     | Library
+    | Custom of string
 
   class abstract_iter :
     object
@@ -141,6 +143,7 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
   type nonrec module_kind = module_kind =
     | Module
     | Library
+    | Custom of string
 
   class abstract_iter =
     object (self)

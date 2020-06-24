@@ -107,7 +107,7 @@ module Comment = struct
     |> fields "args" (List.map arg) c.arguments
     |> fields "returns" (List.map return) c.returns
     |> fields "throws" description c.throws
-    |> field' "module" (fun x -> atom' x.mod_name) c.module_info
+    |> field' "module" (fun x -> atom' x.Span.value.mod_name) c.module_info
     |> field' "type" (fun x -> atom' x.type_name) c.type_info
     |> record
 end

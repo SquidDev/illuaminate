@@ -36,11 +36,10 @@ let worker client store : Client_notification.t -> (unit, string) result = funct
       Ok ()
   (* Whole bunch of notifications we can ignore. *)
   | ChangeConfiguration _ | WillSaveTextDocument _ | DidSaveTextDocument _ | Initialized | Exit
-  | Unknown_notification { method_ = "$/illuaminate/dump"; _} ->
+  | Unknown_notification { method_ = "$/illuaminate/dump"; _ } ->
       Format.asprintf "%a" (D.pp_store ~all:true) (Store.data store) |> Printf.printf "%s\n";
       Ok ()
-  | Unknown_notification _ ->
-      Ok ()
+  | Unknown_notification _ -> Ok ()
 
 let handle client store noti =
   try worker client store noti

@@ -146,6 +146,13 @@ let doc_gen path =
      in
      mkdirs Fpath.(destination / "module");
      let module_dir = Fpath.v "module" in
+     let custom =
+       let config =
+         Config.get_store config |> IlluaminateConfig.Schema.get Doc.Extract.Config.key
+       in
+       config.module_kinds
+     in
+
      modules
      |> List.iter (fun (modu : Doc.Syntax.module_info Doc.Syntax.documented) ->
             let path = Fpath.(destination / "module" / (modu.descriptor.mod_name ^ ".html")) in
@@ -153,12 +160,12 @@ let doc_gen path =
               let open Fpath in
               v x |> relativize ~root:module_dir |> Option.fold ~none:("../" ^ x) ~some:to_string
             in
-            E.Html_main.emit_module ?site_title ~resolve ~source_link ~modules modu
+            E.Html_main.emit_module ?site_title ~resolve ~source_link ~modules ~custom modu
             |> emit_doc
             |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path));
 
      let path = Fpath.(destination / "index.html") in
-     E.Html_main.emit_modules ?site_title ~resolve:Fun.id ~modules index
+     E.Html_main.emit_modules ?site_title ~resolve:Fun.id ~modules ~custom index
      |> emit_doc
      |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path);
 

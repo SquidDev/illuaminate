@@ -35,7 +35,8 @@ type comment =
     returns : return list list;  (** A list of possible function return signatures. *)
     throws : description list;  (** Possible errors this function throws. *)
     (* Modules. *)
-    module_info : module_info option;  (** Information about the module this term defines. *)
+    module_info : module_info Span.spanned option;
+        (** Information about the module this term defines. *)
     (* Types. *)
     type_info : type_info option  (** Information about the type this term defines. *)
   }

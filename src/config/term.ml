@@ -3,6 +3,14 @@ module Converter = struct
     | Atom : 'a Parser.t * ('a -> Sexp.raw) -> 'a t
     | List : 'a t -> 'a list t
 
+  let rec get_parser : type a. a t -> a Parser.t = function
+    | Atom (p, _) -> p
+    | List c -> get_parser c |> Parser.list
+
+  let rec get_printer : type a. a t -> a -> Sexp.raw = function
+    | Atom (_, p) -> p
+    | List x -> fun xs -> List (List.map (get_printer x) xs)
+
   let bool : bool t = Atom (Parser.bool, fun x -> Atom (string_of_bool x))
 
   let string : string t = Atom (Parser.string, fun x -> Atom x)
@@ -10,6 +18,17 @@ module Converter = struct
   let float : float t = Atom (Parser.float, fun x -> Atom (string_of_float x))
 
   let int : int t = Atom (Parser.int, fun x -> Atom (string_of_int x))
+
+  let pair left right =
+    let print (x, y) : Sexp.raw = List [ get_printer left x; get_printer right y ] in
+
+    let parse =
+      let open Parser in
+      in_list
+      @@ let+ x = get_parser left and+ y = get_parser right in
+         (x, y)
+    in
+    Atom (parse, print)
 
   let list x : 'a list t = List x
 
@@ -35,14 +54,6 @@ module Converter = struct
     in
     let show x = Hashtbl.find_opt to_string x |> Option.value ~default:"[unknown]" in
     Atom (Parser.atom_res ~ty parse, fun x -> Atom (show x))
-
-  let rec get_parser : type a. a t -> a Parser.t = function
-    | Atom (p, _) -> p
-    | List c -> get_parser c |> Parser.list
-
-  let rec get_printer : type a. a t -> a -> Sexp.raw = function
-    | Atom (_, p) -> p
-    | List x -> fun xs -> List (List.map (get_printer x) xs)
 end
 
 type 'a body =
