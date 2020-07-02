@@ -13,11 +13,11 @@ let parse str =
 
 let maybe_source_link format span =
   let c = Printf.sprintf "(doc (source-link %S))" format |> parse |> C.get_doc_options in
-  c.source_link span
+  c.source_link (Span span)
 
 let get_source_link format span =
   let c = Printf.sprintf "(doc (source-link %S))" format |> parse |> C.get_doc_options in
-  c.source_link span
+  c.source_link (Span span)
 
 let mk_span file =
   let open Span in

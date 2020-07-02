@@ -30,7 +30,7 @@ type doc_options =
   { site_title : string option;
     index : Fpath.t option;
     destination : Fpath.t;
-    source_link : Span.t -> string option;
+    source_link : IlluaminateSemantics.Doc.AbstractSyntax.source -> string option;
     json_index : bool
   }
 
@@ -102,24 +102,19 @@ let doc_options_term =
             None
         | Ok l -> Some (String.trim l) )
     in
-    let source_link (span : Span.t) =
+    let link ~path ~start_line ~end_line =
       source_link
       |> CCOpt.flat_map @@ fun template ->
          let out = Buffer.create 32 in
          let rec go = function
            | [] -> Some (Buffer.contents out)
            | Lex_template.Raw x :: xs -> Buffer.add_string out x; go xs
-           | Key "path" :: xs ->
-               (Span.filename span).path
-               |> CCOpt.flat_map (Fpath.relativize ~root)
-               |> CCOpt.flat_map (fun x ->
-                      Fpath.to_string x |> Buffer.add_string out;
-                      go xs)
+           | Key "path" :: xs -> path |> CCOpt.flat_map (fun x -> Buffer.add_string out x; go xs)
            | Key ("line" | "sline") :: xs ->
-               Span.start_line span |> string_of_int |> Buffer.add_string out;
+               string_of_int start_line |> Buffer.add_string out;
                go xs
            | Key "eline" :: xs ->
-               Span.finish_line span |> string_of_int |> Buffer.add_string out;
+               string_of_int end_line |> Buffer.add_string out;
                go xs
            | Key "commit" :: xs -> (
              match Lazy.force git_commit with
@@ -129,6 +124,16 @@ let doc_options_term =
          in
 
          go template
+    in
+    let source_link : IlluaminateSemantics.Doc.AbstractSyntax.source -> string option = function
+      | Position { path; start_line; end_line } -> link ~path:(Some path) ~start_line ~end_line
+      | Span span ->
+          let path =
+            (Span.filename span).path
+            |> CCOpt.flat_map (Fpath.relativize ~root)
+            |> CCOpt.map Fpath.to_string
+          in
+          link ~path ~start_line:(Span.start_line span) ~end_line:(Span.finish_line span)
     in
     { site_title;
       index = Option.map (Fpath.append root) index;
