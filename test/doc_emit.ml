@@ -39,7 +39,9 @@ let tests ~extension ~group go =
     ~rename:(fun x -> Printf.sprintf "%s.%s" x extension)
     ~extension:".lua" ()
 
-let source_link x = Span.show x |> Option.some
+let source_link : IlluaminateSemantics.Doc.AbstractSyntax.source -> string option = function
+  | Span x -> Span.show x |> Option.some
+  | Position { path; start_line; _ } -> Printf.sprintf "%s#L%d" path start_line |> Option.some
 
 module Json_summary = struct
   let tests =

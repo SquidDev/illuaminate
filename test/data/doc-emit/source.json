@@ -1,0 +1,14 @@
+{
+  "source.a": {
+    "name": "source.a()",
+    "source": "foo/bar#L23",
+    "summary": "A boring function",
+    "module": "source",
+    "section": "v:a"
+  },
+  "source": {
+    "name": "source",
+    "source": "source.lua[4:8-8:1]",
+    "module": "source"
+  }
+}

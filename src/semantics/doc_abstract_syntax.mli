@@ -1,11 +1,25 @@
 open IlluaminateCore
 
+(** The "kind" of a Lua module. This controls how it is loaded and exposes members. *)
 type module_kind =
   | Module
       (** A legacy module, using the "module" directive. Global variables declared in this file are
           considered as exported by this file. *)
   | Library  (** A standard module, which returns the term that it exports. *)
   | Custom of string  (** A custom module kind. *)
+
+(** A position within a file. This may be used instead of {!Span.t} for files not opened by
+    illuaminate. *)
+type position =
+  { path : string;
+    start_line : int;
+    end_line : int
+  }
+
+(** A source of a node. Either a {!position} or {!Span.t}. *)
+type source =
+  | Span of Span.t
+  | Position of position
 
 module Omd' : sig
   val iter_element : (Omd.element -> unit) -> Omd.element -> unit
@@ -70,6 +84,12 @@ module type S = sig
             are considered as exported by this file. *)
     | Library  (** A standard module, which returns the term that it exports. *)
     | Custom of string  (** A custom module kind. *)
+
+  type nonrec position = position =
+    { path : string;
+      start_line : int;
+      end_line : int
+    }
 
   (** A base class for visitors over the document syntax tree. *)
   class abstract_iter :

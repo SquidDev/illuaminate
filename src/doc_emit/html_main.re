@@ -1,14 +1,14 @@
 open Html.Default;
 open Html_md;
 open Html_type;
-open IlluaminateCore;
 open IlluaminateSemantics.Reference;
+open! IlluaminateSemantics.Doc.AbstractSyntax;
 open! IlluaminateSemantics.Doc.Syntax;
 module Cfg = IlluaminateSemantics.Doc.Extract.Config;
 
 type t = {
   resolve: string => string,
-  source_link: Span.t => option(string),
+  source_link: source => option(string),
 };
 
 let show_list = (~tag="h3", title, xs) =>
@@ -151,8 +151,8 @@ let show_common = (~resolve, {examples, see, _}) => {
   |> many;
 };
 
-let show_pos = (~source_link, {definition, _}) => {
-  switch (source_link(definition)) {
+let show_pos = (~source_link, node) => {
+  switch (Helpers.link(~source_link, node)) {
   | None => nil
   | Some(link) => <a href=link class_="source-link"> {str("Source")} </a>
   };

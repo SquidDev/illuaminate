@@ -91,7 +91,8 @@ module Value = struct
       see = List.map (Lift.see lift) comment.see;
       local = comment.local;
       export = comment.export;
-      deprecated = Option.map (Lift.deprecation lift) comment.deprecated
+      deprecated = Option.map (Lift.deprecation lift) comment.deprecated;
+      custom_source = comment.custom_source
     }
 end
 
@@ -105,7 +106,8 @@ module Merge = struct
       see = implicit.see @ explicit.see;
       local = implicit.local || explicit.local;
       export = implicit.export || explicit.export;
-      deprecated = CCOpt.or_ ~else_:explicit.deprecated implicit.deprecated
+      deprecated = CCOpt.or_ ~else_:explicit.deprecated implicit.deprecated;
+      custom_source = CCOpt.or_ ~else_:explicit.custom_source implicit.custom_source
     }
 
   (** Right biased union of two values. *)
@@ -202,7 +204,8 @@ module Infer = struct
       see = [];
       local = false;
       export = false;
-      deprecated = None
+      deprecated = None;
+      custom_source = None
     }
 
   (** Annotate a value with documentation comments. *)
@@ -634,7 +637,16 @@ module Resolve = struct
     | (External _ | Internal _) as r -> r
 
   let go_documented lift go_child
-      { description; descriptor : 'a; definition; examples; see; local; export; deprecated } =
+      { description;
+        descriptor : 'a;
+        definition;
+        examples;
+        see;
+        local;
+        export;
+        deprecated;
+        custom_source
+      } =
     { description = Option.map (Lift.description lift) description;
       descriptor = go_child lift descriptor;
       definition;
@@ -642,7 +654,8 @@ module Resolve = struct
       see = List.map (Lift.see lift) see;
       local;
       export;
-      deprecated = Option.map (Lift.deprecation lift) deprecated
+      deprecated = Option.map (Lift.deprecation lift) deprecated;
+      custom_source
     }
 
   let rec go_value ~cache lift = function

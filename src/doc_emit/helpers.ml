@@ -1,3 +1,7 @@
+open IlluaminateSemantics
+open Doc.AbstractSyntax
+open Doc.Syntax
+
 (** Try to extract a summary from a markdown document. This will take the first sentence or line of
     the document, or at most [\[max_length\]] characters. *)
 let get_summary ?(max_length = 120) (desc : Omd.t) =
@@ -42,3 +46,12 @@ let get_summary ?(max_length = 120) (desc : Omd.t) =
   match go max_length desc with
   | Ok x -> x
   | _ -> desc
+
+(** Get a link to a node. *)
+let link ~source_link { definition; custom_source; _ } =
+  let link =
+    match custom_source with
+    | None -> Span definition
+    | Some pos -> Position pos
+  in
+  source_link link

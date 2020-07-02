@@ -14,7 +14,8 @@ type 'a documented =
     see : see list;  (** List of references to other symbols. *)
     local : bool;  (** If this definition should not be exposed. *)
     export : bool;  (** Whether this term is the root exported term. *)
-    deprecated : deprecation option  (** Whether this term is deprecated. *)
+    deprecated : deprecation option;  (** Whether this term is deprecated. *)
+    custom_source : position option  (** Override the position of this term. *)
   }
 
 (** A value or expression which may be used in a documented program. *)

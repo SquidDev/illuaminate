@@ -30,6 +30,7 @@ type comment =
     includes : reference Span.spanned list;  (** Other terms to include. *)
     export : bool;  (** Whether this term is the "root" of this documentation node. *)
     deprecated : deprecation option;  (** Whether this term is deprecated. *)
+    custom_source : position option;  (** Override the position of this term. *)
     (* Functions. *)
     arguments : arg list list;  (** A list of possible function argument signatures. *)
     returns : return list list;  (** A list of possible function return signatures. *)

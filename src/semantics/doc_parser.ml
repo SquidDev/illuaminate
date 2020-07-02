@@ -217,6 +217,7 @@ module Build = struct
       mutable b_local : bool;
       mutable b_export : bool;
       mutable b_deprecated : deprecation option;
+      mutable b_custom_source : position option;
       (* Functions. *)
       mutable b_args : arg grouped;
       mutable b_rets : return grouped;
@@ -234,6 +235,7 @@ module Build = struct
       b_local = false;
       b_export = false;
       b_deprecated = None;
+      b_custom_source = None;
       b_args = empty_group;
       b_rets = empty_group;
       b_throws = [];
@@ -383,6 +385,29 @@ module Build = struct
         if Option.is_some b.b_deprecated then
           report b Tag.duplicate_definitions tag.span "Duplicate @deprecated tags";
         b.b_deprecated <- Some { deprecation_message = Lex.description' body }
+    | "source" ->
+        List.iter (unknown b "@source") flags;
+        if Option.is_some b.b_deprecated then
+          report b Tag.duplicate_definitions tag.span "Duplicate @source tags";
+
+        (* We expect strings of the form [@source path/from/root:2] *)
+        let contents = body.contents in
+        let path, start_line, end_line =
+          match String.rindex_opt contents ':' with
+          | None -> (contents, 1, 1)
+          | Some pos ->
+              let path = CCString.take pos contents and line = CCString.drop (pos + 1) contents in
+              let path = CCString.drop_while (fun x -> x = '/') path in
+              let line =
+                match int_of_string_opt line with
+                | None ->
+                    report b Tag.duplicate_definitions tag.span "Unknown line number";
+                    1
+                | Some l -> l
+              in
+              (path, line, line)
+        in
+        b.b_custom_source <- Some { path; start_line; end_line }
     (*******************************
      * Function tags
      *******************************)
@@ -524,6 +549,7 @@ let parse span lbuf =
     includes = List.rev b.b_includes;
     export = b.b_export;
     deprecated = b.b_deprecated;
+    custom_source = b.b_custom_source;
     arguments = Build.get_group b.b_args;
     returns = Build.get_group b.b_rets;
     throws = List.rev b.b_throws;

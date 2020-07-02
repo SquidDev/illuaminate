@@ -5,6 +5,16 @@ type module_kind =
   | Library
   | Custom of string
 
+type position =
+  { path : string;
+    start_line : int;
+    end_line : int
+  }
+
+type source =
+  | Span of Span.t
+  | Position of position
+
 module Omd' = struct
   open Omd
 
@@ -73,6 +83,12 @@ module type S = sig
     | Module
     | Library
     | Custom of string
+
+  type nonrec position = position =
+    { path : string;
+      start_line : int;
+      end_line : int
+    }
 
   class abstract_iter :
     object
@@ -144,6 +160,12 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
     | Module
     | Library
     | Custom of string
+
+  type nonrec position = position =
+    { path : string;
+      start_line : int;
+      end_line : int
+    }
 
   class abstract_iter =
     object (self)

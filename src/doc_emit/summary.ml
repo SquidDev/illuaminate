@@ -33,14 +33,14 @@ let to_json xs : Yojson.Safe.t =
 
 let of_documented ~in_module ~name ~section ?(suffix = Fun.const "") ~source_link ~body = function
   | { local = true; _ } -> []
-  | { description; definition; descriptor; _ } ->
+  | { description; definition; descriptor; _ } as term ->
       let pretty_name =
         Reference.Internal { in_module; name = section; definition }
         |> Format.asprintf "%a" Reference.pp_resolved
       in
       { name;
         full_name = pretty_name ^ suffix descriptor;
-        source = source_link definition;
+        source = Helpers.link ~source_link term;
         summary =
           Option.map
             (fun (d : description) ->

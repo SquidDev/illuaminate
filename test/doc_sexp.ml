@@ -68,6 +68,13 @@ struct
   let deprecation { deprecation_message } =
     Option.fold ~none:[] ~some:description deprecation_message
 
+  let position { path; start_line; end_line } =
+    []
+    |> field "path" (atom' path)
+    |> field "start_line" (string_of_int start_line |> atom')
+    |> field "end_line" (string_of_int end_line |> atom')
+    |> List.rev
+
   let example = function
     | RawExample x -> spanned atom' x
     | RichExample x -> description x
@@ -104,6 +111,7 @@ module Comment = struct
     |> fields "include" (spanned (one % reference)) c.includes
     |> field_bool "export" c.export
     |> field' "deprecated" deprecation c.deprecated
+    |> field' "custom-source" position c.custom_source
     |> fields "args" (List.map arg) c.arguments
     |> fields "returns" (List.map return) c.returns
     |> fields "throws" description c.throws
@@ -138,6 +146,7 @@ module Syntax = struct
     |> fields "see" (one' % see) d.see
     |> field_bool "local" d.local |> field_bool "export" d.export
     |> field' "deprecated" deprecation d.deprecated
+    |> field' "custom-source" position d.custom_source
     |> record
 
   let rec value = function

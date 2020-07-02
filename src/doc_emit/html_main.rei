@@ -1,4 +1,4 @@
-open IlluaminateCore;
+open IlluaminateSemantics.Doc.AbstractSyntax;
 open IlluaminateSemantics.Doc.Extract;
 open IlluaminateSemantics.Doc.Syntax;
 
@@ -18,7 +18,7 @@ let emit_module:
   (
     ~site_title: string=?,
     ~resolve: string => string,
-    ~source_link: Span.t => option(string),
+    ~source_link: source => option(string),
     ~modules: list(documented(module_info)),
     ~custom: list(Config.custom_kind)=?,
     documented(module_info)

@@ -16,7 +16,8 @@ type 'a documented =
     see : see list;
     local : bool;
     export : bool;
-    deprecated : deprecation option
+    deprecated : deprecation option;
+    custom_source : position option
   }
 
 type value =
@@ -100,7 +101,16 @@ class iter =
 
     method documented : 'a. (span:Span.t -> 'a -> unit) -> 'a documented -> unit =
       fun child
-          { description; descriptor; definition; examples; see; deprecated; local = _; export = _ } ->
+          { description;
+            descriptor;
+            definition;
+            examples;
+            see;
+            deprecated;
+            local = _;
+            export = _;
+            custom_source = _
+          } ->
         let abs = self#abstract_syntax ~span:definition in
         Option.iter abs#description description;
         child ~span:definition descriptor;

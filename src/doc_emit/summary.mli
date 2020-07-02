@@ -1,4 +1,5 @@
-open IlluaminateSemantics.Doc.Syntax
+open IlluaminateSemantics.Doc
+open Syntax
 
 (** An item in the index of documented terms. *)
 type t =
@@ -15,4 +16,4 @@ val to_json : t list -> Yojson.Safe.t
 
 (** Convert a list of documented modules into a flat list of index terms. *)
 val everything :
-  source_link:(IlluaminateCore.Span.t -> string option) -> module_info documented list -> t list
+  source_link:(AbstractSyntax.source -> string option) -> module_info documented list -> t list
