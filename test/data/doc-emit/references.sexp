@@ -35,7 +35,7 @@
        (returns (return (type ((in-module references) (name ty:MyType))))))))
     (method_1
      ((description
-       "See <illuaminate:ref module='references' sec='ty:MyType:meth' style='code'>MyType:meth</illuaminate:ref> and <illuaminate:ref link='MyType.meth' style='code'>MyType.meth</illuaminate:ref>\n\n")
+       "See <illuaminate:ref module='references' sec='ty:MyType:meth' style='code'>MyType:meth</illuaminate:ref> and <illuaminate:ref module='references' sec='ty:MyType:meth' style='code'>MyType.meth</illuaminate:ref>\n\n")
       (body (args))))
     (builtin_1
      ((body (args))

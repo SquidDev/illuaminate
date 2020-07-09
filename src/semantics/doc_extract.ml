@@ -377,6 +377,9 @@ module Infer = struct
     | NDot { tbl; key; _ } -> (
       match infer_expr state tbl with
       | { descriptor = Table fs; _ } -> List.assoc_opt (Node.contents.get key) fs |> Option.map ref
+      | { descriptor = Type { type_members; _ }; _ } ->
+          List.find_opt (fun x -> Node.contents.get key = x.member_name) type_members
+          |> Option.map (fun x -> ref x.member_value)
       | _ -> None )
     | NLookup { tbl; key; _ } -> visit_expr state tbl; visit_expr state key; None
 
@@ -569,7 +572,10 @@ module Resolve = struct
         (fun { mod_name; mod_types; _ } name is_type ->
           if is_type then None
           else
-            match String.index_opt name ':' with
+            match
+              String.index_opt name ':'
+              |> CCOpt.or_lazy ~else_:(fun () -> String.rindex_opt name '.')
+            with
             | None -> None
             | Some i ->
                 let type_name = CCString.take i name and item_name = CCString.drop (i + 1) name in
