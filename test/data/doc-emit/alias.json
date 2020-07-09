@@ -1,0 +1,22 @@
+{
+  "fancy.module.b": {
+    "name": "fancy.module.b()",
+    "source": "alias.lua[6:1-6:18]",
+    "summary": "Do something",
+    "module": "fancy.module",
+    "section": "v:b"
+  },
+  "fancy.module.a": {
+    "name": "fancy.module.a()",
+    "source": "alias.lua[6:1-6:18]",
+    "summary": "Do something",
+    "module": "fancy.module",
+    "section": "v:a"
+  },
+  "fancy.module": {
+    "name": "fancy.module",
+    "source": "alias.lua[4:11-4:12]",
+    "summary": "This is a simple module which contains a function",
+    "module": "fancy.module"
+  }
+}

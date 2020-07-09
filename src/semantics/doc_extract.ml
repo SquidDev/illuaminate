@@ -374,7 +374,10 @@ module Infer = struct
   and infer_name state : name -> value documented ref option = function
     | NVar v -> infer_var state v
     (* TODO: Would be good to do NDot, somehow. *)
-    | NDot { tbl; _ } -> visit_expr state tbl; None
+    | NDot { tbl; key; _ } -> (
+      match infer_expr state tbl with
+      | { descriptor = Table fs; _ } -> List.assoc_opt (Node.contents.get key) fs |> Option.map ref
+      | _ -> None )
     | NLookup { tbl; key; _ } -> visit_expr state tbl; visit_expr state key; None
 
   (** Get a documented table entry *)
