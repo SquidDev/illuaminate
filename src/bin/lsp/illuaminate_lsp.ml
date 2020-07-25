@@ -50,22 +50,23 @@ let () =
       Logs.set_level ~all:true (Some level);
       Logs.set_reporter reporter );
 
-    Lsp.Logger.with_log_file log_file (fun () ->
+    let open Lsp in
+    Logger.with_log_file log_file (fun () ->
         let open IlluaminateLsp in
         let server = server () in
-        let add_store r = Result.map (fun x -> ((), x)) r in
-        let add_store' r = add_store r |> Fiber.return in
         let wrap rpc : client_channel =
-          { notify = Lsp.Server.send_notification rpc; request = Ugly_hacks.send_request }
+          { notify = Server.notification rpc; request = (fun x -> Server.request rpc x) }
         in
         Log.info (fun f -> f "Starting server");
-        Lsp.Server.start ()
-          { on_initialize = (fun rpc () p -> server.initialize (wrap rpc) p |> add_store');
-            on_request = (fun rpc () cap req -> server.request (wrap rpc) cap req |> add_store');
-            on_notification = (fun rpc () noti -> server.notify (wrap rpc) noti |> Fiber.return)
-          }
-          stdin stdout
-        |> Fiber.run |> Option.value ~default:();
+        let handler =
+          let add_store r = Fiber.map ~f:(Result.map (fun x -> (x, ()))) r in
+          let on_notification rpc p = server.notify (wrap rpc) p in
+          let on_request rpc req = server.request (wrap rpc) req |> add_store in
+          Server.Handler.make ~on_notification ~on_request:{ on_request } ()
+        in
+        let scheduler = Scheduler.create () in
+        let stream = Io.make stdin stdout |> Rpc.Stream_io.make scheduler in
+        Server.make handler stream () |> Server.start |> Scheduler.run scheduler;
         Log.info (fun f -> f "Stopping server"))
   in
 

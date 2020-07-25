@@ -22,8 +22,7 @@ let tests =
                    { textDocument;
                      contentChanges =
                        [ TextDocumentContentChangeEvent.create ~range:(range 0 0 0 0) ~text:"a" () ]
-                   })
-              |> Check.ok_s;
+                   });
               drain t)
           >-> action ~name:"Remove character" (fun () ->
                   notify t
@@ -33,7 +32,6 @@ let tests =
                            [ TextDocumentContentChangeEvent.create ~range:(range 0 0 0 1) ~text:""
                                ()
                            ]
-                       })
-                  |> Check.ok_s;
+                       });
                   drain t))
     ]

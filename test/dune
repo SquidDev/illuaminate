@@ -4,7 +4,7 @@
    omnomnom.qcheck containers containers.sexp illuaminate.core
    illuaminate.config illuaminate.data illuaminate.parser illuaminate.lint
    omd fpath illuaminate.semantics illuaminate.pattern illuaminate.doc_emit
-   illuaminate.exec.unix illuaminateConfigFormat illuaminateLsp lsp
+   illuaminate.exec.unix illuaminateConfigFormat illuaminateLsp lsp lsp.fiber
    lsp.stdune logs cmdliner yojson result alcotest fmt ppx_yojson_conv_lib
    qcheck-core html)
  (deps

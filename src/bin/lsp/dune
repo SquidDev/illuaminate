@@ -1,15 +1,15 @@
 (library
  (name illuaminateLsp)
  (modules
-  (:standard \ illuaminate_lsp ugly_hacks))
+  (:standard \ illuaminate_lsp))
  (libraries cmdliner containers containers.data fpath illuaminate.config
    illuaminateConfigFormat illuaminate.core illuaminate.data illuaminate.lint
-   illuaminate.parser illuaminate.semantics logs str lsp lsp.stdune mtime
-   mtime.clock.os omd result yojson ppx_yojson_conv_lib))
+   illuaminate.parser illuaminate.semantics logs str lsp lsp.stdune lsp.fiber
+   mtime mtime.clock.os omd result yojson ppx_yojson_conv_lib))
 
 (executable
  (name illuaminate_lsp)
- (modules illuaminate_lsp ugly_hacks)
+ (modules illuaminate_lsp)
  (modes exe)
  (libraries illuaminateLsp cmdliner lsp logs yojson lsp.stdune lsp.fiber
    illuaminate.exec.unix))

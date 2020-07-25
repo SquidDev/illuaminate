@@ -26,8 +26,7 @@ let tests =
                { textDocument = VersionedTextDocumentIdentifier.create ~uri ();
                  contentChanges =
                    [ TextDocumentContentChangeEvent.create ~range:(range 0 5 0 6) ~text:" " () ]
-               })
-          |> Check.ok_s;
+               });
 
           diagnostics ~uri t
           |> Testable.(check (list diagnostic))
@@ -43,8 +42,7 @@ let tests =
                { textDocument = VersionedTextDocumentIdentifier.create ~uri ();
                  contentChanges =
                    [ TextDocumentContentChangeEvent.create ~range:(range 0 28 0 29) ~text:"" () ]
-               })
-          |> Check.ok_s;
+               });
 
           diagnostics ~uri t
           |> Testable.(check (list diagnostic)) "Has no parse errors after an edit" [];
@@ -62,8 +60,7 @@ let tests =
                    [ TextDocumentContentChangeEvent.create ~range:(range 0 0 0 0)
                        ~text:"local x = 0\n" ()
                    ]
-               })
-          |> Check.ok_s;
+               });
 
           diagnostics ~uri t
           |> Testable.(check (list diagnostic))

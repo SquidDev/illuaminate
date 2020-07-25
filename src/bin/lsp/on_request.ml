@@ -15,16 +15,19 @@ let non_empty = function
   | _ :: _ as xs -> Some xs
 
 let on_program ~default store ~uri f =
+  let open Fiber.O in
   match Store.get_file store uri with
-  | Some { program = Ok prog; _ } -> Ok (f prog)
+  | Some { program = Ok prog; _ } -> f prog >>| Result.ok
   | Some { program = Error _; _ } ->
       Log.debug (fun f -> f "%a is malformed" Uri.pp uri);
-      Ok default
+      Fiber.return (Ok default)
   | None ->
       Log.err (fun f -> f "%a is not open" Uri.pp uri);
-      Ok default
+      Fiber.return (Ok default)
 
 let on_program' ~default store ~uri f = on_program ~default store ~uri:(Store.Filename.box uri) f
+
+let on_program_r' ~default store ~uri f = on_program' ~default store ~uri (Fiber.return % f)
 
 let dots_range = function
   | Resolve.IllegalDots -> assert false
@@ -205,37 +208,44 @@ module Highlights = struct
         []
 end
 
-let worker (type res) (client : Store.client_channel) store (_ : ClientCapabilities.t) :
-    res Client_request.t -> (res, Jsonrpc.Response.Error.t) result = function
-  | Shutdown -> Ok ()
+let worker (type res) (client : Store.client_channel) store :
+    res Client_request.t -> (res, Jsonrpc.Response.Error.t) result Fiber.t = function
+  | Initialize p ->
+      Store.set_capabilities p.capabilities store;
+      On_init.handle client store p
+      |> Result.map_error (fun message ->
+             { Jsonrpc.Response.Error.code = InternalError; message; data = None })
+      |> Fiber.return
+  | Shutdown -> Ok () |> Fiber.return
   | TextDocumentHover { textDocument = { uri }; position } ->
-      on_program' ~default:None store ~uri (Hover.find ~store ~position)
+      on_program_r' ~default:None store ~uri (Hover.find ~store ~position)
   | TextDocumentDeclaration { textDocument = { uri }; position } ->
-      on_program' ~default:None store ~uri (Declarations.find ~store ~position)
+      on_program_r' ~default:None store ~uri (Declarations.find ~store ~position)
   | TextDocumentDefinition { textDocument = { uri }; position } ->
-      on_program' ~default:None store ~uri (Definitions.find ~store ~position)
+      on_program_r' ~default:None store ~uri (Definitions.find ~store ~position)
   | TextDocumentReferences { textDocument = { uri }; position; _ } ->
-      on_program' ~default:None store ~uri (non_empty % References.find ~store ~position)
+      on_program_r' ~default:None store ~uri (non_empty % References.find ~store ~position)
   | TextDocumentHighlight { textDocument = { uri }; position; _ } ->
-      on_program' ~default:None store ~uri (non_empty % Highlights.find ~store ~position)
+      on_program_r' ~default:None store ~uri (non_empty % Highlights.find ~store ~position)
   | TextDocumentPrepareRename { textDocument = { uri }; position } ->
-      on_program' ~default:None store ~uri (Rename.check (Store.data store) position)
+      on_program_r' ~default:None store ~uri (Rename.check (Store.data store) position)
   | TextDocumentRename { textDocument = { uri }; position; newName } ->
       let make_edit = function
-        | Ok edits -> make_edit ~uri edits
+        | Ok edits -> make_edit ~uri edits |> Fiber.return
         | Error m ->
             Log.err (fun f -> f "Cannot rename: %s" m);
-            client.notify (ShowMessage { type_ = Error; message = m });
+            let open Fiber.O in
+            let+ () = client.notify (ShowMessage { type_ = Error; message = m }) in
             make_edit ~uri []
       in
       on_program' ~default:(WorkspaceEdit.create ()) store ~uri
         (make_edit % Rename.rename (Store.data store) position newName)
   | CodeAction { textDocument = { uri }; range; _ } ->
-      on_program' ~default:None store ~uri (fun p -> Lint.code_actions store p range)
+      on_program_r' ~default:None store ~uri (fun p -> Lint.code_actions store p range)
   | WorkspaceSymbol { query } ->
       D.get (Store.data store) Workspace_symbol.key ()
       |> Workspace_symbol.find_modules query
-      |> Option.some |> Result.ok
+      |> Option.some |> Result.ok |> Fiber.return
   | ExecuteCommand { command = "illuaminate/fix"; arguments } -> (
     match arguments with
     | Some [ uri; `Int id ] -> (
@@ -246,21 +256,42 @@ let worker (type res) (client : Store.client_channel) store (_ : ClientCapabilit
         | Some { program = Ok prog; contents; _ } -> (
             let fixed = Lint.fix store prog id in
             match fixed with
-            | Error msg -> Error { code = ContentModified; message = msg; data = None }
-            | Ok edit ->
-                apply_edit ~uri:duri ~version:(Text_document.version contents) [ edit ]
-                |> client.request;
-                Ok `Null )
-        | _ -> Ok `Null )
-    | _ -> Error { code = InternalError; message = "Invalid arguments"; data = None } )
+            | Error msg ->
+                Error { Jsonrpc.Response.Error.code = ContentModified; message = msg; data = None }
+                |> Fiber.return
+            | Ok edit -> (
+                let open Fiber.O in
+                let+ res =
+                  apply_edit ~uri:duri ~version:(Text_document.version contents) [ edit ]
+                  |> client.request
+                in
+                match res with
+                | Error e -> Error e
+                | Ok { applied = true; _ } -> Ok `Null
+                | Ok { applied = false; failureReason; _ } ->
+                    Error
+                      { code = ContentModified;
+                        message = Option.value ~default:"Failed to apply" failureReason;
+                        data = None
+                      } ) )
+        | _ -> Ok `Null |> Fiber.return )
+    | _ ->
+        Error
+          { Jsonrpc.Response.Error.code = InternalError;
+            message = "Invalid arguments";
+            data = None
+          }
+        |> Fiber.return )
   | _ ->
       Log.err (fun f -> f "Unknown message (not implemented)");
-      Error { code = InternalError; message = "Not implemented"; data = None }
+      Error
+        { Jsonrpc.Response.Error.code = InternalError; message = "Not implemented"; data = None }
+      |> Fiber.return
 
-let handle client store caps req =
-  try worker client store caps req
+let handle client store req =
+  try worker client store req
   with e ->
     let bt = Printexc.get_backtrace () in
     let e = Printexc.to_string e in
     Log.err (fun f -> f "Error handling request: %s\n%s" e bt);
-    Error { Jsonrpc.Response.Error.code = InternalError; message = e; data = None }
+    Error { Jsonrpc.Response.Error.code = InternalError; message = e; data = None } |> Fiber.return

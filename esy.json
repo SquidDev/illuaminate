@@ -42,9 +42,9 @@
   },
   "resolutions": {
     "@opam/omnomnom":
-      "git://github.com/SquidDev/omnomnom:omnomnom.opam#1e9e6a2c3269d4b8add8b15837379c5d45e6fedc",
+      "git://github.com/SquidDev/omnomnom:omnomnom.opam#4a7020d72ee63e241955aec27c8fded59813b792",
     "@opam/lsp":
-      "git://github.com/SquidDev/ocaml-lsp-subtree:lsp.opam#c2e9d337402948d449afa5a5d365fa6a49fe94fd"
+      "git://github.com/SquidDev/ocaml-lsp-subtree:lsp.opam#6d66f4f18261042262e6fdc209c744597c06f393"
   },
   "scripts": {
     "test": "dune build @runtest -f",

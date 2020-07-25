@@ -4,6 +4,5 @@ open Lsp
 val handle :
   Store.client_channel ->
   Store.t ->
-  Types.ClientCapabilities.t ->
   'a Client_request.t ->
-  ('a, Jsonrpc.Response.Error.t) result
+  ('a, Jsonrpc.Response.Error.t) result Fiber.t

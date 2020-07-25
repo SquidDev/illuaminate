@@ -1,8 +1,8 @@
 open IlluaminateCore
 
 type client_channel =
-  { notify : Lsp.Server_notification.t -> unit;
-    request : 'a. 'a Lsp.Server_request.t -> unit
+  { notify : Lsp.Server_notification.t -> unit Fiber.t;
+    request : 'a. 'a Lsp.Server_request.t -> ('a, Lsp.Jsonrpc.Response.Error.t) result Fiber.t
   }
 
 module Filename : sig
@@ -54,3 +54,9 @@ val update_file : t -> document -> Lsp.Text_document.t -> unit
 (** Get all linters for a file. *)
 val linters :
   (Span.filename, Error.Tag.filter * IlluaminateConfig.Schema.store) IlluaminateData.Key.t
+
+(** Get the attached client's capabilities. *)
+val capabilities : t -> Lsp.Types.ClientCapabilities.t
+
+(** Set the attached client's capabilities. *)
+val set_capabilities : Lsp.Types.ClientCapabilities.t -> t -> unit

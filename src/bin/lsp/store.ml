@@ -18,8 +18,8 @@ let src = Logs.Src.create ~doc:"Loading and storing of local files" __MODULE__
 module Log = (val Logs.src_log src)
 
 type client_channel =
-  { notify : Lsp.Server_notification.t -> unit;
-    request : 'a. 'a Lsp.Server_request.t -> unit
+  { notify : Server_notification.t -> unit Fiber.t;
+    request : 'a. 'a Server_request.t -> ('a, Jsonrpc.Response.Error.t) result Fiber.t
   }
 
 module Filename = struct
@@ -177,7 +177,8 @@ type document =
 type t =
   { workspaces : Workspace.workspaces ref;
     files : document UriTbl.t;
-    data : Data.t
+    data : Data.t;
+    mutable capabilities : ClientCapabilities.t option
   }
 
 let create () =
@@ -230,7 +231,7 @@ let create () =
            |> Option.fold ~none:default_context ~some:(need store Workspace.context))
     |> build
   in
-  { workspaces; files; data }
+  { workspaces; files; data; capabilities = None }
 
 let data { data; _ } = data
 
@@ -293,3 +294,9 @@ let update_workspace store ?root ~add ~remove () =
     }
 
 let linters = Workspace.linters
+
+let capabilities x = Option.get x.capabilities
+
+let set_capabilities cap x =
+  if Option.is_some x.capabilities then failwith "Cannot set capabilities twice.";
+  x.capabilities <- Some cap

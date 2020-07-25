@@ -27,6 +27,11 @@ module Check = struct
   let ok_s e = ok ~pp:Format.pp_print_string e
 end
 
+let force f =
+  match Fiber.run f with
+  | None -> failwith "Fiber did not return immediately"
+  | Some x -> x
+
 module Testable = struct
   include Alcotest
 
@@ -142,6 +147,10 @@ type message =
 
 let capabilities = ClientCapabilities.create ()
 
+let dummy_request (type a) : a Server_request.t -> (a, Jsonrpc.Response.Error.t) result = function
+  | WorkspaceApplyEdit _ -> Ok (ApplyWorkspaceEditResponse.create ~applied:true ())
+  | _ -> Error { code = InternalError; message = "Response not handled."; data = None }
+
 type t =
   { outgoing : message Queue.t;
     workspace : Fpath.t;
@@ -164,12 +173,18 @@ let test ~name ?(speed = `Quick) ?workspace run =
         let server = IlluaminateLsp.server () in
         let outgoing = Queue.create () in
         let client : client_channel =
-          { request = (fun r -> Queue.add (Request' r) outgoing);
-            notify = (fun n -> Queue.add (Notification n) outgoing)
+          { request =
+              (fun r ->
+                Queue.add (Request' r) outgoing;
+                dummy_request r |> Fiber.return);
+            notify =
+              (fun n ->
+                Queue.add (Notification n) outgoing;
+                Fiber.return ())
           }
         in
-        InitializeParams.create ~capabilities ~rootUri ()
-        |> server.initialize client |> Check.ok_s |> ignore;
+        let init = InitializeParams.create ~capabilities ~rootUri () in
+        server.request client (Initialize init) |> force |> Check.ok_response |> ignore;
         run { outgoing; workspace; server; client; files = Hashtbl.create 2 } )
 
 type some_request = Request : 'a Lsp.Server_request.t -> some_request
@@ -204,12 +219,12 @@ let open_file ({ client; server; files; _ } as t) f =
   Hashtbl.replace files uri text;
   server.notify client
     (TextDocumentDidOpen { textDocument = { uri; languageId = "lua"; version = 0; text } })
-  |> Check.ok_s;
+  |> force;
   uri
 
 let close_file { client; server; files; _ } uri =
   Hashtbl.remove files uri;
-  server.notify client (TextDocumentDidClose { textDocument = { uri } }) |> Check.ok_s
+  server.notify client (TextDocumentDidClose { textDocument = { uri } }) |> force
 
 let contents { files; _ } filename = Hashtbl.find files filename
 
@@ -250,8 +265,8 @@ let range l1 c1 l2 c2 =
 
 let pos l c = Position.create ~line:l ~character:c
 
-let request { client; server; _ } r = server.request client capabilities r
+let request { client; server; _ } r = server.request client r |> force
 
-let notify { client; server; _ } r = server.notify client r
+let notify { client; server; _ } r = server.notify client r |> force
 
 let drain { outgoing; _ } = Queue.clear outgoing
