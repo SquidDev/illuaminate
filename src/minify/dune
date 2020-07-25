@@ -1,0 +1,5 @@
+(library
+ (name illuaminateMinify)
+ (public_name illuaminate.minify)
+ (synopsis "Utilities for minifying Lua code.")
+ (libraries illuaminate.core illuaminate.data illuaminate.semantics))

@@ -63,6 +63,7 @@ let () =
          Lint.tests;
          Pattern.tests;
          Reprint.tests;
+         Minify.tests;
          Data.tests;
          Span.tests;
          Config_format.tests;
