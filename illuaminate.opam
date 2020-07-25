@@ -15,7 +15,7 @@ depends: [
   "js_of_ocaml-compiler" {build & >= "3.6.0"}
   "js_of_ocaml-ppx" {build}
   "ppx_deriving" {build}
-  "ppxlib" {build}
+  "ppxlib" {build & >= "0.14.0"}
   "reason" {build}
   "alcotest" {with-test}
   "junit" {with-test}

@@ -23,7 +23,7 @@
     (js_of_ocaml-compiler (and :build (>= 3.6.0)))
     (js_of_ocaml-ppx :build)
     (ppx_deriving :build)
-    (ppxlib :build)
+    (ppxlib (and :build (>= 0.14.0)))
     (reason :build)
 
     ; Test

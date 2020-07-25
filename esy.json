@@ -24,7 +24,7 @@
     "@opam/js_of_ocaml-compiler": ">=3.6.0",
     "@opam/js_of_ocaml-ppx": "*",
     "@opam/ppx_deriving": "*",
-    "@opam/ppxlib": "*",
+    "@opam/ppxlib": ">=0.14.0",
     "@opam/reason": "*",
     "@opam/alcotest": "*",
     "@opam/junit": "*",

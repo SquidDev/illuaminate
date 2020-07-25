@@ -6,7 +6,7 @@ let modu ~loc ~td contents =
     String.mapi (fun i x -> if i = 0 then Char.uppercase_ascii x else x) td.ptype_name.txt
   in
   A.module_binding ~loc
-    ~name:{ txt = name; loc = td.ptype_name.loc }
+    ~name:{ txt = Some name; loc = td.ptype_name.loc }
     ~expr:(A.pmod_structure ~loc contents)
   |> A.pstr_module ~loc |> Option.some
 
