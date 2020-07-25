@@ -69,10 +69,27 @@ let rec fix_all () : unit =
       input##.value := Js.string new_contents;
       lint ()
 
+and minify () : unit =
+  let lexbuf = input##.value |> Js.to_string |> Lexing.from_string in
+  match IlluaminateParser.program (Span.Filename.mk "=input") lexbuf with
+  | Error _ -> ()
+  | Ok parsed ->
+      let new_contents =
+        Format.asprintf "%t" @@ fun out ->
+        let module M = IlluaminateMinify in
+        let module D = IlluaminateData in
+        D.compute (fun ctx -> M.minify ctx parsed) D.Builder.(build empty)
+        |> M.Emit.use out M.Emit.program
+      in
+      input##.value := Js.string new_contents;
+      lint ()
+
 (** Construct a formatter which emits HTML nodes. *)
-and display_errors program = function
-  | [] -> Template.no_errors
-  | errs -> Template.some_errors program ~fix:(fun _ -> fix_all (); Js._true) errs
+and display_errors program =
+  let minify _ = minify (); Js._true in
+  function
+  | [] -> Template.no_errors ~minify
+  | errs -> Template.some_errors program ~minify ~fix:(fun _ -> fix_all (); Js._true) errs
 
 (** Lint the input program and display the relevant error messages. *)
 and lint () : unit =

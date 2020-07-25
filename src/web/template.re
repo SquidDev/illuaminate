@@ -81,7 +81,13 @@ let error = (line, ~fix=?, {Error.Error.span, message, tag, _}) => {
   </div>;
 };
 
-let some_errors = (program, ~fix=?, errors) => {
+let mk_minify = minify => {
+  <button onClick=minify class_="btn-minify" title="Minify this source code.">
+    {str("Minify")}
+  </button>;
+};
+
+let some_errors = (program, ~minify, ~fix=?, errors) => {
   let main =
     List.map(
       ({Error.Error.span, _} as err) => {
@@ -119,10 +125,14 @@ let some_errors = (program, ~fix=?, errors) => {
          </button>
        | None => nil
        }}
+      {mk_minify(minify)}
     </div>,
     ...main,
   ]);
 };
 
-let no_errors =
-  <div class_="error-summary error-none"> {str("✓ No errors")} </div>;
+let no_errors = (~minify) =>
+  <div class_="error-summary error-none">
+    {str("✓ No errors")}
+    {mk_minify(minify)}
+  </div>;

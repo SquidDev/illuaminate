@@ -103,6 +103,8 @@ button:active {
   white-space: pre-wrap;
 }
 
+.btn-minify { float: right; }
+
 .error, .error-summary { padding: 0.5em 0px; }
 
 .error-summary { font-size: 1.2em; }
