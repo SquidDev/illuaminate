@@ -17,49 +17,62 @@ type token_kind =
     will be wrapped in tag of this type. *)
 type Format.stag += Token of token_kind
 
-(** Write a trivial term to the formatter. *)
+(** A sink of nodes. *)
+module type Emitter = sig
+  type t
+
+  (** Write an arbitrary node, accepting a {!token_kind} (used for highlighting) and a
+      pretty-printer for the node's contents. *)
+  val node : kind:token_kind -> (Format.formatter -> 'a -> unit) -> t -> 'a Node.t -> unit
+end
+
+module type S = sig
+  include Emitter
+
+  (** Write a token to the formatter. *)
+  val token : kind:token_kind -> t -> token -> unit
+
+  (** Write a variable to the formatter. *)
+  val var : t -> var -> unit
+
+  (** Write a name to the formatter. *)
+  val name : t -> name -> unit
+
+  (** Write a function call to a formatter. *)
+  val call : t -> call -> unit
+
+  (** Write a function call's arguments to a formatter. *)
+  val call_args : t -> call_args -> unit
+
+  (** Write a function definition's arguments to a formatter. *)
+  val args : t -> args -> unit
+
+  (** Write a table_item to a formatter. *)
+  val table_item : t -> table_item -> unit
+
+  (** Write a function name to a formatter. *)
+  val function_name : t -> function_name -> unit
+
+  (** Write an expression to a formatter. *)
+  val expr : t -> expr -> unit
+
+  (** Write a statement to a formatter. *)
+  val stmt : t -> stmt -> unit
+
+  (** Write a block to a formatter. *)
+  val block : t -> block -> unit
+
+  (** Write a program to a formatter. *)
+  val program : t -> program -> unit
+
+  (** Write a repl input to a formatter. *)
+  val repl_exprs : t -> repl_exprs -> unit
+end
+
+module Make (E : Emitter) : S with type t := E.t
+
+(** Write a trivial term to a formatter. *)
 val trivial : Format.formatter -> Node.trivial -> unit
 
-(** Write an arbitrary node, accepting a {!token_kind} (used for highlighting) and a pretty-printer
-    for the node's contents. *)
-val node :
-  kind:token_kind -> (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a Node.t -> unit
-
-(** Write a token to the formatter. *)
-val token : kind:token_kind -> Format.formatter -> token -> unit
-
-(** Write a variable to the formatter. *)
-val var : Format.formatter -> var -> unit
-
-(** Write a name to the formatter. *)
-val name : Format.formatter -> name -> unit
-
-(** Write a function call to a formatter. *)
-val call : Format.formatter -> call -> unit
-
-(** Write a function call's arguments to a formatter. *)
-val call_args : Format.formatter -> call_args -> unit
-
-(** Write a function definition's arguments to a formatter. *)
-val args : Format.formatter -> args -> unit
-
-(** Write a table_item to a formatter. *)
-val table_item : Format.formatter -> table_item -> unit
-
-(** Write a function name to a formatter. *)
-val function_name : Format.formatter -> function_name -> unit
-
-(** Write an expression to a formatter. *)
-val expr : Format.formatter -> expr -> unit
-
-(** Write a statement to a formatter. *)
-val stmt : Format.formatter -> stmt -> unit
-
-(** Write a block to a formatter. *)
-val block : Format.formatter -> block -> unit
-
-(** Write a program to a formatter. *)
-val program : Format.formatter -> program -> unit
-
-(** Write a repl input to a formatter. *)
-val repl_exprs : Format.formatter -> repl_exprs -> unit
+(** By default we provide emitting functions which write to a formatter.*)
+include S with type t := Format.formatter
