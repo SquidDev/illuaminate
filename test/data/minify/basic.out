@@ -1,1 +1,1 @@
-for i=1,10 do print("Hello",i*2)end
+local function e(t,...)print(string.format(t,...))end for a=1,10 do e("Hello",a*2)end

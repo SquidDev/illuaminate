@@ -19,11 +19,17 @@ module SepList1 = struct
 
   let rec map fx ?(tok = Fun.id) = function
     | Mono x -> Mono (fx x)
-    | Cons1 (x, t, xs) -> Cons1 (fx x, tok t, map fx ~tok xs)
+    | Cons1 (x, t, xs) ->
+        let x = fx x in
+        let t = tok t in
+        let xs = map fx ~tok xs in
+        Cons1 (x, t, xs)
 
   let rec map' f = function
     | Mono x -> [ f x ]
-    | Cons1 (x, _, xs) -> f x :: map' f xs
+    | Cons1 (x, _, xs) ->
+        let x = f x in
+        x :: map' f xs
 
   let rec map_with' f s = function
     | Mono x ->

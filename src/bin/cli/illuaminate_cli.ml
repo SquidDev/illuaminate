@@ -3,10 +3,17 @@ open IlluaminateLint
 module StringMap = Map.Make (String)
 module StringSet = Set.Make (String)
 module Config = IlluaminateConfigFormat
+open CCFun
 
 let src = Logs.Src.create ~doc:"The core CLI for illuaminate" __MODULE__
 
 module Log = (val Logs.src_log src)
+
+let write_file path f =
+  CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path) @@ fun ch ->
+  let formatter = Format.formatter_of_out_channel ch in
+  f formatter;
+  Format.pp_print_flush formatter ()
 
 let reporter () =
   let open Error.Style in
@@ -76,11 +83,7 @@ let fix paths =
     | ( { Loader.file = { name; path = Some path; _ }; parsed = Some oldm; _ },
         { Loader.parsed = Some newm; _ } )
       when oldm != newm -> (
-      try
-        CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path)
-        @@ fun ch ->
-        let fmt = Format.formatter_of_out_channel ch in
-        Emit.program fmt newm; Format.pp_print_flush fmt ()
+      try write_file path (fun out -> Emit.program out newm)
       with e -> Log.err (fun f -> f "Error fixing %s (%s).\n" name (Printexc.to_string e)) )
     | _ -> ()
   in
@@ -214,10 +217,28 @@ let init_config config force =
   if (not force) && Sys.file_exists config then (
     Printf.eprintf "File already exists";
     exit 1 );
-  CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] config @@ fun ch ->
-  let formatter = Format.formatter_of_out_channel ch in
-  Config.generate formatter;
-  Format.pp_print_flush formatter ()
+  write_file (Fpath.v config) Config.generate
+
+let minify file =
+  let module D = IlluaminateData in
+  let module M = IlluaminateMinify in
+  let errs = Error.make () in
+  let program =
+    match file with
+    | Some file ->
+        let path = Fpath.(v (Sys.getcwd ()) // file) in
+        let path_s = Fpath.to_string path in
+        let filename = Span.Filename.mk ~name:(Fpath.to_string file) ~path path_s in
+        CCIO.with_in path_s @@ (IlluaminateParser.program filename % Lexing.from_channel)
+    | None ->
+        let filename = Span.Filename.mk "=stdin" in
+        Lexing.from_channel stdin |> IlluaminateParser.program filename
+  in
+  match program with
+  | Error err -> IlluaminateParser.Error.report errs err.span err.value
+  | Ok program ->
+      D.compute (fun ctx -> M.minify ctx program) D.Builder.(build empty)
+      |> M.Emit.use Format.std_formatter M.Emit.program
 
 module Args = struct
   include Cmdliner
@@ -300,10 +321,13 @@ module Args = struct
   let files_arg =
     value & pos_all file [ Fpath.v "." ] & info ~doc:"Files and directories to check." []
 
-  let file_arg =
+  let doc_file_arg =
     value
     & pos 0 (some ~none:"current directory" file) None
     & info ~doc:"File/directory to generate docs for." []
+
+  let minify_file_arg =
+    value & pos 0 (some ~none:"stdin" file) None & info ~doc:"File to minify." []
 end
 
 let run () =
@@ -349,7 +373,7 @@ let run () =
   let doc_gen_cmd =
     let doc = "Generates HTML documentation" in
     let term =
-      let+ common = common and+ file = file_arg in
+      let+ common = common and+ file = doc_file_arg in
       setup_common common; doc_gen file
     in
     (term, Term.info "doc-gen" ~doc ~man:[ `Blocks common_docs ])
@@ -369,6 +393,14 @@ let run () =
     in
     (term, Term.info "init-config" ~doc ~man:[ `Blocks common_docs ])
   in
+  let minify_cmd =
+    let doc = "Minify a Lua file" in
+    let term =
+      let+ common = common and+ file = minify_file_arg in
+      setup_common common; minify file
+    in
+    (term, Term.info "minify" ~doc ~man:[ `Blocks common_docs ])
+  in
 
   let default_cmd =
     let doc = "Provides basic source code analysis of Lua projects." in
@@ -382,4 +414,4 @@ let run () =
 
   Term.exit
   @@ Term.eval_choice default_cmd
-       [ lint_cmd; fix_cmd; doc_gen_cmd; dump_global_cmd; init_config_cmd ]
+       [ lint_cmd; fix_cmd; doc_gen_cmd; dump_global_cmd; init_config_cmd; minify_cmd ]

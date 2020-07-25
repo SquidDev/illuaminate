@@ -11,6 +11,12 @@ module Emit : sig
   include Emit.S with type t := t
 end
 
-(** Attempts to minify a program as much as possible. This removes any superfluous trivia, making
-    the program as short as possible. *)
+(** Remove any superfluous trivia nodes from a program. *)
+val remove_trivia : Syntax.program -> Syntax.program
+
+(** Rename any variables within the program to a shorter variant. *)
+val rename : IlluaminateData.context -> Syntax.program -> Syntax.program
+
+(** Attempts to minify a program as much as possible. This applies [rename] and [remove_trivia] to
+    minify as far as possible. *)
 val minify : IlluaminateData.context -> Syntax.program -> Syntax.program
