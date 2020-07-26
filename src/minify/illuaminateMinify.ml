@@ -36,7 +36,7 @@ end
 type token_kind =
   | OBracket
   | LongString
-  | Ident of char
+  | Ident
   | Number
   | Symbol
   | Concat
@@ -49,11 +49,11 @@ let needs_space (l : token_kind) (r : token_kind) =
   | OBracket, _ -> false
   (* These should be safe anywhere. *)
   | (LongString | Symbol), _ -> false
-  (* 'not a' clearly needs spaces. Arguably 'a .2' does, but thankfully we'll never parse that .*)
-  | Ident _, Ident _ -> true
-  | Ident _, _ -> false
+  (* 'not a' clearly needs spaces. Technically 'and .2' doesn't, but that's relatively rare. *)
+  | Ident, (Ident | Number) -> true
+  | Ident, _ -> false
   (* We cannot compress '2 else' or '2 ..' as they're then consumed as part of the number. *)
-  | Number, (Ident ('e' | 'E' | 'p' | 'P' | 'x' | 'X') | Concat) -> true
+  | Number, (Ident | Concat) -> true
   | Number, _ -> false
   (* ' - -' becomes a comment. *)
   | Minus, Minus -> true
@@ -74,9 +74,9 @@ let token_ident : Token.t -> token_kind = function
   | Concat -> Concat
   | OSquare -> OBracket
   | Sub -> Minus
-  | ( And | Break | Do | Else | ElseIf | End | False | For | Function | Ident _ | If | In | Local
-    | Nil | Not | Or | Repeat | Return | Then | True | Until | While ) as t ->
-      Ident (Token.show t).[0]
+  | And | Break | Do | Else | ElseIf | End | False | For | Function | Ident _ | If | In | Local
+  | Nil | Not | Or | Repeat | Return | Then | True | Until | While ->
+      Ident
   | Add | CBrace | Colon | Comma | CParen | CSquare | Div | Dot | Dots | EoF | Eq | Equals | Ge | Gt
   | Le | Len | Lt | Mod | Mul | Ne | OBrace | OParen | Pow | Semicolon ->
       Symbol
@@ -109,9 +109,9 @@ class remove_trivia =
       (* The only raw nodes we have in the tree are where identifiers are expected /after/ some
          other symbol. Thus we never need worry about being immediately preceded with an number.
          Yes, this is ugly. *)
-      self#handle_node ~now:(Ident ' ') f x
+      self#handle_node ~now:Ident f x
 
-    method! var (Var v) = Var (self#handle_node ~now:(Ident (Node.contents.get v).[0]) Fun.id v)
+    method! var (Var v) = Var (self#handle_node ~now:Ident Fun.id v)
 
     method! token t = self#handle_node ~now:(token_ident (Node.contents.get t)) Fun.id t
 
