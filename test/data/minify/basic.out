@@ -1,1 +1,3 @@
-local function e(t,...)print(string.format(t,...))end for a=1,10 do e("Hello",a*2)end
+local function e(t,...)print(string.format(t,...))end local a,o={},1for
+i=1,10do
+e("Hello",i*2)end

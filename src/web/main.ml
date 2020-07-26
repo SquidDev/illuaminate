@@ -79,7 +79,7 @@ and minify () : unit =
         let module M = IlluaminateMinify in
         let module D = IlluaminateData in
         D.compute (fun ctx -> M.minify ctx parsed) D.Builder.(build empty)
-        |> M.Emit.use out M.Emit.program
+        |> M.Emit.(with_wrapping out "%a" program)
       in
       input##.value := Js.string new_contents;
       lint ()

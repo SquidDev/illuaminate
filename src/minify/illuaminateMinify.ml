@@ -3,34 +3,94 @@ open Syntax
 open Lens
 module R = IlluaminateSemantics.Resolve
 
-module Emit = struct
+module Emitter = struct
   type t = Format.formatter
 
-  include Emit
+  let trivial out = function
+    | Node.Whitespace " " -> Format.pp_print_space out ()
+    | x -> Emit.trivial out x
 
-  let use x f = f x
+  let trivial_span out { Span.value; _ } = trivial out value
+
+  let twith kind f out x =
+    Format.pp_open_stag out (Emit.Token kind);
+    f out x;
+    Format.pp_close_stag out ()
+
+  let node ~kind body out = function
+    | Node.SimpleNode { contents } -> twith kind body out contents
+    | Node.Node { leading_trivia; contents; trailing_trivia; _ } ->
+        List.iter (trivial_span out) leading_trivia;
+        twith kind body out contents;
+        List.iter (trivial_span out) trailing_trivia
 end
 
-let token_ident : Token.t -> bool = function
-  | And | Break | Do | Else | ElseIf | End | False | For | Function | Ident _ | If | In | Int _
-  | Local | MalformedNumber _ | Nil | Not | Number _ | Or | Repeat | Return | Then | True | Until
-  | While ->
-      true
-  | Add | CBrace | Colon | Comma | Concat | CParen | CSquare | Div | Dot | Dots | EoF | Eq | Equals
-  | Ge | Gt | Le | Len | Lt | Mod | Mul | Ne | OBrace | OParen | OSquare | Pow | Semicolon
-  | String _ | Sub ->
-      false
+module Emit = struct
+  include Emit.Make (Emitter)
 
-(** Removes trivia from a node. We keep track of whether the previous token was an identifier
-    ([is_ident]) or other symbol which requires spaces around it (such as a number). We use this to
-    ensure that [local x] is not printed as [localx], but still allow things like [f()].*)
+  let flush out = Format.pp_print_flush out ()
+
+  let with_wrapping out fmt = Format.pp_set_margin out 80; Format.kfprintf flush out fmt
+end
+
+type token_kind =
+  | OBracket
+  | LongString
+  | Ident of char
+  | Number
+  | Symbol
+  | Concat
+  | Minus
+
+let needs_space (l : token_kind) (r : token_kind) =
+  match (l, r) with
+  (* 'a[ [[' is not valid. 'a[ [' should never happen, but just in case. *)
+  | OBracket, (OBracket | LongString) -> true
+  | OBracket, _ -> false
+  (* These should be safe anywhere. *)
+  | (LongString | Symbol), _ -> false
+  (* 'not a' clearly needs spaces. Arguably 'a .2' does, but thankfully we'll never parse that .*)
+  | Ident _, Ident _ -> true
+  | Ident _, _ -> false
+  (* We cannot compress '2 else' or '2 ..' as they're then consumed as part of the number. *)
+  | Number, (Ident ('e' | 'E' | 'p' | 'P' | 'x' | 'X') | Concat) -> true
+  | Number, _ -> false
+  (* ' - -' becomes a comment. *)
+  | Minus, Minus -> true
+  | Minus, _ -> false
+  (* _Technically this is safe, but '.. .2' does not parse, so we don't accept it. *)
+  | Concat, Number -> true
+  | Concat, _ -> false
+
+let classify_string x : token_kind =
+  match x.[0] with
+  | '\'' | '"' -> Symbol
+  | '[' -> LongString
+  | _ -> failwith "Impossible string"
+
+let token_ident : Token.t -> token_kind = function
+  | Int _ | MalformedNumber _ | Number _ -> Number
+  | String (_, x) -> classify_string x
+  | Concat -> Concat
+  | OSquare -> OBracket
+  | Sub -> Minus
+  | ( And | Break | Do | Else | ElseIf | End | False | For | Function | Ident _ | If | In | Local
+    | Nil | Not | Or | Repeat | Return | Then | True | Until | While ) as t ->
+      Ident (Token.show t).[0]
+  | Add | CBrace | Colon | Comma | CParen | CSquare | Div | Dot | Dots | EoF | Eq | Equals | Ge | Gt
+  | Le | Len | Lt | Mod | Mul | Ne | OBrace | OParen | Pow | Semicolon ->
+      Symbol
+
+(** Removes trivia from a node. We keep track of what sort of token the previous one was, and
+    whether it needs a space around it. We use this to ensure that [local x] is not printed as
+    [localx], but still allow things like [f()].*)
 class remove_trivia =
   object (self)
     inherit Syntax.map
 
-    val mutable is_ident = false
+    val mutable last_kind = Symbol
 
-    method private handle_node : 'a. now:bool -> ('a -> 'a) -> 'a Node.t -> 'a Node.t =
+    method private handle_node : 'a. now:token_kind -> ('a -> 'a) -> 'a Node.t -> 'a Node.t =
       fun ~now f node ->
         let open Node in
         let node =
@@ -38,16 +98,32 @@ class remove_trivia =
           | SimpleNode { contents } -> SimpleNode { contents = f contents }
           | Node { contents; span; _ } ->
               let leading =
-                if is_ident && now then [ { Span.span; value = Whitespace " " } ] else []
+                if needs_space last_kind now then [ { Span.span; value = Whitespace " " } ] else []
               in
               Node { contents; span; leading_trivia = leading; trailing_trivia = [] }
         in
-        is_ident <- now;
+        last_kind <- now;
         node
 
-    method! node f x = self#handle_node ~now:true f x
+    method! node f x =
+      (* The only raw nodes we have in the tree are where identifiers are expected /after/ some
+         other symbol. Thus we never need worry about being immediately preceded with an number.
+         Yes, this is ugly. *)
+      self#handle_node ~now:(Ident ' ') f x
+
+    method! var (Var v) = Var (self#handle_node ~now:(Ident (Node.contents.get v).[0]) Fun.id v)
 
     method! token t = self#handle_node ~now:(token_ident (Node.contents.get t)) Fun.id t
+
+    method! literal _ l =
+      let now : token_kind =
+        match (Node.contents.get l.lit_node).[0] with
+        | '0' .. '9' | '.' -> Number
+        | '\'' | '"' -> Symbol
+        | '[' -> LongString
+        | _ -> failwith "Unknown literal"
+      in
+      l |> Literal.lit_node %= self#handle_node ~now Fun.id
 
     method! unop_expr { unop_op; unop_rhs } =
       let now = Node.contents.get unop_op |> UnOp.to_token |> token_ident in

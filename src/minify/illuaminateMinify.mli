@@ -1,14 +1,12 @@
 (** Provides utilities for minifying a program. *)
 open IlluaminateCore
 
-(** A customised emitter which makes minified output a little more readable. Currently this does
-    nothing. *)
+(** A customised emitter which will wrap text rather than printing it verbatim. *)
 module Emit : sig
-  type t
+  include Emit.S with type t := Format.formatter
 
-  val use : Format.formatter -> (t -> 'a) -> 'a
-
-  include Emit.S with type t := t
+  (** Set the margin of this formatter to 80, then print and flush a value. *)
+  val with_wrapping : Format.formatter -> ('b, Format.formatter, unit) format -> 'b
 end
 
 (** Remove any superfluous trivia nodes from a program. *)

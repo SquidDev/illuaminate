@@ -237,8 +237,9 @@ let minify file =
   match program with
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok program ->
+      let out = Format.formatter_of_out_channel stdout in
       D.compute (fun ctx -> M.minify ctx program) D.Builder.(build empty)
-      |> M.Emit.use Format.std_formatter M.Emit.program
+      |> M.Emit.(with_wrapping out "%a" program)
 
 module Args = struct
   include Cmdliner
