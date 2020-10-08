@@ -35,25 +35,33 @@ let rec unwrap = function
 
 let unwrap_all =
   (* The fixer attempts to append the leading/trailing trivia to the current expression. *)
-  let fix e =
-    match e with
-    | Parens _ ->
+  let join l r has_ws span =
+    match (l, r) with
+    | [], [] when has_ws -> [ { Span.value = Node.Whitespace " "; span } ]
+    | _, _ -> Node.join_trivia l r
+  in
+  let fix path = function
+    | Parens _ as e ->
         let open Lens in
-        let l, e, t = unwrap e in
-        let e =
-          match l with
-          | [] -> e
-          | _ -> ((First.expr -| Node.leading_trivia) %= fun x -> Node.join_trivia x l) @@ e
+        let before, after =
+          match path with
+          | Expr (UnOp _) :: _ -> (true, false)
+          | Expr (BinOp { binop_lhs; binop_rhs; binop_op }) :: _ ->
+              ( e == binop_rhs && Node.trailing_trivia.get binop_op = [],
+                e == binop_lhs && Node.leading_trivia.get binop_op = [] )
+          | _ -> (false, false)
         in
+        let l, e, t = unwrap e in
+        let span = Spanned.expr e in
         let e =
-          match t with
-          | [] -> e
-          | _ -> ((Last.expr -| Node.trailing_trivia) %= fun x -> Node.join_trivia t x) @@ e
+          e
+          |> ((First.expr -| Node.leading_trivia) %= fun x -> join x l before span)
+          |> (Last.expr -| Node.trailing_trivia) %= fun x -> join t x after span
         in
         Ok e
     | _ -> Error "Expected Parens"
   in
-  fun r -> r.r ~tag ~fix:(Fixer.fix @@ fix) "Unnecessary parenthesis."
+  fun path r -> r.r ~tag ~fix:(Fixer.fix @@ fix path) "Unnecessary parenthesis."
 
 let unwrap_most =
   (* The fixer attempts to append the leading/trailing trivia to the outer parenthesis. *)
@@ -135,25 +143,25 @@ let expr { Opt.clarifying } { path; _ } r parens =
   | Parens { paren_expr = expr; _ }, _ ->
       let rec go msg = function
         (* Variables _never_ need to be wrapped in parens. *)
-        | Ref _ -> unwrap_all
+        | Ref _ -> unwrap_all path
         (* If we've some latent parens, then we warn. However, we may need to leave some parens if
            required. *)
         | Parens { paren_expr = e; _ } -> go unwrap_most e
         (* If we've got raw literals, then they only need to be wrapped when calling/indexing them. *)
         | Nil _ | True _ | False _ | Number _ | String _ | Int _ | MalformedNumber _ | Fun _
         | Table _ ->
-            if is_fn_or_tbl () then msg else unwrap_all
+            if is_fn_or_tbl () then msg else unwrap_all path
         (* If we're a term which yields a variable number of arguments, we should protect when the
            last argument to a call, or last value in a binding. *)
-        | ECall _ -> if is_variadic () then msg else unwrap_all
-        | Dots _ -> if is_fn_or_tbl () || is_variadic () then msg else unwrap_all
+        | ECall _ -> if is_variadic () then msg else unwrap_all path
+        | Dots _ -> if is_fn_or_tbl () || is_variadic () then msg else unwrap_all path
         (* Operators - check indexing, and then precedence. *)
         | UnOp { unop_op = op; _ } ->
             if is_fn_or_tbl () || has_precedence (op ^. Node.contents |> UnOp.precedence) then msg
-            else unwrap_all
+            else unwrap_all path
         | BinOp { binop_op = op; _ } ->
             if is_fn_or_tbl () || has_precedence (op ^. Node.contents |> BinOp.precedence) then msg
-            else unwrap_all
+            else unwrap_all path
       in
       go (fun _ -> ()) expr r
   | _ -> ()

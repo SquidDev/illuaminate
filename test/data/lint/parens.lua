@@ -44,6 +44,7 @@ do
 
   local function _(...) return (...) end -- ok
   local function _(...) return (...), 0 end
+  -- TODO: local function _(...) return(x)end
 end
 
 -- Operators
@@ -61,4 +62,7 @@ do
   local _ = 2 + (2 + 2) -- ok
   local _ = 2 * (2 + 2) + 1 -- ok
   local _ = (2 + 2) + 2
+
+  local _ = not(x)
+  local _ = (x)and(x)
 end

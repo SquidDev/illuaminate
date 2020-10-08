@@ -50,23 +50,35 @@ parens.lua:[46:32-46:36]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
  46 │   local function _(...) return (...), 0 end
     │                                ^^^^^
-parens.lua:[51:13-51:19]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[52:13-52:19]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
- 51 │   local _ = (2 + 2)
+ 52 │   local _ = (2 + 2)
     │             ^^^^^^^
-parens.lua:[55:13-55:16]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[56:13-56:16]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
- 55 │   local _ = (#2)
+ 56 │   local _ = (#2)
     │             ^^^^
-parens.lua:[60:17-60:23]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[61:17-61:23]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
- 60 │   local _ = 2 + (2 * 2)
+ 61 │   local _ = 2 + (2 * 2)
     │                 ^^^^^^^
-parens.lua:[63:13-63:19]: Unnecessary parenthesis. [syntax:redundant-parens]
+parens.lua:[64:13-64:19]: Unnecessary parenthesis. [syntax:redundant-parens]
     │
- 63 │   local _ = (2 + 2) + 2
+ 64 │   local _ = (2 + 2) + 2
     │             ^^^^^^^
-No errors and 17 warnings
+parens.lua:[66:16-66:18]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+ 66 │   local _ = not(x)
+    │                ^^^
+parens.lua:[67:13-67:15]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+ 67 │   local _ = (x)and(x)
+    │             ^^^
+parens.lua:[67:19-67:21]: Unnecessary parenthesis. [syntax:redundant-parens]
+    │
+ 67 │   local _ = (x)and(x)
+    │                   ^^^
+No errors and 20 warnings
  -- config: (lint (only syntax:redundant-parens))
  
  -- Redundant parenthesis around references
@@ -125,6 +137,7 @@ No errors and 17 warnings
    local function _(...) return (...) end -- ok
 -  local function _(...) return (...), 0 end
 +  local function _(...) return ..., 0 end
+   -- TODO: local function _(...) return(x)end
  end
  
  -- Operators
@@ -146,5 +159,10 @@ No errors and 17 warnings
    local _ = 2 * (2 + 2) + 1 -- ok
 -  local _ = (2 + 2) + 2
 +  local _ = 2 + 2 + 2
+ 
+-  local _ = not(x)
+-  local _ = (x)and(x)
++  local _ = not x
++  local _ = x and x
  end
  
