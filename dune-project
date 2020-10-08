@@ -16,7 +16,7 @@
   (synopsis "Source code analysis for Lua")
   (description "Provides various tools for parsing, processing and producing Lua source code. Currently does very little, but will hopefully grow in the future.")
   (depends
-    (ocaml (>= 4.08))
+    (ocaml (and (>= 4.08) (< 4.11)))
 
     ;; Build-time
     (dune (>= 2.3)) ; While a build-tool, dune shouldn't be build-time only

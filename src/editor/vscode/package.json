@@ -52,12 +52,12 @@
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
-    "@types/node": "^12.12.30",
-    "@types/vscode": "^1.43.0",
-    "typescript": "^3.8.2",
-    "vsce": "^1.74.0"
+    "@types/node": "^12.12.64",
+    "@types/vscode": "^1.49.0",
+    "typescript": "^3.9.7",
+    "vsce": "^1.81.1"
   },
   "dependencies": {
-    "vscode-languageclient": "^6.1.1"
+    "vscode-languageclient": "^6.1.3"
   }
 }
