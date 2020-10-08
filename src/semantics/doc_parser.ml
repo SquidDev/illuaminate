@@ -701,7 +701,8 @@ module Data = struct
              comment x t |> ignore;
              f (Node.contents.get x)
         end)
-          #program prog;
+          #program
+          prog;
         let comments =
           TermTbl.to_seq_values t.comments
           |> Seq.flat_map (fun (x, y) -> Seq.flat_map List.to_seq (List.to_seq [ x; y ]))

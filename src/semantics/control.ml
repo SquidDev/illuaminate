@@ -213,7 +213,8 @@ let analyse _ prog =
            ArgTbl.add t.functions args func; {<func>}#block body
        | e -> super#expr e
   end)
-    #program prog;
+    #program
+    prog;
   t
 
 let key = IlluaminateData.Programs.key ~name:__MODULE__ analyse

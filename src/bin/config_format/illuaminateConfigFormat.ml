@@ -82,8 +82,8 @@ let doc_options_term =
          This accepts the following variables:\n\
         \ - path: The documented source's path, relative to the project root.\n\
         \ - sline/eline: The start and end line of the variable's definition.\n\
-        \ - commit: The current commit hash, as returned by git rev-parse HEAD." ~default:None
-      (option ~ty:"template" template)
+        \ - commit: The current commit hash, as returned by git rev-parse HEAD."
+      ~default:None (option ~ty:"template" template)
   and+ json_index =
     field ~name:"json-index"
       ~comment:

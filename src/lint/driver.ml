@@ -387,7 +387,8 @@ let fix prog (fixes : Notes.t) =
 
        method! var var = fix_all fixes Var var |> super#var
     end)
-      #program prog
+      #program
+      prog
 
 let lint_and_fix_all ~store ~data ?files ?tags linters program =
   let all = Notes.Tbl.create 8 in

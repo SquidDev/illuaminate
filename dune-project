@@ -42,7 +42,7 @@
 
     ; Core
     cmdliner
-    containers
+    (containers (>= 3.0.1))
     fpath
     js_of_ocaml
     logs

@@ -8,7 +8,7 @@
     "ocaml": ">=4.08",
     "@opam/dune": ">=2.3",
     "@opam/cmdliner": "*",
-    "@opam/containers": "*",
+    "@opam/containers": ">=3.0.1",
     "@opam/fpath": "*",
     "@opam/js_of_ocaml": "*",
     "@opam/logs": "*",

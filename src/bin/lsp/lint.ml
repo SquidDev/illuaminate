@@ -20,15 +20,6 @@ let note_to_diagnostic : Driver.Note.any -> Diagnostic.t = function
       in
       diagnostic ~tag ~span message
 
-module Seq = struct
-  include Seq
-
-  let hd (f : 'a Seq.t) : 'a =
-    match f () with
-    | Cons (x, _) -> x
-    | Nil -> failwith "hd"
-end
-
 let notes =
   D.Programs.key ~name:__MODULE__ @@ fun data prog ->
   let tags, store = D.need data Store.linters (Node.span prog.eof |> Span.filename) in
@@ -43,7 +34,7 @@ let notes =
 
   if n = 0 then [||]
   else
-    let out = List.hd notes |> Driver.Notes.to_seq |> Seq.hd |> Array.make n in
+    let out = List.hd notes |> Driver.Notes.to_seq |> CCSeq.head_exn |> Array.make n in
     List.fold_left
       (fun i xs -> Driver.Notes.to_seq xs |> Seq.fold_left (fun i x -> out.(i) <- x; i + 1) i)
       0 notes
@@ -57,7 +48,7 @@ let diagnostics store : Store.document -> Diagnostic.t list = function
       ]
   | { program = Ok prog; _ } ->
       D.get (Store.data store) notes prog
-      |> Array.to_seq |> Seq.map note_to_diagnostic |> CCList.of_std_seq_rev
+      |> Array.to_seq |> Seq.map note_to_diagnostic |> CCList.of_seq_rev
 
 let to_code_action ~program (i, (Driver.Note.Note { message; fix; _ } as note)) =
   match fix with
@@ -81,7 +72,7 @@ let code_actions store program range : CodeActionResult.t =
   |> Array.to_seqi
   |> Seq.filter (fun (_, Driver.Note.Note { span; _ }) -> Pos.overlaps range span)
   |> Seq.filter_map (to_code_action ~program)
-  |> CCList.of_std_seq_rev |> Option.some
+  |> CCList.of_seq_rev |> Option.some
 
 let get_whole_range before witness =
   let open Lens in
