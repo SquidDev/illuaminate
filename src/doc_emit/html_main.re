@@ -164,7 +164,11 @@ let rec show_named_value =
   [
     <dt>
       <a name=sec href={"#" ++ sec} />
-      <span class_="definition-name">
+      <span
+        class_={
+          value.deprecated != None
+            ? "definition-name definition-deprecated" : "definition-name"
+        }>
         {str(field)}
         {value.descriptor |> get_suffix |> str}
       </span>
@@ -210,7 +214,14 @@ and show_value = (~options as {resolve, _} as options, value) => {
                         value.deprecated,
                       )
                     }>
-                    <th class_="definition-name">
+                    <th
+                      class_="definition-name"
+                      title=?{
+                        Option.map(
+                          _ => "This member is deprecated.",
+                          value.deprecated,
+                        )
+                      }>
                       <a
                         href={
                           "#" ++ Option.get(section_of_name(Value(field)))
