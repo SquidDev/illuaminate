@@ -29,7 +29,8 @@ package managers.
 ### Using Opam
  - Install [opam][] and set up a OCaml 4.08.1 switch (`opam switch create
    4.08.1`). Later versions may work, but haven't been tested.
- - Insall [omnomnom][] using `opam pin add omnomnom https://github.com/SquidDev/omnomnom.git`.
+ - Install [omnomnom][] using `opam pin add omnomnom https://github.com/SquidDev/omnomnom.git`.
+ - Install lsp using `opam pin add lsp https://github.com/SquidDev/ocaml-lsp-subtree.git`.
  - Install all other dependencies: `opam install --deps-only ./illuaminate.opam`
  - Build using Dune: `dune build @install @runtest`
  - You may either install illuaminate into opam using `dune install`, or use the
