@@ -164,7 +164,11 @@ let rec show_named_value =
   [
     <dt>
       <a name=sec href={"#" ++ sec} />
-      <span class_="definition-name">
+      <span class_={
+        value.deprecated != None
+          ? "definition-name definition-deprecated"
+          : "definition-name"
+      }>
         {str(field)}
         {value.descriptor |> get_suffix |> str}
       </span>
@@ -219,7 +223,14 @@ and show_value = (~options as {resolve, _} as options, value) => {
                         {value.descriptor |> get_suffix |> str}
                       </a>
                     </th>
-                    <td> {show_summary(~resolve, value.description)} </td>
+                    <td>
+                      {if (value.deprecated != None) {
+                        <strong> {str("Deprecated ")} </strong>
+                      } else {
+                        nil;
+                      }}
+                      {show_summary(~resolve, value.description)}
+                    </td>
                   </tr>
                 )
            }
