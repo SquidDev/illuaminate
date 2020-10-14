@@ -48,11 +48,11 @@
       (see
        (ref
         ((name string.match)
-         (url https://www.lua.org/manual/5.1/manual.html#string.match)))
+         (url https://www.lua.org/manual/5.1/manual.html#pdf-string.match)))
        (label string.match) (span references.lua[37:12-37:23]))))
     (builtin_2
      ((description
-       "<illuaminate:ref href='https://www.lua.org/manual/5.1/manual.html#string.match' style='code'>string.match</illuaminate:ref>, <illuaminate:ref href='https://www.lua.org/manual/5.1/manual.html#5.4' style='code'>string</illuaminate:ref> and <illuaminate:ref style='code'>number</illuaminate:ref>\n\n")
+       "<illuaminate:ref href='https://www.lua.org/manual/5.1/manual.html#pdf-string.match' style='code'>string.match</illuaminate:ref>, <illuaminate:ref href='https://www.lua.org/manual/5.1/manual.html#5.4' style='code'>string</illuaminate:ref> and <illuaminate:ref style='code'>number</illuaminate:ref>\n\n")
       (body (args))))
     (module_1
      ((description

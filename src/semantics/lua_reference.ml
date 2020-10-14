@@ -54,7 +54,7 @@ let lookup_name = function
     | "string.rep" | "string.reverse" | "string.sub" | "string.upper" | "table.concat"
     | "table.insert" | "table.maxn" | "table.remove" | "table.sort" | "tonumber" | "tostring"
     | "type" | "unpack" | "xpcall" ) as x ->
-      InManual x
+      InManual ("pdf-" ^ x)
   | "true" | "false" | "nil" ->
       (* As with types, could do 2.5, but somewhat dubious. *)
       Undocumented
