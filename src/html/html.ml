@@ -17,6 +17,12 @@ struct
     | Many of node list
 
   let create_node ~tag ?(attributes = []) ?(events = []) ?(children = []) () =
+    let attributes =
+      attributes
+      |> List.filter_map @@ function
+         | _, None -> None
+         | a, Some b -> Some (a, b)
+    in
     Element { tag; attributes; events; children }
 
   let str x = Text x

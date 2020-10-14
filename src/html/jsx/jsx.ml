@@ -6,6 +6,12 @@ let make_opt ~loc name args rest : (arg_label * expression) list =
   | [] -> rest
   | _ :: _ -> (Labelled name, Build.elist ~loc args) :: rest
 
+(** Allow writing class_ instead of class, and some_attr rather than some-attr *)
+let normalise_name name =
+  let n = String.length name in
+  let name = if name.[n - 1] = '_' then String.sub name 0 (n - 1) else name in
+  String.map (fun x -> if x = '_' then '-' else x) name
+
 let fixup =
   object
     inherit Ast_traverse.map as super
@@ -37,22 +43,18 @@ let fixup =
                        && name.[2] <= 'Z' ->
                     (* If we've got an attribute matching on[A-Z], then we lowercase it and use it
                        as an event name. *)
+                    let loc = value.pexp_loc in
                     let name =
                       String.length name - 2 |> String.sub name 2 |> String.lowercase_ascii
                     in
-                    ( attributes,
-                      Build.pexp_tuple ~loc:value.pexp_loc
-                        [ Build.estring ~loc:value.pexp_loc name; value ]
-                      :: events,
-                      rest )
+                    (attributes, [%expr [%e Build.estring ~loc name], [%e value]] :: events, rest)
                 | Labelled name, value ->
-                    let n = String.length name in
-                    (* Allow writing class_ instead of class, and some_attr rather than some-attr *)
-                    let name = if name.[n - 1] = '_' then String.sub name 0 (n - 1) else name in
-                    let name = String.map (fun x -> if x = '_' then '-' else x) name in
-                    ( Build.pexp_tuple ~loc:value.pexp_loc
-                        [ Build.estring ~loc:value.pexp_loc name; value ]
+                    ( [%expr [%e Build.estring ~loc (normalise_name name)], Some [%e value]]
                       :: attributes,
+                      events,
+                      rest )
+                | Optional name, value ->
+                    ( [%expr [%e Build.estring ~loc (normalise_name name)], [%e value]] :: attributes,
                       events,
                       rest )
                 | arg -> (attributes, events, arg :: rest))

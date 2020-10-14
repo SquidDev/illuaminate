@@ -203,7 +203,13 @@ and show_value = (~options as {resolve, _} as options, value) => {
         ...{
              fs
              |> List.map(((field, value)) =>
-                  <tr>
+                  <tr
+                    class_=?{
+                      Option.map(
+                        _ => "definition-deprecated",
+                        value.deprecated,
+                      )
+                    }>
                     <th class_="definition-name">
                       <a
                         href={

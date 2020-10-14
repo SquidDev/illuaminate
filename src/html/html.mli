@@ -28,7 +28,7 @@ end) : sig
       used from Reason via the JSX processor. *)
   val create_node :
     tag:string ->
-    ?attributes:(string * string) list ->
+    ?attributes:(string * string option) list ->
     ?events:(string * event_handler) list ->
     ?children:node list ->
     unit ->
