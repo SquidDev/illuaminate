@@ -360,23 +360,30 @@ let template =
 
 let emit_modules =
     (~options as {resolve, site_title, _} as options, ~modules, contents) => {
+  let emit_module_row = ({descriptor: {mod_name, _}, description, _}) =>
+    <tr>
+      <th>
+        <a href={"module/" ++ mod_name ++ ".html"}> {str(mod_name)} </a>
+      </th>
+      <td> {show_summary(~resolve, description)} </td>
+    </tr>;
+
+  let emit_module_group = (~title, modules) =>
+    switch (modules) {
+    | [] => nil
+    | _ =>
+      [
+        <h2> {str(title)} </h2>,
+        <table class_="definition-list">
+          ...{CCList.map(emit_module_row, modules)}
+        </table>,
+      ]
+      |> many
+    };
+
   let content = [
     contents,
-    <table class_="definition-list">
-      ...{
-           modules
-           |> CCList.map(m =>
-                <tr>
-                  <th>
-                    <a href={"module/" ++ m.descriptor.mod_name ++ ".html"}>
-                      {str(m.descriptor.mod_name)}
-                    </a>
-                  </th>
-                  <td> {show_summary(~resolve, m.description)} </td>
-                </tr>
-              )
-         }
-    </table>,
+    ...show_module_list(emit_module_group, options, modules),
   ];
   template(
     ~options,
