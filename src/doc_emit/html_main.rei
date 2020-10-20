@@ -2,13 +2,31 @@ open IlluaminateSemantics.Doc.AbstractSyntax;
 open IlluaminateSemantics.Doc.Extract;
 open IlluaminateSemantics.Doc.Syntax;
 
+/** Configuration options for the backend. */
+module Options: {
+  type t = {
+    site_title: option(string),
+    resolve: string => string,
+    source_link: source => option(string),
+    custom: list(Config.custom_kind),
+  };
+
+  let make:
+    (
+      ~site_title: string=?,
+      ~resolve: string => string,
+      ~source_link: source => option(string)=?,
+      ~custom: list(Config.custom_kind)=?,
+      unit
+    ) =>
+    t;
+};
+
 /** Emit an index file from a list of modules.  */
 let emit_modules:
   (
-    ~site_title: string=?,
-    ~resolve: string => string,
+    ~options: Options.t,
     ~modules: list(documented(module_info)),
-    ~custom: list(Config.custom_kind)=?,
     Html.Default.node
   ) =>
   Html.Default.node;
@@ -16,11 +34,8 @@ let emit_modules:
 /** Emit a single module. */
 let emit_module:
   (
-    ~site_title: string=?,
-    ~resolve: string => string,
-    ~source_link: source => option(string),
+    ~options: Options.t,
     ~modules: list(documented(module_info)),
-    ~custom: list(Config.custom_kind)=?,
     documented(module_info)
   ) =>
   Html.Default.node;

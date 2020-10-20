@@ -156,19 +156,21 @@ let doc_gen path =
        config.module_kinds
      in
 
+     let options resolve = E.Html_main.Options.make ?site_title ~resolve ~source_link ~custom () in
+     let module_options =
+       options @@ fun x ->
+       let open Fpath in
+       v x |> relativize ~root:module_dir |> Option.fold ~none:("../" ^ x) ~some:to_string
+     in
      modules
      |> List.iter (fun (modu : Doc.Syntax.module_info Doc.Syntax.documented) ->
             let path = Fpath.(destination / "module" / (modu.descriptor.mod_name ^ ".html")) in
-            let resolve x =
-              let open Fpath in
-              v x |> relativize ~root:module_dir |> Option.fold ~none:("../" ^ x) ~some:to_string
-            in
-            E.Html_main.emit_module ?site_title ~resolve ~source_link ~modules ~custom modu
+            E.Html_main.emit_module ~options:module_options ~modules modu
             |> emit_doc
             |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path));
 
      let path = Fpath.(destination / "index.html") in
-     E.Html_main.emit_modules ?site_title ~resolve:Fun.id ~modules ~custom index
+     E.Html_main.emit_modules ~options:(options Fun.id) ~modules index
      |> emit_doc
      |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path);
 

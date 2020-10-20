@@ -58,8 +58,9 @@ module Html_module = struct
       Printf.sprintf "%04d-%02d-%02d" (time.tm_year + 1900) (time.tm_mon + 1) time.tm_mday
     in
     Format.fprintf out "<!DOCTYPE html>@\n";
-    IlluaminateDocEmit.Html_main.emit_module ~site_title:"My title" ~resolve:Fun.id ~source_link
-      ~modules:[] m
+    let module H = IlluaminateDocEmit.Html_main in
+    let options = H.Options.make ~site_title:"My title" ~resolve:Fun.id ~source_link () in
+    H.emit_module ~options ~modules:[] m
     |> Format.asprintf "%a" Html.Default.emit_pretty
     |> (fun x -> CCString.replace ~sub:date ~by:"xxxx-xx-xx" x)
     |> Format.pp_print_string out

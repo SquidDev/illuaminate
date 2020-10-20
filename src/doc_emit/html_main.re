@@ -6,10 +6,23 @@ open! IlluaminateSemantics.Doc.AbstractSyntax;
 open! IlluaminateSemantics.Doc.Syntax;
 module Cfg = IlluaminateSemantics.Doc.Extract.Config;
 
-type t = {
-  resolve: string => string,
-  source_link: source => option(string),
+module Options = {
+  type t = {
+    site_title: option(string),
+    resolve: string => string,
+    source_link: source => option(string),
+    custom: list(Cfg.custom_kind),
+  };
+
+  let make = (~site_title=?, ~resolve, ~source_link=?, ~custom=[], ()) => {
+    site_title,
+    resolve,
+    source_link: Option.value(~default=Fun.const(None), source_link),
+    custom,
+  };
 };
+
+open Options;
 
 let show_list = (~tag="h3", title, xs) =>
   switch (xs) {
@@ -21,6 +34,20 @@ let show_list = (~tag="h3", title, xs) =>
     ]
     |> many
   };
+
+let show_module_list = (f, {custom, _}, xs) => {
+  let f' = (~title, ~kind) =>
+    List.filter(k => k.descriptor.mod_kind == kind, xs) |> f(~title);
+  [
+    f'(~title="Globals", ~kind=Module),
+    f'(~title="Modules", ~kind=Library),
+    custom
+    |> CCList.map(({Cfg.id, display}) => {
+         f'(~title=display, ~kind=Custom(id))
+       })
+    |> many,
+  ];
+};
 
 let show_arg = (~resolve, {arg_name, arg_opt, arg_type, arg_description}) =>
   <li>
@@ -287,11 +314,15 @@ let module_list_item =
   };
 
 let template =
-    (~title, ~site_title, ~resolve, ~modules, ~custom=[], ~current, body) => {
-  let module_list = (~title, ~kind) =>
-    modules
-    |> List.filter(k => k.descriptor.mod_kind == kind)
-    |> List.map(module_list_item(~resolve, ~current))
+    (
+      ~title,
+      ~options as {site_title, resolve, _} as options,
+      ~modules,
+      ~current,
+      body,
+    ) => {
+  let module_list = (~title, xs) =>
+    List.map(module_list_item(~resolve, ~current), xs)
     |> show_list(~tag="h2", title);
   <html>
     <head>
@@ -308,13 +339,7 @@ let template =
              | None => nil
              | Some(site_title) => <h1> {str(site_title)} </h1>
              }}
-            {module_list(~title="Globals", ~kind=Module)}
-            {module_list(~title="Modules", ~kind=Library)}
-            {custom
-             |> CCList.map(({Cfg.id, display}) => {
-                  module_list(~title=display, ~kind=Custom(id))
-                })
-             |> many}
+            {show_module_list(module_list, options, modules) |> many}
           </nav>
           <section id="content"> ...body </section>
         </div>
@@ -333,7 +358,8 @@ let template =
   </html>;
 };
 
-let emit_modules = (~site_title=?, ~resolve, ~modules, ~custom=[], contents) => {
+let emit_modules =
+    (~options as {resolve, site_title, _} as options, ~modules, contents) => {
   let content = [
     contents,
     <table class_="definition-list">
@@ -353,10 +379,8 @@ let emit_modules = (~site_title=?, ~resolve, ~modules, ~custom=[], contents) => 
     </table>,
   ];
   template(
-    ~site_title,
-    ~resolve,
+    ~options,
     ~modules,
-    ~custom,
     ~current=None,
     ~title=Option.value(~default="Index", site_title),
     content,
@@ -365,14 +389,10 @@ let emit_modules = (~site_title=?, ~resolve, ~modules, ~custom=[], contents) => 
 
 let emit_module =
     (
-      ~site_title=?,
-      ~resolve,
-      ~source_link,
+      ~options as {resolve, _} as options,
       ~modules,
-      ~custom=[],
       {descriptor: {mod_name, mod_contents, mod_types, _}, _} as self,
     ) => {
-  let options = {resolve, source_link};
   let content = [
     <h1> <code> {str(mod_name)} </code> </h1>,
     show_preamble(~resolve, self),
@@ -387,10 +407,8 @@ let emit_module =
        },
   ];
   template(
-    ~site_title,
-    ~resolve,
+    ~options,
     ~modules,
-    ~custom,
     ~current=Some(mod_name),
     ~title=mod_name,
     content,
