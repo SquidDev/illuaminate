@@ -36,7 +36,6 @@ depends: [
   "re"
   "result"
   "yojson"
-  "jsonrpc"
   "lsp"
 ]
 build: [

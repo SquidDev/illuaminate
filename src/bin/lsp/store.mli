@@ -2,7 +2,7 @@ open IlluaminateCore
 
 type client_channel =
   { notify : Lsp.Server_notification.t -> unit Fiber.t;
-    request : 'a. 'a Lsp.Server_request.t -> ('a, Jsonrpc.Response.Error.t) result Fiber.t
+    request : 'a. 'a Lsp.Server_request.t -> ('a, Lsp.Jsonrpc.Response.Error.t) result Fiber.t
   }
 
 module Filename : sig

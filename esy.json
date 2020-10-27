@@ -18,7 +18,6 @@
     "@opam/re": "*",
     "@opam/result": "*",
     "@opam/yojson": "*",
-    "@opam/jsonrpc": "*",
     "@opam/lsp": "*"
   },
   "devDependencies": {
@@ -45,9 +44,7 @@
     "@opam/omnomnom":
       "git://github.com/SquidDev/omnomnom:omnomnom.opam#4a7020d72ee63e241955aec27c8fded59813b792",
     "@opam/lsp":
-      "git://github.com/ocaml/ocaml-lsp.git:lsp.opam#2b39bb4fb1ee0b65e159bde0dd871ff1456d0461",
-    "@opam/jsonrpc":
-      "git://github.com/ocaml/ocaml-lsp.git:jsonrpc.opam#2b39bb4fb1ee0b65e159bde0dd871ff1456d0461"
+      "git://github.com/SquidDev/ocaml-lsp-subtree:lsp.opam#6d66f4f18261042262e6fdc209c744597c06f393"
   },
   "scripts": {
     "test": "dune build @runtest -f",

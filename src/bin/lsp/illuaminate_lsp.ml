@@ -65,7 +65,7 @@ let () =
           Server.Handler.make ~on_notification ~on_request:{ on_request } ()
         in
         let scheduler = Scheduler.create () in
-        let stream = Io.make stdin stdout |> Fiber_io.make scheduler in
+        let stream = Io.make stdin stdout |> Rpc.Stream_io.make scheduler in
         Server.make handler stream () |> Server.start |> Scheduler.run scheduler;
         Log.info (fun f -> f "Stopping server"))
   in
