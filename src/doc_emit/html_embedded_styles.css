@@ -92,6 +92,7 @@ nav h1, nav h1 a {
     display: block;
     width: 100%;
     border: none;
+    box-sizing: border-box;
 }
 
 nav h1 img {
