@@ -82,6 +82,7 @@ nav {
     background-color: #f0f0f0;
 
     overflow-y: auto;
+    overflow-x: hidden;
     scrollbar-width: thin;
 }
 
