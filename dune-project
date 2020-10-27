@@ -54,4 +54,5 @@
     yojson
 
     ;; Language server
+    jsonrpc
     lsp))
