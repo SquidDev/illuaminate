@@ -4,16 +4,13 @@ open IlluaminateSemantics.Doc.Syntax;
 
 /** Configuration options for the backend. */
 module Options: {
-  type t = {
-    site_title: option(string),
-    resolve: string => string,
-    source_link: source => option(string),
-    custom: list(Config.custom_kind),
-  };
-
+  type t;
   let make:
     (
       ~site_title: string=?,
+      ~site_image: string=?,
+      ~site_css: string,
+      ~site_js: string,
       ~resolve: string => string,
       ~source_link: source => option(string)=?,
       ~custom: list(Config.custom_kind)=?,

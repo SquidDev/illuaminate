@@ -59,7 +59,10 @@ module Html_module = struct
     in
     Format.fprintf out "<!DOCTYPE html>@\n";
     let module H = IlluaminateDocEmit.Html_main in
-    let options = H.Options.make ~site_title:"My title" ~resolve:Fun.id ~source_link () in
+    let options =
+      H.Options.make ~site_title:"My title" ~site_css:"main.css" ~site_js:"main.js" ~resolve:Fun.id
+        ~source_link ()
+    in
     H.emit_module ~options ~modules:[] m
     |> Format.asprintf "%a" Html.Default.emit_pretty
     |> (fun x -> CCString.replace ~sub:date ~by:"xxxx-xx-xx" x)

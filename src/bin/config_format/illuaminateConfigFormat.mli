@@ -7,6 +7,9 @@ type t
 
 type doc_options =
   { site_title : string option;  (** A title to be displayed on every page. *)
+    site_image : Fpath.t option;  (** A file path to a logo. *)
+    embed_css : Fpath.t option;  (** A path to a CSS file to embed. *)
+    embed_js : Fpath.t option;  (** A path to a JS file to embed. *)
     index : Fpath.t option;
         (** A path to a [\[.html\]] or [\[.md\]] file to use on the index page. *)
     destination : Fpath.t;  (** Destination folder to write to. *)

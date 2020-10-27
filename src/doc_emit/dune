@@ -6,3 +6,11 @@
    illuaminate.semantics illuaminate.parser fpath omd yojson)
  (preprocess
   (pps jsx)))
+
+(rule
+ (target html_embedded_styles.ml)
+ (deps html_embedded_styles.css)
+ (action
+  (with-stdout-to
+   %{target}
+   (run ../tools/quote.exe %{deps}))))

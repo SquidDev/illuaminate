@@ -28,6 +28,9 @@ type pat_config =
 
 type doc_options =
   { site_title : string option;
+    site_image : Fpath.t option;
+    embed_css : Fpath.t option;
+    embed_js : Fpath.t option;
     index : Fpath.t option;
     destination : Fpath.t;
     source_link : IlluaminateSemantics.Doc.AbstractSyntax.source -> string option;
@@ -69,6 +72,21 @@ let doc_options_term =
   let+ site_title =
     field ~name:"title" ~comment:"A title to display for the site" ~default:None
       (option ~ty:"string" string)
+  and+ site_image =
+    field ~name:"logo" ~comment:"The path to a logo to display for this site." ~default:None
+      (option ~ty:"path" path)
+  and+ embed_js =
+    field ~name:"scripts"
+      ~comment:
+        "A JavaScript file which should be included in the generated docs. This is appended to the \
+         default scripts."
+      ~default:None (option ~ty:"path" path)
+  and+ embed_css =
+    field ~name:"styles"
+      ~comment:
+        "A JavaScript file which should be included in the generated docs. This is appended to the \
+         default styles."
+      ~default:None (option ~ty:"path" path)
   and+ index =
     field ~name:"index" ~comment:"A path to an index file." ~default:None (option ~ty:"path" path)
   and+ destination =
@@ -135,8 +153,12 @@ let doc_options_term =
           in
           link ~path ~start_line:(Span.start_line span) ~end_line:(Span.finish_line span)
     in
+    let ofile = Option.map (Fpath.append root) in
     { site_title;
-      index = Option.map (Fpath.append root) index;
+      site_image = ofile site_image;
+      embed_js = ofile embed_js;
+      embed_css = ofile embed_css;
+      index = ofile index;
       destination = Fpath.append root destination;
       source_link;
       json_index

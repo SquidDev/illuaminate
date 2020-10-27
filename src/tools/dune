@@ -14,6 +14,11 @@
  (libraries opam-file-format yojson))
 
 (executable
+ (name quote)
+ (modules quote)
+ (libraries containers))
+
+(executable
  (name subst_bisect)
  (modules subst_bisect sexp_lexer)
  (libraries illuaminate.core illuaminate.pattern logs containers fpath))

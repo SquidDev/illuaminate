@@ -9,13 +9,29 @@ module Cfg = IlluaminateSemantics.Doc.Extract.Config;
 module Options = {
   type t = {
     site_title: option(string),
+    site_image: option(string),
+    site_css: string,
+    site_js: string,
     resolve: string => string,
     source_link: source => option(string),
     custom: list(Cfg.custom_kind),
   };
 
-  let make = (~site_title=?, ~resolve, ~source_link=?, ~custom=[], ()) => {
+  let make =
+      (
+        ~site_title=?,
+        ~site_image=?,
+        ~site_css,
+        ~site_js,
+        ~resolve,
+        ~source_link=?,
+        ~custom=[],
+        (),
+      ) => {
     site_title,
+    site_image,
+    site_css,
+    site_js,
     resolve,
     source_link: Option.value(~default=Fun.const(None), source_link),
     custom,
@@ -314,13 +330,7 @@ let module_list_item =
   };
 
 let template =
-    (
-      ~title,
-      ~options as {site_title, resolve, _} as options,
-      ~modules,
-      ~current,
-      body,
-    ) => {
+    (~title, ~options as {resolve, _} as options, ~modules, ~current, body) => {
   let module_list = (~title, xs) =>
     List.map(module_list_item(~resolve, ~current), xs)
     |> show_list(~tag="h2", title);
@@ -329,20 +339,27 @@ let template =
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title> {str(title)} </title>
-      <link rel="stylesheet" href={resolve("styles.css")} type_="text/css" />
+      <link
+        rel="stylesheet"
+        href={resolve(options.site_css)}
+        type_="text/css"
+      />
     </head>
     <body>
-      <div id="container">
-        <div id="main">
-          <nav>
-            {switch (site_title) {
-             | None => nil
-             | Some(site_title) => <h1> {str(site_title)} </h1>
-             }}
-            {show_module_list(module_list, options, modules) |> many}
-          </nav>
-          <section id="content"> ...body </section>
-        </div>
+      <nav>
+        {let link = h => <h1> <a href={resolve("./")}> h </a> </h1>;
+         switch (options.site_image, options.site_title) {
+         | (Some(site_image), Some(site_title)) =>
+           link(<img src={resolve(site_image)} alt=site_title />)
+         | (Some(site_image), None) =>
+           link(<img src={resolve(site_image)} />)
+         | (None, Some(site_title)) => link(str(site_title))
+         | (None, None) => nil
+         }}
+        {show_module_list(module_list, options, modules) |> many}
+      </nav>
+      <div id="main">
+        <section id="content"> ...body </section>
         <footer>
           {let time = Unix.time() |> Unix.gmtime;
            Printf.sprintf(
@@ -354,6 +371,7 @@ let template =
            |> str}
         </footer>
       </div>
+      <script src={resolve(options.site_js)} type_="text/javascript" />
     </body>
   </html>;
 };

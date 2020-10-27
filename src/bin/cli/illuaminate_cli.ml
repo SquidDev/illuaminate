@@ -103,6 +103,33 @@ let mkdirs =
 let doc_gen path =
   let open IlluaminateSemantics in
   let module E = IlluaminateDocEmit in
+  let open struct
+    let emit_doc node out =
+      let fmt = Format.formatter_of_out_channel out in
+      Html.Default.emit_doc fmt node; Format.pp_print_flush fmt ()
+
+    let resolve_logo ~destination logo =
+      if Fpath.is_rooted ~root:destination logo then
+        Fpath.relativize ~root:destination logo |> Option.get |> Fpath.to_string
+      else
+        let our_logo = Fpath.(base logo |> to_string) in
+        CCIO.(
+          with_in (Fpath.to_string logo) @@ fun i ->
+          with_out Fpath.(destination / our_logo |> to_string) @@ fun o -> copy_into i o);
+        our_logo
+
+    let parse_index path =
+      E.Html_loader.load_file ~resolve:Fun.id path
+      |> Result.fold ~ok:Fun.id ~error:(fun e -> Printf.eprintf "%s\n%!" e; exit 1)
+
+    let gen_appended ~destination ~name ~contents extra =
+      ( CCIO.with_out Fpath.(destination / name |> to_string) @@ fun out ->
+        output_string out contents;
+        Option.iter
+          (fun extra -> CCIO.with_in (Fpath.to_string extra) @@ fun i -> CCIO.copy_into i out)
+          extra );
+      name
+  end in
   let errs = Error.make () in
   let loader = Loader.create errs in
   ( CCOpt.get_lazy (fun () -> Sys.getcwd () |> Fpath.v) path
@@ -117,37 +144,26 @@ let doc_gen path =
        |> List.sort (fun a b ->
               Doc.Syntax.(String.compare a.descriptor.mod_name b.descriptor.mod_name))
      in
-     let emit_doc node out =
-       let fmt = Format.formatter_of_out_channel out in
-       Html.Default.emit_doc fmt node; Format.pp_print_flush fmt ()
-     in
-     let { Config.site_title; index; destination; source_link; json_index } =
+     let { Config.site_title;
+           site_image;
+           embed_js;
+           embed_css;
+           index;
+           destination;
+           source_link;
+           json_index
+         } =
        Config.get_doc_options config
      in
-     let index =
-       let open Html.Default in
-       match index with
-       | None -> nil
-       | Some path -> (
-         match CCIO.File.read (Fpath.to_string path) with
-         | Error msg ->
-             Printf.eprintf "Cannot open documentation index '%s' (%s)\n%!" (Fpath.to_string path)
-               msg;
-             exit 1
-         | Ok contents -> (
-           match Fpath.get_ext path with
-           | ".html" | ".htm" -> raw contents
-           | ".md" | ".markdown" ->
-               let x = Doc.Parser.parse_description contents in
-               E.Html_md.md ~resolve:Fun.id x
-           | ".txt" | "" -> create_node ~tag:"pre" ~children:[ str contents ] ()
-           | ext ->
-               Printf.eprintf
-                 "Cannot handle documentation index '%s' (unknown file extension %S)\n%!"
-                 (Fpath.to_string path) ext;
-               exit 1 ) )
-     in
      mkdirs Fpath.(destination / "module");
+
+     let site_image = Option.map (resolve_logo ~destination) site_image in
+     let site_css =
+       gen_appended ~destination ~name:"main.css" ~contents:E.Html_embedded_styles.contents
+         embed_css
+     in
+     let site_js = gen_appended ~destination ~name:"main.js" ~contents:"" embed_js in
+     let index = Option.fold ~none:Html.Default.nil ~some:parse_index index in
      let module_dir = Fpath.v "module" in
      let custom =
        let config =
@@ -156,7 +172,10 @@ let doc_gen path =
        config.module_kinds
      in
 
-     let options resolve = E.Html_main.Options.make ?site_title ~resolve ~source_link ~custom () in
+     let options resolve : E.Html_main.Options.t =
+       E.Html_main.Options.make ?site_title ?site_image ~site_js ~site_css ~resolve ~source_link
+         ~custom ()
+     in
      let module_options =
        options @@ fun x ->
        let open Fpath in
