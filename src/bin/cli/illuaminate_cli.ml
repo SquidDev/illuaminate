@@ -162,7 +162,9 @@ let doc_gen path =
        gen_appended ~destination ~name:"main.css" ~contents:E.Html_embedded_styles.contents
          embed_css
      in
-     let site_js = gen_appended ~destination ~name:"main.js" ~contents:"" embed_js in
+     let site_js =
+       gen_appended ~destination ~name:"main.js" ~contents:E.Html_embedded_scripts.contents embed_js
+     in
      let index = Option.fold ~none:Html.Default.nil ~some:parse_index index in
      let module_dir = Fpath.v "module" in
      let custom =

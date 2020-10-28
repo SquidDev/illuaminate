@@ -1,46 +1,54 @@
+:root {
+  --nav-width: 200px;
+
+  --mobile-reveal-width: 3rem;
+  --mobile-nav-height: 3rem;
+  --reveal-border: #777;
+}
+
 /* Basic reset on elements */
-h1, h2, h3, h4, p, table, div, body {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
+h1, h2, h3, h4, p, table, div, body, button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
 }
 
 /* Make the page a little more airy */
 body {
-    margin: 0px;
-    padding: 0px;
-    line-height: 1.6;
-    color: #222;
-    background: #fff;
+  margin: 0px;
+  padding: 0px;
+  line-height: 1.6;
+  color: #222;
+  background: #fff;
 }
 
 /* Try to use system default fonts. */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans",
-                 "Droid Sans", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans",
+               "Droid Sans", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
 code, pre, kbd, .parameter, .type, .definition-name, .reference-code {
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
 
 /* Some definitions of basic tags */
 code {
-    color: #c7254e;
-    background-color: #f9f2f4;
+  color: #c7254e;
+  background-color: #f9f2f4;
 }
 
 p {
-    margin: 0.9em 0;
+  margin: 0.9em 0;
 }
 
 h1 {
-    font-size: 1.5em;
-    font-weight: lighter;
-    border-bottom: solid 1px #aaa;
+  font-size: 1.5em;
+  font-weight: lighter;
+  border-bottom: solid 1px #aaa;
 }
 
 h2, h3, h4 { margin: 1.4em 0 0.3em;}
@@ -53,10 +61,21 @@ a:active { outline: none; }
 a:hover, a:focus { text-decoration: underline; }
 
 blockquote {
-    padding: 0.3em;
-    margin: 1em 0;
-    background: #f0f0f0;
-    border-left: solid 0.5em #ccc;
+  padding: 0.3em;
+  margin: 1em 0;
+  background: #f0f0f0;
+  border-left: solid 0.5em #ccc;
+}
+
+img {
+  display: inline-block;
+  max-width: 100%;
+}
+
+table, pre {
+  width: 100%;
+  overflow-x: auto;
+  display: block;
 }
 
 /* Stop sublists from having initial vertical space */
@@ -73,118 +92,178 @@ a[name]::before { content: "#"; }
 
 /* Layout */
 nav {
-    width: 200px;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
+  width: var(--nav-width);
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
 
-    background-color: #f0f0f0;
-
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin;
+  overflow-y: auto;
 }
 
-nav h2 { margin-top: 0.5em; }
-
-nav h1, nav h1 a {
-    display: block;
-    width: 100%;
-    border: none;
-    box-sizing: border-box;
+nav, nav .nav-links {
+  overflow-x: hidden;
+  scrollbar-width: thin;
 }
 
+nav, nav .nav-reveal, nav .nav-links {
+  background-color: #f0f0f0;
+  z-index: 10;
+}
+nav h1, nav h1 a, nav h1 img { box-sizing: border-box; }
+nav h1, nav h1 a { width: 100%; }
 nav h1 img {
-    display: block;
-    margin: 0 auto;
-    padding: 10px;
+  display: block;
+  margin: 0 auto;
+  padding: 10px;
 }
-
 nav h1, nav ul { padding: 0em 10px; }
 
+nav .nav-reveal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: var(--mobile-nav-height);
+  width: var(--mobile-reveal-width);
+  padding: 5px;
+  font-size: 1.3em;
+
+  border-right: solid 1px var(--reveal-border);
+  border-bottom: solid 1px var(--reveal-border);
+  cursor: pointer;
+  outline: none;
+}
+nav .nav-reveal:focus { border-color: #333; }
+
 nav h2 {
-    background-color:#e7e7e7;
-    font-size: 1.1em;
-    color:#000000;
-    padding: 5px 10px;
+  background-color:#e7e7e7;
+  font-size: 1.1em;
+  color:#000000;
+  padding: 5px 10px;
+  margin-top: 0.5em;
 }
 
 nav ul {
-    list-style-type: none;
-    margin: 0;
+  list-style-type: none;
+  margin: 0;
 }
 
 #main {
-    margin-left: 200px;
-    padding: 15px;
-    box-sizing: border-box;
+  margin-left: var(--nav-width);
+  padding: 15px;
+  box-sizing: border-box;
 
-    min-height: calc(100vh);
-    max-width: 1000px;
+  min-height: 100vh;
+  max-width: 1000px;
 
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 800px) {
+  nav {
+    position: initial;
+    height: var(--mobile-nav-height);
+    width: 100%;
+  }
+
+  nav h1 {
+    margin-left: var(--mobile-reveal-width);
+    border-bottom: none;
+  }
+  nav h1, nav h1 img { height: 100%; }
+  nav h1 img { margin: 0; padding: 5px; }
+
+  nav .nav-reveal {
+    display: block;
+  }
+
+  nav .nav-links {
+    display: none;
+    border-right: solid var(--reveal-border) 1px;
+
+    width: var(--nav-width);
+    overflow-y: scroll;
+
+    position: fixed;
+    top: var(--mobile-nav-height);
+    bottom: 0;
+    left: 0;
+
+  }
+
+  /* This is terrible, but I've not found a better way. */
+  nav.nav-links-visible {
+    position: fixed;
+    border-bottom: solid var(--reveal-border) 1px;
+  }
+  nav.nav-links-visible .nav-links { display: block; }
+  nav.nav-links-visible + #main { margin-top: var(--mobile-nav-height); }
+
+  #main {
+    margin-left: 0px;
+    position: relative;
+  }
 }
 
 #content {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 footer {
-    text-align: right;
-    font-size: 0.8em;
+  text-align: right;
+  font-size: 0.8em;
 }
 
 /* The definition lists at the top of each page */
 table.definition-list {
-    border-collapse: collapse;
-    width: 100%;
+  border-collapse: collapse;
 }
 
 table.definition-list td, table.definition-list th {
-    border: 1px solid #cccccc;
-    padding: 5px;
+  border: 1px solid #cccccc;
+  padding: 5px;
 }
 
 table.definition-list th {
-    background-color: #f0f0f0;
-    min-width: 200px;
-    white-space: nowrap;
-    text-align: right;
+  background-color: #f0f0f0;
+  min-width: 200px;
+  white-space: nowrap;
+  text-align: right;
 }
 
 /* Deprecated definitions */
 table.definition-list tr.definition-deprecated th {
-    text-decoration: line-through;
+  text-decoration: line-through;
 }
 
 table.definition-list td { width: 100%; }
 
 dl.definition dt {
-    border-top: 1px solid #ccc;
-    padding-top: 1em;
-    display: flex;
+  border-top: 1px solid #ccc;
+  padding-top: 1em;
+  display: flex;
 }
 
 dl.definition dt .definition-name {
-    padding: 0 0.1em;
-    margin: 0 0.1em;
-    flex-grow: 1;
+  padding: 0 0.1em;
+  margin: 0 0.1em;
+  flex-grow: 1;
 }
 
 /* Deprecated definitions */
 dl.definition dt .definition-name.definition-deprecated {
-    text-decoration: line-through;
+  text-decoration: line-through;
 }
 
 dl.definition dd {
-    padding-bottom: 1em;
-    margin: 10px 0 0 20px;
+  padding-bottom: 1em;
+  margin: 10px 0 0 20px;
 }
 
 dl.definition h3 {
-    font-size: .95em;
+  font-size: .95em;
 }
 
 /* Links to source-code */
@@ -199,27 +278,27 @@ span.parameter:after { content:":"; padding-left: 0.3em; }
 
 /** Fancy colour display. */
 .colour-ref {
-    display: inline-block;
-    width: 0.8em;
-    height: 0.8em;
-    margin: 0.1em 0.1em 0.3em 0.1em; /* Terrrible hack to force vertical alignment. */
-    border: solid 1px black;
-    box-sizing: border-box;
-    vertical-align: middle;
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin: 0.1em 0.1em 0.3em 0.1em; /* Terrrible hack to force vertical alignment. */
+  border: solid 1px black;
+  box-sizing: border-box;
+  vertical-align: middle;
 }
 
 /** Fancy keyboard shortcut styling, inspired by GitHub markdown. */
 kbd {
-    display: inline-block;
-    padding: 4px 5px;
-    font-size: 0.8em;
-    line-height: 10px;
-    color: #444d56;
-    vertical-align: middle;
-    background-color: #fafbfc;
-    border: 1px solid #d1d5da;
-    border-radius: 3px;
-    box-shadow: inset 0 -1px 0 #d1d5da;
+  display: inline-block;
+  padding: 4px 5px;
+  font-size: 0.8em;
+  line-height: 10px;
+  color: #444d56;
+  vertical-align: middle;
+  background-color: #fafbfc;
+  border: 1px solid #d1d5da;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 #d1d5da;
 }
 
 /* styles for prettification of source */

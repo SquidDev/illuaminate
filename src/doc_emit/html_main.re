@@ -347,6 +347,7 @@ let template =
     </head>
     <body>
       <nav>
+        <button class_="nav-reveal" type_="button"> {raw("&#9776;")} </button>
         {let link = h => <h1> <a href={resolve("./")}> h </a> </h1>;
          switch (options.site_image, options.site_title) {
          | (Some(site_image), Some(site_title)) =>
@@ -356,7 +357,9 @@ let template =
          | (None, Some(site_title)) => link(str(site_title))
          | (None, None) => nil
          }}
-        {show_module_list(module_list, options, modules) |> many}
+        <div class_="nav-links">
+          {show_module_list(module_list, options, modules) |> many}
+        </div>
       </nav>
       <div id="main">
         <section id="content"> ...body </section>
@@ -371,7 +374,11 @@ let template =
            |> str}
         </footer>
       </div>
-      <script src={resolve(options.site_js)} type_="text/javascript" />
+      <script
+        src={resolve(options.site_js)}
+        type_="text/javascript"
+        defer=""
+      />
     </body>
   </html>;
 };
