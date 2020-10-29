@@ -2,7 +2,7 @@ open OpamParserTypes
 module J = Yojson.Safe
 
 module Versions = struct
-  let omnomnom = "4a7020d72ee63e241955aec27c8fded59813b792"
+  let omnomnom = "33781a0000353d0d4b7ae444b33c7288ae5e5011"
 
   let lsp = "6d66f4f18261042262e6fdc209c744597c06f393"
 end
