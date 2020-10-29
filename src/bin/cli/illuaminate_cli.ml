@@ -123,12 +123,16 @@ let doc_gen path =
       |> Result.fold ~ok:Fun.id ~error:(fun e -> Printf.eprintf "%s\n%!" e; exit 1)
 
     let gen_appended ~destination ~name ~contents extra =
-      ( CCIO.with_out Fpath.(destination / name |> to_string) @@ fun out ->
+      let output = Fpath.(destination / name |> to_string) in
+      ( CCIO.with_out output @@ fun out ->
         output_string out contents;
         Option.iter
           (fun extra -> CCIO.with_in (Fpath.to_string extra) @@ fun i -> CCIO.copy_into i out)
           extra );
-      name
+      (* Append an 8 byte cachebuster. There's no reason to only make it 8 bytes, but it doesn't
+         need to be a full hash either. *)
+      let hash = Digest.file output |> Digest.to_hex |> CCString.take 8 in
+      Printf.sprintf "%s?v=%s" name hash
   end in
   let errs = Error.make () in
   let loader = Loader.create errs in
