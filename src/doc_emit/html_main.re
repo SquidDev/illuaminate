@@ -12,7 +12,7 @@ module Options = {
     site_image: option(string),
     site_css: string,
     site_js: string,
-    resolve: string => string,
+    helpers: Html_basic.t,
     source_link: source => option(string),
     custom: list(Cfg.custom_kind),
   };
@@ -24,6 +24,7 @@ module Options = {
         ~site_css,
         ~site_js,
         ~resolve,
+        ~data,
         ~source_link=?,
         ~custom=[],
         (),
@@ -32,7 +33,10 @@ module Options = {
     site_image,
     site_css,
     site_js,
-    resolve,
+    helpers: {
+      resolve,
+      data,
+    },
     source_link: Option.value(~default=Fun.const(None), source_link),
     custom,
   };
@@ -65,25 +69,25 @@ let show_module_list = (f, {custom, _}, xs) => {
   ];
 };
 
-let show_arg = (~resolve, {arg_name, arg_opt, arg_type, arg_description}) =>
+let show_arg = (~helpers, {arg_name, arg_opt, arg_type, arg_description}) =>
   <li>
     <span class_="parameter">
       {str(arg_name)}
       {show_opt(~kind="argument", arg_opt)}
     </span>
     {str(" ")}
-    {show_type_opt(~resolve, arg_type)}
+    {show_type_opt(~helpers, arg_type)}
     {str(" ")}
-    {show_desc_inline(~resolve, arg_description)}
+    {show_desc_inline(~helpers, arg_description)}
   </li>;
 
-let show_return = (~resolve, {ret_type, ret_many, ret_description}) =>
+let show_return = (~helpers, {ret_type, ret_many, ret_description}) =>
   <li>
     {switch (ret_type) {
      | None => nil
      | Some(ty) =>
        <span class_="type">
-         {show_type(~resolve, ty)}
+         {show_type(~helpers, ty)}
          {if (ret_many) {
             str("...");
           } else {
@@ -92,10 +96,10 @@ let show_return = (~resolve, {ret_type, ret_many, ret_description}) =>
        </span>
      }}
     {str(" ")}
-    {show_desc_inline(~resolve, ret_description)}
+    {show_desc_inline(~helpers, ret_description)}
   </li>;
 
-let show_function = (~resolve, args, rets, throws) =>
+let show_function = (~helpers, args, rets, throws) =>
   [
     (
       switch (args) {
@@ -112,7 +116,7 @@ let show_function = (~resolve, args, rets, throws) =>
                       nil;
                     },
                     <ol class_="parameter-list">
-                      ...{List.map(show_arg(~resolve), args)}
+                      ...{List.map(show_arg(~helpers), args)}
                     </ol>,
                   ]
                 )
@@ -137,7 +141,7 @@ let show_function = (~resolve, args, rets, throws) =>
                         nil;
                       },
                       <ol class_="return-list">
-                        ...{List.map(show_return(~resolve), rets)}
+                        ...{List.map(show_return(~helpers), rets)}
                       </ol>,
                     ]
                   )
@@ -147,12 +151,12 @@ let show_function = (~resolve, args, rets, throws) =>
       }
     )
     |> many,
-    List.map((x: description) => md(~resolve, x.description), throws)
+    List.map((x: description) => md(~helpers, x.description), throws)
     |> show_list("Throws"),
   ]
   |> many;
 
-let show_preamble = (~resolve, {description, deprecated, _}) =>
+let show_preamble = (~helpers, {description, deprecated, _}) =>
   [
     switch (deprecated) {
     | None => nil
@@ -160,36 +164,36 @@ let show_preamble = (~resolve, {description, deprecated, _}) =>
       <div class_="deprecated">
         <strong> {str("Deprecated")} </strong>
         {str(" ")}
-        {show_desc_inline(~resolve, deprecation_message)}
+        {show_desc_inline(~helpers, deprecation_message)}
       </div>
     },
-    show_desc(~resolve, description),
+    show_desc(~helpers, description),
   ]
   |> many;
 
-let show_example = (~resolve, example) =>
+let show_example = (~helpers, example) =>
   switch (example) {
   | RawExample(x) =>
     <pre class_="highlight highlight-lua">
-      {Html_highlight.lua(x.value)}
+      {Html_highlight.lua(~helpers, x.value)}
     </pre>
-  | RichExample((x: description)) => md(~resolve, x.description)
+  | RichExample((x: description)) => md(~helpers, x.description)
   };
 
-let show_see = (~resolve, {see_reference, see_label, see_description, _}) =>
+let show_see = (~helpers, {see_reference, see_label, see_description, _}) =>
   [
     <strong>
-      {show_reference(~resolve, see_reference, str(see_label))}
+      {show_reference(~helpers, see_reference, str(see_label))}
     </strong>,
     str(" "),
-    show_desc_inline(~resolve, see_description),
+    show_desc_inline(~helpers, see_description),
   ]
   |> many;
 
-let show_common = (~resolve, {examples, see, _}) => {
+let show_common = (~helpers, {examples, see, _}) => {
   [
-    show_list("Usage", List.map(show_example(~resolve), examples)),
-    show_list("See also", List.map(show_see(~resolve), see)),
+    show_list("Usage", List.map(show_example(~helpers), examples)),
+    show_list("See also", List.map(show_see(~helpers), see)),
   ]
   |> many;
 };
@@ -234,15 +238,15 @@ and show_member =
   );
 }
 
-and show_documented_term = (~options as {resolve, _} as options, value) =>
+and show_documented_term = (~options as {helpers, _} as options, value) =>
   [
-    show_preamble(~resolve, value),
+    show_preamble(~helpers, value),
     show_value(~options, value.descriptor),
-    show_common(~resolve, value),
+    show_common(~helpers, value),
   ]
   |> many
 
-and show_value = (~options as {resolve, _} as options, value) => {
+and show_value = (~options as {helpers, _} as options, value) => {
   switch (value) {
   | Table([_, ..._] as fs) =>
     [
@@ -273,7 +277,7 @@ and show_value = (~options as {resolve, _} as options, value) => {
                         {value.descriptor |> get_suffix |> str}
                       </a>
                     </th>
-                    <td> {show_summary(~resolve, value.description)} </td>
+                    <td> {show_summary(~helpers, value.description)} </td>
                   </tr>
                 )
            }
@@ -290,7 +294,7 @@ and show_value = (~options as {resolve, _} as options, value) => {
     |> many
   | Table([]) => nil
   | Function({args, rets, throws, _}) =>
-    show_function(~resolve, args, rets, throws)
+    show_function(~helpers, args, rets, throws)
   | Expr(_) => nil
   | Type(_) => nil
   | Unknown => nil
@@ -303,7 +307,7 @@ and show_value = (~options as {resolve, _} as options, value) => {
 
 let show_type =
     (
-      ~options as {resolve, _} as options,
+      ~options as {helpers, _} as options,
       {descriptor: {type_name, type_members}, _} as desc,
     ) => {
   let sec = Option.get(section_of_name(Type(type_name)));
@@ -313,8 +317,8 @@ let show_type =
       {str(" ")}
       <span> {str(type_name)} </span>
     </h3>,
-    show_preamble(~resolve, desc),
-    show_common(~resolve, desc),
+    show_preamble(~helpers, desc),
+    show_common(~helpers, desc),
     <dl class_="definition">
       ...{List.map(show_member(~options, type_name), type_members)}
     </dl>,
@@ -323,7 +327,11 @@ let show_type =
 };
 
 let module_list_item =
-    (~resolve, ~current, {descriptor: {mod_name: name, _}, _}) =>
+    (
+      ~helpers as {Html_basic.resolve, _},
+      ~current,
+      {descriptor: {mod_name: name, _}, _},
+    ) =>
   switch (current) {
   | Some({mod_name, _}) when name == mod_name =>
     <strong> {str(name)} </strong>
@@ -358,9 +366,15 @@ let module_toc = ({mod_types, mod_contents, _}) => {
 };
 
 let template =
-    (~title, ~options as {resolve, _} as options, ~modules, ~current, body) => {
+    (
+      ~title,
+      ~options as {helpers: {resolve, _} as helpers, _} as options,
+      ~modules,
+      ~current,
+      body,
+    ) => {
   let module_list = (~title, xs) =>
-    List.map(module_list_item(~resolve, ~current), xs)
+    List.map(module_list_item(~helpers, ~current), xs)
     |> show_list(~tag="h2", title);
   <html>
     <head>
@@ -413,13 +427,13 @@ let template =
 };
 
 let emit_modules =
-    (~options as {resolve, site_title, _} as options, ~modules, contents) => {
+    (~options as {helpers, site_title, _} as options, ~modules, contents) => {
   let emit_module_row = ({descriptor: {mod_name, _}, description, _}) =>
     <tr>
       <th>
         <a href={"module/" ++ mod_name ++ ".html"}> {str(mod_name)} </a>
       </th>
-      <td> {show_summary(~resolve, description)} </td>
+      <td> {show_summary(~helpers, description)} </td>
     </tr>;
 
   let emit_module_group = (~title, modules) =>
@@ -450,14 +464,14 @@ let emit_modules =
 
 let emit_module =
     (
-      ~options as {resolve, _} as options,
+      ~options as {helpers, _} as options,
       ~modules,
       {descriptor: {mod_name, mod_contents, mod_types, _} as m, _} as self,
     ) => {
   let content = [
     <h1> <code> {str(mod_name)} </code> </h1>,
-    show_preamble(~resolve, self),
-    show_common(~resolve, self),
+    show_preamble(~helpers, self),
+    show_common(~helpers, self),
     show_value(~options, mod_contents),
     ...switch (mod_types) {
        | [] => []

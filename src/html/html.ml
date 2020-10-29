@@ -1,3 +1,13 @@
+module Emitters = struct
+  open Format
+
+  let skip _ () = ()
+
+  let attr out (k, v) = CCString.replace ~sub:"\"" ~by:"&quot;" v |> fprintf out " %s=\"%s\"" k
+
+  let attrs = pp_print_list ~pp_sep:skip attr
+end
+
 module Make (X : sig
   type event_handler
 end) =
@@ -59,10 +69,9 @@ struct
 
   let do_emit ~indent =
     let open Format in
-    let skip _ () = () in
+    let open Emitters in
     let cut out = if indent then pp_print_cut out () else () in
     let break out = if indent then pp_print_break out 0 2 else () in
-    let attr out (k, v) = fprintf out " %s=\"%s\"" k v in
     let open_box fmt = if indent then pp_open_hvbox fmt 0 else () in
     let close_box fmt = if indent then pp_close_box fmt () else () in
     let non_empty prev out go =
@@ -78,13 +87,12 @@ struct
       | Element
           { tag = ("br" | "img" | "link" | "meta") as tag; attributes; children = []; events = [] }
         ->
-          non_empty prev out @@ fun () ->
-          fprintf out "<%s%a />" tag (pp_print_list ~pp_sep:skip attr) attributes
+          non_empty prev out @@ fun () -> fprintf out "<%s%a />" tag attrs attributes
       | Element { tag; attributes; children; events = [] } ->
           non_empty prev out @@ fun () ->
           open_box out;
-          fprintf out "<%s%a>%t%t%a%t%t</%s>" tag (pp_print_list ~pp_sep:skip attr) attributes break
-            open_box list' children close_box cut tag;
+          fprintf out "<%s%a>%t%t%a%t%t</%s>" tag attrs attributes break open_box list' children
+            close_box cut tag;
           close_box out
       | Element { events = _ :: _; _ } -> failwith "Cannot emit event handlers to a formatter."
     and list prev out = List.fold_left (go out) prev

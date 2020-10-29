@@ -321,3 +321,8 @@ kbd {
 .highlight .user-keyword { color: #800080; }
 .highlight .prompt { color: #558817; }
 .highlight .url { color: #272fc2; text-decoration: underline; }
+
+.highlight a {
+  color: inherit;
+  font-weight: normal;
+}

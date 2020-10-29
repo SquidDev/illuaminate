@@ -1,0 +1,14 @@
+{
+  "foo.a": {
+    "name": "foo.a = 1",
+    "source": "codeblock.lua[12:7-12:7]",
+    "summary": "A basic variable\n @usage",
+    "module": "foo",
+    "section": "v:a"
+  },
+  "foo": {
+    "name": "foo",
+    "source": "codeblock.lua[3:8-13:1]",
+    "module": "foo"
+  }
+}

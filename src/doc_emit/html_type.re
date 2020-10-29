@@ -11,15 +11,15 @@ let show_opt = (~kind, optional) =>
     nil;
   };
 
-let show_reference = (~resolve, x, label) => {
-  let (link, class_) = Html_md.reference_attrs(~resolve, x, `Code);
+let show_reference = (~helpers, x, label) => {
+  let (link, class_) = Html_basic.reference_attrs(~helpers, x, `Code);
   switch (link) {
   | Some(href) => <a href class_> label </a>
   | None => <span class_> label </span>
   };
 };
 
-let rec show_type = (~resolve, x) =>
+let rec show_type = (~helpers, x) =>
   switch (x) {
   | NilTy => str("nil")
   | BoolTy(true) => str("true")
@@ -27,18 +27,18 @@ let rec show_type = (~resolve, x) =>
   | IntTy(x) => x |> CCInt.to_string |> str
   | NumberTy(x) => x |> CCFloat.to_string |> str
   | StringTy(x) => x |> String.escaped |> Printf.sprintf("\"%s\"") |> str
-  | Named(r, l) => show_reference(~resolve, r, str(l))
+  | Named(r, l) => show_reference(~helpers, r, str(l))
   | Union([]) => nil
   | Union([x, ...xs]) =>
     [
-      show_type(~resolve, x),
-      ...xs |> CCList.flat_map(x => [str(" | "), show_type(~resolve, x)]),
+      show_type(~helpers, x),
+      ...xs |> CCList.flat_map(x => [str(" | "), show_type(~helpers, x)]),
     ]
     |> many
   | Function({args, return}) =>
     let args = {
       let (_, opt, nodes) =
-        List.fold_left(show_type_arg(~resolve), (0, 0, []), args);
+        List.fold_left(show_type_arg(~helpers), (0, 0, []), args);
       [[str(String.make(opt, ']'))], ...nodes]
       |> List.rev
       |> List.flatten
@@ -48,13 +48,13 @@ let rec show_type = (~resolve, x) =>
       switch (return) {
       | ([], None) => nil
       | ([], Some(rest)) =>
-        [str(":"), show_type(~resolve, rest), str("...")] |> many
+        [str(":"), show_type(~helpers, rest), str("...")] |> many
 
       | ([_, ..._] as tys, None) =>
         [
           str(":"),
           ...tys
-             |> List.map(show_type(~resolve))
+             |> List.map(show_type(~helpers))
              |> CCList.intersperse(str(", ")),
         ]
         |> many
@@ -64,9 +64,9 @@ let rec show_type = (~resolve, x) =>
           str(":"),
           ...List.append(
                tys
-               |> List.map(show_type(~resolve))
+               |> List.map(show_type(~helpers))
                |> CCList.intersperse(str(", ")),
-               [str(","), show_type(~resolve, rest), str("...")],
+               [str(","), show_type(~helpers, rest), str("...")],
              ),
         ]
         |> many
@@ -75,13 +75,13 @@ let rec show_type = (~resolve, x) =>
   | Table(fields) =>
     let fields =
       fields
-      |> List.map(show_type_table_entry(~resolve))
+      |> List.map(show_type_table_entry(~helpers))
       |> CCList.intersperse(str(", "))
       |> many;
     [str("{ "), fields, str(" }")] |> many;
   }
 
-and show_type_arg = (~resolve, (i, o, b), {name, opt, ty}) => {
+and show_type_arg = (~helpers, (i, o, b), {name, opt, ty}) => {
   let name =
     switch (name) {
     | None => ""
@@ -100,36 +100,36 @@ and show_type_arg = (~resolve, (i, o, b), {name, opt, ty}) => {
   (
     i + 1,
     o + (if (opt) {1} else {0}),
-    [[str(pre), show_type(~resolve, ty)], ...b],
+    [[str(pre), show_type(~helpers, ty)], ...b],
   );
 }
 
-and show_type_table_entry = (~resolve, x) =>
+and show_type_table_entry = (~helpers, x) =>
   switch (x) {
   | Field({key, optional, value}) =>
     [
       str(key),
       show_opt(~kind="field", optional),
       str(" = "),
-      show_type(~resolve, value),
+      show_type(~helpers, value),
     ]
     |> many
-  | Item(ty) => show_type(~resolve, ty)
-  | Many(ty) => [show_type(~resolve, ty), str("...")] |> many
+  | Item(ty) => show_type(~helpers, ty)
+  | Many(ty) => [show_type(~helpers, ty), str("...")] |> many
   | Hash({key, optional, value}) =>
     [
       str("["),
-      show_type(~resolve, key),
+      show_type(~helpers, key),
       str("]"),
       show_opt(~kind="field", optional),
       str(" = "),
-      show_type(~resolve, value),
+      show_type(~helpers, value),
     ]
     |> many
   };
 
-let show_type_opt = (~resolve, x) =>
+let show_type_opt = (~helpers, x) =>
   switch (x) {
   | None => nil
-  | Some(ty) => <span class_="type"> {show_type(~resolve, ty)} </span>
+  | Some(ty) => <span class_="type"> {show_type(~helpers, ty)} </span>
   };

@@ -11,10 +11,12 @@ type token_kind =
   | Number
   | Comment
 
-type Format.stag += Token of token_kind
+type Format.stag += Token of token_kind | Name of name | Var of var
 
 module type Emitter = sig
   type t
+
+  val tagged : Format.stag -> (t -> 'a -> unit) -> t -> 'a -> unit
 
   val node : kind:token_kind -> (Format.formatter -> 'a -> unit) -> t -> 'a Node.t -> unit
 end
@@ -64,7 +66,8 @@ module Make (E : Emitter) : S with type t := E.t = struct
 
   let idnt = node ~kind:Identifier Format.pp_print_string
 
-  let var out (Var x) = node ~kind:Identifier Format.pp_print_string out x
+  let var out (Syntax.Var x as v) =
+    tagged (Var v) (node ~kind:Identifier Format.pp_print_string) out x
 
   let literal ~kind out { lit_node; _ } = node ~kind Format.pp_print_string out lit_node
 
@@ -186,7 +189,7 @@ module Make (E : Emitter) : S with type t := E.t = struct
 
   and block out x = List.iter (stmt out) x
 
-  and name out = function
+  and name_ out = function
     | NVar a -> var out a
     | NDot { tbl; dot; key } ->
         expr out tbl;
@@ -194,6 +197,8 @@ module Make (E : Emitter) : S with type t := E.t = struct
         node ~kind:Symbol Format.pp_print_string out key
     | NLookup { tbl; open_k; key; close_k } ->
         expr out tbl; token ~kind:Symbol out open_k; expr out key; token ~kind:Symbol out close_k
+
+  and name out name = tagged (Name name) name_ out name
 
   and fun_expr out { fun_function; fun_args; fun_body; fun_end } =
     token ~kind:Keyword out fun_function;
@@ -304,15 +309,12 @@ let trivial_span out { Span.value; _ } = trivial out value
 include Make (struct
   type t = Format.formatter
 
-  let twith kind f out x =
-    Format.pp_open_stag out (Token kind);
-    f out x;
-    Format.pp_close_stag out ()
+  let tagged stag f out x = Format.pp_open_stag out stag; f out x; Format.pp_close_stag out ()
 
   let node ~kind body out = function
-    | Node.SimpleNode { contents } -> twith kind body out contents
+    | Node.SimpleNode { contents } -> tagged (Token kind) body out contents
     | Node.Node { leading_trivia; contents; trailing_trivia; _ } ->
         List.iter (trivial_span out) leading_trivia;
-        twith kind body out contents;
+        tagged (Token kind) body out contents;
         List.iter (trivial_span out) trailing_trivia
 end)

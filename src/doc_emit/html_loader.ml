@@ -1,4 +1,4 @@
-let load_file ~resolve path =
+let load_file ~helpers path =
   let open Html.Default in
   match CCIO.File.read (Fpath.to_string path) with
   | Error msg ->
@@ -9,7 +9,7 @@ let load_file ~resolve path =
     | ".html" | ".htm" -> raw contents |> Result.ok
     | ".md" | ".markdown" ->
         let x = IlluaminateSemantics.Doc.Parser.parse_description contents in
-        Html_md.md ~resolve x |> Result.ok
+        Html_md.md ~helpers x |> Result.ok
     | ".txt" | "" -> create_node ~tag:"pre" ~children:[ str contents ] () |> Result.ok
     | ext ->
         Format.asprintf "Cannot handle documentation index '%a' (unknown file extension %S)\n%!"

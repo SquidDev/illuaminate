@@ -25,10 +25,10 @@ let process ~go ~name contents out =
         |> oracle D.Programs.Context.key (fun _ _ -> context)
         |> build
       in
-      let data = D.get data Doc.key parsed in
-      Doc.errors data
+      let docs = D.get data Doc.key parsed in
+      Doc.errors docs
       |> List.iter (fun (e : Error.Error.t) -> Error.report errs e.tag e.span e.message);
-      Doc.get_module data |> Option.iter (fun m -> go out m) );
+      Doc.get_module docs |> Option.iter (fun m -> go out data m) );
 
   Error.display_of_string ~out (fun _ -> Some contents) errs
 
@@ -45,14 +45,14 @@ let source_link : IlluaminateSemantics.Doc.AbstractSyntax.source -> string optio
 
 module Json_summary = struct
   let tests =
-    tests ~extension:"json" ~group:"JSON summary" @@ fun out m ->
+    tests ~extension:"json" ~group:"JSON summary" @@ fun out _ m ->
     IlluaminateDocEmit.Summary.(everything ~source_link [ m ] |> to_json)
     |> Yojson.Safe.pretty_print out
 end
 
 module Html_module = struct
   let tests =
-    tests ~extension:"html" ~group:"HTML page" @@ fun out m ->
+    tests ~extension:"html" ~group:"HTML page" @@ fun out data m ->
     let time = Unix.time () |> Unix.gmtime in
     let date =
       Printf.sprintf "%04d-%02d-%02d" (time.tm_year + 1900) (time.tm_mon + 1) time.tm_mday
@@ -61,7 +61,7 @@ module Html_module = struct
     let module H = IlluaminateDocEmit.Html_main in
     let options =
       H.Options.make ~site_title:"My title" ~site_css:"main.css" ~site_js:"main.js" ~resolve:Fun.id
-        ~source_link ()
+        ~data ~source_link ()
     in
     H.emit_module ~options ~modules:[] m
     |> Format.asprintf "%a" Html.Default.emit_pretty
@@ -71,7 +71,7 @@ end
 
 module Dump_sexp = struct
   let tests =
-    tests ~extension:"sexp" ~group:"Dump" @@ fun out m ->
+    tests ~extension:"sexp" ~group:"Dump" @@ fun out _ m ->
     let open Lens in
     Doc_sexp.Syntax.(documented (Doc_sexp.one' % module_info) m) |> CCSexp.pp out
 end

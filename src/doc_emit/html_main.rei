@@ -12,6 +12,7 @@ module Options: {
       ~site_css: string,
       ~site_js: string,
       ~resolve: string => string,
+      ~data: IlluaminateData.t,
       ~source_link: source => option(string)=?,
       ~custom: list(Config.custom_kind)=?,
       unit

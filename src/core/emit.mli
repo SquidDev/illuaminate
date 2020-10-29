@@ -15,11 +15,14 @@ type token_kind =
 
 (** We extend the formatting semantic tags with {!token_kind}s, each {!Node.t} or {!Node.trivial}
     will be wrapped in tag of this type. *)
-type Format.stag += Token of token_kind
+type Format.stag += Token of token_kind | Name of name | Var of var
 
 (** A sink of nodes. *)
 module type Emitter = sig
   type t
+
+  (** Wrap a term in a formatting stag. *)
+  val tagged : Format.stag -> (t -> 'a -> unit) -> t -> 'a -> unit
 
   (** Write an arbitrary node, accepting a {!token_kind} (used for highlighting) and a
       pretty-printer for the node's contents. *)

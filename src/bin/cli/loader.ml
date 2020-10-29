@@ -87,8 +87,9 @@ let do_load_from ~loader ~files ~file_store ~config root =
 let builder files file_store builder =
   builder
   |> IlluaminateData.Builder.oracle IlluaminateData.Programs.Context.key (fun file _ ->
-         let { root; config; _ } = StringMap.find file.Span.id files in
-         { root = Some root; config = Config.get_store config })
+         match StringMap.find_opt file.Span.id files with
+         | Some { root; config; _ } -> { root = Some root; config = Config.get_store config }
+         | None -> { root = None; config = Config.get_store Config.default })
   |> FileStore.builder file_store
 
 let keys m = StringMap.to_seq m |> Seq.map snd |> List.of_seq

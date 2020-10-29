@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>foo</title>
+    <link rel="stylesheet" href="main.css" type="text/css" />
+  </head>
+  <body>
+    <nav>
+      <button class="nav-reveal" type="button">&#9776;</button>
+      <h1><a href="./">My title</a></h1>
+      <div class="nav-links">
+        <h2>Contents</h2><ul><li><a href="#v:a">a</a></li></ul>
+      </div>
+    </nav>
+    <div id="main">
+      <section id="content">
+        <h1><code>foo</code></h1>
+        <table class="definition-list">
+          <tr>
+            <th class="definition-name"><a href="#v:a">a = 1</a></th>
+            <td>A basic variable
+ @usage</td>
+          </tr>
+        </table>
+        <dl class="definition">
+          <dt>
+            <a name="v:a" href="#v:a"></a>
+            <span class="definition-name">a = 1</span>
+            <a href="codeblock.lua[12:7-12:7]" class="source-link">Source</a>
+          </dt>
+          <dd>
+            <p>A basic variable
+ @usage</p>
+<pre class="highlight highlight-lua">  <span class="keyword">local</span> <a href="module/foo.html"><span class="ident">foo</span> </a><span class="symbol">=</span> <span class="ident">require</span> <span class="string">"foo"</span>
+  <span class="ident">print</span><span class="symbol">(</span><a title="A basic variable  @usage" href="module/foo.html#v:a"><span class="ident">foo</span><span class="symbol">.</span><span class="symbol">a</span></a><span class="symbol">)</span>
+  <span class="symbol"></span></pre>
+          </dd>
+        </dl>
+      </section>
+      <footer>Last updated on xxxx-xx-xx</footer>
+    </div>
+    <script src="main.js" type="text/javascript" defer=""></script>
+  </body>
+</html>

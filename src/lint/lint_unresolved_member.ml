@@ -28,14 +28,13 @@ let should_skip skip : R.Reference.t -> bool = function
 let check skip r data ~table ~idx ~key =
   match R.get_name data table with
   | None -> ()
-  | Some (rf, ({ descriptor = Table _; _ } as n)) when R.is_interesting rf n -> (
+  | Some (rf, ({ descriptor = Table _; _ } as n))
+    when R.is_interesting rf n && not (should_skip skip rf) -> (
     (* For now, we only warn on /interesting/ tables. This hopefully catches most typos, while not
        causing any false-positives. *)
     match R.get_name data idx with
     | Some _ -> ()
-    | None ->
-        if not (should_skip skip rf) then
-          r.r ~tag "Unknown field %s in %a" (Node.contents.get key) R.Reference.pp rf )
+    | None -> r.r ~tag "Unknown field %s in %a" (Node.contents.get key) R.Reference.pp rf )
   | Some _ -> ()
 
 let expr skip { data; program; _ } r = function

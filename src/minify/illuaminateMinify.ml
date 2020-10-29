@@ -12,16 +12,13 @@ module Emitter = struct
 
   let trivial_span out { Span.value; _ } = trivial out value
 
-  let twith kind f out x =
-    Format.pp_open_stag out (Emit.Token kind);
-    f out x;
-    Format.pp_close_stag out ()
+  let tagged t f out x = Format.pp_open_stag out t; f out x; Format.pp_close_stag out ()
 
   let node ~kind body out = function
-    | Node.SimpleNode { contents } -> twith kind body out contents
+    | Node.SimpleNode { contents } -> tagged (Emit.Token kind) body out contents
     | Node.Node { leading_trivia; contents; trailing_trivia; _ } ->
         List.iter (trivial_span out) leading_trivia;
-        twith kind body out contents;
+        tagged (Emit.Token kind) body out contents;
         List.iter (trivial_span out) trailing_trivia
 end
 

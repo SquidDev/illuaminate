@@ -118,8 +118,8 @@ let doc_gen path =
           with_out Fpath.(destination / our_logo |> to_string) @@ fun o -> copy_into i o);
         our_logo
 
-    let parse_index path =
-      E.Html_loader.load_file ~resolve:Fun.id path
+    let parse_index ~data path =
+      E.Html_loader.load_file ~helpers:{ resolve = Fun.id; data } path
       |> Result.fold ~ok:Fun.id ~error:(fun e -> Printf.eprintf "%s\n%!" e; exit 1)
 
     let gen_appended ~destination ~name ~contents extra =
@@ -169,7 +169,7 @@ let doc_gen path =
      let site_js =
        gen_appended ~destination ~name:"main.js" ~contents:E.Html_embedded_scripts.contents embed_js
      in
-     let index = Option.fold ~none:Html.Default.nil ~some:parse_index index in
+     let index = Option.fold ~none:Html.Default.nil ~some:(parse_index ~data) index in
      let module_dir = Fpath.v "module" in
      let custom =
        let config =
@@ -180,7 +180,7 @@ let doc_gen path =
 
      let options resolve : E.Html_main.Options.t =
        E.Html_main.Options.make ?site_title ?site_image ~site_js ~site_css ~resolve ~source_link
-         ~custom ()
+         ~data ~custom ()
      in
      let module_options =
        options @@ fun x ->

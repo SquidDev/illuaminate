@@ -1,6 +1,13 @@
 (** Functions for building and emitting HTML nodes. This is designed to be used in tandem with
     Reason's JSX syntax and the {!Jsx} pre-processor. *)
 
+(** Utility functions for emitting HTML *)
+module Emitters : sig
+  (** Emit a list of attributes. This is assumed to appear immediately after the tag, and so should
+      be printed using [printf "%s%a" tag attributes] *)
+  val attrs : Format.formatter -> (string * string) list -> unit
+end
+
 (** A HTML syntax tree and functions for working with them.
 
     This functor is parameterised by the type of event handler this tree uses. The {!Default} module
