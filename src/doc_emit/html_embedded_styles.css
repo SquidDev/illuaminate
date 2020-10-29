@@ -137,12 +137,16 @@ nav .nav-reveal {
 nav .nav-reveal:focus { border-color: #333; }
 
 nav h2 {
-  background-color:#e7e7e7;
+  background-color: #d7d7d7;
   font-size: 1.1em;
   color:#000000;
   padding: 5px 10px;
   margin-top: 0.5em;
 }
+
+nav h2:hover { background-color: #d0d0d0; }
+nav h2.collapsed { background-color: #e7e7e7; }
+nav h2.collapsed + ul { display: none; }
 
 nav ul {
   list-style-type: none;

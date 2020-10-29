@@ -325,9 +325,37 @@ let show_type =
 let module_list_item =
     (~resolve, ~current, {descriptor: {mod_name: name, _}, _}) =>
   switch (current) {
-  | Some(current) when name == current => <strong> {str(name)} </strong>
+  | Some({mod_name, _}) when name == mod_name =>
+    <strong> {str(name)} </strong>
   | _ => <a href={"module/" ++ name ++ ".html" |> resolve}> {str(name)} </a>
   };
+
+let module_toc = ({mod_types, mod_contents, _}) => {
+  let make_link = x => {
+    let name =
+      switch (x) {
+      | Value(s)
+      | Type(s) => s
+      | _ => assert(false)
+      };
+    <a href={"#" ++ Option.get(section_of_name(x))}> {str(name)} </a>;
+  };
+  [
+    switch (mod_contents) {
+    | Table(fields) =>
+      fields
+      |> List.map(((name, _)) => make_link(Value(name)))
+      |> show_list(~tag="h2", "Contents")
+    | _ => nil
+    },
+    mod_types
+    |> List.map(({descriptor: {type_name, _}, _}) => {
+         make_link(Type(type_name))
+       })
+    |> show_list(~tag="h2", "Types"),
+  ]
+  |> many;
+};
 
 let template =
     (~title, ~options as {resolve, _} as options, ~modules, ~current, body) => {
@@ -358,6 +386,7 @@ let template =
          | (None, None) => nil
          }}
         <div class_="nav-links">
+          {Option.fold(~none=nil, ~some=module_toc, current)}
           {show_module_list(module_list, options, modules) |> many}
         </div>
       </nav>
@@ -423,7 +452,7 @@ let emit_module =
     (
       ~options as {resolve, _} as options,
       ~modules,
-      {descriptor: {mod_name, mod_contents, mod_types, _}, _} as self,
+      {descriptor: {mod_name, mod_contents, mod_types, _} as m, _} as self,
     ) => {
   let content = [
     <h1> <code> {str(mod_name)} </code> </h1>,
@@ -438,11 +467,5 @@ let emit_module =
          ]
        },
   ];
-  template(
-    ~options,
-    ~modules,
-    ~current=Some(mod_name),
-    ~title=mod_name,
-    content,
-  );
+  template(~options, ~modules, ~current=Some(m), ~title=mod_name, content);
 };

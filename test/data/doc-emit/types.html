@@ -7,7 +7,23 @@
     <link rel="stylesheet" href="main.css" type="text/css" />
   </head>
   <body>
-    <nav><h1><a href="./">My title</a></h1></nav>
+    <nav>
+      <button class="nav-reveal" type="button">&#9776;</button>
+      <h1><a href="./">My title</a></h1>
+      <div class="nav-links">
+        <h2 class="collapsed">Contents</h2>
+        <ul>
+          <li><a href="#v:no_clue">no_clue</a></li>
+          <li><a href="#v:ty_1">ty_1</a></li>
+          <li><a href="#v:ty_2">ty_2</a></li>
+          <li><a href="#v:ty_3">ty_3</a></li>
+          <li><a href="#v:ref">ref</a></li>
+          <li><a href="#v:opt">opt</a></li>
+        </ul>
+        <h2 class="collapsed">Types</h2>
+        <ul><li><a href="#ty:Foo">Foo</a></li></ul>
+      </div>
+    </nav>
     <div id="main">
       <section id="content">
         <h1><code>types</code></h1>
@@ -297,6 +313,6 @@
       </section>
       <footer>Last updated on xxxx-xx-xx</footer>
     </div>
-    <script src="main.js" type="text/javascript"></script>
+    <script src="main.js" type="text/javascript" defer=""></script>
   </body>
 </html>
