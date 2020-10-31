@@ -3,4 +3,6 @@
  (public_name illuaminate.lint)
  (synopsis "Basic linting for Illuaminate.")
  (libraries containers illuaminate.core illuaminate.config illuaminate.data
-   illuaminate.semantics illuaminate.parser ppx_deriving.runtime omd))
+   illuaminate.semantics illuaminate.parser ppx_deriving.runtime omd)
+ (instrumentation
+  (backend bisect_ppx)))

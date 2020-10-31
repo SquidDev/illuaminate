@@ -3,7 +3,9 @@
  (public_name illuaminate.semantics)
  (synopsis "Some basic semantic analysis for Illuaminate.")
  (libraries containers illuaminate.core illuaminate.config illuaminate.data
-   fpath menhirLib omd re logs))
+   fpath menhirLib omd re logs)
+ (instrumentation
+  (backend bisect_ppx)))
 
 (menhir
  (modules type_grammar)

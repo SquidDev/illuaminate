@@ -6,7 +6,7 @@
   "homepage": "https://github.com/squiddev/illuaminate",
   "dependencies": {
     "ocaml": ">=4.08 <4.11",
-    "@opam/dune": ">=2.3",
+    "@opam/dune": ">=2.7",
     "@opam/cmdliner": "*",
     "@opam/containers": ">=3.0.1",
     "@opam/fpath": "*",
@@ -31,7 +31,7 @@
     "@opam/qcheck-core": "*",
     "@opam/omnomnom": "*",
     "@opam/odoc": "*",
-    "@opam/bisect_ppx": "*",
+    "@opam/bisect_ppx": ">=2.5.0",
     "@opam/ocamlformat": "*",
     "@opam/opam-file-format": "*"
   },

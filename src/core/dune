@@ -4,4 +4,6 @@
  (synopsis "The core data structures for Illuaminate")
  (libraries containers fpath)
  (preprocess
-  (pps ppx_deriving.std illuaminateDeriving)))
+  (pps ppx_deriving.std illuaminateDeriving))
+ (instrumentation
+  (backend bisect_ppx)))

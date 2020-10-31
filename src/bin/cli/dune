@@ -10,7 +10,9 @@
    illuaminate.minify illuaminate.pattern illuaminate.doc_emit
    illuaminate.exec omd result logs yojson ppx_deriving_yojson.runtime)
  (preprocess
-  (pps ppx_deriving_yojson)))
+  (pps ppx_deriving_yojson))
+ (instrumentation
+  (backend bisect_ppx)))
 
 (executable
  (name illuaminate)

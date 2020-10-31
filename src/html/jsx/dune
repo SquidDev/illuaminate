@@ -7,4 +7,6 @@
  (kind ppx_rewriter)
  (ppx_runtime_libraries ppxlib)
  (preprocess
-  (pps ppxlib.metaquot)))
+  (pps ppxlib.metaquot))
+ (instrumentation
+  (backend bisect_ppx)))

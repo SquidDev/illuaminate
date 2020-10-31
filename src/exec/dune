@@ -2,4 +2,6 @@
  (name illuaminateExec)
  (public_name illuaminate.exec)
  (synopsis "Run an external command and capture the output")
- (virtual_modules illuaminateExec))
+ (virtual_modules illuaminateExec)
+ (instrumentation
+  (backend bisect_ppx)))

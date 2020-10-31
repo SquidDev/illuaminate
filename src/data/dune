@@ -2,4 +2,6 @@
  (name illuaminateData)
  (public_name illuaminate.data)
  (synopsis "Data storage and computation for Illuaminate.")
- (libraries containers fpath logs illuaminate.core illuaminate.config))
+ (libraries containers fpath logs illuaminate.core illuaminate.config)
+ (instrumentation
+  (backend bisect_ppx)))

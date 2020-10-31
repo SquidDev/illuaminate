@@ -5,7 +5,9 @@
  (libraries containers illuaminate.html illuaminate.core illuaminate.data
    illuaminate.semantics illuaminate.parser fpath omd yojson)
  (preprocess
-  (pps jsx)))
+  (pps jsx))
+ (instrumentation
+  (backend bisect_ppx)))
 
 (rule
  (target html_embedded_styles.ml)

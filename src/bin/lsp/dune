@@ -5,7 +5,9 @@
  (libraries cmdliner containers fpath illuaminate.config
    illuaminateConfigFormat illuaminate.core illuaminate.data illuaminate.lint
    illuaminate.parser illuaminate.semantics logs str lsp lsp.stdune lsp.fiber
-   mtime mtime.clock.os omd result yojson ppx_yojson_conv_lib))
+   mtime mtime.clock.os omd result yojson ppx_yojson_conv_lib)
+ (instrumentation
+  (backend bisect_ppx)))
 
 (executable
  (name illuaminate_lsp)

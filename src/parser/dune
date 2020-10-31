@@ -2,7 +2,9 @@
  (name illuaminateParser)
  (public_name illuaminate.parser)
  (synopsis "Provides an interface for parsing Lua code")
- (libraries menhirLib illuaminate.core))
+ (libraries menhirLib illuaminate.core)
+ (instrumentation
+  (backend bisect_ppx)))
 
 (menhir
  (modules grammar)

@@ -1,4 +1,4 @@
-(lang dune 2.3)
+(lang dune 2.7)
 (using menhir 2.0)
 (implicit_transitive_deps false)
 (generate_opam_files true)
@@ -19,7 +19,7 @@
     (ocaml (and (>= 4.08) (< 4.11)))
 
     ;; Build-time
-    (dune (>= 2.3)) ; While a build-tool, dune shouldn't be build-time only
+    dune ; While a build-tool, dune shouldn't be build-time only
     (js_of_ocaml-compiler (and :build (>= 3.6.0)))
     (js_of_ocaml-ppx :build)
     (ppx_deriving :build)
@@ -36,7 +36,7 @@
     (odoc :with-doc)
 
     ; Dev-only dependencies.
-    (bisect_ppx :dev)
+    (bisect_ppx (and :dev (>= 2.5.0)))
     (ocamlformat :dev)
     (opam-file-format :dev)
 

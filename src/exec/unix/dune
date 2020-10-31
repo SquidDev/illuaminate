@@ -3,4 +3,6 @@
  (public_name illuaminate.exec.unix)
  (synopsis "Implementation of illuaminate.exec which uses the Unix APIs")
  (implements illuaminate.exec)
- (libraries containers))
+ (libraries containers)
+ (instrumentation
+  (backend bisect_ppx)))

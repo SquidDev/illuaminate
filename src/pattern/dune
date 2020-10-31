@@ -2,7 +2,9 @@
  (name illuaminatePattern)
  (public_name illuaminate.pattern)
  (synopsis "Gitignore style pattern parsing.")
- (libraries containers re fpath logs))
+ (libraries containers re fpath logs)
+ (instrumentation
+  (backend bisect_ppx)))
 
 (ocamllex
  (modules parse))

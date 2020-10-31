@@ -6,4 +6,6 @@
   (:standard -safe-string))
  (libraries ppxlib ppxlib.ast base)
  (preprocess
-  (pps ppxlib.metaquot)))
+  (pps ppxlib.metaquot))
+ (instrumentation
+  (backend bisect_ppx)))

@@ -18,11 +18,6 @@
  (modules quote)
  (libraries containers))
 
-(executable
- (name subst_bisect)
- (modules subst_bisect sexp_lexer)
- (libraries illuaminate.core illuaminate.pattern logs containers fpath))
-
 (rule
  (targets syntax.ml)
  (deps ../core/syntax.ml)
@@ -33,9 +28,3 @@
     (echo "open Ppxlib\nlet loc = Location.none\nlet tree = [%str ")
     (cat %{deps})
     (echo "]")))))
-
-(ocamllex
- (modules sexp_lexer))
-
-(rule
- (copy ../config/lexer.mll sexp_lexer.mll))
