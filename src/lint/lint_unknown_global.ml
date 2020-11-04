@@ -9,7 +9,7 @@ module Builtins = struct
   (** A list of names shared across all versions of Lua. *)
   let common =
     (* We split this over multiple lists so ocamlformat doesn't produce something unreadably long. *)
-    [ "_G"; "_VERSION"; "assert"; "collectgarbage"; "coroutine"; "debug"; "dofile"; "error" ]
+    [ "_G"; "_VERSION"; "arg"; "assert"; "collectgarbage"; "coroutine"; "debug"; "dofile"; "error" ]
     @ [ "getmetatable"; "io"; "ipairs"; "load"; "loadfile"; "math"; "next"; "os"; "package" ]
     @ [ "pairs"; "pcall"; "print"; "rawequal"; "rawget"; "rawset"; "require"; "select" ]
     @ [ "setmetatable"; "string"; "table"; "tonumber"; "tostring"; "type"; "xpcall" ]
