@@ -84,17 +84,13 @@ let emit ~helpers ~data ~input visit tree =
   Format.pp_print_flush out ();
   raw (Buffer.contents res)
 
-(** Highlight Lua as HTML code. *)
-let lua ~helpers:({ Html_basic.data; _ } as helpers) input =
+let do_lua ~helpers:({ Html_basic.data; _ } as helpers) input =
   let file = Span.Filename.mk "=input" in
-  let program = Lexing.from_string input |> IlluaminateParser.program file
-  and expr = lazy (Lexing.from_string input |> IlluaminateParser.repl_exprs file) in
+  let expr = Lexing.from_string input |> IlluaminateParser.repl_exprs file in
+  let program = lazy (Lexing.from_string input |> IlluaminateParser.program file) in
 
-  match (program, expr) with
+  match (expr, program) with
   | Ok tree, _ ->
-      let data = IlluaminateData.get data M.key tree in
-      emit ~helpers ~data ~input Emit.program tree
-  | Error _, (lazy (Ok tree)) ->
       let data =
         IlluaminateData.get data M.key
         @@ { program =
@@ -106,5 +102,22 @@ let lua ~helpers:({ Html_basic.data; _ } as helpers) input =
              eof = tree.repl_eof
            }
       in
-      emit ~helpers ~data ~input Emit.repl_exprs tree
-  | Error _, (lazy (Error _)) -> Html.Default.str input
+      (emit ~helpers ~data ~input Emit.repl_exprs tree, Some `Expr)
+  | Error _, (lazy (Ok tree)) ->
+      let data = IlluaminateData.get data M.key tree in
+      (emit ~helpers ~data ~input Emit.program tree, Some `Stmt)
+  | Error _, (lazy (Error _)) -> (Html.Default.str input, None)
+
+let lua ~helpers input = do_lua ~helpers input |> fst
+
+let lua_block ~helpers input =
+  let highlighted, kind = do_lua ~helpers input in
+  let kind =
+    match kind with
+    | None -> None
+    | Some `Expr -> Some "expr"
+    | Some `Stmt -> Some "stmt"
+  in
+  Html.Default.create_node ~tag:"pre"
+    ~attributes:[ ("class", Some "highlight highlight-lua"); ("data-lua-kind", kind) ]
+    ~children:[ highlighted ] ()

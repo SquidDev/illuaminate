@@ -4,13 +4,10 @@ open Html.Default
 
 let md ~helpers x =
   let open Omd in
-  let highlight ~lang code =
-    let code =
-      match lang with
-      | "lua" -> Html_highlight.lua ~helpers code
-      | _ -> str code
-    in
-    Format.asprintf "%a" emit code
+  let code_style ~lang code =
+    match lang with
+    | "lua" -> Html_highlight.lua ~helpers code |> Format.asprintf "%a" emit
+    | _ -> code
   in
   let preprocess node =
     match node with
@@ -39,13 +36,17 @@ let md ~helpers x =
   in
   let format node =
     match node with
-    | Code_block (lang, contents) ->
-        Some
-          (Printf.sprintf "<pre class=\"highlight highlight-%s\">%s</pre>" lang
-             (highlight ~lang contents))
+    | Code_block (lang, contents) -> (
+      match lang with
+      | "lua" ->
+          Html_highlight.lua_block ~helpers contents |> Format.asprintf "%a" emit |> Option.some
+      | _ ->
+          str contents
+          |> Format.asprintf "<pre class=\"highlight highlight-%s\">%a</pre>" lang emit
+          |> Option.some )
     | _ -> None
   in
-  x |> Omd_representation.visit preprocess |> Omd.to_html ~override:format ~cs:highlight |> raw
+  x |> Omd_representation.visit preprocess |> Omd.to_html ~override:format ~cs:code_style |> raw
 
 let rec md_inline ~helpers = function
   | [ Omd.Paragraph t ] -> md_inline ~helpers t

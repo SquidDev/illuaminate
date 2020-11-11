@@ -174,9 +174,7 @@ let show_preamble = (~helpers, {description, deprecated, _}) =>
 let show_example = (~helpers, example) =>
   switch (example) {
   | RawExample(x) =>
-    <pre class_="highlight highlight-lua">
-      {Html_highlight.lua(~helpers, x.value)}
-    </pre>
+      Html_highlight.lua_block(~helpers, x.value)
   | RichExample((x: description)) => md(~helpers, x.description)
   };
 
