@@ -25,9 +25,8 @@ jobs:
 
     - name: Run with coverage
       run: |
-        esy b dune exec src/tools/subst_bisect.exe
         esy b dune clean
-        esy b dune runtest -f
+        esy b dune runtest --instrument-with bisect_ppx --force
         esy bisect-ppx-report html
 
     - name: Upload coverage
