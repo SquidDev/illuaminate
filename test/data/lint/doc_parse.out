@@ -12,6 +12,10 @@ doc_parse.lua:[7:12-7:12]: @module has unknown flag 'x' [doc:unknown-flag]
    │            ^
 doc_parse.lua:[9:5-9:12]: Unknown tag @unknown [doc:unknown-tag]
    │
- 9 │ --- @unknown_standalone
+ 9 │ --- @unknown
    │     ^^^^^^^^
-4 errors and 0 warnings
+doc_parse.lua:[12:3-12:10]: Unknown tag @unknown [doc:unknown-tag]
+    │
+ 12 │   @unknown
+    │   ^^^^^^^^
+5 errors and 0 warnings

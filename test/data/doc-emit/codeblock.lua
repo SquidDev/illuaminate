@@ -8,6 +8,8 @@ return {
   local foo = require "foo"
   print(foo.a)
   ```
+  @usage
+      local bar = require "foo"
   ]]
   a = 1
 }

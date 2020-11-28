@@ -6,4 +6,8 @@
 -- @module bar
 -- @module[x]
 
---- @unknown_standalone
+--- @unknown
+
+  --[[- Test this all works in an indented block comment
+  @unknown
+  ]]

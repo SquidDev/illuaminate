@@ -2,70 +2,107 @@ open IlluaminateCore
 open Doc_comment
 module IntMap = Map.Make (Int)
 
-(** Parse a markdown string into a description. *)
-let parse_description =
-  let desc x = { description = x; description_pos = None } in
-  let open Omd_representation in
-  (* Gobble everything from | to }. *)
-  let rec gobble_name link accum r p = function
-    | Newlines 0 :: _ | [] -> None
-    | Cbrace :: l ->
-        let name = Omd_lexer.string_of_tokens (List.rev accum) in
-        let tag =
-          Link.to_tag
-            { link_reference = Reference link; link_label = desc [ Text name ]; link_style = `Text }
-        in
-        Some (tag :: r, Cbrace :: p, l)
-    | Newline :: l -> gobble_name link (Space :: accum) r (Newline :: p) l
-    | x :: l -> gobble_name link (x :: accum) r (x :: p) l
-  in
-  (* Gobble everything from @{ to }. Aborts on newlines, switches to gobble_name should we see a
-     '|'. *)
-  let rec gobble_link accum r p = function
-    | Newline :: _ | [] -> None
-    | Cbrace :: l ->
-        let link = Omd_lexer.string_of_tokens (List.rev accum) in
-        let tag =
-          Link.to_tag
-            { link_reference = Reference link; link_label = desc [ Text link ]; link_style = `Code }
-        in
-        Some (tag :: r, Cbrace :: p, l)
-    | Bar :: l ->
-        let link = Omd_lexer.string_of_tokens (List.rev accum) in
-        gobble_name link [] r (Bar :: p) l
-    | x :: l -> gobble_link (x :: accum) r (x :: p) l
-  in
-  let is_hex = function
-    | '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' -> true
+module Markdown = struct
+  let is_space = function
+    | ' ' | '\012' | '\n' | '\r' | '\t' -> true
     | _ -> false
-  in
-  (* Register an extension which recognises [[@{ foo }]], [[@{ foo|bar }]] and hex colours
-     ([[#fff]]) *)
-  let ext : extension =
-    object
-      method parser_extension r p =
-        function
-        | At :: Obrace :: l -> gobble_link [] r (Obrace :: At :: p) l
-        | Hash :: (Word w | Number w) :: l
-          when (String.length w = 3 || String.length w == 6) && CCString.for_all is_hex w ->
-            Some
-              ( Html ("illuaminate:colour", [ ("colour", Some w) ], [ Text ("#" ^ w) ]) :: r,
-                Word w :: Hash :: p,
-                l )
-        | _ -> None
 
-      method to_string = "Extension"
-    end
-  in
-  let fix_lang =
-    Omd_representation.visit @@ function
-    | Code_block ("__auto", contents) -> Some [ Code_block ("lua", contents) ]
-    | Code ("__auto", contents) -> Some [ Code ("", contents) ]
-    | _ -> None
-  in
+  (** Version of trim which removes leading spaces until the first line, and then all remaining line
+      breaks. All trailing spaces are removed. This ensures we're compatible with markdown. *)
+  let md_trim s =
+    let open String in
+    let len = length s in
 
-  fun ?(default_lang = "") x ->
-    x |> String.trim |> Omd.of_string ~extensions:[ ext ] ~default_lang |> fix_lang
+    let i =
+      let rec drop_left first_line i =
+        if i >= len then i
+        else
+          match unsafe_get s i with
+          | '\n' -> drop_left false (i + 1)
+          | ' ' when first_line -> drop_left true (i + 1)
+          | _ -> i
+      in
+      drop_left true 0
+    in
+    let j =
+      let rec drop j = if j > i && is_space (unsafe_get s j) then drop (j - 1) else j in
+      drop (len - 1)
+    in
+    if i = 0 && j = len - 1 then s else if i >= j then "" else sub s i (j - i + 1)
+
+  (** Parse a markdown string into a description. *)
+  let parse =
+    let desc x = { description = x; description_pos = None } in
+    let open Omd_representation in
+    (* Gobble everything from | to }. *)
+    let rec gobble_name link accum r p = function
+      | Newlines 0 :: _ | [] -> None
+      | Cbrace :: l ->
+          let name = Omd_lexer.string_of_tokens (List.rev accum) in
+          let tag =
+            Link.to_tag
+              { link_reference = Reference link;
+                link_label = desc [ Text name ];
+                link_style = `Text
+              }
+          in
+          Some (tag :: r, Cbrace :: p, l)
+      | Newline :: l -> gobble_name link (Space :: accum) r (Newline :: p) l
+      | x :: l -> gobble_name link (x :: accum) r (x :: p) l
+    in
+    (* Gobble everything from @{ to }. Aborts on newlines, switches to gobble_name should we see a
+       '|'. *)
+    let rec gobble_link accum r p = function
+      | Newline :: _ | [] -> None
+      | Cbrace :: l ->
+          let link = Omd_lexer.string_of_tokens (List.rev accum) in
+          let tag =
+            Link.to_tag
+              { link_reference = Reference link;
+                link_label = desc [ Text link ];
+                link_style = `Code
+              }
+          in
+          Some (tag :: r, Cbrace :: p, l)
+      | Bar :: l ->
+          let link = Omd_lexer.string_of_tokens (List.rev accum) in
+          gobble_name link [] r (Bar :: p) l
+      | x :: l -> gobble_link (x :: accum) r (x :: p) l
+    in
+    let is_hex = function
+      | '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' -> true
+      | _ -> false
+    in
+    (* Register an extension which recognises [[@{ foo }]], [[@{ foo|bar }]] and hex colours
+       ([[#fff]]) *)
+    let ext : extension =
+      object
+        method parser_extension r p =
+          function
+          | At :: Obrace :: l -> gobble_link [] r (Obrace :: At :: p) l
+          | Hash :: (Word w | Number w) :: l
+            when (String.length w = 3 || String.length w == 6) && CCString.for_all is_hex w ->
+              Some
+                ( Html ("illuaminate:colour", [ ("colour", Some w) ], [ Text ("#" ^ w) ]) :: r,
+                  Word w :: Hash :: p,
+                  l )
+          | _ -> None
+
+        method to_string = "Extension"
+      end
+    in
+    let fix_lang =
+      Omd_representation.visit @@ function
+      | Code_block ("__auto", contents) -> Some [ Code_block ("lua", contents) ]
+      | Code ("__auto", contents) -> Some [ Code ("", contents) ]
+      | _ -> None
+    in
+
+    fun ?(default_lang = "") x ->
+      x |> md_trim |> Omd.of_string ~extensions:[ ext ] ~default_lang |> fix_lang
+end
+
+let parse_description = Markdown.parse
 
 module Tag = struct
   let malformed_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:malformed-tag"
@@ -103,14 +140,10 @@ module Lex = struct
       mapping : Span.t IntMap.t
     }
 
-  let lex_of_ranged { contents; offset; mapping } =
-    let contents = Lexing.from_string contents in
-    { contents; offset; mapping }
-
   (** Construct a lexer from a list of spanned strings. *)
   let lex_of_lines xs =
     let len = List.fold_left (fun a l -> a + String.length l.Span.value) 0 xs in
-    (* TODO: Ideally we could get away without a string buffer here. Instead we can build an array
+    (* TODO: Ideally we could get away without a string buffer here. Instead we could build an array
        of strings, and swap out the buffer between them. *)
     let b = Buffer.create len in
     let _, mapping =
@@ -167,7 +200,7 @@ module Lex = struct
             { offset = offset + len; mapping; contents = CCString.drop len contents } )
 
   let description ?default_lang (ranged : string ranged) =
-    { description = parse_description ?default_lang ranged.contents;
+    { description = Markdown.parse ?default_lang ranged.contents;
       description_pos = Some (to_span ranged)
     }
 
@@ -606,6 +639,21 @@ module Indent = struct
         x :: drop_common xs
 end
 
+let split_lines str span =
+  let rec build offset xs = function
+    | [] -> List.rev xs
+    | y :: ys ->
+        let len = String.length y in
+        let span =
+          let open Lens in
+          span
+          |> Span.start_offset %= ( + ) offset
+          |> Span.start_offset ^= ((span ^. Span.start_offset) + offset)
+        in
+        build (offset + len + 1) ({ Span.value = y; span } :: xs) ys
+  in
+  String.split_on_char '\n' str |> build 0 []
+
 (** Extract multiple single-line comments and merge them into one. Returns the last position. *)
 let rec extract_block line column lines = function
   (* Skip whitespace *)
@@ -623,14 +671,10 @@ let extract node =
     | [] -> cs
     | { Span.value = Node.BlockComment (n, c); span } :: xs when String.length c > 0 && c.[0] == '-'
       ->
-        let lbuf =
-          Lex.lex_of_ranged
-            { contents = CCString.drop 1 c;
-              offset = 0;
-              mapping = IntMap.singleton 0 (Lens.(Span.start_offset %= fun p -> p + n + 5) span)
-            }
+        let documented =
+          split_lines (CCString.drop 1 c) (Lens.(Span.start_offset %= fun p -> p + n + 5) span)
+          |> Indent.drop_rest |> Lex.lex_of_lines |> parse span
         in
-        let documented = parse span lbuf in
         extract_comments (documented :: cs) xs
     | { Span.value = Node.LineComment c; span } :: xs
       when String.length c > 0

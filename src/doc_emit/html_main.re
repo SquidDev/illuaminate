@@ -173,9 +173,8 @@ let show_preamble = (~helpers, {description, deprecated, _}) =>
 
 let show_example = (~helpers, example) =>
   switch (example) {
-  | RawExample(x) =>
-      Html_highlight.lua_block(~helpers, x.value)
-  | RichExample((x: description)) => md(~helpers, x.description)
+  | RawExample(x) => Html_highlight.lua_block(~helpers, x.value)
+  | RichExample(x: description) => md(~helpers, x.description)
   };
 
 let show_see = (~helpers, {see_reference, see_label, see_description, _}) =>
