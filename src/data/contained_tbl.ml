@@ -122,6 +122,11 @@ module Make (H : KeyContainer) = struct
   let key_index h hkey = hkey land (Array.length h.data - 1)
 
   let clean h =
+    (* Perform a GC just before cleaning our store. This ensures we don't grow too often.
+
+       This is incredibly ugly, but thankfully we don't need to do it very often. Perhaps a better
+       solution would be to overwrite dead cells, rather than skipping them. *)
+    Gc.full_major ();
     let rec do_bucket = function
       | Empty -> Empty
       | Cons (_, c, rest) when not (H.check_key c) ->
@@ -160,8 +165,7 @@ module Make (H : KeyContainer) = struct
     | Cons (hk, c, rest) when hkey = hk -> (
       match H.equal c key with
       | ETrue -> Some c
-      | EFalse -> find_rec_opt key hkey rest
-      | EDead -> find_rec_opt key hkey rest )
+      | EFalse | EDead -> find_rec_opt key hkey rest )
     | Cons (_, _, rest) -> find_rec_opt key hkey rest
 
   let find h key =
@@ -195,10 +199,12 @@ module Make (H : KeyContainer) = struct
           | Some k, Some v -> Format.fprintf out "%a => %a@," key k value v
           | Some k, None -> if all then Format.fprintf out "%a => _@," key k
           | None, Some v -> if all then Format.fprintf out "_ => %a@," value v
-          | None, None -> () );
+          | None, None -> if all then Format.fprintf out "_ => _@," );
           print_one next
     in
-    Format.fprintf out "@[<v 2>{ "; Array.iter print_one data; Format.fprintf out "@] }"
+    Format.fprintf out "@[<v 2>{[%d]@," (Array.length data);
+    Array.iter print_one data;
+    Format.fprintf out "@] }"
 end
 
 let strong (type k) ?(hash = Hashtbl.hash) ~eq () =
