@@ -27,10 +27,7 @@ module Check = struct
   let ok_s e = ok ~pp:Format.pp_print_string e
 end
 
-let force f =
-  match Fiber.run f with
-  | None -> failwith "Fiber did not return immediately"
-  | Some x -> x
+let force f = Fiber.run ~iter:(fun () -> failwith "Fiber did not return immediately") f
 
 module Testable = struct
   include Alcotest
@@ -236,9 +233,8 @@ let apply_change { files; _ } { WorkspaceEdit.changes; documentChanges; _ } =
     List.fold_left
       (fun c { TextEdit.range; newText } ->
         Logs.info (fun f -> f "Applying edit at %a: %s" (json_pp Range.yojson_of_t) range newText);
-        Text_document.apply_content_change
-          (TextDocumentContentChangeEvent.create ~range ~text:newText ())
-          c)
+        Text_document.apply_content_change c
+          (TextDocumentContentChangeEvent.create ~range ~text:newText ()))
       doc edits
     |> Text_document.text |> Hashtbl.replace files uri
   in

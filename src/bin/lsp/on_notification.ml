@@ -20,7 +20,7 @@ let worker client store : Client_notification.t -> unit Fiber.t = function
       match Store.get_file store uri with
       | Some doc ->
           List.fold_left
-            (fun doc change -> Text_document.apply_content_change ?version change doc)
+            (fun doc change -> Text_document.apply_content_change ?version doc change)
             doc.contents contentChanges
           |> Store.update_file store doc;
           send_diagnostics client store ?version doc
@@ -36,6 +36,8 @@ let worker client store : Client_notification.t -> unit Fiber.t = function
       Fiber.return ()
   (* Whole bunch of notifications we can ignore. *)
   | ChangeConfiguration _ | WillSaveTextDocument _ | DidSaveTextDocument _ | Initialized | Exit
+  | CancelRequest _ ->
+      Fiber.return ()
   | Unknown_notification { method_ = "$/illuaminate/dump"; _ } ->
       Format.asprintf "%a" (D.pp_store ~all:true) (Store.data store) |> Printf.printf "%s\n";
       Fiber.return ()

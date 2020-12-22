@@ -31,7 +31,7 @@ let tests =
           diagnostics ~uri t
           |> Testable.(check (list diagnostic))
                "Has a parse error"
-               [ Diagnostic.create ~range:(range 0 28 0 29) ~code:(Left "parse:syntax-error")
+               [ Diagnostic.create ~range:(range 0 28 0 29) ~code:(`String "parse:syntax-error")
                    ~source:"illuaminate" ~severity:Error
                    ~message:"Unexpected `)`: Unexpected token after function call" ()
                ];
@@ -65,7 +65,7 @@ let tests =
           diagnostics ~uri t
           |> Testable.(check (list diagnostic))
                "Has an unused variable error"
-               [ Diagnostic.create ~range:(range 0 6 0 7) ~code:(Left "var:unused")
+               [ Diagnostic.create ~range:(range 0 6 0 7) ~code:(`String "var:unused")
                    ~source:"illuaminate" ~severity:Warning ~message:"Unused variable \"x\"."
                    ~tags:[ Unnecessary ] ()
                ];
@@ -79,7 +79,7 @@ let tests =
           diagnostics ~uri:check t
           |> Testable.(check (list diagnostic))
                "check_unused's warns on unused variables"
-               [ Diagnostic.create ~range:(range 0 6 0 7) ~code:(Left "var:unused")
+               [ Diagnostic.create ~range:(range 0 6 0 7) ~code:(`String "var:unused")
                    ~source:"illuaminate" ~severity:Warning ~message:"Unused variable \"x\"."
                    ~tags:[ Unnecessary ] ()
                ];

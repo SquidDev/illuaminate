@@ -4,8 +4,8 @@
   (:standard \ illuaminate_lsp))
  (libraries cmdliner containers fpath illuaminate.config
    illuaminateConfigFormat illuaminate.core illuaminate.data illuaminate.lint
-   illuaminate.parser illuaminate.semantics logs str lsp lsp.stdune lsp.fiber
-   mtime mtime.clock.os omd result yojson ppx_yojson_conv_lib)
+   illuaminate.parser illuaminate.semantics logs str jsonrpc lsp lsp.stdune
+   lsp.fiber mtime mtime.clock.os omd result yojson ppx_yojson_conv_lib)
  (instrumentation
   (backend bisect_ppx)))
 
@@ -14,7 +14,7 @@
  (modules illuaminate_lsp)
  (modes exe)
  (libraries illuaminateLsp cmdliner lsp logs yojson lsp.stdune lsp.fiber
-   illuaminate.exec.unix))
+   lsp.fiber_unix lsp-fiber illuaminate.exec.unix))
 
 (rule
  (target illuaminate_lsp.min.exe)

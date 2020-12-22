@@ -5,7 +5,7 @@
   "license": "BSD-3-Clause",
   "homepage": "https://github.com/squiddev/illuaminate",
   "dependencies": {
-    "ocaml": ">=4.08 <4.11",
+    "ocaml": ">=4.08",
     "@opam/dune": ">=2.7",
     "@opam/cmdliner": "*",
     "@opam/containers": ">=3.0.1",
@@ -18,7 +18,9 @@
     "@opam/re": "*",
     "@opam/result": "*",
     "@opam/yojson": "*",
-    "@opam/lsp": "*"
+    "@opam/lsp": ">=1.4.0",
+    "@opam/jsonrpc": "*",
+    "@opam/lsp-fiber": "*"
   },
   "devDependencies": {
     "@opam/js_of_ocaml-compiler": ">=3.6.0",
@@ -33,7 +35,7 @@
     "@opam/odoc": "*",
     "@opam/bisect_ppx": ">=2.5.0",
     "@opam/ocamlformat": "*",
-    "@opam/opam-file-format": "*"
+    "@opam/opam-file-format": ">=2.1.0"
   },
   "esy": {
     "build": "dune build -p #{self.name}",
@@ -43,8 +45,8 @@
   "resolutions": {
     "@opam/omnomnom":
       "git://github.com/SquidDev/omnomnom:omnomnom.opam#33781a0000353d0d4b7ae444b33c7288ae5e5011",
-    "@opam/lsp":
-      "git://github.com/SquidDev/ocaml-lsp-subtree:lsp.opam#6d66f4f18261042262e6fdc209c744597c06f393"
+    "@opam/lsp-fiber":
+      "git://github.com/SquidDev/ocaml-lsp-subtree:lsp-fiber.opam#ea9e7f6f9e2e402d55c7ec0de56fb9a2f58d3e58"
   },
   "scripts": {
     "test": "dune build @runtest -f",

@@ -1,0 +1,19 @@
+#if OCAML_MAJOR >= 4 && OCAML_MINOR >= 11
+#include "leak_trace_gc.ml"
+#else
+type allocation = private
+{ n_samples : int;
+  size : int;
+  unmarshalled : bool;
+  callstack : Printexc.raw_backtrace
+}
+
+let pause () = ()
+
+let resume () = ()
+
+let run f = f (), []
+
+let format_bt ?n _ = ""
+
+#endif

@@ -16,7 +16,7 @@
   (synopsis "Source code analysis for Lua")
   (description "Provides various tools for parsing, processing and producing Lua source code. Currently does very little, but will hopefully grow in the future.")
   (depends
-    (ocaml (and (>= 4.08) (< 4.11)))
+    (ocaml (>= 4.08))
 
     ;; Build-time
     dune ; While a build-tool, dune shouldn't be build-time only
@@ -38,7 +38,7 @@
     ; Dev-only dependencies.
     (bisect_ppx (and :dev (>= 2.5.0)))
     (ocamlformat :dev)
-    (opam-file-format :dev)
+    (opam-file-format (and :dev (>= 2.1.0)))
 
     ; Core
     cmdliner
@@ -54,4 +54,6 @@
     yojson
 
     ;; Language server
-    lsp))
+    (lsp (>= 1.4.0))
+    jsonrpc
+    lsp-fiber))

@@ -10,7 +10,7 @@ license: "BSD-3-Clause"
 homepage: "https://github.com/squiddev/illuaminate"
 bug-reports: "https://github.com/squiddev/illuaminate/issues"
 depends: [
-  "ocaml" {>= "4.08" & < "4.11"}
+  "ocaml" {>= "4.08"}
   "dune" {>= "2.7"}
   "js_of_ocaml-compiler" {build & >= "3.6.0"}
   "js_of_ocaml-ppx" {build}
@@ -24,7 +24,7 @@ depends: [
   "odoc" {with-doc}
   "bisect_ppx" {dev & >= "2.5.0"}
   "ocamlformat" {dev}
-  "opam-file-format" {dev}
+  "opam-file-format" {dev & >= "2.1.0"}
   "cmdliner"
   "containers" {>= "3.0.1"}
   "fpath"
@@ -36,7 +36,9 @@ depends: [
   "re"
   "result"
   "yojson"
-  "lsp"
+  "lsp" {>= "1.4.0"}
+  "jsonrpc"
+  "lsp-fiber"
 ]
 build: [
   ["dune" "subst"] {dev}

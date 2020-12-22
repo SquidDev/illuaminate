@@ -27,7 +27,7 @@ let error_attribute : Error.attribute -> DiagnosticTag.t option = function
   | Deprecated -> Some Deprecated
   | Default -> None
 
-let tag_code t : Jsonrpc.Id.t = Left t.Error.Tag.name
+let tag_code t : Jsonrpc.Id.t = `String t.Error.Tag.name
 
 let tag_attributes tag =
   match List.filter_map error_attribute tag.Error.Tag.attributes with

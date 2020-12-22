@@ -20,7 +20,7 @@ let tests =
                       (CodeAction.create ~title:"Fix 'Unnecessary parenthesis.'" ~kind:QuickFix
                          ~diagnostics:
                            [ Diagnostic.create ~range:(range 0 6 0 9) ~severity:Hint
-                               ~code:(Left "syntax:redundant-parens") ~source:"illuaminate"
+                               ~code:(`String "syntax:redundant-parens") ~source:"illuaminate"
                                ~message:"Unnecessary parenthesis." ()
                            ]
                          ~isPreferred:true

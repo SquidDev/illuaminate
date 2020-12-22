@@ -4,14 +4,23 @@
    omnomnom.qcheck containers illuaminate.core illuaminate.config
    illuaminate.data illuaminate.parser illuaminate.lint illuaminate.minify
    omd fpath illuaminate.semantics illuaminate.pattern illuaminate.doc_emit
-   illuaminate.exec.unix illuaminateConfigFormat illuaminateLsp lsp lsp.fiber
-   lsp.stdune logs cmdliner yojson result alcotest fmt ppx_yojson_conv_lib
-   qcheck-core html)
+   illuaminate.exec.unix illuaminateConfigFormat illuaminateLsp lsp jsonrpc
+   lsp.fiber lsp.stdune logs cmdliner yojson result alcotest fmt
+   ppx_yojson_conv_lib qcheck-core html)
  (deps
   (source_tree data))
  (preprocess
   (pps ppx_deriving.std))
+ (modules :standard \ leak_trace_gc)
  (action
   (run %{test} --base-dir "../" --junit)))
 
 (data_only_dirs data)
+
+(rule
+ (deps
+  (:main leak_trace.ml.cppo)
+  leak_trace_gc.ml)
+ (targets leak_trace.ml)
+ (action
+  (run %{bin:cppo} -V OCAML:%{ocaml_version} %{main} -o %{targets})))
