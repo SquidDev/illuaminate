@@ -456,7 +456,7 @@ and expr =
   | True of token
   | False of token
   | Number of float literal
-  | Int of int literal
+  | Int of Int64.t literal
   | MalformedNumber of string Node.t
   | String of string literal
   | Fun of fun_expr
@@ -516,7 +516,7 @@ class iter =
 
     method string (_ : string) = ()
 
-    method int (_ : int) = ()
+    method int64 (_ : Int64.t) = ()
 
     method float (_ : float) = ()
 
@@ -549,7 +549,7 @@ class map =
 
     method string (x : string) = x
 
-    method int (x : int) = x
+    method int64 (x : Int64.t) = x
 
     method float (x : float) = x
 

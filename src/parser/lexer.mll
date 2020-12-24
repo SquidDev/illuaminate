@@ -23,6 +23,10 @@
     match float_of_string_opt c with
     | None -> Token (MalformedNumber c)
     | Some f -> Token (Number (f, c))
+  let mk_int c =
+    match Int64.of_string_opt c with
+    | None -> Token (MalformedNumber c)
+    | Some i -> Token (Int (i, c))
 }
 
 let white = [' ' '\t']
@@ -91,8 +95,8 @@ rule token l = parse
 | '#'  { Token Len }
 
 (* Numbers *)
-| "0x" hex+ as i { Token (Int (int_of_string i, i)) }
-| digit+ as i    { Token (Int (int_of_string i, i)) }
+| "0x" hex+ as i         { mk_int i }
+| digit+ as i            { mk_int i }
 | digit number* as i     { mk_number i }
 | '.' digit number* as i { mk_number i }
 

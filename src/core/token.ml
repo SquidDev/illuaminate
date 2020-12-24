@@ -28,7 +28,7 @@ type t =
   | Ident of string
   | If
   | In
-  | Int of int * string
+  | Int of Int64.t * string
   | Le
   | Len
   | Local

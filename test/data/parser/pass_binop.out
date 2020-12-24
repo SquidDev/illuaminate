@@ -29,7 +29,7 @@
                        (Syntax.BinOp
                           { Syntax.binop_lhs =
                             (Syntax.Int
-                               { Syntax.lit_value = 1;
+                               { Syntax.lit_value = 1L;
                                  lit_node =
                                  Node.Node {leading_trivia = [];
                                    trailing_trivia =
@@ -48,7 +48,7 @@
                               contents = *; span = pass_binop.lua[1:13-1:13]};
                             binop_rhs =
                             (Syntax.Int
-                               { Syntax.lit_value = 2;
+                               { Syntax.lit_value = 2L;
                                  lit_node =
                                  Node.Node {leading_trivia = [];
                                    trailing_trivia =
@@ -68,7 +68,7 @@
                          contents = +; span = pass_binop.lua[1:17-1:17]};
                        binop_rhs =
                        (Syntax.Int
-                          { Syntax.lit_value = 4;
+                          { Syntax.lit_value = 4L;
                             lit_node =
                             Node.Node {leading_trivia = [];
                               trailing_trivia =

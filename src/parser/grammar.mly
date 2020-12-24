@@ -22,7 +22,7 @@
 
 %token <string IlluaminateCore.Node.t> IDENT
 %token <string IlluaminateCore.Syntax.literal> STRING
-%token <int IlluaminateCore.Syntax.literal> INT
+%token <Int64.t IlluaminateCore.Syntax.literal> INT
 %token <float IlluaminateCore.Syntax.literal> NUMBER
 %token <string IlluaminateCore.Node.t> MNUMBER
 

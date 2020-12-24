@@ -66,7 +66,7 @@ let rec eval ?(var = fun _ -> RUnknown) =
   | Ref (NVar v) -> var v
   | Ref _ | ECall _ | Dots _ | Fun _ | Table _ | MalformedNumber _ -> RUnknown
   | Parens { paren_expr = e; _ } -> eval e
-  | Int { lit_value; _ } -> RNumber (float_of_int lit_value)
+  | Int { lit_value; _ } -> RNumber (Int64.to_float lit_value)
   | Number { lit_value; _ } -> RNumber lit_value
   | String { lit_value; _ } -> RString lit_value
   | Nil _ -> RNil
