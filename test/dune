@@ -15,6 +15,13 @@
  (action
   (run %{test} --base-dir "../" --junit)))
 
+(rule
+ (alias quicktest)
+ (deps
+  (source_tree data))
+ (action
+  (run ./test.exe --base-dir "../" -q)))
+
 (data_only_dirs data)
 
 (rule
