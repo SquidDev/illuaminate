@@ -148,7 +148,8 @@ let doc_gen path =
        |> List.sort (fun a b ->
               Doc.Syntax.(String.compare a.descriptor.mod_name b.descriptor.mod_name))
      in
-     let { Config.DocOptions.site_properties = { site_title; site_image; embed_js; embed_css; source_link };
+     let { Config.DocOptions.site_properties =
+             { site_title; site_image; site_url; embed_head; embed_js; embed_css; source_link };
            index;
            destination;
            json_index
@@ -164,6 +165,11 @@ let doc_gen path =
      let site_js =
        gen_appended ~destination ~name:"main.js" ~contents:E.Html.embedded_js embed_js
      in
+     let site_head =
+       Option.map
+         (fun f -> CCIO.with_in (Fpath.to_string f) CCIO.read_all |> CCString.trim)
+         embed_head
+     in
      let module_dir = Fpath.v "module" in
      let custom =
        let config =
@@ -173,8 +179,8 @@ let doc_gen path =
      in
 
      let options resolve : E.Html.Options.t =
-       E.Html.Options.make ?site_title ?site_image ~site_js ~site_css ~resolve ~source_link ~data
-         ~custom ()
+       E.Html.Options.make ?site_title ?site_image ?site_url ?site_head ~site_js ~site_css ~resolve
+         ~source_link ~data ~custom ()
      in
      let module_options =
        options @@ fun x ->

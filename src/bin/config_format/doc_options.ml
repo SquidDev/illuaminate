@@ -8,6 +8,8 @@ module Log = (val Logs.src_log src)
 type site_properties =
   { site_title : string option;
     site_image : Fpath.t option;
+    site_url : string option;
+    embed_head : Fpath.t option;
     embed_css : Fpath.t option;
     embed_js : Fpath.t option;
     source_link : IlluaminateSemantics.Doc.AbstractSyntax.source -> string option
@@ -117,14 +119,29 @@ let term =
   in
   let+ site_title, site_image, embed_js, embed_css, source_link = site_properties_common
   and+ site_properties =
-    let+ site_title, site_image, embed_js, embed_css, source_link = site_properties_common in
-    fun root ->
-      { site_title;
-        site_image;
-        embed_js;
-        embed_css;
-        source_link = make_source_link ~root source_link
-      }
+    group ~name:"site" ~comment:"HTML-specific properties"
+    @@ let+ site_title, site_image, embed_js, embed_css, source_link = site_properties_common
+       and+ site_url =
+         field ~name:"url"
+           ~comment:"The full URL the site is hosted on (e.g. https://example.com/docs)."
+           ~default:None (option ~ty:"url" string)
+       and+ embed_head =
+         field ~name:"head"
+           ~comment:"Additional content to be included in the <head> of the generated pages."
+           ~default:None (option ~ty:"path" path)
+       in
+       let site_url =
+         Option.map (fun url -> if CCString.suffix ~suf:"/" url then url else url ^ "/") site_url
+       in
+       fun root ->
+         { site_title;
+           site_image;
+           site_url;
+           embed_js;
+           embed_css;
+           embed_head = Option.map (Fpath.append root) embed_head;
+           source_link = make_source_link ~root source_link
+         }
   and+ index =
     field ~name:"index" ~comment:"A path to an index file." ~default:None (option ~ty:"path" path)
   and+ destination =
@@ -141,12 +158,14 @@ let term =
     let ofile = Option.map (Fpath.append root) in
     let site_properties = site_properties root in
     { site_properties =
-        { site_title = check_theme_field "title" site_title site_properties.site_title;
-          site_image = check_theme_field "title" site_image site_properties.site_image;
-          embed_css = check_theme_field "title" embed_css site_properties.embed_css;
-          embed_js = check_theme_field "title" embed_js site_properties.embed_js;
+        { site_properties with
+          site_title = check_theme_field "title" site_title site_properties.site_title;
+          site_image = ofile @@ check_theme_field "title" site_image site_properties.site_image;
+          embed_css = ofile @@ check_theme_field "title" embed_css site_properties.embed_css;
+          embed_js = ofile @@ check_theme_field "title" embed_js site_properties.embed_js;
           source_link =
-            check_theme_field' "title" (make_source_link ~root) source_link site_properties.source_link
+            check_theme_field' "title" (make_source_link ~root) source_link
+              site_properties.source_link
         };
       index = ofile index;
       destination = Fpath.append root destination;

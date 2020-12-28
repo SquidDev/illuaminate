@@ -9,6 +9,9 @@ module DocOptions : sig
   type site_properties =
     { site_title : string option;  (** A title to be displayed on every page. *)
       site_image : Fpath.t option;  (** A file path to a logo. *)
+      site_url : string option;
+          (** The full URL the path is hosted on, including the trailing slash. *)
+      embed_head : Fpath.t option;  (** A path to a HTML file to embed. *)
       embed_css : Fpath.t option;  (** A path to a CSS file to embed. *)
       embed_js : Fpath.t option;  (** A path to a JS file to embed. *)
       source_link : IlluaminateSemantics.Doc.AbstractSyntax.source -> string option

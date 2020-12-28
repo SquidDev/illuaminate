@@ -5,6 +5,8 @@ module Html : sig
     val make :
       ?site_title:string ->
       ?site_image:string ->
+      ?site_url:string ->
+      ?site_head:string ->
       site_css:string ->
       site_js:string ->
       resolve:(string -> string) ->

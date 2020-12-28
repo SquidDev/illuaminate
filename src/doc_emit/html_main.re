@@ -64,7 +64,14 @@ let module_toc = ({mod_types, mod_contents, _}) => {
 };
 
 let template =
-    (~title, ~options as {resolve, _} as options, ~modules, ~current, body) => {
+    (
+      ~title,
+      ~description=?,
+      ~options as {resolve, site_title, site_image, site_url, _} as options,
+      ~modules,
+      ~current,
+      body,
+    ) => {
   let module_list = (~title, xs) =>
     List.map(module_list_item(~options, ~current), xs)
     |> show_list(~tag="h2", title);
@@ -73,17 +80,42 @@ let template =
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title> {str(title)} </title>
+      // OpenGraph information.
+      <meta property="og:title" content=title />
+      <meta property="og:type" content="website" />
+      {switch (description) {
+       | None => nil
+       | Some(description) =>
+         [
+           <meta name="description" content=description />,
+           <meta property="og:description" content=description />,
+         ]
+         |> many
+       }}
+      {switch (site_url, site_image) {
+       | (Some(url), Some(image)) =>
+         <meta property="og:image" content={url ++ image} />
+       | _ => nil
+       }}
+      {switch (site_title) {
+       | None => nil
+       | Some(title) => <meta property="og:site_name" content=title />
+       }}
       <link
         rel="stylesheet"
         href={resolve(options.site_css)}
         type_="text/css"
       />
+      {switch (options.site_head) {
+       | None => nil
+       | Some(head) => raw(head)
+       }}
     </head>
     <body>
       <nav>
         <button class_="nav-reveal" type_="button"> {raw("&#9776;")} </button>
         {let link = h => <h1> <a href={resolve("./")}> h </a> </h1>;
-         switch (options.site_image, options.site_title) {
+         switch (site_image, site_title) {
          | (Some(site_image), Some(site_title)) =>
            link(<img src={resolve(site_image)} alt=site_title />)
          | (Some(site_image), None) =>
@@ -139,6 +171,11 @@ let emit_modules =
       ]
       |> many
     };
+  let description =
+    switch (site_title) {
+    | None => "Documentation index"
+    | Some(x) => "Documentation index for " ++ x
+    };
 
   let content = [
     contents,
@@ -149,6 +186,7 @@ let emit_modules =
     ~modules,
     ~current=None,
     ~title=Option.value(~default="Index", site_title),
+    ~description,
     content,
   );
 };
@@ -172,5 +210,21 @@ let emit_module =
          ]
        },
   ];
-  template(~options, ~modules, ~current=Some(m), ~title=mod_name, content);
+  let description =
+    switch (self.description) {
+    | None => None
+    | Some(x) =>
+      Helpers.get_summary(x.description)
+      |> Omd.to_text
+      |> CCString.trim
+      |> Option.some
+    };
+  template(
+    ~options,
+    ~modules,
+    ~current=Some(m),
+    ~title=mod_name,
+    ~description?,
+    content,
+  );
 };
