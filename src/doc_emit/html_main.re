@@ -1,59 +1,14 @@
 open Html.Default;
+open Html_basic;
 open Html_md;
-open Html_type;
+open Html_value;
 open IlluaminateSemantics.Reference;
-open! IlluaminateSemantics.Doc.AbstractSyntax;
 open! IlluaminateSemantics.Doc.Syntax;
 module Cfg = IlluaminateSemantics.Doc.Extract.Config;
 
-module Options = {
-  type t = {
-    site_title: option(string),
-    site_image: option(string),
-    site_css: string,
-    site_js: string,
-    helpers: Html_basic.t,
-    source_link: source => option(string),
-    custom: list(Cfg.custom_kind),
-  };
-
-  let make =
-      (
-        ~site_title=?,
-        ~site_image=?,
-        ~site_css,
-        ~site_js,
-        ~resolve,
-        ~data,
-        ~source_link=?,
-        ~custom=[],
-        (),
-      ) => {
-    site_title,
-    site_image,
-    site_css,
-    site_js,
-    helpers: {
-      resolve,
-      data,
-    },
-    source_link: Option.value(~default=Fun.const(None), source_link),
-    custom,
-  };
-};
+module Options = Html_options;
 
 open Options;
-
-let show_list = (~tag="h3", title, xs) =>
-  switch (xs) {
-  | [] => nil
-  | _ =>
-    [
-      create_node(~tag, ~children=[str(title)], ()),
-      <ul> ...{List.map(x => <li> x </li>, xs)} </ul>,
-    ]
-    |> many
-  };
 
 let show_module_list = (f, {custom, _}, xs) => {
   let f' = (~title, ~kind) =>
@@ -69,263 +24,9 @@ let show_module_list = (f, {custom, _}, xs) => {
   ];
 };
 
-let show_arg = (~helpers, {arg_name, arg_opt, arg_type, arg_description}) =>
-  <li>
-    <span class_="parameter">
-      {str(arg_name)}
-      {show_opt(~kind="argument", arg_opt)}
-    </span>
-    {str(" ")}
-    {show_type_opt(~helpers, arg_type)}
-    {str(" ")}
-    {show_desc_inline(~helpers, arg_description)}
-  </li>;
-
-let show_return = (~helpers, {ret_type, ret_many, ret_description}) =>
-  <li>
-    {switch (ret_type) {
-     | None => nil
-     | Some(ty) =>
-       <span class_="type">
-         {show_type(~helpers, ty)}
-         {if (ret_many) {
-            str("...");
-          } else {
-            nil;
-          }}
-       </span>
-     }}
-    {str(" ")}
-    {show_desc_inline(~helpers, ret_description)}
-  </li>;
-
-let show_function = (~helpers, args, rets, throws) =>
-  [
-    (
-      switch (args) {
-      | []
-      | [[]] => []
-      | all_args => [
-          <h3> {str("Parameters")} </h3>,
-          ...all_args
-             |> List.mapi((i, args) =>
-                  [
-                    if (i > 0) {
-                      <h4> {str("Or")} </h4>;
-                    } else {
-                      nil;
-                    },
-                    <ol class_="parameter-list">
-                      ...{List.map(show_arg(~helpers), args)}
-                    </ol>,
-                  ]
-                )
-             |> List.flatten,
-        ]
-      }
-    )
-    |> many,
-    (
-      switch (rets) {
-      | []
-      | [[]] => []
-      | all_rets => [
-          <h3> {str("Returns")} </h3>,
-          ...{
-               all_rets
-               |> List.mapi((i, rets) =>
-                    [
-                      if (i > 0) {
-                        <h4> {str("Or")} </h4>;
-                      } else {
-                        nil;
-                      },
-                      <ol class_="return-list">
-                        ...{List.map(show_return(~helpers), rets)}
-                      </ol>,
-                    ]
-                  )
-               |> List.flatten;
-             },
-        ]
-      }
-    )
-    |> many,
-    List.map((x: description) => md(~helpers, x.description), throws)
-    |> show_list("Throws"),
-  ]
-  |> many;
-
-let show_preamble = (~helpers, {description, deprecated, _}) =>
-  [
-    switch (deprecated) {
-    | None => nil
-    | Some({deprecation_message}) =>
-      <div class_="deprecated">
-        <strong> {str("Deprecated")} </strong>
-        {str(" ")}
-        {show_desc_inline(~helpers, deprecation_message)}
-      </div>
-    },
-    show_desc(~helpers, description),
-  ]
-  |> many;
-
-let show_example = (~helpers, example) =>
-  switch (example) {
-  | RawExample(x) => Html_highlight.lua_block(~helpers, x.value)
-  | RichExample(x: description) => md(~helpers, x.description)
-  };
-
-let show_see = (~helpers, {see_reference, see_label, see_description, _}) =>
-  [
-    <strong>
-      {show_reference(~helpers, see_reference, str(see_label))}
-    </strong>,
-    str(" "),
-    show_desc_inline(~helpers, see_description),
-  ]
-  |> many;
-
-let show_common = (~helpers, {examples, see, _}) => {
-  [
-    show_list("Usage", List.map(show_example(~helpers), examples)),
-    show_list("See also", List.map(show_see(~helpers), see)),
-  ]
-  |> many;
-};
-
-let show_pos = (~source_link, node) => {
-  switch (Helpers.link(~source_link, node)) {
-  | None => nil
-  | Some(link) => <a href=link class_="source-link"> {str("Source")} </a>
-  };
-};
-
-let rec show_named_value =
-        (~options as {source_link, _} as options, name, field, value) => {
-  let sec = Option.get(section_of_name(name));
-  [
-    <dt>
-      <a name=sec href={"#" ++ sec} />
-      <span
-        class_={
-          value.deprecated != None
-            ? "definition-name definition-deprecated" : "definition-name"
-        }>
-        {str(field)}
-        {value.descriptor |> get_suffix |> str}
-      </span>
-      {show_pos(~source_link, value)}
-    </dt>,
-    <dd> {show_documented_term(~options, value)} </dd>,
-  ]
-  |> many;
-}
-
-and show_member =
-    (~options, type_name, {member_name, member_is_method, member_value}) => {
-  let name =
-    type_name ++ (if (member_is_method) {":"} else {"."}) ++ member_name;
-  show_named_value(
-    ~options,
-    Member(type_name, member_name),
-    name,
-    member_value,
-  );
-}
-
-and show_documented_term = (~options as {helpers, _} as options, value) =>
-  [
-    show_preamble(~helpers, value),
-    show_value(~options, value.descriptor),
-    show_common(~helpers, value),
-  ]
-  |> many
-
-and show_value = (~options as {helpers, _} as options, value) => {
-  switch (value) {
-  | Table([_, ..._] as fs) =>
-    [
-      <table class_="definition-list">
-        ...{
-             fs
-             |> List.map(((field, value)) =>
-                  <tr
-                    class_=?{
-                      Option.map(
-                        _ => "definition-deprecated",
-                        value.deprecated,
-                      )
-                    }>
-                    <th
-                      class_="definition-name"
-                      title=?{
-                        Option.map(
-                          _ => "This member is deprecated.",
-                          value.deprecated,
-                        )
-                      }>
-                      <a
-                        href={
-                          "#" ++ Option.get(section_of_name(Value(field)))
-                        }>
-                        {str(field)}
-                        {value.descriptor |> get_suffix |> str}
-                      </a>
-                    </th>
-                    <td> {show_summary(~helpers, value.description)} </td>
-                  </tr>
-                )
-           }
-      </table>,
-      <dl class_="definition">
-        ...{
-             fs
-             |> List.map(((field, value)) =>
-                  show_named_value(~options, Value(field), field, value)
-                )
-           }
-      </dl>,
-    ]
-    |> many
-  | Table([]) => nil
-  | Function({args, rets, throws, _}) =>
-    show_function(~helpers, args, rets, throws)
-  | Expr(_) => nil
-  | Type(_) => nil
-  | Unknown => nil
-  | Undefined =>
-    <p class_="undefined-value">
-      {str("Error generating documentation for this term.")}
-    </p>
-  };
-};
-
-let show_type =
-    (
-      ~options as {helpers, _} as options,
-      {descriptor: {type_name, type_members}, _} as desc,
-    ) => {
-  let sec = Option.get(section_of_name(Type(type_name)));
-  [
-    <h3>
-      <a name=sec href={"#" ++ sec} />
-      {str(" ")}
-      <span> {str(type_name)} </span>
-    </h3>,
-    show_preamble(~helpers, desc),
-    show_common(~helpers, desc),
-    <dl class_="definition">
-      ...{List.map(show_member(~options, type_name), type_members)}
-    </dl>,
-  ]
-  |> many;
-};
-
 let module_list_item =
     (
-      ~helpers as {Html_basic.resolve, _},
+      ~options as {resolve, _},
       ~current,
       {descriptor: {mod_name: name, _}, _},
     ) =>
@@ -363,15 +64,9 @@ let module_toc = ({mod_types, mod_contents, _}) => {
 };
 
 let template =
-    (
-      ~title,
-      ~options as {helpers: {resolve, _} as helpers, _} as options,
-      ~modules,
-      ~current,
-      body,
-    ) => {
+    (~title, ~options as {resolve, _} as options, ~modules, ~current, body) => {
   let module_list = (~title, xs) =>
-    List.map(module_list_item(~helpers, ~current), xs)
+    List.map(module_list_item(~options, ~current), xs)
     |> show_list(~tag="h2", title);
   <html>
     <head>
@@ -422,15 +117,14 @@ let template =
     </body>
   </html>;
 };
-
 let emit_modules =
-    (~options as {helpers, site_title, _} as options, ~modules, contents) => {
+    (~options as {site_title, _} as options, ~modules, contents) => {
   let emit_module_row = ({descriptor: {mod_name, _}, description, _}) =>
     <tr>
       <th>
         <a href={"module/" ++ mod_name ++ ".html"}> {str(mod_name)} </a>
       </th>
-      <td> {show_summary(~helpers, description)} </td>
+      <td> {show_summary(~options, description)} </td>
     </tr>;
 
   let emit_module_group = (~title, modules) =>
@@ -461,14 +155,14 @@ let emit_modules =
 
 let emit_module =
     (
-      ~options as {helpers, _} as options,
+      ~options,
       ~modules,
       {descriptor: {mod_name, mod_contents, mod_types, _} as m, _} as self,
     ) => {
   let content = [
     <h1> <code> {str(mod_name)} </code> </h1>,
-    show_preamble(~helpers, self),
-    show_common(~helpers, self),
+    show_preamble(~options, self),
+    show_common(~options, self),
     show_value(~options, mod_contents),
     ...switch (mod_types) {
        | [] => []

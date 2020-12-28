@@ -118,8 +118,8 @@ let doc_gen path =
           with_out Fpath.(destination / our_logo |> to_string) @@ fun o -> copy_into i o);
         our_logo
 
-    let parse_index ~data path =
-      E.Html_loader.load_file ~helpers:{ resolve = Fun.id; data } path
+    let parse_index ~options path =
+      E.Html.load_file ~options path
       |> Result.fold ~ok:Fun.id ~error:(fun e -> Printf.eprintf "%s\n%!" e; exit 1)
 
     let gen_appended ~destination ~name ~contents extra =
@@ -159,13 +159,11 @@ let doc_gen path =
 
      let site_image = Option.map (resolve_logo ~destination) site_image in
      let site_css =
-       gen_appended ~destination ~name:"main.css" ~contents:E.Html_embedded_styles.contents
-         embed_css
+       gen_appended ~destination ~name:"main.css" ~contents:E.Html.embedded_css embed_css
      in
      let site_js =
-       gen_appended ~destination ~name:"main.js" ~contents:E.Html_embedded_scripts.contents embed_js
+       gen_appended ~destination ~name:"main.js" ~contents:E.Html.embedded_js embed_js
      in
-     let index = Option.fold ~none:Html.Default.nil ~some:(parse_index ~data) index in
      let module_dir = Fpath.v "module" in
      let custom =
        let config =
@@ -174,9 +172,9 @@ let doc_gen path =
        config.module_kinds
      in
 
-     let options resolve : E.Html_main.Options.t =
-       E.Html_main.Options.make ?site_title ?site_image ~site_js ~site_css ~resolve ~source_link
-         ~data ~custom ()
+     let options resolve : E.Html.Options.t =
+       E.Html.Options.make ?site_title ?site_image ~site_js ~site_css ~resolve ~source_link ~data
+         ~custom ()
      in
      let module_options =
        options @@ fun x ->
@@ -186,12 +184,13 @@ let doc_gen path =
      modules
      |> List.iter (fun (modu : Doc.Syntax.module_info Doc.Syntax.documented) ->
             let path = Fpath.(destination / "module" / (modu.descriptor.mod_name ^ ".html")) in
-            E.Html_main.emit_module ~options:module_options ~modules modu
+            E.Html.emit_module ~options:module_options ~modules modu
             |> emit_doc
             |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path));
 
      let path = Fpath.(destination / "index.html") in
-     E.Html_main.emit_modules ~options:(options Fun.id) ~modules index
+     Option.fold ~none:Html.Default.nil ~some:(parse_index ~options:(options Fun.id)) index
+     |> E.Html.emit_modules ~options:(options Fun.id) ~modules
      |> emit_doc
      |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path);
 

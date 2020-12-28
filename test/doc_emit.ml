@@ -58,7 +58,7 @@ module Html_module = struct
       Printf.sprintf "%04d-%02d-%02d" (time.tm_year + 1900) (time.tm_mon + 1) time.tm_mday
     in
     Format.fprintf out "<!DOCTYPE html>@\n";
-    let module H = IlluaminateDocEmit.Html_main in
+    let module H = IlluaminateDocEmit.Html in
     let options =
       H.Options.make ~site_title:"My title" ~site_css:"main.css" ~site_js:"main.js" ~resolve:Fun.id
         ~data ~source_link ()

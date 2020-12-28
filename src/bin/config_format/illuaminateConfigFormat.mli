@@ -11,7 +11,7 @@ module DocOptions : sig
       site_image : Fpath.t option;  (** A file path to a logo. *)
       embed_css : Fpath.t option;  (** A path to a CSS file to embed. *)
       embed_js : Fpath.t option;  (** A path to a JS file to embed. *)
-      source_link : IlluaminateSemantics.Doc.AbstractSyntax.source -> string option;
+      source_link : IlluaminateSemantics.Doc.AbstractSyntax.source -> string option
           (** Resolve a position in source code to an online file host (such as GitHub). *)
     }
 

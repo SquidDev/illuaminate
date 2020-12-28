@@ -5,11 +5,12 @@ open IlluaminateSemantics;
 let show_opt: (~kind: string, bool) => node;
 
 /** Convert a type to HTML, using some resolve function to look up internal links. */
-let show_type: (~helpers: Html_basic.t, Doc.Syntax.Type.t) => node;
+let show_type: (~options: Html_options.t, Doc.Syntax.Type.t) => node;
 
 /** Convert a potential type to HTML. */
 let show_type_opt:
-  (~helpers: Html_basic.t, option(Doc.Syntax.Type.t)) => node;
+  (~options: Html_options.t, option(Doc.Syntax.Type.t)) => node;
 
 /** Wrap a HTML node with a link to a reference, using some resolve function to look up internal links. */
-let show_reference: (~helpers: Html_basic.t, Reference.resolved, node) => node;
+let show_reference:
+  (~options: Html_options.t, Reference.resolved, node) => node;

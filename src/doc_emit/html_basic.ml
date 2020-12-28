@@ -1,12 +1,8 @@
 open IlluaminateSemantics
-
-type t =
-  { resolve : string -> string;
-    data : IlluaminateData.t
-  }
+open Html_options
 
 (** Return the URL and class of a reference. *)
-let reference_attrs ~helpers:{ resolve; _ } (reference : Reference.resolved) style =
+let reference_attrs ~options:{ resolve; _ } (reference : Reference.resolved) style =
   let link =
     match reference with
     | Internal { in_module; name; _ } ->
@@ -29,3 +25,14 @@ let reference_attrs ~helpers:{ resolve; _ } (reference : Reference.resolved) sty
     | _ -> classes
   in
   (link, classes)
+
+let show_list ?(tag = "h3") title = function
+  | [] -> Html.Default.nil
+  | xs ->
+      let open Html.Default in
+      [ create_node ~tag ~children:[ str title ] ();
+        create_node ~tag:"ul"
+          ~children:(List.map (fun x -> create_node ~tag:"li" ~children:[ x ] ()) xs)
+          ()
+      ]
+      |> many

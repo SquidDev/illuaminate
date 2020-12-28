@@ -22,8 +22,8 @@ type pat_config =
     linter_options : Schema.store  (** Modifications to the linter. *)
   }
 
-  module DocOptions = Doc_options
-  
+module DocOptions = Doc_options
+
 (** The main config file. *)
 type t =
   | Config of

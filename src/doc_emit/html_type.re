@@ -11,15 +11,15 @@ let show_opt = (~kind, optional) =>
     nil;
   };
 
-let show_reference = (~helpers, x, label) => {
-  let (link, class_) = Html_basic.reference_attrs(~helpers, x, `Code);
+let show_reference = (~options, x, label) => {
+  let (link, class_) = Html_basic.reference_attrs(~options, x, `Code);
   switch (link) {
   | Some(href) => <a href class_> label </a>
   | None => <span class_> label </span>
   };
 };
 
-let rec show_type = (~helpers, x) =>
+let rec show_type = (~options, x) =>
   switch (x) {
   | NilTy => str("nil")
   | BoolTy(true) => str("true")
@@ -27,18 +27,18 @@ let rec show_type = (~helpers, x) =>
   | IntTy(x) => x |> CCInt.to_string |> str
   | NumberTy(x) => x |> CCFloat.to_string |> str
   | StringTy(x) => x |> String.escaped |> Printf.sprintf("\"%s\"") |> str
-  | Named(r, l) => show_reference(~helpers, r, str(l))
+  | Named(r, l) => show_reference(~options, r, str(l))
   | Union([]) => nil
   | Union([x, ...xs]) =>
     [
-      show_type(~helpers, x),
-      ...xs |> CCList.flat_map(x => [str(" | "), show_type(~helpers, x)]),
+      show_type(~options, x),
+      ...xs |> CCList.flat_map(x => [str(" | "), show_type(~options, x)]),
     ]
     |> many
   | Function({args, return}) =>
     let args = {
       let (_, opt, nodes) =
-        List.fold_left(show_type_arg(~helpers), (0, 0, []), args);
+        List.fold_left(show_type_arg(~options), (0, 0, []), args);
       [[str(String.make(opt, ']'))], ...nodes]
       |> List.rev
       |> List.flatten
@@ -48,13 +48,13 @@ let rec show_type = (~helpers, x) =>
       switch (return) {
       | ([], None) => nil
       | ([], Some(rest)) =>
-        [str(":"), show_type(~helpers, rest), str("...")] |> many
+        [str(":"), show_type(~options, rest), str("...")] |> many
 
       | ([_, ..._] as tys, None) =>
         [
           str(":"),
           ...tys
-             |> List.map(show_type(~helpers))
+             |> List.map(show_type(~options))
              |> CCList.intersperse(str(", ")),
         ]
         |> many
@@ -64,9 +64,9 @@ let rec show_type = (~helpers, x) =>
           str(":"),
           ...List.append(
                tys
-               |> List.map(show_type(~helpers))
+               |> List.map(show_type(~options))
                |> CCList.intersperse(str(", ")),
-               [str(","), show_type(~helpers, rest), str("...")],
+               [str(","), show_type(~options, rest), str("...")],
              ),
         ]
         |> many
@@ -75,13 +75,13 @@ let rec show_type = (~helpers, x) =>
   | Table(fields) =>
     let fields =
       fields
-      |> List.map(show_type_table_entry(~helpers))
+      |> List.map(show_type_table_entry(~options))
       |> CCList.intersperse(str(", "))
       |> many;
     [str("{ "), fields, str(" }")] |> many;
   }
 
-and show_type_arg = (~helpers, (i, o, b), {name, opt, ty}) => {
+and show_type_arg = (~options, (i, o, b), {name, opt, ty}) => {
   let name =
     switch (name) {
     | None => ""
@@ -100,36 +100,36 @@ and show_type_arg = (~helpers, (i, o, b), {name, opt, ty}) => {
   (
     i + 1,
     o + (if (opt) {1} else {0}),
-    [[str(pre), show_type(~helpers, ty)], ...b],
+    [[str(pre), show_type(~options, ty)], ...b],
   );
 }
 
-and show_type_table_entry = (~helpers, x) =>
+and show_type_table_entry = (~options, x) =>
   switch (x) {
   | Field({key, optional, value}) =>
     [
       str(key),
       show_opt(~kind="field", optional),
       str(" = "),
-      show_type(~helpers, value),
+      show_type(~options, value),
     ]
     |> many
-  | Item(ty) => show_type(~helpers, ty)
-  | Many(ty) => [show_type(~helpers, ty), str("...")] |> many
+  | Item(ty) => show_type(~options, ty)
+  | Many(ty) => [show_type(~options, ty), str("...")] |> many
   | Hash({key, optional, value}) =>
     [
       str("["),
-      show_type(~helpers, key),
+      show_type(~options, key),
       str("]"),
       show_opt(~kind="field", optional),
       str(" = "),
-      show_type(~helpers, value),
+      show_type(~options, value),
     ]
     |> many
   };
 
-let show_type_opt = (~helpers, x) =>
+let show_type_opt = (~options, x) =>
   switch (x) {
   | None => nil
-  | Some(ty) => <span class_="type"> {show_type(~helpers, ty)} </span>
+  | Some(ty) => <span class_="type"> {show_type(~options, ty)} </span>
   };
