@@ -11,13 +11,9 @@ let parse str =
   |> Result.fold ~ok:Fun.id ~error:(fun { Span.value; span } ->
          Format.asprintf "%a: %s" Span.pp span value |> failwith)
 
-let maybe_source_link format span =
-  let c = Printf.sprintf "(doc (source-link %S))" format |> parse |> C.get_doc_options in
-  c.source_link (Span span)
-
 let get_source_link format span =
   let c = Printf.sprintf "(doc (source-link %S))" format |> parse |> C.get_doc_options in
-  c.source_link (Span span)
+  c.site_properties.source_link (Span span)
 
 let mk_span file =
   let open Span in
@@ -57,12 +53,12 @@ let tests =
           mk_alcotest_case "Path fails for temporary programs" `Quick (fun () ->
               Alcotest.(check (option string))
                 "Format string is None"
-                (Span.Filename.mk "=in" |> mk_span |> maybe_source_link "[ ${path} ]")
+                (Span.Filename.mk "=in" |> mk_span |> get_source_link "[ ${path} ]")
                 None);
           mk_alcotest_case "Line works for temporary programs" `Quick (fun () ->
               Alcotest.(check (option string))
                 "Format string is correct"
-                (Span.Filename.mk "=in" |> mk_span |> maybe_source_link "[ ${line} ]")
+                (Span.Filename.mk "=in" |> mk_span |> get_source_link "[ ${line} ]")
                 (Some "[ 1 ]"))
         ]
     ]

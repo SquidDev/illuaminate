@@ -4,10 +4,6 @@ open IlluaminateLint
 module Pattern = IlluaminatePattern
 module TagSet = Set.Make (Error.Tag)
 
-let src = Logs.Src.create __MODULE__
-
-module Log = (val Logs.src_log src)
-
 (** A specification of a tag. Either all tags, or specific one. *)
 type tag_spec =
   | All
@@ -26,146 +22,8 @@ type pat_config =
     linter_options : Schema.store  (** Modifications to the linter. *)
   }
 
-type doc_options =
-  { site_title : string option;
-    site_image : Fpath.t option;
-    embed_css : Fpath.t option;
-    embed_js : Fpath.t option;
-    index : Fpath.t option;
-    destination : Fpath.t;
-    source_link : IlluaminateSemantics.Doc.AbstractSyntax.source -> string option;
-    json_index : bool
-  }
-
-let doc_options_term =
-  let open Term in
-  let option ~ty (parse, print) =
-    Converter.atom ~ty
-      (function
-        | ":none" -> Ok None
-        | x -> parse x |> Result.map Option.some)
-      (function
-        | None -> ":none"
-        | Some x -> print x)
-  and base ~ty (parse, print) = Converter.atom ~ty parse print
-  and string = (Result.ok, Fun.id)
-  and path =
-    ( (fun p ->
-        CCString.drop_while (fun x -> x = '/') p
-        |> Fpath.of_string
-        |> Result.map_error (fun (`Msg msg) -> msg)),
-      Fpath.to_string )
-  and template =
-    ( (fun p ->
-        Lexing.from_string p
-        |> Lex_template.main (Buffer.create 8) []
-        |> CCResult.flat_map @@ fun r ->
-           let rec go = function
-             | [] -> Ok r
-             | Lex_template.Raw _ :: xs -> go xs
-             | Key ("path" | "line" | "sline" | "eline" | "commit") :: xs -> go xs
-             | Key k :: _ -> Error (Printf.sprintf "Unknown key %S" k)
-           in
-           go r),
-      Format.asprintf "%a" (fun out -> List.iter (Lex_template.pp out)) )
-  in
-  let+ site_title =
-    field ~name:"title" ~comment:"A title to display for the site" ~default:None
-      (option ~ty:"string" string)
-  and+ site_image =
-    field ~name:"logo" ~comment:"The path to a logo to display for this site." ~default:None
-      (option ~ty:"path" path)
-  and+ embed_js =
-    field ~name:"scripts"
-      ~comment:
-        "A JavaScript file which should be included in the generated docs. This is appended to the \
-         default scripts."
-      ~default:None (option ~ty:"path" path)
-  and+ embed_css =
-    field ~name:"styles"
-      ~comment:
-        "A JavaScript file which should be included in the generated docs. This is appended to the \
-         default styles."
-      ~default:None (option ~ty:"path" path)
-  and+ index =
-    field ~name:"index" ~comment:"A path to an index file." ~default:None (option ~ty:"path" path)
-  and+ destination =
-    field ~name:"destination" ~comment:"The folder to write to" ~default:(Fpath.v "doc")
-      (base ~ty:"path" path)
-  and+ source_link =
-    field ~name:"source-link"
-      ~comment:
-        "A link to an website containing hosting code. The URL is a templated string, where \
-         `${foo}` is replaced by the contents of `foo` variable.\n\n\
-         This accepts the following variables:\n\
-        \ - path: The documented source's path, relative to the project root.\n\
-        \ - sline/eline: The start and end line of the variable's definition.\n\
-        \ - commit: The current commit hash, as returned by git rev-parse HEAD."
-      ~default:None (option ~ty:"template" template)
-  and+ json_index =
-    field ~name:"json-index"
-      ~comment:
-        "Whether to create an index.json file, with a dump of all terms. This may be useful for \
-         querying externally."
-      ~default:true Converter.bool
-  in
-  fun root ->
-    let git_commit =
-      lazy
-        ( match
-            IlluaminateExec.exec "git" [| "git"; "-C"; Fpath.to_string root; "rev-parse"; "HEAD" |]
-          with
-        | Error e ->
-            Log.err (fun f -> f "Cannot find git commit (%s)\n%!" e);
-            None
-        | Ok l -> Some (String.trim l) )
-    in
-    let link ~path ~start_line ~end_line =
-      source_link
-      |> CCOpt.flat_map @@ fun template ->
-         let out = Buffer.create 32 in
-         let rec go = function
-           | [] -> Some (Buffer.contents out)
-           | Lex_template.Raw x :: xs -> Buffer.add_string out x; go xs
-           | Key "path" :: xs -> path |> CCOpt.flat_map (fun x -> Buffer.add_string out x; go xs)
-           | Key ("line" | "sline") :: xs ->
-               string_of_int start_line |> Buffer.add_string out;
-               go xs
-           | Key "eline" :: xs ->
-               string_of_int end_line |> Buffer.add_string out;
-               go xs
-           | Key "commit" :: xs -> (
-             match Lazy.force git_commit with
-             | None -> None
-             | Some commit -> Buffer.add_string out commit; go xs )
-           | Key _ :: _ -> None
-         in
-
-         go template
-    in
-    let source_link : IlluaminateSemantics.Doc.AbstractSyntax.source -> string option = function
-      | Position { path; start_line; end_line } -> link ~path:(Some path) ~start_line ~end_line
-      | Span span ->
-          let path =
-            (Span.filename span).path
-            |> CCOpt.flat_map (Fpath.relativize ~root)
-            |> CCOpt.map Fpath.to_string
-          in
-          link ~path ~start_line:(Span.start_line span) ~end_line:(Span.finish_line span)
-    in
-    let ofile = Option.map (Fpath.append root) in
-    { site_title;
-      site_image = ofile site_image;
-      embed_js = ofile embed_js;
-      embed_css = ofile embed_css;
-      index = ofile index;
-      destination = Fpath.append root destination;
-      source_link;
-      json_index
-    }
-
-let doc_options = Category.add doc_options_term IlluaminateSemantics.Doc.Extract.Config.workspace
-
+  module DocOptions = Doc_options
+  
 (** The main config file. *)
 type t =
   | Config of
@@ -186,7 +44,7 @@ let linter_schema =
 
 let global_schema =
   let add k s = Schema.union (Schema.singleton k) s in
-  Schema.empty |> add IlluaminateSemantics.Doc.Extract.Config.key |> add doc_options
+  Schema.empty |> add IlluaminateSemantics.Doc.Extract.Config.key |> add DocOptions.category
 
 let root_pat = Pattern.parse "/"
 
@@ -352,8 +210,8 @@ let get_linters config ?path () =
 let get_doc_options = function
   | Default ->
       (* TODO: Better handling of the root when there is no config present. *)
-      Term.default doc_options_term Fpath.(v (Sys.getcwd ()) / "out")
-  | Config { root; store; _ } -> (Schema.get doc_options store) root
+      Term.default DocOptions.term Fpath.(v (Sys.getcwd ()) / "out")
+  | Config { root; store; _ } -> (Schema.get DocOptions.category store) root
 
 let get_store = function
   | Default -> Schema.default global_schema

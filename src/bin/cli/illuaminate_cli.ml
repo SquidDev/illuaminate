@@ -148,13 +148,9 @@ let doc_gen path =
        |> List.sort (fun a b ->
               Doc.Syntax.(String.compare a.descriptor.mod_name b.descriptor.mod_name))
      in
-     let { Config.site_title;
-           site_image;
-           embed_js;
-           embed_css;
+     let { Config.DocOptions.site_properties = { site_title; site_image; embed_js; embed_css; source_link };
            index;
            destination;
-           source_link;
            json_index
          } =
        Config.get_doc_options config
