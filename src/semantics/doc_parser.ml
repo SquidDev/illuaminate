@@ -205,9 +205,8 @@ module Lex = struct
     }
 
   let description' ?default_lang (ranged : string ranged) =
-    match ranged.contents with
-    | "" -> None
-    | _ -> Some (description ?default_lang ranged)
+    if CCString.for_all Markdown.is_space ranged.contents then None
+    else Some (description ?default_lang ranged)
 end
 
 type doc_flag =
