@@ -4,6 +4,14 @@ let src = Logs.Src.create ~doc:"File pattern parsing and matching" __MODULE__
 
 module Log = (val Logs.src_log src)
 
+module type S = sig
+  type t
+
+  val matches : Fpath.t -> t -> bool
+
+  val iter : (Fpath.t -> unit) -> ?path:Fpath.t -> root:Fpath.t -> t -> unit
+end
+
 type t = Pattern.segment list
 
 let pp = Pattern.pp
@@ -28,6 +36,23 @@ let rec matches_pat paths pats =
   | _ :: paths', Anything :: pats' -> matches_pat paths pats' || matches_pat paths' pats
 
 let matches path pattern = matches_pat (Fpath.segs path) pattern
+
+let of_seqs x = String.concat "/" x |> Fpath.v
+
+(** The same as [matches_pat] but tracking the current sequence. *)
+let rec match_end ~before paths pats =
+  match (paths, pats) with
+  | _, [ Anything ] | _, [] -> Some (List.rev before |> of_seqs, of_seqs paths)
+  | [], _ :: _ -> None
+  | path :: paths, ((Literal _ | Regex _) as pat) :: pats ->
+      if matches_seg path pat then match_end ~before:(path :: before) paths pats else None
+  | path :: paths', Anything :: pats' -> (
+      let before = path :: before in
+      match match_end ~before paths' pats with
+      | None -> match_end ~before paths pats'
+      | Some _ as x -> x )
+
+let match_end path pattern = match_end ~before:[] (Fpath.segs path) pattern
 
 (** A set of files we'll always skip over. Just saves us iterating over VCS directories and whatnot. *)
 let ignored_files =

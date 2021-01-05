@@ -11,37 +11,37 @@
     - [**] matches 0 or more directories. (so [**/foo] matches [foo], [bar/foo], [bar/baz/foo],
       etc...). *)
 
-(** A pattern which can be matched against, or used to direct a tree walk. *)
-type t
+(** A common interface over patterns and unions of patterns. *)
+module type S = sig
+  (** A pattern which can be matched against, or used to direct a tree walk. *)
+  type t
+
+  (** Determine if this directory matches a given pattern. *)
+  val matches : Fpath.t -> t -> bool
+
+  (** Locate all files matching a glob within a folder, calling the accepting function on them. *)
+  val iter : (Fpath.t -> unit) -> ?path:Fpath.t -> root:Fpath.t -> t -> unit
+end
+
+include S
 
 val pp : Format.formatter -> t -> unit
 
 (** Parse a glob, converting it to a pattern. *)
 val parse : string -> t
 
-(** Determine if this directory matches a given pattern. *)
-val matches : Fpath.t -> t -> bool
+(** Attempt to match a glob ending in [**]. Returns the path up-to the end and afterwards. *)
+val match_end : Fpath.t -> t -> (Fpath.t * Fpath.t) option
 
-(** Locate all files matching a glob within a folder, calling the accepting function on them. *)
-val iter : (Fpath.t -> unit) -> ?path:Fpath.t -> root:Fpath.t -> t -> unit
-
-(** A union of patterns. *)
+(** A collection representing a union of multiple patterns. *)
 module Union : sig
   type pattern := t
 
-  (** A collection representing a union of multiple patterns. *)
-  type t
+  include S
 
   (** Construct a union from a list of patterns. *)
   val of_list : pattern list -> t
 
   (** Append two globs together. *)
   val union : t -> t -> t
-
-  (** Determine if this directory matches any given pattern. *)
-  val matches : Fpath.t -> t -> bool
-
-  (** A version of {!IlluaminatePattern.iter} which works on a union of patterns instead. This is
-      more optimal than iterating over each pattern individually. *)
-  val iter : (Fpath.t -> unit) -> ?path:Fpath.t -> root:Fpath.t -> t -> unit
 end

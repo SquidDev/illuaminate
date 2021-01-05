@@ -740,7 +740,7 @@ module Config = struct
     }
 
   type t =
-    { module_path : (string * string) list;
+    { module_path : IlluaminatePattern.t list;
       module_kinds : custom_kind list
     }
 
@@ -749,12 +749,8 @@ module Config = struct
   let key =
     let term =
       let open Term in
-      let parse_path p =
-        let trimmed = CCString.drop_while (fun x -> x = '/') p in
-        match CCString.Split.left ~by:"?" trimmed with
-        | None -> Ok (trimmed, ".lua")
-        | Some (path, ext) -> Ok (path, ext)
-      and print_path (x, y) = x ^ y in
+      let parse_path p = CCString.drop_while (fun x -> x = '/') p |> Result.ok
+      and print_path x = x in
       let+ module_path =
         field ~name:"library-path"
           ~comment:
@@ -767,15 +763,29 @@ module Config = struct
           ~default:[]
           Converter.(list (pair string string))
       in
-      { module_path; module_kinds = List.map (fun (id, display) -> { id; display }) module_kinds }
+      { module_path = List.map IlluaminatePattern.parse module_path;
+        module_kinds = List.map (fun (id, display) -> { id; display }) module_kinds
+      }
     in
     Category.add term workspace
 
-  let get : D.Programs.Context.t -> (Fpath.t * string) list = function
-    | { root = None; _ } -> []
+  let guess_module path : D.Programs.Context.t -> string option = function
+    | { root = None; _ } -> None
     | { root = Some root; config } ->
         let { module_path; module_kinds = _ } = Schema.get key config in
-        List.map (fun (p, ext) -> (Fpath.(root // v p), ext)) module_path
+        if not (Fpath.is_rooted ~root path) then None
+        else
+          let path = Fpath.relativize ~root path |> Option.get in
+          let shortest_module best pat =
+            match IlluaminatePattern.match_end path pat with
+            | None -> best
+            | Some (_, name) -> (
+                let name = Fpath.rem_ext name |> Fpath.segs |> String.concat "." in
+                match best with
+                | Some b when String.length b < String.length name -> best
+                | _ -> Some name )
+          in
+          List.fold_left shortest_module None module_path
 end
 
 type t =
@@ -791,28 +801,12 @@ let errors { errors; _ } = Error.errors errors
 let detached_comments ({ comments; _ } : t) = CommentCollection.to_seq_keys comments |> List.of_seq
 
 let get_unresolved_module data program =
-  let module_path =
-    D.need data D.Programs.Context.key (Spanned.program program |> Span.filename) |> Config.get
-  in
   match D.need data Infer.key program |> snd with
   | Named m -> Some m
   | Unnamed { file = { path = None; _ }; _ } -> None
   | Unnamed { file = { path = Some path; _ }; body; mod_types; mod_kind } ->
-      let get_name best (root, ext) =
-        if not (Fpath.is_rooted ~root path) then best
-        else
-          let modu =
-            Fpath.relativize ~root path |> Option.get |> Fpath.to_string
-            |> CCString.chop_suffix ~suf:ext
-            |> CCOpt.flat_map @@ fun path ->
-               let name = String.map (fun c -> if c = '/' || c = '\\' then '.' else c) path in
-               match best with
-               | Some best when String.length best < String.length name -> None
-               | _ -> Some name
-          in
-          CCOpt.(modu <+> best)
-      in
-      List.fold_left get_name None module_path
+      D.need data D.Programs.Context.key (Spanned.program program |> Span.filename)
+      |> Config.guess_module path
       |> Option.map @@ fun mod_name ->
          { body with
            descriptor = { mod_name; mod_contents = body.descriptor; mod_types; mod_kind }

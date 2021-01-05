@@ -21,10 +21,9 @@ module Config : sig
 
   (** Configuration options for documentation querying. *)
   type t =
-    { module_path : (string * string) list;
-          (** The path(s) where modules are located. Each item is a tuple of an (absolute) file path
-              prefix, and a suffix (normally an extension). For instance, the Lua path component
-              [\[ foo/?.lua\]] would be encoded as [\["/path/to/project/foo/", ".lua"\]].
+    { module_path : IlluaminatePattern.t list;
+          (** The path(s) where modules are located as globs. For instance, the Lua path component
+              [\[ foo/?.lua\]] would be encoded as [\["/path/to/project/foo/*.lua"\]].
 
               This path is used for guessing the module name of a file. It is ignored when an
               explicit [\[@module\]] annotation is provided. *)
