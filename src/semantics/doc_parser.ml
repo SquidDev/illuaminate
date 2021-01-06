@@ -291,10 +291,14 @@ module Build = struct
        let name = arg.arg_name in
        match flag with
        | Marker ({ contents = "opt"; _ } as m) ->
-           if arg.arg_opt then
+           if arg.arg_opt <> Required then
              report b Tag.malformed_tag (Lex.to_span m) "Parameter '%s' is marked as optional twice"
                name;
-           (idx, { arg with arg_opt = true })
+           (idx, { arg with arg_opt = Optional })
+       | Named ({ value = "opt"; span }, { contents; _ }) ->
+           if arg.arg_opt <> Required then
+             report b Tag.malformed_tag span "Parameter '%s' is marked as optional twice" name;
+           (idx, { arg with arg_opt = Default contents })
        | Named ({ value = "type"; span }, ty) -> (
            if Option.is_some arg.arg_type then
              report b Tag.duplicate_definitions span "Parameter '%s' has multiple types." name;
@@ -462,7 +466,7 @@ module Build = struct
         in
         let idx, arg =
           parse_arg b
-            { arg_name = name; arg_opt = false; arg_type = None; arg_description = desc }
+            { arg_name = name; arg_opt = Required; arg_type = None; arg_description = desc }
             flags
         in
         b.b_args <- add_group idx arg b.b_args

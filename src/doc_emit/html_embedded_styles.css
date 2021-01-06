@@ -256,7 +256,6 @@ dl.definition dt .definition-name {
   flex-grow: 1;
 }
 
-/* Deprecated definitions */
 dl.definition dt .definition-name.definition-deprecated {
   text-decoration: line-through;
 }
@@ -279,6 +278,7 @@ a.source-link, a.source-link:visited, a.source-link:active { color: #505050; }
 /* Method definitions */
 span.parameter:after { content:":"; padding-left: 0.3em; }
 .optional { text-decoration: underline dotted; }
+.default-value code { background: none; }
 
 /** Fancy colour display. */
 .colour-ref {

@@ -40,5 +40,6 @@ return {
   --- Optional arguments
   --
   -- @tparam[opt] string a
-  opt = function(a) end,
+  -- @tparam[opt=2] number b
+  opt = function(a, b) end,
 }

@@ -410,7 +410,7 @@ module Infer = struct
       | NamedArg (Var v) -> Node.contents.get v
     in
     let get_arg arg =
-      { arg_name = get_name arg; arg_opt = false; arg_type = None; arg_description = None }
+      { arg_name = get_name arg; arg_opt = Required; arg_type = None; arg_description = None }
     in
     infer_stmts state body |> ignore;
     Function { args = [ SepList0.map' get_arg args.args_args ]; rets = []; throws = []; has_self }

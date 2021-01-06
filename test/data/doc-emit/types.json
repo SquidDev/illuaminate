@@ -6,8 +6,8 @@
     "section": "ty:Foo"
   },
   "types.opt": {
-    "name": "types.opt([a])",
-    "source": "types.lua[43:9-43:23]",
+    "name": "types.opt([a [, b=2]])",
+    "source": "types.lua[44:9-44:26]",
     "summary": "Optional arguments",
     "module": "types",
     "section": "v:opt"
@@ -48,7 +48,7 @@
   },
   "types": {
     "name": "types",
-    "source": "types.lua[6:8-44:1]",
+    "source": "types.lua[6:8-45:1]",
     "module": "types"
   }
 }

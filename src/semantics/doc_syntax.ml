@@ -62,10 +62,15 @@ let get_suffix = function
       let _, opt =
         List.fold_left
           (fun (i, o) { arg_name; arg_opt; _ } ->
-            if arg_opt then Buffer.add_char buf '[';
+            if arg_opt <> Required then (
+              if i > 0 then Buffer.add_char buf ' ';
+              Buffer.add_char buf '[' );
             if i > 0 then Buffer.add_string buf ", ";
             Buffer.add_string buf arg_name;
-            (i + 1, o + if arg_opt then 1 else 0))
+            ( match arg_opt with
+            | Default x -> Buffer.add_char buf '='; Buffer.add_string buf x
+            | Required | Optional -> () );
+            (i + 1, o + if arg_opt <> Required then 1 else 0))
           (0, 0) args
       in
       for _ = 1 to opt do

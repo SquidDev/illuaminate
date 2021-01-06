@@ -79,10 +79,15 @@ struct
     | RawExample x -> spanned atom' x
     | RichExample x -> description x
 
+  let opt_arg = function
+    | Required -> Fun.id
+    | Optional -> field "opt" []
+    | Default x -> field "opt" [ atom x ]
+
   let arg { arg_name; arg_opt; arg_type; arg_description } =
     atom' "arg"
     |> field "name" (atom' arg_name)
-    |> field_bool "opt" arg_opt |> field' "type" type_ arg_type
+    |> opt_arg arg_opt |> field' "type" type_ arg_type
     |> field' "description" description arg_description
     |> record
 

@@ -35,5 +35,6 @@
         (arg (name a) (opt)
          (type
           ((name string)
-           (url https://www.lua.org/manual/5.1/manual.html#5.4))))))))))
+           (url https://www.lua.org/manual/5.1/manual.html#5.4))))
+        (arg (name b) (opt 2) (type ((name number))))))))))
   (type (body (name Foo)))))

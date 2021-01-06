@@ -66,9 +66,14 @@ module type S = sig
     | RawExample of string Span.spanned
     | RichExample of description
 
+  type opt_arg =
+    | Required
+    | Optional
+    | Default of string
+
   type arg =
     { arg_name : string;
-      arg_opt : bool;
+      arg_opt : opt_arg;
       arg_type : Type.t option;
       arg_description : description option
     }
@@ -143,9 +148,14 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
     | RawExample of string Span.spanned
     | RichExample of description
 
+  type opt_arg =
+    | Required
+    | Optional
+    | Default of string
+
   type arg =
     { arg_name : string;
-      arg_opt : bool;
+      arg_opt : opt_arg;
       arg_type : Type.t option;
       arg_description : description option
     }
@@ -223,9 +233,14 @@ module Lift (L : S) (R : S) = struct
 
   let ty x = Ty_lift.t x.type_ref
 
+  let opt_arg : L.opt_arg -> R.opt_arg = function
+    | Required -> Required
+    | Optional -> Optional
+    | Default x -> Default x
+
   let arg lift { L.arg_name; arg_opt; arg_type; arg_description } =
     { R.arg_name;
-      arg_opt;
+      arg_opt = opt_arg arg_opt;
       arg_type = Option.map (ty lift) arg_type;
       arg_description = Option.map (description lift) arg_description
     }

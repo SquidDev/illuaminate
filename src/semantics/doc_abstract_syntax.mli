@@ -62,10 +62,15 @@ module type S = sig
     | RawExample of string Span.spanned  (** An example with no associated description. *)
     | RichExample of description  (** A rich markdown block, with some associated comments. *)
 
+  type opt_arg =
+    | Required  (** This argument is required. *)
+    | Optional  (** This argument is optional. *)
+    | Default of string  (** This argument is required with a default value. *)
+
   (** An argument to a function. *)
   type arg =
     { arg_name : string;  (** The argument's name. *)
-      arg_opt : bool;  (** Whether the argument is optional or not. *)
+      arg_opt : opt_arg;  (** Whether the argument is optional or not. *)
       arg_type : Type.t option;  (** The argument's type. *)
       arg_description : description option  (** An additional description of the argument. *)
     }

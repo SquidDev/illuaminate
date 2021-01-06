@@ -10,10 +10,21 @@ let show_arg = (~options, {arg_name, arg_opt, arg_type, arg_description}) =>
   <li>
     <span class_="parameter">
       {str(arg_name)}
-      {show_opt(~kind="argument", arg_opt)}
+      {show_opt(~kind="argument", arg_opt != Required)}
     </span>
     {str(" ")}
     {show_type_opt(~options, arg_type)}
+    {switch (arg_opt) {
+     | Required
+     | Optional => nil
+     | Default(x) =>
+       <span class_="default-value">
+         {str(" = ")}
+         <code class_="highlight highlight-lua">
+           {Html_highlight.lua(~options, x)}
+         </code>
+       </span>
+     }}
     {str(" ")}
     {show_desc_inline(~options, arg_description)}
   </li>;
