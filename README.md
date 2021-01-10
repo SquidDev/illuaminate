@@ -45,7 +45,7 @@ package managers.
  - Either build Illuaminate as above, or download a pre-built version:
    ```
    > wget https://squiddev.cc/illuaminate/linux-x86-64/illuaminate # A x86-64 Linux static binary
-   > wget https://squiddev.cc/illuaminate/windows-x86-64/illuaminate.js # A x86-64 Windows binary
+   > wget https://squiddev.cc/illuaminate/windows-x86-64/illuaminate.exe # A x86-64 Windows binary
    > wget https://squiddev.cc/illuaminate/linux-x86-64/illuaminate.js # JavaScript file which can be run with Node
    ```
 
