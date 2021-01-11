@@ -1,10 +1,5 @@
 open IlluaminateCore
 
-type module_kind =
-  | Module
-  | Library
-  | Custom of string
-
 type position =
   { path : string;
     start_line : int;
@@ -84,11 +79,6 @@ module type S = sig
       ret_description : description option
     }
 
-  type nonrec module_kind = module_kind =
-    | Module
-    | Library
-    | Custom of string
-
   type nonrec position = position =
     { path : string;
       start_line : int;
@@ -165,11 +155,6 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
       ret_many : bool;
       ret_description : description option
     }
-
-  type nonrec module_kind = module_kind =
-    | Module
-    | Library
-    | Custom of string
 
   type nonrec position = position =
     { path : string;

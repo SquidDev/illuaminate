@@ -4,39 +4,51 @@
     "source": "alias.lua[6:1-6:18]",
     "summary": "A module method",
     "module": "fancy.module",
-    "section": "ty:T:b"
+    "module-kind": "library",
+    "section": "ty:T:b",
+    "url": "library/fancy.module.html#ty:T:b"
   },
   "fancy.module.T.a": {
     "name": "fancy.module.T:a()",
     "source": "alias.lua[11:1-11:18]",
     "summary": "A type method",
     "module": "fancy.module",
-    "section": "ty:T:a"
+    "module-kind": "library",
+    "section": "ty:T:a",
+    "url": "library/fancy.module.html#ty:T:a"
   },
   "fancy.module.T": {
     "name": "fancy.module.T",
     "source": "alias.lua[9:11-9:12]",
     "module": "fancy.module",
-    "section": "ty:T"
+    "module-kind": "library",
+    "section": "ty:T",
+    "url": "library/fancy.module.html#ty:T"
   },
   "fancy.module.b": {
     "name": "fancy.module.b()",
     "source": "alias.lua[6:1-6:18]",
     "summary": "A module method",
     "module": "fancy.module",
-    "section": "v:b"
+    "module-kind": "library",
+    "section": "v:b",
+    "url": "library/fancy.module.html#v:b"
   },
   "fancy.module.a": {
     "name": "fancy.module.a()",
     "source": "alias.lua[6:1-6:18]",
     "summary": "A module method",
     "module": "fancy.module",
-    "section": "v:a"
+    "module-kind": "library",
+    "section": "v:a",
+    "url": "library/fancy.module.html#v:a"
   },
   "fancy.module": {
     "name": "fancy.module",
     "source": "alias.lua[4:11-4:12]",
     "summary": "This is a simple module which contains a function",
-    "module": "fancy.module"
+    "module": "fancy.module",
+    "module-kind": "library",
+    "url": "library/fancy.module.html"
   }
 }

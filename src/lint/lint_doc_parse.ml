@@ -4,6 +4,7 @@ open IlluaminateCore.Syntax
 open IlluaminateSemantics
 module D = Doc.Parser.Data
 module Config = Doc.Extract.Config
+module MKSet = Set.Make (Module.Kind)
 
 let tag_module_kind = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:unknown-module-kind"
 
@@ -19,7 +20,9 @@ let linter =
                  (Spanned.program context.program |> Span.filename))
            in
            let config = IlluaminateConfig.Schema.get Config.key context.config in
-           config.module_kinds)
+           Module.Kind.module_ :: Module.Kind.library
+           :: List.map (fun x -> Module.Kind.ModuleKind x.Config.id) config.module_kinds
+           |> MKSet.of_list)
       in
 
       IlluaminateData.need context.data D.key prog
@@ -27,9 +30,10 @@ let linter =
       |> List.iter @@ fun (x : Doc.Comment.comment) ->
          x.Doc.Comment.errors |> List.iter (fun (tag, span, msg) -> r.r ~span ~tag "%s" msg);
          match x.module_info with
-         | Some { value = { mod_kind = Some (Custom kind); _ }; span }
-           when not (List.exists (fun { Config.id; _ } -> id = kind) (Lazy.force module_kinds)) ->
-             r.r ~span ~tag:tag_module_kind "Unknown module kind %S" kind;
+         | Some { value = { mod_kind = Some kind; _ }; span }
+           when not (MKSet.mem kind (Lazy.force module_kinds)) ->
+             let (ModuleKind k) = kind in
+             r.r ~span ~tag:tag_module_kind "Unknown module kind %S" k;
              ()
          | _ -> ())
     ()

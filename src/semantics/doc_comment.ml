@@ -10,7 +10,7 @@ end)
 
 type module_info =
   { mod_name : string;
-    mod_kind : module_kind option
+    mod_kind : Module.Kind.t option
   }
 
 type type_info = { type_name : string } [@@unboxed]

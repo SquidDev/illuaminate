@@ -12,6 +12,7 @@ end
 
 module VarCache = Hashtbl.Make (Key)
 module StringMap = Map.Make (String)
+module MKMap = Map.Make (Module.Kind)
 
 module Reference = struct
   type t =
@@ -35,6 +36,7 @@ open Reference
 type t =
   { resolved : Resolve.t;
     modules : module_info documented StringMap.t;
+    libraries : module_info documented StringMap.t;
     doc : Doc_extract.t;
     cache : (Reference.t * value documented) option VarCache.t
   }
@@ -42,20 +44,23 @@ type t =
 let key =
   let open IlluaminateData in
   Programs.key ~name:__MODULE__ @@ fun data prog ->
+  let modules = need data Doc_extract.get_modules () in
   { resolved = need data Resolve.key prog;
-    modules = need data Doc_extract.get_modules ();
+    modules = modules |> MKMap.find_opt Module.Kind.module_ |> Option.value ~default:StringMap.empty;
+    libraries =
+      modules |> MKMap.find_opt Module.Kind.library |> Option.value ~default:StringMap.empty;
     doc = need data Doc_extract.key prog;
     cache = VarCache.create 16
   }
 
 let require = Some (Global.parse "require")
 
-let mk_module ({ descriptor = { mod_name; mod_contents; _ }; definition; _ } as d) =
-  Some
-    ( Reference.Reference (Internal { in_module = mod_name; definition; name = Module }),
+let mk_module ({ descriptor = { mod_kind; mod_name; mod_contents; _ }; definition; _ } as d) =
+
+    ( Reference.Reference (Internal { in_module = (mod_kind, mod_name); definition; name = Module }),
       { d with descriptor = mod_contents } )
 
-let rec get_var ({ cache; resolved; doc; modules } as store) var :
+let rec get_var ({ cache; resolved; doc; modules; _ } as store) var :
     (Reference.t * value documented) option =
   let go () =
     let resolved = Resolve.get_var var resolved in
@@ -63,9 +68,8 @@ let rec get_var ({ cache; resolved; doc; modules } as store) var :
       (* Locate a documented module. *)
       match resolved with
       | { kind = Global; name; _ } -> (
-        match StringMap.find_opt name modules with
-        | Some ({ descriptor = { mod_kind = Module; _ }; _ } as d) -> mk_module d
-        | _ -> None )
+        StringMap.find_opt name modules |> Option.map mk_module
+         )
       | { kind = Local _; definitions = [ (_, OfExpr e) ]; _ } -> get_expr store e
       | _ -> None
     in
@@ -81,7 +85,7 @@ let rec get_var ({ cache; resolved; doc; modules } as store) var :
       let v = go () in
       VarCache.add cache var v; v
 
-and get_expr ({ resolved; modules; _ } as store) :
+and get_expr ({ resolved; libraries; _ } as store) :
     Syntax.expr -> (Reference.t * value documented) option = function
   | Syntax.Ref n -> get_name store n
   | Parens { paren_expr = e; _ } -> get_expr store e
@@ -89,7 +93,7 @@ and get_expr ({ resolved; modules; _ } as store) :
     match Syntax.Helpers.get_call_args args with
     | Some (Mono (String { lit_value; _ })) ->
         (* Identify calls to require("foo"), and find a module "foo". *)
-        let res = StringMap.find_opt lit_value modules |> CCOpt.flat_map mk_module in
+        let res = StringMap.find_opt lit_value libraries |> Option.map mk_module in
         Logs.info (fun f ->
             f "Found module %s => %s" lit_value
               (Option.fold ~none:"None" ~some:(fun _ -> "Some") res));
@@ -118,13 +122,10 @@ let global_modules =
   let open IlluaminateData in
   let module SSet = Set.Make (String) in
   let module SMap = Map.Make (String) in
+  let module MKMap = Map.Make (Module.Kind) in
   let get data () =
-    let modules = need data Doc_extract.get_modules () in
-    SMap.fold
-      (fun _ m modules ->
-        match m with
-        | { descriptor = { mod_kind = Library | Custom _; _ }; _ } -> modules
-        | { descriptor = { mod_name; mod_kind = Module; _ }; _ } -> SSet.add mod_name modules)
-      modules SSet.empty
+    need data Doc_extract.get_modules ()
+    |> MKMap.find_opt Module.Kind.module_ |> Option.value ~default:SMap.empty |> SMap.to_seq |> Seq.map fst
+    |> Seq.fold_left (Fun.flip SSet.add) SSet.empty
   in
   Key.key ~name:(__MODULE__ ^ ".global_modules") ~eq:SSet.equal get

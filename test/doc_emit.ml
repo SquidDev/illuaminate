@@ -3,6 +3,7 @@ open IlluaminateSemantics
 open IlluaminateConfig
 module Doc = Doc.Extract
 module D = IlluaminateData
+module MKMap = Map.Make (Module.Kind)
 
 let process ~go ~name contents out =
   let lexbuf = Lexing.from_string contents in
@@ -63,7 +64,7 @@ module Html_module = struct
       H.Options.make ~site_title:"My title" ~site_css:"main.css" ~site_js:"main.js" ~resolve:Fun.id
         ~data ~source_link ()
     in
-    H.emit_module ~options ~modules:[] m
+    H.emit_module ~options ~modules:MKMap.empty m
     |> Format.asprintf "%a" Html.Default.emit_pretty
     |> (fun x -> CCString.replace ~sub:date ~by:"xxxx-xx-xx" x)
     |> Format.pp_print_string out

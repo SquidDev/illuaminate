@@ -59,7 +59,7 @@ and type_info =
 and module_info =
   { mod_name : string;  (** The name of this module. *)
     mod_types : type_info documented list;  (** Types defined in this module. *)
-    mod_kind : module_kind;  (** The kind of this module. *)
+    mod_kind : Module.Kind.t;  (** The kind of this module. *)
     mod_contents : value  (** The value this module exposes. *)
   }
 

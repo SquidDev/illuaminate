@@ -56,4 +56,7 @@ val get_var : t -> Resolve.var -> value documented option
 val get_module : t -> module_info documented option
 
 (** Get all available modules. *)
-val get_modules : (unit, module_info documented Map.Make(String).t) IlluaminateData.Key.t
+val get_modules :
+  ( unit,
+    module_info documented Map.Make(String).t Map.Make(Module.Kind).t )
+  IlluaminateData.Key.t

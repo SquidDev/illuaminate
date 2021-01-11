@@ -6,8 +6,8 @@ type t =
     full_name : string;
     summary : string option;
     source : string option;
-    in_module : string;
-    section : string option
+    in_module : IlluaminateSemantics.Module.Ref.t;
+    name_of : IlluaminateSemantics.Reference.name_of
   }
 
 let assoc x : Yojson.Safe.t = `Assoc x
@@ -17,17 +17,19 @@ let ( @?: ) (name, value) rest : (string * Yojson.Safe.t) list =
   | None -> rest
   | Some v -> (name, `String v) :: rest
 
-let ( @: ) x rest : (string * Yojson.Safe.t) list = x :: rest
+let ( @: ) (name, value) rest : (string * Yojson.Safe.t) list = (name, `String value) :: rest
 
 let to_json xs : Yojson.Safe.t =
   List.rev_map
-    (fun { name; full_name; summary; source; in_module; section } ->
+    (fun { name; full_name; summary; source; in_module; name_of } ->
+      let (ModuleKind module_kind, module_name) = in_module in
+      let url = Helpers.reference_link in_module name_of in let section = Reference.section_of_name name_of in
+      (* TODO: Drop section in a few months once we've updated the various bots that scrape this. *)
       ( name,
         `Assoc
-          ( ("name", `String full_name)
-          @: ("source", source) @?: ("summary", summary)
-          @?: ("module", `String in_module)
-          @: ("section", section) @?: [] ) ))
+          ( ("name", full_name) @: ("source", source) @?: ("summary", summary)
+          @?: ("module", module_name) @: ("module-kind", module_kind) @: ("section", section) @?: ("url", url)
+          @: [] ) ))
     xs
   |> assoc
 
@@ -47,11 +49,14 @@ let of_documented ~in_module ~name ~section ?(suffix = Fun.const "") ~source_lin
               Helpers.get_summary d.description |> Omd.to_text |> String.trim)
             description;
         in_module;
-        section = Reference.section_of_name section
+        name_of = section
       }
       :: body descriptor
 
-let dot_name = Printf.sprintf "%s.%s"
+let dot_name modu name =
+  match modu with
+  | "_G" -> name
+  | _ -> Printf.sprintf "%s.%s" modu name
 
 let dot_section (section : Reference.name_of) n : Reference.name_of =
   match section with
@@ -74,20 +79,23 @@ let of_term ~source_link ~in_module =
   go'
 
 let of_type ~source_link ~in_module =
+  let _, mod_name = in_module in
   let member ~type_name { member_name; member_value; _ } =
     of_term ~in_module ~source_link
-      ~name:(Printf.sprintf "%s.%s.%s" in_module type_name member_name)
+      ~name:(Printf.sprintf "%s.%s.%s" mod_name type_name member_name)
       ~section:(Member (type_name, member_name))
       member_value
   in
   let ty { type_name; type_members } = CCList.flat_map (member ~type_name) type_members in
   fun x ->
     let name = x.descriptor.type_name in
-    of_documented ~in_module ~source_link ~name:(dot_name in_module name) ~section:(Type name)
+    of_documented ~in_module ~source_link ~name:(dot_name mod_name name) ~section:(Type name)
       ~body:ty x
 
 let everything ~source_link =
-  CCList.flat_map @@ fun ({ descriptor = { mod_name; mod_types; mod_contents; _ }; _ } as d) ->
-  of_term ~in_module:mod_name ~source_link ~name:mod_name ~section:Module
+  CCList.flat_map
+  @@ fun ({ descriptor = { mod_kind; mod_name; mod_types; mod_contents; _ }; _ } as d) ->
+  let in_module = (mod_kind, mod_name) in
+  of_term ~in_module ~source_link ~name:mod_name ~section:Module
     { d with descriptor = mod_contents }
-  @ CCList.flat_map (of_type ~source_link ~in_module:mod_name) mod_types
+  @ CCList.flat_map (of_type ~source_link ~in_module) mod_types

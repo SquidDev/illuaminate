@@ -7,8 +7,8 @@ type t =
     full_name : string;
     summary : string option;
     source : string option;
-    in_module : string;
-    section : string option
+    in_module : IlluaminateSemantics.Module.Ref.t;
+    name_of : IlluaminateSemantics.Reference.name_of
   }
 
 (** Convert a list of index items into a JSON index. *)

@@ -2,6 +2,8 @@
   "local": {
     "name": "local",
     "source": "local.lua[3:8-6:1]",
-    "module": "local"
+    "module": "local",
+    "module-kind": "library",
+    "url": "library/local.html"
   }
 }

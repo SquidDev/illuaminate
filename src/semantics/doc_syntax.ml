@@ -50,7 +50,7 @@ and type_info =
 and module_info =
   { mod_name : string;
     mod_types : type_info documented list;
-    mod_kind : module_kind;
+    mod_kind : Module.Kind.t;
     mod_contents : value
   }
 
@@ -173,7 +173,8 @@ module Link = struct
       | _ -> malformed attrs
     in
     match attrs with
-    | ("module", Some in_module) :: ("sec", Some name) :: attrs ->
+    | ("module-kind", Some in_module_kind)
+      :: ("module", Some in_module_name) :: ("sec", Some name) :: attrs ->
         let name : Reference.name_of =
           match CCString.chop_prefix ~pre:"v:" name with
           | Some v -> Value v
@@ -182,9 +183,14 @@ module Link = struct
             | None -> invalid_arg ("Unknown name " ^ name)
             | Some t -> Type t )
         in
-        make (Internal { in_module; name; definition }) attrs
-    | ("module", Some in_module) :: attrs ->
-        make (Internal { in_module; name = Module; definition }) attrs
+        make
+          (Internal { in_module = (ModuleKind in_module_kind, in_module_name); name; definition })
+          attrs
+    | ("module-kind", Some in_module_kind) :: ("module", Some in_module_name) :: attrs ->
+        make
+          (Internal
+             { in_module = (ModuleKind in_module_kind, in_module_name); name = Module; definition })
+          attrs
     | ("href", Some url) :: attrs -> make (External { url = Some url; name = "" }) attrs
     | ("link", Some link) :: attrs -> make (Unknown link) attrs
     | attrs -> make (External { url = None; name = "" }) attrs
@@ -198,10 +204,13 @@ module Link = struct
     let attrs = [ ("style", Some style) ] in
     let make a : Omd.element = Html ("illuaminate:ref", a, description) in
     match link_reference with
-    | Internal { in_module; name; _ } -> (
-      match Reference.section_of_name name with
-      | None -> make (("module", Some in_module) :: attrs)
-      | Some s -> make (("module", Some in_module) :: ("sec", Some s) :: attrs) )
+    | Internal { in_module = ModuleKind kind, module_name; name; _ } ->
+        let attrs =
+          match Reference.section_of_name name with
+          | None -> attrs
+          | Some s -> ("sec", Some s) :: attrs
+        in
+        make (("module-kind", Some kind) :: ("module", Some module_name) :: attrs)
     | External { url = Some url; _ } -> make (("href", Some url) :: attrs)
     | External { url = None; _ } -> make attrs
     | Unknown link -> make (("link", Some link) :: attrs)

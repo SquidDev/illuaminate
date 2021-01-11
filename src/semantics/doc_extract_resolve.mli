@@ -4,7 +4,8 @@ type context
 
 (** Construct a context from a map of modules and a "current" module. *)
 val context :
-  Doc_syntax.module_info Doc_syntax.documented Lazy.t Map.Make(String).t ->
+  Doc_syntax.module_info Doc_syntax.documented Lazy.t Map.Make(String).t
+  Map.Make(Module.Kind).t ->
   Doc_syntax.module_info Doc_syntax.documented option ->
   cache * context
 

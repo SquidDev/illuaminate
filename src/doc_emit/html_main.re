@@ -5,6 +5,8 @@ open Html_value;
 open IlluaminateSemantics.Reference;
 open! IlluaminateSemantics.Doc.Syntax;
 module Cfg = IlluaminateSemantics.Doc.Extract.Config;
+module MKMap = Map.Make(IlluaminateSemantics.Module.Kind);
+module StringMap = Map.Make(String);
 
 module Options = Html_options;
 
@@ -12,13 +14,15 @@ open Options;
 
 let show_module_list = (f, {custom, _}, xs) => {
   let f' = (~title, ~kind) =>
-    List.filter(k => k.descriptor.mod_kind == kind, xs) |> f(~title);
+    MKMap.find_opt(kind, xs)
+    |> Option.value(~default=StringMap.empty)
+    |> f(~title);
   [
-    f'(~title="Globals", ~kind=Module),
-    f'(~title="Modules", ~kind=Library),
+    f'(~title="Globals", ~kind=IlluaminateSemantics.Module.Kind.module_),
+    f'(~title="Modules", ~kind=IlluaminateSemantics.Module.Kind.library),
     custom
     |> CCList.map(({Cfg.id, display}) => {
-         f'(~title=display, ~kind=Custom(id))
+         f'(~title=display, ~kind=ModuleKind(id))
        })
     |> many,
   ];
@@ -28,12 +32,15 @@ let module_list_item =
     (
       ~options as {resolve, _},
       ~current,
-      {descriptor: {mod_name: name, _}, _},
+      {descriptor: {mod_kind, mod_name: name, _}, _},
     ) =>
   switch (current) {
   | Some({mod_name, _}) when name == mod_name =>
     <strong> {str(name)} </strong>
-  | _ => <a href={"module/" ++ name ++ ".html" |> resolve}> {str(name)} </a>
+  | _ =>
+    <a href={Helpers.reference_link((mod_kind, name), Module) |> resolve}>
+      {str(name)}
+    </a>
   };
 
 let module_toc = ({mod_types, mod_contents, _}) => {
@@ -73,7 +80,10 @@ let template =
       body,
     ) => {
   let module_list = (~title, xs) =>
-    List.map(module_list_item(~options, ~current), xs)
+    StringMap.to_seq(xs)
+    |> Seq.map(snd)
+    |> Seq.map(module_list_item(~options, ~current))
+    |> List.of_seq
     |> show_list(~tag="h2", title);
   <html>
     <head>
@@ -151,25 +161,33 @@ let template =
 };
 let emit_modules =
     (~options as {site_title, _} as options, ~modules, contents) => {
-  let emit_module_row = ({descriptor: {mod_name, _}, description, _}) =>
+  let emit_module_row =
+      ({descriptor: {mod_kind, mod_name, _}, description, _}) =>
     <tr>
       <th>
-        <a href={"module/" ++ mod_name ++ ".html"}> {str(mod_name)} </a>
+        <a href={Helpers.reference_link((mod_kind, mod_name), Module)}>
+          {str(mod_name)}
+        </a>
       </th>
       <td> {show_summary(~options, description)} </td>
     </tr>;
 
   let emit_module_group = (~title, modules) =>
-    switch (modules) {
-    | [] => nil
-    | _ =>
+    if (StringMap.is_empty(modules)) {
+      nil;
+    } else {
       [
         <h2> {str(title)} </h2>,
         <table class_="definition-list">
-          ...{CCList.map(emit_module_row, modules)}
+          ...{
+               StringMap.to_seq(modules)
+               |> Seq.map(snd)
+               |> Seq.map(emit_module_row)
+               |> List.of_seq
+             }
         </table>,
       ]
-      |> many
+      |> many;
     };
   let description =
     switch (site_title) {

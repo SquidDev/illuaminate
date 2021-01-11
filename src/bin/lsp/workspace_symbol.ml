@@ -1,8 +1,9 @@
 open Lsp.Types
 module Doc = IlluaminateSemantics.Doc
 module Data = IlluaminateData
-module StringMap = Map.Make (String)
 open Doc.Syntax
+module StringMap = Map.Make (String)
+module MKMap = Map.Make (IlluaminateSemantics.Module.Kind)
 
 module Trie = struct
   module Map = Map.Make (Char)
@@ -96,8 +97,10 @@ type t = SymbolInformation.t Trie.t
 
 let key =
   Data.Key.key ~name:__MODULE__ @@ fun data () ->
-  let modules = Data.need data Doc.Extract.get_modules () in
-  StringMap.fold (fun _ -> dump_module) modules Trie.empty
+  Data.need data Doc.Extract.get_modules ()
+  |> MKMap.to_seq
+  |> Seq.flat_map (fun (_, x) -> StringMap.to_seq x)
+  |> Seq.fold_left (fun a (_, x) -> dump_module x a) Trie.empty
 
 let find_modules query trie =
   let xs = ref [] in

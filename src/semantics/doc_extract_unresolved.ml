@@ -39,7 +39,7 @@ type result =
       { file : Span.filename;
         body : value documented;
         mod_types : type_info documented list;
-        mod_kind : module_kind
+        mod_kind : Module.Kind.t
       }
 
 module Infer = struct
@@ -347,8 +347,8 @@ module Infer = struct
 
     let mod_kind, body =
       match infer_stmts state program.program with
-      | Some x -> (Library, x)
-      | None -> (Module, !env)
+      | Some x -> (Module.Kind.library, x)
+      | None -> (Module.Kind.module_, !env)
     in
     let body = Option.fold ~none:body ~some:(fun x -> !x) state.export in
     let body = { body with descriptor = DropLocal.value body.descriptor } in

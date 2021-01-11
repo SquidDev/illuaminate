@@ -6,10 +6,7 @@ let reference_attrs ~options:{ resolve; _ } (reference : Reference.resolved) sty
   let link =
     match reference with
     | Internal { in_module; name; _ } ->
-        Reference.section_of_name name
-        |> Option.fold ~none:"" ~some:(fun x -> "#" ^ x)
-        |> Printf.sprintf "module/%s.html%s" in_module
-        |> resolve |> Option.some
+        Helpers.reference_link in_module name |> resolve |> Option.some
     | External { url = Some url; _ } -> Some url
     | External { url = None; _ } -> None
     | Unknown _ -> None

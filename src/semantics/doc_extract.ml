@@ -1,6 +1,7 @@
 open IlluaminateCore
 open! Doc_syntax
 module StringMap = Map.Make (String)
+module MKMap = Map.Make (Module.Kind)
 module R = Resolve
 module VarTbl = R.VarTbl
 module D = IlluaminateData
@@ -30,6 +31,15 @@ let crunch_modules : module_info documented list -> module_info documented = fun
       let errs = Error.make () in
       List.fold_left Doc_extract_helpers.Merge.(documented (modules ~errs)) x xs
 
+let add_module map modu =
+  MKMap.update modu.descriptor.mod_kind
+    (fun map ->
+      Option.value map ~default:StringMap.empty
+      |> StringMap.update modu.descriptor.mod_name (fun x ->
+             Some (modu :: Option.value ~default:[] x))
+      |> Option.some)
+    map
+
 let get data program =
   let state, current_module = D.need data U.Infer.key program in
   let contents = D.need data U.unresolved_module program in
@@ -39,21 +49,23 @@ let get data program =
         (fun modules file ->
           match D.Programs.need_for data U.unresolved_module file with
           | None | Some None -> modules
-          | Some (Some result) ->
-              let name = result.descriptor.mod_name in
-              StringMap.update name (fun x -> Some (result :: Option.value ~default:[] x)) modules)
-        StringMap.empty
+          | Some (Some result) -> add_module modules result)
+        MKMap.empty
         (D.need data D.Programs.Files.files ())
     in
     let current_scope =
       contents
       |> Option.map @@ fun current ->
          (* Bring all other modules with the same name into scope if required. *)
-         match StringMap.find_opt current.descriptor.mod_name all with
+         let m =
+           MKMap.find_opt current.descriptor.mod_kind all
+           |> CCOpt.flat_map (StringMap.find_opt current.descriptor.mod_name)
+         in
+         match m with
          | None -> current
          | Some all -> crunch_modules (if List.memq current all then all else current :: all)
     in
-    let all = StringMap.map (fun x -> lazy (crunch_modules x)) all in
+    let all = MKMap.map (StringMap.map (fun x -> lazy (crunch_modules x))) all in
     Resolve.context all current_scope
   in
   let contents = Option.map (Resolve.go_module ~cache lift) contents in
@@ -77,8 +89,6 @@ let get_modules =
        (fun modules file ->
          match D.Programs.need_for data key file with
          | None | Some { contents = None; _ } -> modules
-         | Some { contents = Some result; _ } ->
-             let name = result.descriptor.mod_name in
-             StringMap.update name (fun x -> Some (result :: Option.value ~default:[] x)) modules)
-       StringMap.empty
-  |> StringMap.map crunch_modules
+         | Some { contents = Some result; _ } -> add_module modules result)
+       MKMap.empty
+  |> MKMap.map (StringMap.map crunch_modules)

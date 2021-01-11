@@ -3,17 +3,23 @@
     "name": "export.b = 2",
     "source": "export.lua[5:14-5:14]",
     "module": "export",
-    "section": "v:b"
+    "module-kind": "module",
+    "section": "v:b",
+    "url": "module/export.html#v:b"
   },
   "export.a": {
     "name": "export.a = 1",
     "source": "export.lua[4:14-4:14]",
     "module": "export",
-    "section": "v:a"
+    "module-kind": "module",
+    "section": "v:a",
+    "url": "module/export.html#v:a"
   },
   "export": {
     "name": "export",
     "source": "export.lua[3:18-3:19]",
-    "module": "export"
+    "module": "export",
+    "module-kind": "module",
+    "url": "module/export.html"
   }
 }

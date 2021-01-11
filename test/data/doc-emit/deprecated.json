@@ -3,18 +3,24 @@
     "name": "deprecation.b = 2",
     "source": "deprecated.lua[7:7-7:7]",
     "module": "deprecation",
-    "section": "v:b"
+    "module-kind": "library",
+    "section": "v:b",
+    "url": "library/deprecation.html#v:b"
   },
   "deprecation.a": {
     "name": "deprecation.a = 1",
     "source": "deprecated.lua[6:7-6:7]",
     "module": "deprecation",
-    "section": "v:a"
+    "module-kind": "library",
+    "section": "v:a",
+    "url": "library/deprecation.html#v:a"
   },
   "deprecation": {
     "name": "deprecation",
     "source": "deprecated.lua[5:8-8:1]",
     "summary": "A module demonstrating deprecated terms.",
-    "module": "deprecation"
+    "module": "deprecation",
+    "module-kind": "library",
+    "url": "library/deprecation.html"
   }
 }

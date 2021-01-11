@@ -21,7 +21,7 @@ type name_of =
 (** A name which has been resolved to a known location. *)
 type resolved =
   | Internal of
-      { in_module : string;  (** The module which this reference belongs to. *)
+      { in_module : Module.Ref.t;  (** The module which this reference belongs to. *)
         name : name_of;  (** The name within this module. *)
         definition : Span.t  (** The location of this definition. *)
       }  (** A reference to somewhere within this compilation unit. *)
@@ -33,9 +33,11 @@ type resolved =
 
 (** Print an {!resolved} reference. *)
 let pp_resolved out = function
-  | Internal { in_module; name = Module; _ } -> Format.pp_print_string out in_module
-  | Internal { in_module; name = Value n | Type n; _ } -> Format.fprintf out "%s.%s" in_module n
-  | Internal { in_module; name = Member (ty, n); _ } -> Format.fprintf out "%s.%s:%s" in_module ty n
+  | Internal { in_module = _, in_module; name = Module; _ } -> Format.pp_print_string out in_module
+  | Internal { in_module = _, in_module; name = Value n | Type n; _ } ->
+      Format.fprintf out "%s.%s" in_module n
+  | Internal { in_module = _, in_module; name = Member (ty, n); _ } ->
+      Format.fprintf out "%s.%s:%s" in_module ty n
   | External { name; _ } | Unknown name -> Format.pp_print_string out name
 
 (** Get the name of a section for a specific reference. *)

@@ -69,10 +69,12 @@ let linter =
           ( match description with
           | Some _ -> ()
           | None ->
-              let module M = Map.Make (String) in
+              let module MK = Map.Make (Module.Kind) in
+              let module MS = Map.Make (String) in
               let has_any =
                 IlluaminateData.need context.data E.get_modules ()
-                |> M.find_opt descriptor.mod_name
+                |> MK.find_opt descriptor.mod_kind
+                |> CCOpt.flat_map (MS.find_opt descriptor.mod_name)
                 |> CCOpt.flat_map (fun (x : _ documented) -> x.description)
                 |> Option.is_some
               in

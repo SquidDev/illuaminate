@@ -135,7 +135,7 @@ module Syntax = struct
     let sexp = function
       | Internal { in_module; name; _ } ->
           []
-          |> field "in-module" (atom' in_module)
+          |> field "in-module" (atom' (Format.asprintf "%a" IlluaminateSemantics.Module.Ref.pp in_module))
           |> field' "name" atom' (section_of_name name)
           |> record
       | External { name; url } ->

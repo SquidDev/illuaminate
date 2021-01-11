@@ -502,11 +502,11 @@ module Build = struct
               match flag with
               | Named ({ value = "kind"; _ }, { contents = "library"; _ })
               | Marker { contents = "library"; _ } ->
-                  Some Library
+                  Some Module.Kind.library
               | Named ({ value = "kind"; _ }, { contents = "module"; _ })
               | Marker { contents = "module"; _ } ->
-                  Some Module
-              | Named ({ value = "kind"; _ }, { contents; _ }) -> Some (Custom contents)
+                  Some Module.Kind.module_
+              | Named ({ value = "kind"; _ }, { contents; _ }) -> Some (ModuleKind contents)
               | f -> unknown b "@module" f; kind)
             None flags
         in

@@ -8,7 +8,7 @@
     (member (name b)
      (value
       ((description "A module method\n\n") (body ((args)))
-       (see (ref ((in-module fancy.module) (name ty:T:a))) (label T.a)
-        (span alias.lua[12:20-12:22])))))
+       (see (ref ((in-module library!fancy.module) (name ty:T:a)))
+        (label T.a) (span alias.lua[12:20-12:22])))))
     (member (name a)
      (value ((description "A type method\n\n") (body ((args))))))))))

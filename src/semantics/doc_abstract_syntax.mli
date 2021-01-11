@@ -1,13 +1,5 @@
 open IlluaminateCore
 
-(** The "kind" of a Lua module. This controls how it is loaded and exposes members. *)
-type module_kind =
-  | Module
-      (** A legacy module, using the "module" directive. Global variables declared in this file are
-          considered as exported by this file. *)
-  | Library  (** A standard module, which returns the term that it exports. *)
-  | Custom of string  (** A custom module kind. *)
-
 (** A position within a file. This may be used instead of {!Span.t} for files not opened by
     illuaminate. *)
 type position =
@@ -82,13 +74,6 @@ module type S = sig
           (** Whether this may return multiple values. Should only be used on the last one. *)
       ret_description : description option  (** An additional description of the return value. *)
     }
-
-  type nonrec module_kind = module_kind =
-    | Module
-        (** A legacy module, using the "module" directive. Global variables declared in this file
-            are considered as exported by this file. *)
-    | Library  (** A standard module, which returns the term that it exports. *)
-    | Custom of string  (** A custom module kind. *)
 
   type nonrec position = position =
     { path : string;

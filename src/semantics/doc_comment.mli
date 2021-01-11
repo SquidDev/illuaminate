@@ -8,7 +8,7 @@ include
 (** Information about this module. *)
 type module_info =
   { mod_name : string;  (** The name of this module. *)
-    mod_kind : module_kind option  (** This kind of this module. *)
+    mod_kind : Module.Kind.t option  (** This kind of this module. *)
   }
 
 (** Information about this type/class. *)

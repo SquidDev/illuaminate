@@ -27,7 +27,7 @@
      ((description "Type references\n\n")
       (body
        (args (arg (name a) (type no_clue))
-        (arg (name b) (type ((in-module types) (name ty:Foo))))))))
+        (arg (name b) (type ((in-module library!types) (name ty:Foo))))))))
     (opt
      ((description "Optional arguments\n\n")
       (body

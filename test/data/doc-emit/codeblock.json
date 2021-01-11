@@ -4,11 +4,15 @@
     "source": "codeblock.lua[14:7-14:7]",
     "summary": "A basic variable",
     "module": "foo",
-    "section": "v:a"
+    "module-kind": "library",
+    "section": "v:a",
+    "url": "library/foo.html#v:a"
   },
   "foo": {
     "name": "foo",
     "source": "codeblock.lua[3:8-15:1]",
-    "module": "foo"
+    "module": "foo",
+    "module-kind": "library",
+    "url": "library/foo.html"
   }
 }

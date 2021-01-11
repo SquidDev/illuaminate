@@ -24,20 +24,21 @@ module Html : sig
     val lua_block : options:Html_options.t -> string -> Html.Default.node
   end
 
+  module Doc := IlluaminateSemantics.Doc
+
+  type module_list :=
+    Doc.Syntax.module_info Doc.Syntax.documented Map.Make(String).t
+    Map.Make(IlluaminateSemantics.Module.Kind).t
+
   (** Emit an index file from a list of modules. *)
   val emit_modules :
-    options:Options.t ->
-    modules:
-      IlluaminateSemantics.Doc.Syntax.module_info IlluaminateSemantics.Doc.Syntax.documented list ->
-    Html.Default.node ->
-    Html.Default.node
+    options:Options.t -> modules:module_list -> Html.Default.node -> Html.Default.node
 
   (** Emit a single module. *)
   val emit_module :
     options:Options.t ->
-    modules:
-      IlluaminateSemantics.Doc.Syntax.module_info IlluaminateSemantics.Doc.Syntax.documented list ->
-    IlluaminateSemantics.Doc.Syntax.module_info IlluaminateSemantics.Doc.Syntax.documented ->
+    modules:module_list ->
+    Doc.Syntax.module_info Doc.Syntax.documented ->
     Html.Default.node
 
   (** Load a file and convert it to HTML. This correctly handles loading markdown, HTML and text

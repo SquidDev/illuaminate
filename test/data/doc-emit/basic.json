@@ -3,6 +3,8 @@
     "name": "fancy.module(a)",
     "source": "basic.lua[5:8-5:22]",
     "summary": "This is a simple module which contains a function",
-    "module": "fancy.module"
+    "module": "fancy.module",
+    "module-kind": "library",
+    "url": "library/fancy.module.html"
   }
 }

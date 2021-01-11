@@ -2,6 +2,7 @@ open IlluaminateCore
 open IlluaminateLint
 module StringMap = Map.Make (String)
 module StringSet = Set.Make (String)
+module MKMap = Map.Make (IlluaminateSemantics.Module.Kind)
 module Config = IlluaminateConfigFormat
 open CCFun
 
@@ -140,14 +141,7 @@ let doc_gen path =
   |> Loader.load_from ~loader
   |> Option.iter @@ fun (config, _, builder) ->
      let data = IlluaminateData.Builder.(empty |> builder |> build) in
-     let modules =
-       IlluaminateData.get data Doc.Extract.get_modules ()
-       |> StringMap.to_seq
-       |> Seq.map (fun (_, x) -> x)
-       |> List.of_seq
-       |> List.sort (fun a b ->
-              Doc.Syntax.(String.compare a.descriptor.mod_name b.descriptor.mod_name))
-     in
+     let modules = IlluaminateData.get data Doc.Extract.get_modules () in
      let { Config.DocOptions.site_properties =
              { site_title; site_image; site_url; embed_head; embed_js; embed_css; source_link };
            index;
@@ -156,7 +150,6 @@ let doc_gen path =
          } =
        Config.get_doc_options config
      in
-     mkdirs Fpath.(destination / "module");
 
      let site_image = Option.map (resolve_logo ~destination) site_image in
      let site_css =
@@ -170,7 +163,6 @@ let doc_gen path =
          (fun f -> CCIO.with_in (Fpath.to_string f) CCIO.read_all |> CCString.trim)
          embed_head
      in
-     let module_dir = Fpath.v "module" in
      let custom =
        let config =
          Config.get_store config |> IlluaminateConfig.Schema.get Doc.Extract.Config.key
@@ -182,17 +174,21 @@ let doc_gen path =
        E.Html.Options.make ?site_title ?site_image ?site_url ?site_head ~site_js ~site_css ~resolve
          ~source_link ~data ~custom ()
      in
-     let module_options =
+     let module_options mod_kind =
        options @@ fun x ->
        let open Fpath in
-       v x |> relativize ~root:module_dir |> Option.fold ~none:("../" ^ x) ~some:to_string
+       v x |> relativize ~root:(Fpath.v mod_kind) |> Option.fold ~none:("../" ^ x) ~some:to_string
      in
-     modules
-     |> List.iter (fun (modu : Doc.Syntax.module_info Doc.Syntax.documented) ->
-            let path = Fpath.(destination / "module" / (modu.descriptor.mod_name ^ ".html")) in
-            E.Html.emit_module ~options:module_options ~modules modu
-            |> emit_doc
-            |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path));
+     ( Fun.flip MKMap.iter modules @@ fun _ m ->
+       Fun.flip StringMap.iter m @@ fun _ (modu : Doc.Syntax.module_info Doc.Syntax.documented) ->
+       let { mod_kind = ModuleKind mod_kind; mod_name; _ } = modu.descriptor in
+       let options = module_options mod_kind in
+       let path = Fpath.(destination / mod_kind / (mod_name ^ ".html")) in
+
+       mkdirs Fpath.(destination / mod_kind);
+       E.Html.emit_module ~options ~modules modu
+       |> emit_doc
+       |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path) );
 
      let path = Fpath.(destination / "index.html") in
      Option.fold ~none:Html.Default.nil ~some:(parse_index ~options:(options Fun.id)) index
@@ -202,6 +198,15 @@ let doc_gen path =
 
      if json_index then
        let path = Fpath.(destination / "index.json") in
+       let _, modules =
+         (* TODO: Pick a more way of doing this which doesn't just pick the first one. *)
+         MKMap.to_seq modules |> Seq.map snd |> Seq.flat_map StringMap.to_seq |> Seq.map snd
+         |> Seq.fold_left
+              (fun (names, modus) (modu : Doc.Syntax.module_info Doc.Syntax.documented) ->
+                if StringSet.mem modu.descriptor.mod_name names then (names, modus)
+                else (StringSet.add modu.descriptor.mod_name names, modu :: modus))
+              (StringSet.empty, [])
+       in
        E.Summary.(everything ~source_link modules |> to_json)
        |> Yojson.Safe.to_file (Fpath.to_string path) );
   Error.display_of_files errs;
