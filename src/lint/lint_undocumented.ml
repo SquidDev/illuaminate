@@ -34,12 +34,8 @@ let rec value ~r ~span = function
   | Expr _ | Unknown | Undefined -> ()
 
 and documented :
-    type a.
-    (r:Syntax.program reporter -> span:Span.t -> a -> unit) ->
-    r:Syntax.program reporter ->
-    a documented ->
-    string ->
-    unit =
+    type a b.
+    (r:b reporter -> span:Span.t -> a -> unit) -> r:b reporter -> a documented -> string -> unit =
  fun child ~r { description; descriptor; definition; _ } message ->
   check ~r ~span:definition ~tag description message;
   child ~r ~span:definition descriptor
@@ -62,8 +58,8 @@ let page ~r ~span = function
 
 let linter =
   make_no_opt ~tags:[ tag; arg_tag; return_tag ]
-    ~program:(fun () context r prog ->
-      match IlluaminateData.need context.data E.key prog |> E.get_page with
+    ~file:(fun () context r file ->
+      match IlluaminateData.need context E.file file |> E.get_page with
       | None -> ()
       | Some { description; descriptor; definition; _ } ->
           (* Modules are a little odd, as we allow any module with the same name to have
@@ -74,7 +70,7 @@ let linter =
               let module MN = Map.Make (Namespace) in
               let module MS = Map.Make (String) in
               let has_any =
-                IlluaminateData.need context.data E.get_pages ()
+                IlluaminateData.need context E.get_pages ()
                 |> MN.find_opt descriptor.page_namespace
                 |> CCOpt.flat_map (MS.find_opt descriptor.page_id)
                 |> CCOpt.flat_map (fun (x : _ documented) -> x.description)

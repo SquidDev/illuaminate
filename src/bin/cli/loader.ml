@@ -12,7 +12,7 @@ type file =
     path : Fpath.t;
     file : Span.filename;
     config : Config.t;
-    parsed : Syntax.program option
+    body : File.t option
   }
 
 type t =
@@ -65,21 +65,35 @@ let parse ~loader:{ errors; _ } ({ Span.id; _ } as file) =
       | Error err ->
           IlluaminateParser.Error.report errors err.span err.value;
           None
-      | Ok tree -> Some tree)
+      | Ok tree -> Some (File.Lua tree))
 
 let do_load_from ~loader ~files ~file_store ~config root =
   (* TODO: The behaviour of this is technically incorrect. What we really need to do is load all
      files within this project, and then only display lints/fixes for the selected ones.*)
   Log.info (fun f -> f "Loading files from %a" Fpath.pp root);
+  let add_with path file body =
+    let path_s = Fpath.to_string path in
+    FileStore.update file_store file body;
+    files := StringMap.add path_s { root; path; file; config; body } !files
+  in
   let add path =
     let path_s = Fpath.to_string path in
-    if not (StringMap.mem path_s !files) then (
-      Log.debug (fun f -> f "Using source file %S" path_s);
+    if not (StringMap.mem path_s !files) then
       (* TODO: Warn on duplicate files. *)
-      let file = mk_name ~loader path in
-      let parsed = parse ~loader file in
-      FileStore.update file_store file parsed;
-      files := StringMap.add path_s { root; path; file; config; parsed } !files )
+      match Fpath.get_ext path with
+      | ".lua" ->
+          Log.debug (fun f -> f "Using source file %S" path_s);
+          let file = mk_name ~loader path in
+          parse ~loader file |> add_with path file
+      | ".md" ->
+          Log.debug (fun f -> f "Using markdown file %S" path_s);
+          let ({ Span.id; _ } as file) = mk_name ~loader path in
+          let attributes, contents =
+            CCIO.with_in id @@ fun channel ->
+            Lexing.from_channel channel |> IlluaminateParserMd.parse file
+          in
+          add_with path file (Some (Markdown { attributes; contents }))
+      | _ -> ()
   in
 
   Config.files add config root

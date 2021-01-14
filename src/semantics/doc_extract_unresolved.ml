@@ -337,7 +337,7 @@ module Infer = struct
 
   let extract_module data program =
     let errs = Error.make () in
-    let comments = D.need data P.key program in
+    let comments = D.need data P.program program in
     let resolve = D.need data R.key program in
     let env = ref (simple_documented (Doc_syntax.Table []) (Spanned.program program)) in
     let state =
@@ -413,10 +413,8 @@ end
 let get_unresolved_module data program =
   match D.need data Infer.key program |> snd with
   | Named m -> Some m
-  | Unnamed { file = { path = None; _ }; _ } -> None
-  | Unnamed { file = { path = Some path; _ }; body; mod_types; mod_kind; mod_namespace } ->
-      D.need data D.Programs.Context.key (Spanned.program program |> Span.filename)
-      |> Doc_extract_config.guess_module path
+  | Unnamed { file; body; mod_types; mod_kind; mod_namespace } ->
+      Doc_extract_config.guess_module' file data
       |> Option.map @@ fun mod_name ->
          { body with
            descriptor =
@@ -424,3 +422,35 @@ let get_unresolved_module data program =
          }
 
 let unresolved_module = D.Programs.key ~name:(__MODULE__ ^ ".unresolved") get_unresolved_module
+
+let unresolved_module_file =
+  D.Programs.file_key ~name:(__MODULE__ ^ ".unresolved") @@ fun data -> function
+  | Lua x -> D.need data unresolved_module x
+  | Markdown _ as file -> (
+      let comment_ = D.need data Doc_parser.Data.file file in
+      match Doc_parser.Data.comments comment_ with
+      | [] | _ :: _ :: _ -> None
+      | [ comment ] ->
+          let page_name, page_namespace =
+            match comment.module_info with
+            | None ->
+                let page_name =
+                  File.span file |> Span.filename
+                  |> CCFun.flip Doc_extract_config.guess_module' data
+                in
+                (page_name, Namespace.module_)
+            | Some { value = x; _ } ->
+                (Some x.mod_name, Option.value ~default:Namespace.module_ x.mod_namespace)
+          in
+          page_name
+          |> Option.map @@ fun page_name ->
+             let d = Value.get_documented ~report:(fun _ _ _ -> ()) comment in
+             (* TODO: Warn if the above is a non-module/unknown. *)
+             { d with
+               descriptor =
+                 { page_id = page_name;
+                   page_title = page_name;
+                   page_namespace;
+                   page_contents = Markdown
+                 }
+             } )

@@ -17,11 +17,10 @@ module Context : sig
 end
 
 module Files : sig
-  (** Fetch a given file's contents. Returns {!None} if the file does not exist or has a syntax
-      error.
+  (** Fetch a given file's contents.
 
       This may be registered using {!FileStore.builder}, or your own implementation. *)
-  val file : (Span.filename, Syntax.program option) Core.Key.t
+  val file : (Span.filename, File.t option) Core.Key.t
 
   (** List all available files. This may be registered using {!FileStore.builder}, or your own
       implementation.*)
@@ -41,7 +40,7 @@ module FileStore : sig
   val lazy_builder : t Lazy.t -> Core.Builder.t -> Core.Builder.t
 
   (** Update a file's program. You should call {!Core.refresh} after calling this. *)
-  val update : t -> Span.filename -> Syntax.program option -> unit
+  val update : t -> Span.filename -> File.t option -> unit
 end
 
 (** A key within the data store.
@@ -59,3 +58,8 @@ val need_for : Core.context -> (Syntax.program, 'a) Core.Key.t -> Span.filename 
 
 (** Wraps {!Core.get}, first looking up a program for the current filename. *)
 val get_for : Core.t -> (Syntax.program, 'a) Core.Key.t -> Span.filename -> 'a option
+
+(** Construct a new key from some "metadata getter" function.
+
+    Note that the "metadata generator" function can be lazy in generating data. *)
+val file_key : name:string -> (Core.context -> File.t -> 'a) -> (File.t, 'a) Core.Key.t

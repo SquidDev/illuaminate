@@ -49,7 +49,7 @@ val need_lint :
   data:IlluaminateData.context ->
   ?tags:Error.Tag.filter ->
   Linter.t ->
-  Syntax.program ->
+  File.t ->
   Notes.t
 
 (** Gather all errors from a specific linter. *)
@@ -58,14 +58,14 @@ val lint :
   data:IlluaminateData.t ->
   ?tags:Error.Tag.filter ->
   Linter.t ->
-  Syntax.program ->
+  File.t ->
   Notes.t
 
 (** Fix one or more notes.
 
     Ideally all notes should come from a single linter. Otherwise we cannot guarantee all fixes can
     be applied safely. *)
-val fix : Syntax.program -> Notes.t -> Syntax.program
+val fix : File.t -> Notes.t -> File.t
 
 (** Run the linter, and attempt to fix all issues.
 
@@ -76,5 +76,5 @@ val lint_and_fix_all :
   ?files:Span.filename * IlluaminateData.Programs.FileStore.t ->
   ?tags:Error.Tag.filter ->
   Linter.t list ->
-  Syntax.program ->
-  Syntax.program * Notes.t
+  File.t ->
+  File.t * Notes.t

@@ -13,6 +13,7 @@ type 'a t =
   | TableItem : table_item t
   | Token : token t
   | Var : var t
+  | File : File.t t
 
 let name (type a) : a t -> string = function
   | Args -> "Args"
@@ -27,6 +28,7 @@ let name (type a) : a t -> string = function
   | TableItem -> "TableItem"
   | Token -> "Token"
   | Var -> "Var"
+  | File -> "File"
 
 let first (type a) : a t -> (a, token) Lens.lens' = function
   | Args -> First.args
@@ -41,6 +43,7 @@ let first (type a) : a t -> (a, token) Lens.lens' = function
   | TableItem -> First.table_item
   | Token -> Lens.Lenses.id
   | Var -> First.var
+  | File -> File.first
 
 let last (type a) : a t -> (a, token) Lens.lens' = function
   | Args -> Last.args
@@ -55,6 +58,7 @@ let last (type a) : a t -> (a, token) Lens.lens' = function
   | TableItem -> Last.table_item
   | Token -> Lens.Lenses.id
   | Var -> Last.var
+  | File -> File.last
 
 let span (type a) : a t -> a -> Span.t = function
   | Args -> Spanned.args
@@ -71,6 +75,7 @@ let span (type a) : a t -> a -> Span.t = function
   | TableItem -> Spanned.table_item
   | Token -> Node.span
   | Var -> Spanned.var
+  | File -> File.span
 
 let emit (type a) : a t -> Format.formatter -> a -> unit = function
   | Args -> Emit.args
@@ -85,3 +90,4 @@ let emit (type a) : a t -> Format.formatter -> a -> unit = function
   | TableItem -> Emit.table_item
   | Token -> Emit.token ~kind:Identifier
   | Var -> Emit.var
+  | File -> File.emit

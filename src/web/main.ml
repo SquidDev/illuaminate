@@ -64,8 +64,8 @@ let rec fix_all () : unit =
   match IlluaminateParser.program (Span.Filename.mk "=input") lexbuf with
   | Error _ -> ()
   | Ok parsed ->
-      let program, _ = Driver.lint_and_fix_all ~store ~data:(data ()) Linters.all parsed in
-      let new_contents = Format.asprintf "%a" Emit.program program in
+      let program, _ = Driver.lint_and_fix_all ~store ~data:(data ()) Linters.all (Lua parsed) in
+      let new_contents = Format.asprintf "%a" File.emit program in
       input##.value := Js.string new_contents;
       lint ()
 
@@ -103,7 +103,7 @@ and lint () : unit =
       let tags _ = true in
       Linters.all
       |> List.iter @@ fun l ->
-         Driver.lint ~store ~data ~tags l parsed
+         Driver.lint ~store ~data ~tags l (Lua parsed)
          |> Driver.Notes.to_seq
          |> Seq.iter (Driver.Note.report_any errs) );
   let out =

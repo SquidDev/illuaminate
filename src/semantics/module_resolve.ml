@@ -60,7 +60,7 @@ let key =
   { resolved = need data Resolve.key prog;
     modules = modules Namespace.module_;
     libraries = modules Namespace.library;
-    doc = need data Doc_extract.key prog;
+    doc = need data Doc_extract.program prog;
     cache = VarCache.create 16
   }
 

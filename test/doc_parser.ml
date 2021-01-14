@@ -22,7 +22,7 @@ let process ~name contents out =
         |> oracle D.Programs.Context.key (fun _ _ -> context)
         |> build
       in
-      let comments = D.get data Doc.key parsed in
+      let comments = D.get data Doc.program parsed in
       Doc.comments comments
       |> List.sort (fun a b -> Span.compare a.source b.source)
       |> List.iter @@ fun comment ->

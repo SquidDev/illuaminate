@@ -18,6 +18,7 @@ type 'a t =
   | TableItem : table_item t
   | Token : token t
   | Var : var t
+  | File : File.t t
 
 (** Get the name of this witness. *)
 val name : 'a t -> string

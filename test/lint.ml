@@ -57,7 +57,9 @@ let files ?out () =
            Result.iter_error
              (fun (err : _ Span.spanned) -> IlluaminateParser.Error.report errs err.span err.value)
              program;
-           Result.to_option program |> FileStore.update files name);
+           Result.to_option program
+           |> Option.map (fun x -> File.Lua x)
+           |> FileStore.update files name);
     Error.display_of_files ?out ~with_summary:false errs;
     files)
 
@@ -95,11 +97,11 @@ let process ~name contents out =
                | [] -> true
                | _ -> List.exists (fun x -> List.mem x l.tags) only)
       in
-      let program, notes = Driver.lint_and_fix_all ~store ~data linters parsed in
+      let program, notes = Driver.lint_and_fix_all ~store ~data linters (Lua parsed) in
       let errs = Error.make () in
       Driver.Notes.to_seq notes |> Seq.iter (Driver.Note.report_any errs);
       Error.display_of_string ~out (fun _ -> Some contents) errs;
-      let new_contents = Format.asprintf "%a" Emit.program program in
+      let new_contents = Format.asprintf "%a" File.emit program in
       if contents <> new_contents then Helpers.diff out contents new_contents
 
 let process ~name contents = Format.asprintf "%t" (process ~name contents)
@@ -129,9 +131,11 @@ let leak =
                   Error.display_of_string ~out (fun _ -> Some contents) errs)
           | Ok parsed -> parsed)
     >-> action ~name:"Lint and fix" (fun prog ->
-            Driver.lint_and_fix_all ~store ~data Linters.all prog |> fst)
+            match Driver.lint_and_fix_all ~store ~data Linters.all (Lua prog) with
+            | Lua x, _ -> x
+            | _ -> assert false)
     >-> action ~name:"Lint fixed program" (fun prog ->
-            List.iter (fun l -> Driver.lint ~store ~data l prog |> ignore) Linters.all) )
+            List.iter (fun l -> Driver.lint ~store ~data l (Lua prog) |> ignore) Linters.all) )
 
 let tests =
   group "Linting"

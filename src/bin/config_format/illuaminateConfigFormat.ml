@@ -171,13 +171,11 @@ let apply_mod set = function
 let always_pattern = Pattern.parse "*"
 
 let files iter config path =
-  let iter x = if Fpath.has_ext ".lua" x then iter x in
   match config with
   | Default -> Pattern.iter iter ~root:path always_pattern
   | Config { root; sources; _ } -> Pattern.Union.iter iter ~path ~root sources
 
 let all_files iter config =
-  let iter x = if Fpath.has_ext ".lua" x then iter x in
   match config with
   | Default -> ()
   | Config { root; sources; _ } -> Pattern.Union.iter iter ~root sources

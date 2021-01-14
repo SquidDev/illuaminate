@@ -1,6 +1,5 @@
 open Linter
 open IlluaminateCore
-open IlluaminateCore.Syntax
 open IlluaminateSemantics
 module D = Doc.Parser.Data
 module Config = Doc.Extract.Config
@@ -13,13 +12,11 @@ let tag_module_kind = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:unknown
 let linter =
   make_no_opt
     ~tags:(tag_module_kind :: Doc.Parser.Tag.all)
-    ~program:(fun () context r prog ->
+    ~file:(fun () context r file ->
       let module_kinds =
         lazy
           (let context =
-             IlluaminateData.(
-               need context.data Programs.Context.key
-                 (Spanned.program context.program |> Span.filename))
+             IlluaminateData.(need context Programs.Context.key (File.span file |> Span.filename))
            in
            let config = IlluaminateConfig.Schema.get Config.key context.config in
            Namespace.module_ :: Namespace.library
@@ -27,7 +24,7 @@ let linter =
            |> NSet.of_list)
       in
 
-      IlluaminateData.need context.data D.key prog
+      IlluaminateData.need context D.file file
       |> D.comments
       |> List.iter @@ fun (x : Doc.Comment.comment) ->
          x.Doc.Comment.errors |> List.iter (fun (tag, span, msg) -> r.r ~span ~tag "%s" msg);

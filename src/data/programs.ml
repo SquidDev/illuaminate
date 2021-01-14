@@ -15,10 +15,10 @@ module Context = struct
 end
 
 module Files = struct
-  let file : (Span.filename, Syntax.program option) Core.Key.t =
+  let file : (Span.filename, File.t option) Core.Key.t =
     Core.Key.deferred ~pp:Span.Filename.pp
       ~container:(module Contained_tbl.StrongContainer (Span.Filename))
-      ~eq:(Option.equal ( == )) ~name:(__MODULE__ ^ ".Files.file") ()
+      ~eq:(Option.equal File.( = )) ~name:(__MODULE__ ^ ".Files.file") ()
 
   let files : (unit, Span.filename list) Core.Key.t =
     Core.Key.deferred ~eq:(CCList.equal Span.Filename.equal) ~name:(__MODULE__ ^ ".Files.files") ()
@@ -34,7 +34,7 @@ module FileStore = struct
   end)
 
   type t =
-    { files : Syntax.program Tbl.t;
+    { files : File.t Tbl.t;
       mutable file_list : Span.filename list option
     }
 
@@ -78,6 +78,16 @@ let key ~name build =
     ~container:(Contained_tbl.weak ~eq:( == ) ())
     build
 
-let need_for data key file = Core.need data Files.file file |> Option.map (Core.need data key)
+let on_program f : File.t option -> 'a option = function
+  | Some (Lua x) -> Some (f x)
+  | Some (Markdown _) | None -> None
 
-let get_for data key file = Core.get data Files.file file |> Option.map (Core.get data key)
+let need_for data key file = Core.need data Files.file file |> on_program (Core.need data key)
+
+let get_for data key file = Core.get data Files.file file |> on_program (Core.get data key)
+
+let file_key ~name build =
+  Core.Key.key ~name
+    ~pp:(fun f k -> File.span k |> Span.filename |> Span.Filename.pp f)
+    ~container:(Contained_tbl.weak ~eq:File.( = ) ())
+    build

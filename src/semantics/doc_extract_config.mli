@@ -1,3 +1,4 @@
+open IlluaminateCore
 open IlluaminateConfig
 
 type custom_kind =
@@ -24,3 +25,6 @@ val key : t Category.key
 
 (** Guess the module name from a file path. *)
 val guess_module : Fpath.t -> IlluaminateData.Programs.Context.t -> string option
+
+(** Guess the module name from a file name. *)
+val guess_module' : Span.filename -> IlluaminateData.context -> string option

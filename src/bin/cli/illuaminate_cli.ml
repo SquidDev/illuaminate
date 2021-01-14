@@ -48,8 +48,8 @@ let lint paths github =
   let data = IlluaminateData.Builder.(empty |> builder |> build) in
   modules
   |> List.iter (function
-       | { Loader.parsed = None; _ } -> ()
-       | { path; config; parsed = Some parsed; _ } ->
+       | { Loader.body = None; _ } -> ()
+       | { path; config; body = Some parsed; _ } ->
            let tags, store = Config.get_linters config ~path () in
            Linters.all
            |> List.iter @@ fun l ->
@@ -71,20 +71,20 @@ let fix paths =
   let modules' =
     modules
     |> List.map (function
-         | { Loader.parsed = None; _ } as f -> f
-         | { path; config; parsed = Some parsed; _ } as f ->
+         | { Loader.body = None; _ } as f -> f
+         | { path; config; body = Some parsed; _ } as f ->
              (* TODO: Have a separate linter list for fixers - so we can have things which are
                 linted but not fixed? *)
              let tags, store = Config.get_linters config ~path () in
-             let program, _ = Driver.lint_and_fix_all ~store ~data ~tags Linters.all parsed in
-             { f with parsed = Some program })
+             let fixed, _ = Driver.lint_and_fix_all ~store ~data ~tags Linters.all parsed in
+             { f with body = Some fixed })
   in
   let rewrite old_module new_module =
     match (old_module, new_module) with
-    | ( { Loader.file = { name; path = Some path; _ }; parsed = Some oldm; _ },
-        { Loader.parsed = Some newm; _ } )
+    | ( { Loader.file = { name; path = Some path; _ }; body = Some oldm; _ },
+        { Loader.body = Some newm; _ } )
       when oldm != newm -> (
-      try write_file path (fun out -> Emit.program out newm)
+      try write_file path (fun out -> File.emit out newm)
       with e -> Log.err (fun f -> f "Error fixing %s (%s).\n" name (Printexc.to_string e)) )
     | _ -> ()
   in
@@ -233,8 +233,8 @@ let dump_globals ~defined paths =
     List.fold_left
       (fun (unbound, defined) program ->
         match program with
-        | { Loader.parsed = None; _ } -> (unbound, defined)
-        | { parsed = Some parsed; _ } ->
+        | { Loader.body = None | Some (Markdown _); _ } -> (unbound, defined)
+        | { body = Some (Lua parsed); _ } ->
             IlluaminateData.get data IlluaminateSemantics.Resolve.key parsed
             |> IlluaminateSemantics.Resolve.globals
             |> gather (unbound, defined))

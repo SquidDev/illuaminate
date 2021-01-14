@@ -61,7 +61,10 @@ type context =
   }
 
 (** The primary visitor for each node a linter can consider. *)
-type ('op, 'term) visitor = 'op -> context -> 'term reporter -> 'term -> unit
+type ('op, 'term, 'context) full_visitor = 'op -> 'context -> 'term reporter -> 'term -> unit
+
+(** The primary visitor for each node a linter can consider. *)
+type ('op, 'term) visitor = ('op, 'term, context) full_visitor
 
 (** A linter is effectively a visitor which accepts some node and returns various messages for that
     specific node.
@@ -76,7 +79,8 @@ type 'op linter_info =
     expr : ('op, Syntax.expr) visitor;
     stmt : ('op, Syntax.stmt) visitor;
     name : ('op, Syntax.name) visitor;
-    var : ('op, Syntax.var) visitor
+    var : ('op, Syntax.var) visitor;
+    file : ('op, File.t, IlluaminateData.context) full_visitor
   }
 
 (** A wrapper of {!linter_data} which hides the options type variable. *)
@@ -92,6 +96,7 @@ val make :
   ?stmt:('op, Syntax.stmt) visitor ->
   ?name:('op, Syntax.name) visitor ->
   ?var:('op, Syntax.var) visitor ->
+  ?file:('op, File.t, IlluaminateData.context) full_visitor ->
   unit ->
   t
 
@@ -104,6 +109,7 @@ val make_no_opt :
   ?stmt:(unit, Syntax.stmt) visitor ->
   ?name:(unit, Syntax.name) visitor ->
   ?var:(unit, Syntax.var) visitor ->
+  ?file:(unit, File.t, IlluaminateData.context) full_visitor ->
   unit ->
   t
 

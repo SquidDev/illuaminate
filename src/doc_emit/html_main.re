@@ -33,18 +33,14 @@ let page_list_item =
     (
       ~options as {resolve, _},
       ~current,
-      {descriptor: {page_namespace, page_id, page_title, _} as page, _},
+      {descriptor: {page_namespace, page_id, page_title, _} as m, _},
     ) =>
   switch (current) {
-  | Some(current) when page === current =>
-    <strong> {str(page_title)} </strong>
+  | Some(current) when current === m => <strong> {str(page_title)} </strong>
   | _ =>
-    <a
-      href={
-        Helpers.reference_link((page_namespace, page_id), Module) |> resolve
-      }>
-      {str(page_title)}
-    </a>
+    let href =
+      Helpers.reference_link((page_namespace, page_id), Module) |> resolve;
+    <a href> {str(page_title)} </a>;
   };
 
 let module_toc = (mod_types, mod_contents) => {

@@ -26,6 +26,10 @@ module Resolvers = struct
       current_page : page documented option
     }
 
+  let is_module = function
+    | (lazy { descriptor = { page_contents = Module _; _ }; _ }) -> true
+    | (lazy { descriptor = { page_contents = Markdown; _ }; _ }) -> false
+
   (** Find a unique module by a name.*)
   let lookup_unique_module state name =
     match StringMap.find_opt name state.unique_pages with
@@ -39,7 +43,11 @@ module Resolvers = struct
         let unique =
           match matching with
           | [ (lazy x) ] -> Some x
-          | _ -> None
+          | _ -> (
+            (* TODO: Really should warn on ambiguous ones here. But propagating this is rather hard. *)
+            match List.filter is_module matching with
+            | [ (lazy x) ] -> Some x
+            | _ -> None )
         in
         state.unique_pages <- StringMap.add name unique state.unique_pages;
         unique
@@ -135,12 +143,7 @@ module Resolvers = struct
 
   (* Validate the reference is well-formed, resolve it, and return null if we can't *)
   let name context ~types_only name =
-    let is_ident c = c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') in
-    if
-      String.length name > 0
-      && is_ident name.[String.length name - 1]
-      && CCString.for_all (fun x -> is_ident x || x == '.' || x == ':') name
-    then
+    if String.length name > 0 then
       CCList.find_map (fun f -> f context name types_only) finders
       |> Option.value ~default:(Reference.Unknown name)
     else Unknown name

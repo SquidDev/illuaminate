@@ -112,7 +112,7 @@ module Workspace = struct
     rate_limit ~delay ~name @@ fun store key previous ->
     let config = need store config key in
     let files = ref [] in
-    let add f = files := f :: !files in
+    let add f = if Fpath.get_ext f = ".lua" then files := f :: !files in
     ( match key.path with
     | None -> Config.all_files add config
     | Some p -> Config.files add config p );
@@ -210,7 +210,10 @@ let create () =
     (* Then we use the above key to extract the actual program. *)
     |> key Programs.Files.file (fun store file ->
            match need store parsed_file file with
-           | OnDisk { value; _ } | Open value -> Result.to_option value
+           | OnDisk { value; _ } | Open value -> (
+             match value with
+             | Ok x -> Some (Lua x)
+             | Error _ -> None )
            | Unknown -> None)
     (* The file list is derived from all matching patterns in the config file for each workspace *)
     |> key Programs.Files.files (fun store () ->

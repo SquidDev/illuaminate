@@ -46,8 +46,9 @@ module Node = struct
       | String l, String r -> l == r
       | Table l, Table r -> l == r
       | l, r -> l == r )
+    | File, File -> File.( = ) l r
     | ( ( Stmt | Program | Token | BinOp | Name | FunctionName | Expr | Var | Call | Args | CallArgs
-        | TableItem ),
+        | TableItem | File ),
         _ ) ->
         false
     [@@coverage off]
@@ -67,8 +68,9 @@ let extract (type a) (l : a Witness.t) (Note.Note ({ kind = r; _ } as note)) : a
   | TableItem, TableItem -> note
   | Token, Token -> note
   | Var, Var -> note
+  | File, File -> note
   | ( ( Stmt | Program | Token | BinOp | Name | Expr | FunctionName | Var | Call | Args | CallArgs
-      | TableItem ),
+      | TableItem | File ),
       _ ) ->
       failwith "Witness mismatch!"
   [@@coverage off]
@@ -89,25 +91,16 @@ end
 
 let always : Error.Tag.filter = fun _ -> true
 
-let worker ~store ~data ~tags (Linter linter : t) program =
+type r =
+  { r :
+      'a 'b. ?fix:'a IlluaminateLint__Linter.Fixer.t -> ?span:IlluaminateCore__Span.t ->
+      ?detail:(Stdlib__format.formatter -> unit) -> tag:IlluaminateCore__Error.Tag.t ->
+      kind:'a IlluaminateCore__Witness.t -> source:'a ->
+      ('b, Stdlib__format.formatter, unit, unit, unit, unit) CamlinternalFormatBasics.format6 -> 'b
+  }
+
+let program_worker ~options ~data ~r:({ r } : r) linter program =
   let open! Syntax in
-  let options = C.Schema.get linter.options store in
-  let messages = Notes.Tbl.create 16 in
-  let r ?(fix = Fixer.none) ?span ?detail ~tag ~kind ~source message =
-    if tags tag then
-      let span =
-        match span with
-        | Some span -> span
-        | None -> Witness.span kind source
-      in
-      Format.kasprintf
-        (fun message ->
-          Notes.Tbl.add messages
-            (Node (kind, source))
-            (Note.Note { fix; message; detail; span; tag; kind; source }))
-        message
-    else Format.ifprintf Format.std_formatter message
-  in
   let visit (type a) (f : (_, a) Linter.visitor) (kind : a Witness.t) ctx (source : a) =
     f options ctx { r = r ~kind ~source; e = r } source
   in
@@ -292,7 +285,31 @@ let worker ~store ~data ~tags (Linter linter : t) program =
   let context = { program; data; path = [] } in
   visit linter.program Program context program;
   block context program.Syntax.program;
-  token context program.eof;
+  token context program.eof
+
+let worker ~store ~data ~tags (Linter linter : t) document =
+  let options = C.Schema.get linter.options store in
+  let messages = Notes.Tbl.create 16 in
+  let r ?(fix = Fixer.none) ?span ?detail ~tag ~kind ~source message =
+    if tags tag then
+      let span =
+        match span with
+        | Some span -> span
+        | None -> Witness.span kind source
+      in
+      Format.kasprintf
+        (fun message ->
+          Notes.Tbl.add messages
+            (Node (kind, source))
+            (Note.Note { fix; message; detail; span; tag; kind; source }))
+        message
+    else Format.ifprintf Format.std_formatter message
+  in
+
+  ( match document with
+  | File.Lua x -> program_worker ~options ~data ~r:{ r } linter x
+  | _ -> () );
+  linter.file options data { r = r ~kind:File ~source:document; e = r } document;
   messages
 
 let need_lint ~store ~data ?(tags = always) (Linter l as linter : t) program =
@@ -319,7 +336,7 @@ let rec no_fixers (f : Note.any Seq.t) : bool =
   | Cons (Note { fix = One _ | Block _; _ }, _) -> false
   | Cons (Note { fix = Nothing; _ }, f) -> no_fixers f
 
-let fix prog (fixes : Notes.t) =
+let fix_program prog (fixes : Notes.t) =
   if Notes.to_seq fixes |> no_fixers then prog
   else
     let open Syntax in
@@ -389,6 +406,14 @@ let fix prog (fixes : Notes.t) =
     end)
       #program
       prog
+
+let fix file (fixes : Notes.t) =
+  if Notes.to_seq fixes |> no_fixers then file
+  else
+    let file = fix_all fixes File file in
+    match file with
+    | File.Lua x -> Lua (fix_program x fixes)
+    | x -> x
 
 let lint_and_fix_all ~store ~data ?files ?tags linters program =
   let all = Notes.Tbl.create 8 in

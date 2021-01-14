@@ -7,7 +7,7 @@ type file =
     path : Fpath.t;
     file : Span.filename;
     config : Config.t;
-    parsed : Syntax.program option
+    body : File.t option
   }
 
 type t

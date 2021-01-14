@@ -2,6 +2,12 @@ open IlluaminateCore
 open Doc_comment
 module IntMap = Map.Make (Int)
 
+(* Drop the [!] from references to make them a little more readable. *)
+let trim_reference x =
+  match String.index_opt x '!' with
+  | None -> x
+  | Some i -> CCString.drop (i + 1) x
+
 module Markdown = struct
   let is_space = function
     | ' ' | '\012' | '\n' | '\r' | '\t' -> true
@@ -59,7 +65,7 @@ module Markdown = struct
           let tag =
             Link.to_tag
               { link_reference = Reference link;
-                link_label = desc [ Text link ];
+                link_label = desc [ Text (trim_reference link) ];
                 link_style = `Code
               }
           in
@@ -155,6 +161,12 @@ module Lex = struct
         (0, IntMap.empty) xs
     in
     { contents = Buffer.contents b |> Lexing.from_string; mapping; offset = 0 }
+
+  let lex_of_spanned { Span.value; span } =
+    { contents = Lexing.from_string value; offset = 0; mapping = IntMap.singleton 0 span }
+
+  let range_of_spanned { Span.value; span } =
+    { contents = value; offset = 0; mapping = IntMap.singleton 0 span }
 
   let mk_span { offset; mapping; _ } start finish =
     let start = start + offset and finish = finish + offset in
@@ -399,7 +411,7 @@ module Build = struct
             let see_description = Lex.description' body in
             b.b_see <-
               { see_reference = Reference refr.contents;
-                see_label = refr.contents;
+                see_label = trim_reference refr.contents;
                 see_span = Lex.to_span refr;
                 see_description
               }
@@ -527,11 +539,28 @@ module Build = struct
               "Duplicate @type definitions (named '%s' and '%s')" inner_name body.contents
         | None -> b.b_type <- Some { type_name = body.contents } )
     | _ -> report b Tag.unknown_tag tag.span "Unknown tag @%s" tag.value
+
+  let build ~span ~description b =
+    { source = span;
+      errors = b.b_errors;
+      description = Lex.description' description;
+      see = List.rev b.b_see;
+      examples = List.rev b.b_usages;
+      local = b.b_local;
+      includes = List.rev b.b_includes;
+      export = b.b_export;
+      deprecated = b.b_deprecated;
+      custom_source = b.b_custom_source;
+      arguments = get_group b.b_args;
+      returns = get_group b.b_rets;
+      throws = List.rev b.b_throws;
+      module_info = b.b_module;
+      type_info = b.b_type
+    }
 end
 
-(** Parse a doc comment, extracting the description and any tags. *)
-let parse span lbuf =
-  let rec gobble_flags xs =
+module Parse = struct
+  let rec gobble_flags ~lbuf xs =
     Lex.(run lbuf white);
     let key = Lex.(with_span lbuf key) in
     let value = Lex.(with_range lbuf @@ value (Buffer.create 8)) in
@@ -544,57 +573,55 @@ let parse span lbuf =
 
     Lex.(run lbuf white);
     match Lex.(run lbuf tag_stop) with
-    | Separator -> gobble_flags xs
+    | Separator -> gobble_flags ~lbuf xs
     | Stop -> xs
     | Unknown -> (* TODO: Warn. *) xs
-  in
 
-  let gobble_description () =
-    let start = lbuf.contents.lex_curr_p.pos_cnum in
-    let b = Buffer.create 0 in
-    let rec go line =
-      let next = Lex.(with_span lbuf maybe_tag) in
-      match next.value with
-      | Tag t -> (Buffer.contents b, Some { next with value = t })
-      | Eof -> (Buffer.contents b, None)
-      | NotTag ->
-          if line then Buffer.add_char b '\n';
-          let line = Lex.(run lbuf until_line) in
-          Buffer.add_string b line;
-          go Lex.(run lbuf line)
+  (** Parse a doc comment, extracting the description and any tags. *)
+  let comment span (lbuf : Lexing.lexbuf Lex.ranged) =
+    let gobble_description () =
+      let start = lbuf.contents.lex_curr_p.pos_cnum in
+      let b = Buffer.create 0 in
+      let rec go line =
+        let next = Lex.(with_span lbuf maybe_tag) in
+        match next.value with
+        | Tag t -> (Buffer.contents b, Some { next with value = t })
+        | Eof -> (Buffer.contents b, None)
+        | NotTag ->
+            if line then Buffer.add_char b '\n';
+            let line = Lex.(run lbuf until_line) in
+            Buffer.add_string b line;
+            go Lex.(run lbuf line)
+      in
+      let description, tag = go false in
+      ({ Lex.contents = description; offset = start; mapping = lbuf.mapping }, tag)
     in
-    let description, tag = go false in
-    ({ Lex.contents = description; offset = start; mapping = lbuf.mapping }, tag)
-  in
 
-  let b = Build.create () in
+    let b = Build.create () in
 
-  let rec gobble_tags tag =
-    let flags = if Lex.(run lbuf tag_start) then gobble_flags [] |> List.rev else [] in
-    Lex.(run lbuf white);
-    let description, next = gobble_description () in
-    Build.add_flag b tag flags description;
-    Option.iter gobble_tags next
-  in
+    let rec gobble_tags tag =
+      let flags = if Lex.(run lbuf tag_start) then gobble_flags ~lbuf [] |> List.rev else [] in
+      Lex.(run lbuf white);
+      let description, next = gobble_description () in
+      Build.add_flag b tag flags description;
+      Option.iter gobble_tags next
+    in
 
-  let description, tag = gobble_description () in
-  Option.iter gobble_tags tag;
-  { source = span;
-    errors = b.b_errors;
-    description = Lex.description' description;
-    see = List.rev b.b_see;
-    examples = List.rev b.b_usages;
-    local = b.b_local;
-    includes = List.rev b.b_includes;
-    export = b.b_export;
-    deprecated = b.b_deprecated;
-    custom_source = b.b_custom_source;
-    arguments = Build.get_group b.b_args;
-    returns = Build.get_group b.b_rets;
-    throws = List.rev b.b_throws;
-    module_info = b.b_module;
-    type_info = b.b_type
-  }
+    let description, tag = gobble_description () in
+    Option.iter gobble_tags tag; Build.build ~span ~description b
+
+  let markdown attributes (contents : string Span.spanned) =
+    let b = Build.create () in
+    let add_tag (key, value) =
+      let lbuf = Lex.lex_of_spanned value in
+      let flags = if Lex.(run lbuf tag_start) then gobble_flags ~lbuf [] |> List.rev else [] in
+      Lex.(run lbuf white);
+      let line = Lex.(with_range lbuf until_line) in
+      Build.add_flag b key flags line
+    in
+    List.iter add_tag attributes;
+    Build.build ~span:contents.span ~description:(Lex.range_of_spanned contents) b
+end
 
 (** Utilities for handling indented doc comments. *)
 module Indent = struct
@@ -679,7 +706,7 @@ let extract node =
       ->
         let documented =
           split_lines (CCString.drop 1 c) (Lens.(Span.start_offset %= fun p -> p + n + 5) span)
-          |> Indent.drop_rest |> Lex.lex_of_lines |> parse span
+          |> Indent.drop_rest |> Lex.lex_of_lines |> Parse.comment span
         in
         extract_comments (documented :: cs) xs
     | { Span.value = Node.LineComment c; span } :: xs
@@ -696,7 +723,7 @@ let extract node =
             xs
         in
         let documented =
-          Indent.drop_rest lines |> Lex.lex_of_lines |> parse (Span.of_span2 span last)
+          Indent.drop_rest lines |> Lex.lex_of_lines |> Parse.comment (Span.of_span2 span last)
         in
         extract_comments (documented :: cs) xs
     | _ :: xs -> extract_comments cs xs
@@ -716,17 +743,26 @@ end
 module TermTbl = Hashtbl.Make (Term)
 
 module Data = struct
+  module D = IlluaminateData
+
   type t =
     { mutable all_comments : (comment list, Syntax.program) result;
       mutable comments : (comment list * comment list) TermTbl.t
     }
 
-  let key =
-    IlluaminateData.Programs.key ~name:__MODULE__ (fun _ program ->
-        { (* Technically a memory leak here! *)
-          all_comments = Error program;
-          comments = TermTbl.create 32
-        })
+  let program =
+    D.Programs.key ~name:(__MODULE__ ^ ".program") @@ fun _ program ->
+    { (* Technically a memory leak here! *)
+      all_comments = Error program;
+      comments = TermTbl.create 32
+    }
+
+  let file =
+    D.Programs.file_key ~name:(__MODULE__ ^ ".file") @@ fun data -> function
+    | Markdown { attributes; contents } ->
+        let c = Parse.markdown attributes contents in
+        { all_comments = Ok [ c ]; comments = TermTbl.create 0 }
+    | Lua p -> D.need data program p
 
   (** Get the comments before and after a specific node. *)
   let comment node { comments; _ } =

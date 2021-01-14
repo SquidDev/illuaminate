@@ -37,9 +37,11 @@ type context =
     program : Syntax.program
   }
 
-type ('op, 'term) visitor = 'op -> context -> 'term reporter -> 'term -> unit
+type ('op, 'term, 'context) full_visitor = 'op -> 'context -> 'term reporter -> 'term -> unit
 
-let default_visitor : ('op, 'term) visitor = fun _ _ _ _ -> ()
+type ('op, 'term) visitor = ('op, 'term, context) full_visitor
+
+let default_visitor : ('op, 'term, 'context) full_visitor = fun _ _ _ _ -> ()
 
 type 'op linter_info =
   { options : 'op IlluaminateConfig.Category.key;
@@ -49,15 +51,16 @@ type 'op linter_info =
     expr : ('op, Syntax.expr) visitor;
     stmt : ('op, Syntax.stmt) visitor;
     name : ('op, Syntax.name) visitor;
-    var : ('op, Syntax.var) visitor
+    var : ('op, Syntax.var) visitor;
+    file : ('op, File.t, IlluaminateData.context) full_visitor
   }
 
 type t = Linter : 'a linter_info -> t
 
 let make ~options ~tags ?(program = default_visitor) ?(token = default_visitor)
     ?(expr = default_visitor) ?(stmt = default_visitor) ?(name = default_visitor)
-    ?(var = default_visitor) () =
-  Linter { options; tags; program; token; expr; stmt; name; var }
+    ?(var = default_visitor) ?(file = default_visitor) () =
+  Linter { options; tags; program; token; expr; stmt; name; var; file }
 
 let category =
   IlluaminateConfig.Category.create ~name:"lint"

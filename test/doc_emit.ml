@@ -18,7 +18,7 @@ let process ~go ~name contents out =
         }
       in
       let files = D.Programs.FileStore.create () in
-      D.Programs.FileStore.update files name (Some parsed);
+      D.Programs.FileStore.update files name (Some (Lua parsed));
       let data =
         let open D.Builder in
         empty
@@ -26,7 +26,7 @@ let process ~go ~name contents out =
         |> oracle D.Programs.Context.key (fun _ _ -> context)
         |> build
       in
-      let docs = D.get data Doc.key parsed in
+      let docs = D.get data Doc.program parsed in
       Doc.errors docs
       |> List.iter (fun (e : Error.Error.t) -> Error.report errs e.tag e.span e.message);
       Doc.get_page docs |> Option.iter (fun m -> go out data m) );

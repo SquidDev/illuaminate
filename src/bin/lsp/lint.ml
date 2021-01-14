@@ -26,7 +26,7 @@ let notes =
   let n, notes =
     List.fold_left
       (fun (n, notes) linter ->
-        let this = Driver.need_lint ~tags ~store ~data linter prog in
+        let this = Driver.need_lint ~tags ~store ~data linter (Lua prog) in
         let size = Driver.Notes.size this in
         if size > 0 then (n + size, this :: notes) else (n, notes))
       (0, []) Linters.all

@@ -13,8 +13,7 @@ module Config = Doc_extract_config
 module Tag = Doc_extract_helpers.Tag
 
 type t =
-  { current_module : U.result;
-    errors : Error.t;
+  { errors : Error.t;
     comments : unit U.CommentCollection.t;
     contents : page documented option;
     vars : value documented VarTbl.t
@@ -40,43 +39,57 @@ let add_page map modu =
       |> Option.some)
     map
 
-let get data program =
-  let state, current_module = D.need data U.Infer.key program in
-  let contents = D.need data U.unresolved_module program in
-  let cache, lift =
-    let all =
-      List.fold_left
-        (fun modules file ->
-          match D.Programs.need_for data U.unresolved_module file with
-          | None | Some None -> modules
-          | Some (Some result) -> add_page modules result)
-        NMap.empty
-        (D.need data D.Programs.Files.files ())
-    in
-    let current_scope =
-      contents
-      |> Option.map @@ fun current ->
-         (* Bring all other modules with the same name into scope if required. *)
-         let m =
-           NMap.find_opt current.descriptor.page_namespace all
-           |> CCOpt.flat_map (StringMap.find_opt current.descriptor.page_id)
-         in
-         match m with
-         | None -> current
-         | Some all -> crunch_pages (if List.memq current all then all else current :: all)
-    in
-    let all = NMap.map (StringMap.map (fun x -> lazy (crunch_pages x))) all in
-    Resolve.context all current_scope
+let build_resolver data contents =
+  let all =
+    List.fold_left
+      (fun modules file ->
+        D.need data D.Programs.Files.file file
+        |> CCOpt.flat_map (D.need data U.unresolved_module_file)
+        |> Option.fold ~none:modules ~some:(add_page modules))
+      NMap.empty
+      (D.need data D.Programs.Files.files ())
   in
+  let current_scope =
+    contents
+    |> Option.map @@ fun current ->
+       (* Bring all other modules with the same name into scope if required. *)
+       let m =
+         NMap.find_opt current.descriptor.page_namespace all
+         |> CCOpt.flat_map (StringMap.find_opt current.descriptor.page_id)
+       in
+       match m with
+       | None -> current
+       | Some all -> crunch_pages (if List.memq current all then all else current :: all)
+  in
+  let all = NMap.map (StringMap.map (fun x -> lazy (crunch_pages x))) all in
+  Resolve.context all current_scope
+
+let get data program =
+  let state, _ = D.need data U.Infer.key program in
+  let contents = D.need data U.unresolved_module program in
+  let cache, lift = build_resolver data contents in
   let contents = Option.map (Resolve.go_page ~cache lift) contents in
   let vars =
     VarTbl.to_seq state.vars
     |> Seq.map (fun (k, v) -> (k, Resolve.go_value_doc ~cache lift !v))
     |> VarTbl.of_seq
   in
-  { current_module; contents; errors = state.errs; comments = state.unused_comments; vars }
+  { contents; errors = state.errs; comments = state.unused_comments; vars }
 
-let key = D.Programs.key ~name:__MODULE__ get
+let program = D.Programs.key ~name:(__MODULE__ ^ ".program") get
+
+let file =
+  D.Programs.file_key ~name:(__MODULE__ ^ ".file") @@ fun data -> function
+  | Lua p -> D.need data program p
+  | Markdown _ as file ->
+      let contents = D.need data U.unresolved_module_file file in
+      let cache, lift = build_resolver data contents in
+      let contents = Option.map (Resolve.go_page ~cache lift) contents in
+      { contents;
+        errors = Error.make ();
+        comments = U.CommentCollection.create 0;
+        vars = VarTbl.create 0
+      }
 
 let get_page ({ contents; _ } : t) = contents
 
@@ -86,8 +99,8 @@ let get_pages =
   D.Key.key ~name:(__MODULE__ ^ ".get_pages") @@ fun data () ->
   D.need data D.Programs.Files.files ()
   |> List.fold_left
-       (fun pages file ->
-         match D.Programs.need_for data key file with
+       (fun pages filename ->
+         match D.need data D.Programs.Files.file filename |> Option.map (D.need data file) with
          | None | Some { contents = None; _ } -> pages
          | Some { contents = Some result; _ } -> add_page pages result)
        NMap.empty
