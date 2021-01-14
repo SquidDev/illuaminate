@@ -8,35 +8,6 @@
 (Node.Whitespace "\n")
 2.e2
 (Node.Whitespace "\n")
-<
-<
-<
-<
-<
-<
-<
-(Node.Whitespace " ")
-Updated
-(Node.Whitespace " ")
-upstream
-(Node.Whitespace "\n")
 2...3
-(Node.Whitespace "\n")
-==
-==
-==
-=
-(Node.Whitespace "\n")
->
->
->
->
->
->
->
-(Node.Whitespace " ")
-Stashed
-(Node.Whitespace " ")
-changes
 (Node.Whitespace "\n")
 end of file
