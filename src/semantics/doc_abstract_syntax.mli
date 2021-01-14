@@ -1,5 +1,16 @@
 open IlluaminateCore
 
+(** The kind of a module. This describes how it is defined and loaded. *)
+type module_kind =
+  | MKModule
+      (** A legacy module, using the "module" directive. Global variables declared in this file are
+          considered as exported by this file. *)
+  | MKLibrary
+      (** A standard module, loaded using [require] which returns the term that it exports. *)
+  | MKNone
+      (** This module has no custom behaviour. It may be referenced through doc-comments, but does
+          not defined variables that are directly usable in Lua code. *)
+
 (** A position within a file. This may be used instead of {!Span.t} for files not opened by
     illuaminate. *)
 type position =
@@ -28,6 +39,11 @@ module type S = sig
     { description : Omd.t;
       description_pos : Span.t option
     }
+
+  type nonrec module_kind = module_kind =
+    | MKModule
+    | MKLibrary
+    | MKNone
 
   (** A link to a string, within a {!description}. *)
   type link =

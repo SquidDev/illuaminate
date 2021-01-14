@@ -1,4 +1,4 @@
-((body (name source)
+((body (id source) (title source)
   (contents
    (table
     (a

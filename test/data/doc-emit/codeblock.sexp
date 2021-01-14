@@ -1,4 +1,4 @@
-((body (name foo)
+((body (id foo) (title foo)
   (contents
    (table
     (a

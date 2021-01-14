@@ -1,6 +1,4 @@
-open IlluaminateCore
 open IlluaminateConfig
-open Syntax
 module D = IlluaminateData
 
 type custom_kind =

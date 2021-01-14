@@ -4,7 +4,7 @@ module Pure = Pure
 module Reference = Reference
 module Resolve = Resolve
 module Module_resolve = Module_resolve
-module Module = Module
+module Namespace = Namespace
 
 module Doc = struct
   module AbstractSyntax = Doc_abstract_syntax

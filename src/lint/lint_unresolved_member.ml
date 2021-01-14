@@ -23,7 +23,7 @@ let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "var:unresolved-member
 
 let should_skip skip : R.Reference.t -> bool = function
   | Var _ | Dot _ | Reference (External _ | Unknown _) -> false
-  | Reference (Internal { in_module = (_, in_module); _ }) -> SSet.mem in_module skip
+  | Reference (Internal { in_module = _, in_module; _ }) -> SSet.mem in_module skip
 
 let check skip r data ~table ~idx ~key =
   match R.get_name data table with

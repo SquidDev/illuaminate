@@ -5,45 +5,49 @@ open Html_value;
 open IlluaminateSemantics.Reference;
 open! IlluaminateSemantics.Doc.Syntax;
 module Cfg = IlluaminateSemantics.Doc.Extract.Config;
-module MKMap = Map.Make(IlluaminateSemantics.Module.Kind);
+module Namespace = IlluaminateSemantics.Namespace;
+module NMap = Map.Make(Namespace);
 module StringMap = Map.Make(String);
 
 module Options = Html_options;
 
 open Options;
 
-let show_module_list = (f, {custom, _}, xs) => {
+let show_page_list = (f, {custom, _}, xs) => {
   let f' = (~title, ~kind) =>
-    MKMap.find_opt(kind, xs)
+    NMap.find_opt(kind, xs)
     |> Option.value(~default=StringMap.empty)
     |> f(~title);
   [
-    f'(~title="Globals", ~kind=IlluaminateSemantics.Module.Kind.module_),
-    f'(~title="Modules", ~kind=IlluaminateSemantics.Module.Kind.library),
+    f'(~title="Globals", ~kind=Namespace.module_),
+    f'(~title="pages", ~kind=Namespace.library),
     custom
     |> CCList.map(({Cfg.id, display}) => {
-         f'(~title=display, ~kind=ModuleKind(id))
+         f'(~title=display, ~kind=Namespace(id))
        })
     |> many,
   ];
 };
 
-let module_list_item =
+let page_list_item =
     (
       ~options as {resolve, _},
       ~current,
-      {descriptor: {mod_kind, mod_name: name, _}, _},
+      {descriptor: {page_namespace, page_id, page_title, _} as page, _},
     ) =>
   switch (current) {
-  | Some({mod_name, _}) when name == mod_name =>
-    <strong> {str(name)} </strong>
+  | Some(current) when page === current =>
+    <strong> {str(page_title)} </strong>
   | _ =>
-    <a href={Helpers.reference_link((mod_kind, name), Module) |> resolve}>
-      {str(name)}
+    <a
+      href={
+        Helpers.reference_link((page_namespace, page_id), Module) |> resolve
+      }>
+      {str(page_title)}
     </a>
   };
 
-let module_toc = ({mod_types, mod_contents, _}) => {
+let module_toc = (mod_types, mod_contents) => {
   let make_link = x => {
     let name =
       switch (x) {
@@ -70,19 +74,26 @@ let module_toc = ({mod_types, mod_contents, _}) => {
   |> many;
 };
 
+let page_toc = x =>
+  switch (x.page_contents) {
+  | Markdown => nil
+  | Module({mod_types, mod_contents, _}) =>
+    module_toc(mod_types, mod_contents)
+  };
+
 let template =
     (
       ~title,
       ~description=?,
       ~options as {resolve, site_title, site_image, site_url, _} as options,
-      ~modules,
+      ~pages,
       ~current,
       body,
     ) => {
-  let module_list = (~title, xs) =>
+  let page_list = (~title, xs) =>
     StringMap.to_seq(xs)
     |> Seq.map(snd)
-    |> Seq.map(module_list_item(~options, ~current))
+    |> Seq.map(page_list_item(~options, ~current))
     |> List.of_seq
     |> show_list(~tag="h2", title);
   <html>
@@ -134,8 +145,8 @@ let template =
          | (None, None) => nil
          }}
         <div class_="nav-links">
-          {Option.fold(~none=nil, ~some=module_toc, current)}
-          {show_module_list(module_list, options, modules) |> many}
+          {Option.fold(~none=nil, ~some=page_toc, current)}
+          {show_page_list(page_list, options, pages) |> many}
         </div>
       </nav>
       <div id="main">
@@ -159,30 +170,35 @@ let template =
     </body>
   </html>;
 };
-let emit_modules =
-    (~options as {site_title, _} as options, ~modules, contents) => {
-  let emit_module_row =
-      ({descriptor: {mod_kind, mod_name, _}, description, _}) =>
+let emit_index = (~options as {site_title, _} as options, ~pages, contents) => {
+  let emit_page_row =
+      (
+        {
+          descriptor: {page_namespace, page_id, page_title, _},
+          description,
+          _,
+        },
+      ) =>
     <tr>
       <th>
-        <a href={Helpers.reference_link((mod_kind, mod_name), Module)}>
-          {str(mod_name)}
+        <a href={Helpers.reference_link((page_namespace, page_id), Module)}>
+          {str(page_title)}
         </a>
       </th>
       <td> {show_summary(~options, description)} </td>
     </tr>;
 
-  let emit_module_group = (~title, modules) =>
-    if (StringMap.is_empty(modules)) {
+  let emit_module_group = (~title, pages) =>
+    if (StringMap.is_empty(pages)) {
       nil;
     } else {
       [
         <h2> {str(title)} </h2>,
         <table class_="definition-list">
           ...{
-               StringMap.to_seq(modules)
+               StringMap.to_seq(pages)
                |> Seq.map(snd)
-               |> Seq.map(emit_module_row)
+               |> Seq.map(emit_page_row)
                |> List.of_seq
              }
         </table>,
@@ -197,11 +213,11 @@ let emit_modules =
 
   let content = [
     contents,
-    ...show_module_list(emit_module_group, options, modules),
+    ...show_page_list(emit_module_group, options, pages),
   ];
   template(
     ~options,
-    ~modules,
+    ~pages,
     ~current=None,
     ~title=Option.value(~default="Index", site_title),
     ~description,
@@ -209,22 +225,27 @@ let emit_modules =
   );
 };
 
-let emit_module =
+let emit_page =
     (
       ~options,
-      ~modules,
-      {descriptor: {mod_name, mod_contents, mod_types, _} as m, _} as self,
+      ~pages,
+      {descriptor: {page_title, page_contents, _} as m, _} as self,
     ) => {
   let content = [
-    <h1> <code> {str(mod_name)} </code> </h1>,
+    <h1> {str(page_title)} </h1>,
     show_preamble(~options, self),
     show_common(~options, self),
-    show_value(~options, mod_contents),
-    ...switch (mod_types) {
-       | [] => []
-       | tys => [
-           <h2> {str("Types")} </h2>,
-           ...List.map(show_type(~options), tys),
+    ...switch (page_contents) {
+       | Markdown => []
+       | Module({mod_types, mod_contents, _}) => [
+           show_value(~options, mod_contents),
+           ...switch (mod_types) {
+              | [] => []
+              | _ => [
+                  <h3> {str("Types")} </h3>,
+                  ...List.map(show_type(~options), mod_types),
+                ]
+              },
          ]
        },
   ];
@@ -239,9 +260,9 @@ let emit_module =
     };
   template(
     ~options,
-    ~modules,
+    ~pages,
     ~current=Some(m),
-    ~title=mod_name,
+    ~title=page_title,
     ~description?,
     content,
   );

@@ -1,7 +1,7 @@
 open IlluaminateCore
 open! Doc_syntax
 module StringMap = Map.Make (String)
-module MKMap = Map.Make (Module.Kind)
+module NMap = Map.Make (Namespace)
 module R = Resolve
 module VarTbl = R.VarTbl
 module D = IlluaminateData
@@ -16,7 +16,7 @@ type t =
   { current_module : U.result;
     errors : Error.t;
     comments : unit U.CommentCollection.t;
-    contents : module_info documented option;
+    contents : page documented option;
     vars : value documented VarTbl.t
   }
 
@@ -25,17 +25,17 @@ let errors { errors; _ } = Error.errors errors
 let detached_comments ({ comments; _ } : t) =
   U.CommentCollection.to_seq_keys comments |> List.of_seq
 
-let crunch_modules : module_info documented list -> module_info documented = function
+let crunch_pages : page documented list -> page documented = function
   | [] -> failwith "Impossible"
   | x :: xs ->
       let errs = Error.make () in
-      List.fold_left Doc_extract_helpers.Merge.(documented (modules ~errs)) x xs
+      List.fold_left Doc_extract_helpers.Merge.(documented (page ~errs)) x xs
 
-let add_module map modu =
-  MKMap.update modu.descriptor.mod_kind
+let add_page map modu =
+  NMap.update modu.descriptor.page_namespace
     (fun map ->
       Option.value map ~default:StringMap.empty
-      |> StringMap.update modu.descriptor.mod_name (fun x ->
+      |> StringMap.update modu.descriptor.page_id (fun x ->
              Some (modu :: Option.value ~default:[] x))
       |> Option.some)
     map
@@ -49,8 +49,8 @@ let get data program =
         (fun modules file ->
           match D.Programs.need_for data U.unresolved_module file with
           | None | Some None -> modules
-          | Some (Some result) -> add_module modules result)
-        MKMap.empty
+          | Some (Some result) -> add_page modules result)
+        NMap.empty
         (D.need data D.Programs.Files.files ())
     in
     let current_scope =
@@ -58,17 +58,17 @@ let get data program =
       |> Option.map @@ fun current ->
          (* Bring all other modules with the same name into scope if required. *)
          let m =
-           MKMap.find_opt current.descriptor.mod_kind all
-           |> CCOpt.flat_map (StringMap.find_opt current.descriptor.mod_name)
+           NMap.find_opt current.descriptor.page_namespace all
+           |> CCOpt.flat_map (StringMap.find_opt current.descriptor.page_id)
          in
          match m with
          | None -> current
-         | Some all -> crunch_modules (if List.memq current all then all else current :: all)
+         | Some all -> crunch_pages (if List.memq current all then all else current :: all)
     in
-    let all = MKMap.map (StringMap.map (fun x -> lazy (crunch_modules x))) all in
+    let all = NMap.map (StringMap.map (fun x -> lazy (crunch_pages x))) all in
     Resolve.context all current_scope
   in
-  let contents = Option.map (Resolve.go_module ~cache lift) contents in
+  let contents = Option.map (Resolve.go_page ~cache lift) contents in
   let vars =
     VarTbl.to_seq state.vars
     |> Seq.map (fun (k, v) -> (k, Resolve.go_value_doc ~cache lift !v))
@@ -78,17 +78,17 @@ let get data program =
 
 let key = D.Programs.key ~name:__MODULE__ get
 
-let get_module ({ contents; _ } : t) = contents
+let get_page ({ contents; _ } : t) = contents
 
 let get_var ({ vars; _ } : t) var = VarTbl.find_opt vars var
 
-let get_modules =
-  D.Key.key ~name:(__MODULE__ ^ ".get_modules") @@ fun data () ->
+let get_pages =
+  D.Key.key ~name:(__MODULE__ ^ ".get_pages") @@ fun data () ->
   D.need data D.Programs.Files.files ()
   |> List.fold_left
-       (fun modules file ->
+       (fun pages file ->
          match D.Programs.need_for data key file with
-         | None | Some { contents = None; _ } -> modules
-         | Some { contents = Some result; _ } -> add_module modules result)
-       MKMap.empty
-  |> MKMap.map (StringMap.map crunch_modules)
+         | None | Some { contents = None; _ } -> pages
+         | Some { contents = Some result; _ } -> add_page pages result)
+       NMap.empty
+  |> NMap.map (StringMap.map crunch_pages)

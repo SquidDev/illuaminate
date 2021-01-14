@@ -34,13 +34,21 @@ type state =
 let report state = Error.report state.errs
 
 type result =
-  | Named of module_info documented
+  | Named of page documented
   | Unnamed of
       { file : Span.filename;
         body : value documented;
         mod_types : type_info documented list;
-        mod_kind : Module.Kind.t
+        mod_kind : module_kind;
+        mod_namespace : Namespace.t
       }
+
+let mk_page ~mod_name ~mod_namespace ~mod_kind ~mod_contents ~mod_types =
+  { page_id = mod_name;
+    page_title = mod_name;
+    page_namespace = mod_namespace;
+    page_contents = Module { mod_contents; mod_types; mod_kind }
+  }
 
 module Infer = struct
   (** Construct a simple documented node, which has no additional information. *)
@@ -345,10 +353,10 @@ module Infer = struct
     in
     P.comments comments |> List.iter (fun c -> CommentCollection.add state.unused_comments c ());
 
-    let mod_kind, body =
+    let mod_kind, mod_namespace, body =
       match infer_stmts state program.program with
-      | Some x -> (Module.Kind.library, x)
-      | None -> (Module.Kind.module_, !env)
+      | Some x -> (MKLibrary, Namespace.library, x)
+      | None -> (MKModule, Namespace.module_, !env)
     in
     let body = Option.fold ~none:body ~some:(fun x -> !x) state.export in
     let body = { body with descriptor = DropLocal.value body.descriptor } in
@@ -365,10 +373,15 @@ module Infer = struct
     let mod_types = StringMap.bindings state.types |> List.map snd |> DropLocal.mod_types in
     let result =
       match module_comment with
-      | Some ({ module_info = Some { value = { mod_name; mod_kind = k }; _ }; _ } as comment) ->
+      | Some
+          ( { module_info = Some { value = { mod_name; mod_kind = k; mod_namespace = ns; _ }; _ };
+              _
+            } as comment ) ->
           let merge pos implicit body =
             let mod_contents = Merge.value ~errs:state.errs pos implicit body in
-            { mod_name; mod_contents; mod_types; mod_kind = Option.value ~default:mod_kind k }
+            mk_page ~mod_name ~mod_contents ~mod_types
+              ~mod_kind:(Option.value ~default:mod_kind k)
+              ~mod_namespace:(Option.value ~default:mod_namespace ns)
           in
           Named (Value.get_documented ~report:(report state) comment |> Merge.documented merge body)
       | Some ({ module_info = None; _ } as comment) ->
@@ -376,9 +389,21 @@ module Infer = struct
             Value.get_documented ~report:(report state) comment
             |> Merge.doc_value ~errs:state.errs body
           in
-          Unnamed { body; mod_types; file = Spanned.program program |> Span.filename; mod_kind }
+          Unnamed
+            { body;
+              mod_types;
+              file = Spanned.program program |> Span.filename;
+              mod_kind;
+              mod_namespace
+            }
       | None ->
-          Unnamed { body; mod_types; file = Spanned.program program |> Span.filename; mod_kind }
+          Unnamed
+            { body;
+              mod_types;
+              file = Spanned.program program |> Span.filename;
+              mod_kind;
+              mod_namespace
+            }
     in
     (state, result)
 
@@ -389,12 +414,13 @@ let get_unresolved_module data program =
   match D.need data Infer.key program |> snd with
   | Named m -> Some m
   | Unnamed { file = { path = None; _ }; _ } -> None
-  | Unnamed { file = { path = Some path; _ }; body; mod_types; mod_kind } ->
+  | Unnamed { file = { path = Some path; _ }; body; mod_types; mod_kind; mod_namespace } ->
       D.need data D.Programs.Context.key (Spanned.program program |> Span.filename)
       |> Doc_extract_config.guess_module path
       |> Option.map @@ fun mod_name ->
          { body with
-           descriptor = { mod_name; mod_contents = body.descriptor; mod_types; mod_kind }
+           descriptor =
+             mk_page ~mod_name ~mod_namespace ~mod_types ~mod_kind ~mod_contents:body.descriptor
          }
 
 let unresolved_module = D.Programs.key ~name:(__MODULE__ ^ ".unresolved") get_unresolved_module

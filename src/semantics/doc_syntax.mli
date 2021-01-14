@@ -56,11 +56,19 @@ and type_info =
   }
 
 (** A documented module. *)
-and module_info =
-  { mod_name : string;  (** The name of this module. *)
-    mod_types : type_info documented list;  (** Types defined in this module. *)
-    mod_kind : Module.Kind.t;  (** The kind of this module. *)
-    mod_contents : value  (** The value this module exposes. *)
+and page_contents =
+  | Markdown
+  | Module of
+      { mod_types : type_info documented list;  (** Types defined in this module. *)
+        mod_contents : value;  (** The value this module exposes. *)
+        mod_kind : module_kind  (** The kind of this module. *)
+      }
+
+and page =
+  { page_title : string;  (** The name of this page. *)
+    page_id : string;  (** Types defined in this module. *)
+    page_namespace : Namespace.t;  (** The namespace this page belongs to. *)
+    page_contents : page_contents  (** The contents of this page. *)
   }
 
 (** Get additional information about a definition, to be appended after a name.
@@ -85,7 +93,9 @@ class iter :
 
     method type_info : span:Span.t -> type_info -> unit
 
-    method module_info : span:Span.t -> module_info -> unit
+    method page_contents : span:Span.t -> page_contents -> unit
+
+    method page : span:Span.t -> page -> unit
   end
 
 val iter_of : (span:Span.t -> abstract_iter) -> iter

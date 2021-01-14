@@ -1,7 +1,7 @@
 open! Doc_syntax
 open! Reference
 module StringMap = Map.Make (String)
-module MKMap = Map.Make (Module.Kind)
+module NMap = Map.Make (Namespace)
 module Lift = Doc_abstract_syntax.Lift (Doc_syntax) (Doc_syntax)
 
 module DocTbl = Hashtbl.Make (struct
@@ -21,18 +21,18 @@ end)
     - Link to a Lua global. *)
 module Resolvers = struct
   type state =
-    { modules : module_info documented Lazy.t StringMap.t MKMap.t;
-      mutable unique_modules : module_info documented option StringMap.t;
-      current_module : module_info documented option
+    { pages : page documented Lazy.t StringMap.t NMap.t;
+      mutable unique_pages : page documented option StringMap.t;
+      current_page : page documented option
     }
 
   (** Find a unique module by a name.*)
   let lookup_unique_module state name =
-    match StringMap.find_opt name state.unique_modules with
+    match StringMap.find_opt name state.unique_pages with
     | Some x -> x
     | None ->
         let matching =
-          MKMap.to_seq state.modules |> Seq.map snd
+          NMap.to_seq state.pages |> Seq.map snd
           |> Seq.filter_map (StringMap.find_opt name)
           |> List.of_seq
         in
@@ -41,7 +41,7 @@ module Resolvers = struct
           | [ (lazy x) ] -> Some x
           | _ -> None
         in
-        state.unique_modules <- StringMap.add name unique state.unique_modules;
+        state.unique_pages <- StringMap.add name unique state.unique_pages;
         unique
 
   (** Find a module by a [type!name specifier] or by a name *)
@@ -50,62 +50,64 @@ module Resolvers = struct
     | None -> lookup_unique_module state name
     | Some i ->
         let kind = CCString.take i name and name = CCString.drop (i + 1) name in
-        MKMap.find_opt (ModuleKind kind) state.modules
+        NMap.find_opt (Namespace kind) state.pages
         |> CCOpt.flat_map (StringMap.find_opt name)
         |> Option.map Lazy.force
 
   (* Look up names within a module *)
-  let in_module_value { mod_kind; mod_name; mod_contents; _ } name is_type =
-    if is_type then None
-    else
-      match mod_contents with
-      | Table fields ->
-          List.find_opt (fun (k, _) -> k = name) fields
-          |> Option.map @@ fun (_, { definition; _ }) ->
-             Internal { in_module = (mod_kind, mod_name); name = Value name; definition }
-      | _ -> None
+  let in_module_value { page_namespace; page_id; page_contents; _ } name is_type =
+    match page_contents with
+    | Module { mod_contents = Table fields; _ } when not is_type ->
+        List.find_opt (fun (k, _) -> k = name) fields
+        |> Option.map @@ fun (_, { definition; _ }) ->
+           Internal { in_module = (page_namespace, page_id); name = Value name; definition }
+    | _ -> None
 
   (** Look up types within a module *)
-  let in_module_type { mod_kind; mod_name; mod_types; _ } name _ =
-    List.find_opt (fun ty -> ty.descriptor.type_name = name) mod_types
-    |> Option.map @@ fun { definition; _ } ->
-       Internal { in_module = (mod_kind, mod_name); name = Type name; definition }
+  let in_module_type { page_namespace; page_id; page_contents; _ } name _ =
+    match page_contents with
+    | Markdown -> None
+    | Module { mod_types; _ } ->
+        List.find_opt (fun ty -> ty.descriptor.type_name = name) mod_types
+        |> Option.map @@ fun { definition; _ } ->
+           Internal { in_module = (page_namespace, page_id); name = Type name; definition }
 
   (** Look up methods within a module *)
-  let in_module_method { mod_kind; mod_name; mod_types; _ } name is_type =
-    if is_type then None
-    else
-      String.index_opt name ':'
-      |> CCOpt.or_lazy ~else_:(fun () -> String.rindex_opt name '.')
-      |> CCOpt.flat_map @@ fun i ->
-         let type_name = CCString.take i name and item_name = CCString.drop (i + 1) name in
-         mod_types
-         |> List.find_opt (fun ty -> ty.descriptor.type_name = type_name)
-         |> CCOpt.flat_map (fun ty ->
-                List.find_opt
-                  (fun { member_name; _ } -> member_name = item_name)
-                  ty.descriptor.type_members)
-         |> Option.map (fun { member_name; member_value; _ } ->
-                Internal
-                  { in_module = (mod_kind, mod_name);
-                    name = Member (type_name, member_name);
-                    definition = member_value.definition
-                  })
+  let in_module_method { page_namespace; page_id; page_contents; _ } name is_type =
+    match page_contents with
+    | Module { mod_types; _ } when not is_type ->
+        String.index_opt name ':'
+        |> CCOpt.or_lazy ~else_:(fun () -> String.rindex_opt name '.')
+        |> CCOpt.flat_map @@ fun i ->
+           let type_name = CCString.take i name and item_name = CCString.drop (i + 1) name in
+           mod_types
+           |> List.find_opt (fun ty -> ty.descriptor.type_name = type_name)
+           |> CCOpt.flat_map (fun ty ->
+                  List.find_opt
+                    (fun { member_name; _ } -> member_name = item_name)
+                    ty.descriptor.type_members)
+           |> Option.map (fun { member_name; member_value; _ } ->
+                  Internal
+                    { in_module = (page_namespace, page_id);
+                      name = Member (type_name, member_name);
+                      definition = member_value.definition
+                    })
+    | _ -> None
 
   let in_module_finders = [ in_module_value; in_module_type; in_module_method ]
 
   (** Find a term in this module. *)
-  let find_in_current_module { current_module; _ } name is_type =
-    Option.bind current_module @@ fun current_module ->
-    CCList.find_map (fun f -> f current_module.descriptor name is_type) in_module_finders
+  let find_in_current_page { current_page; _ } name is_type =
+    Option.bind current_page @@ fun current_page ->
+    CCList.find_map (fun f -> f current_page.descriptor name is_type) in_module_finders
 
   (** Find a module with this name *)
   let find_module s name is_type =
     if is_type then None
     else
       lookup_module s name
-      |> Option.map @@ fun { definition; descriptor = { mod_kind; mod_name; _ }; _ } ->
-         Internal { in_module = (mod_kind, mod_name); name = Module; definition }
+      |> Option.map @@ fun { definition; descriptor = { page_namespace; page_id; _ }; _ } ->
+         Internal { in_module = (page_namespace, page_id); name = Module; definition }
 
   (** Finds elements within modules. This tries foo.[bar.baz], then foo.bar.[baz], etc... *)
   let find_member s name is_type =
@@ -113,8 +115,8 @@ module Resolvers = struct
       match String.index_from_opt name i '.' with
       | None -> None
       | Some i ->
-          let mod_name = CCString.take i name and item_name = CCString.drop (i + 1) name in
-          lookup_module s mod_name
+          let page_id = CCString.take i name and item_name = CCString.drop (i + 1) name in
+          lookup_module s page_id
           |> CCOpt.flat_map (fun { descriptor = modu; _ } ->
                  CCList.find_map (fun f -> f modu item_name is_type) in_module_finders)
           |> CCOpt.or_lazy ~else_:(fun () -> go (i + 1))
@@ -129,7 +131,7 @@ module Resolvers = struct
     | Undocumented -> Some (External { name; url = None })
     | Unknown -> None
 
-  let finders = [ find_in_current_module; find_module; find_member; find_lua_builtin ]
+  let finders = [ find_in_current_page; find_module; find_member; find_lua_builtin ]
 
   (* Validate the reference is well-formed, resolve it, and return null if we can't *)
   let name context ~types_only name =
@@ -171,8 +173,8 @@ let go_desc context { description; description_pos } =
   in
   { description = Omd_representation.visit visit description; description_pos }
 
-let context modules current_module =
-  let context = { Resolvers.modules; current_module; unique_modules = StringMap.empty } in
+let context pages current_page =
+  let context = { Resolvers.pages; current_page; unique_pages = StringMap.empty } in
   let lift : Lift.t =
     { any_ref = Resolvers.ref context ~types_only:false;
       type_ref = Resolvers.ref context ~types_only:true;
@@ -229,12 +231,21 @@ and go_type ~cache lift { type_name; type_members } =
   in
   { type_name; type_members = List.map go_member type_members }
 
-let go_module ~cache lift to_resolve =
+let go_page_contents ~cache lift = function
+  | Markdown -> Markdown
+  | Module { mod_kind; mod_contents; mod_types } ->
+      Module
+        { mod_kind;
+          mod_contents = go_value ~cache lift mod_contents;
+          mod_types = List.map (go_documented lift (go_type ~cache)) mod_types
+        }
+
+let go_page ~cache lift to_resolve =
   go_documented lift
-    (fun lift { mod_name; mod_kind; mod_contents; mod_types } ->
-      { mod_name;
-        mod_kind;
-        mod_contents = go_value ~cache lift mod_contents;
-        mod_types = List.map (go_documented lift (go_type ~cache)) mod_types
+    (fun lift { page_id; page_title; page_namespace; page_contents } ->
+      { page_id;
+        page_title;
+        page_namespace;
+        page_contents = go_page_contents ~cache lift page_contents
       })
     to_resolve

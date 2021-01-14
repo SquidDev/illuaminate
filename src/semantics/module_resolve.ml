@@ -12,7 +12,7 @@ end
 
 module VarCache = Hashtbl.Make (Key)
 module StringMap = Map.Make (String)
-module MKMap = Map.Make (Module.Kind)
+module NMap = Map.Make (Namespace)
 
 module Reference = struct
   type t =
@@ -35,8 +35,8 @@ open Reference
 
 type t =
   { resolved : Resolve.t;
-    modules : module_info documented StringMap.t;
-    libraries : module_info documented StringMap.t;
+    modules : value documented StringMap.t;
+    libraries : value documented StringMap.t;
     doc : Doc_extract.t;
     cache : (Reference.t * value documented) option VarCache.t
   }
@@ -44,21 +44,30 @@ type t =
 let key =
   let open IlluaminateData in
   Programs.key ~name:__MODULE__ @@ fun data prog ->
-  let modules = need data Doc_extract.get_modules () in
+  let modules ns =
+    need data Doc_extract.get_pages ()
+    |> NMap.find_opt ns
+    |> Option.value ~default:StringMap.empty
+    |> StringMap.to_seq
+    |> Seq.filter_map (function
+         | ( name,
+             ({ descriptor = { page_contents = Doc_syntax.Module { mod_contents; _ }; _ }; _ } as x)
+           ) ->
+             Some (name, { x with descriptor = mod_contents })
+         | _ -> None)
+    |> StringMap.of_seq
+  in
   { resolved = need data Resolve.key prog;
-    modules = modules |> MKMap.find_opt Module.Kind.module_ |> Option.value ~default:StringMap.empty;
-    libraries =
-      modules |> MKMap.find_opt Module.Kind.library |> Option.value ~default:StringMap.empty;
+    modules = modules Namespace.module_;
+    libraries = modules Namespace.library;
     doc = need data Doc_extract.key prog;
     cache = VarCache.create 16
   }
 
 let require = Some (Global.parse "require")
 
-let mk_module ({ descriptor = { mod_kind; mod_name; mod_contents; _ }; definition; _ } as d) =
-
-    ( Reference.Reference (Internal { in_module = (mod_kind, mod_name); definition; name = Module }),
-      { d with descriptor = mod_contents } )
+let mk_module ~name ~ns ({ definition; _ } as d) =
+  (Reference.Reference (Internal { in_module = (ns, name); definition; name = Module }), d)
 
 let rec get_var ({ cache; resolved; doc; modules; _ } as store) var :
     (Reference.t * value documented) option =
@@ -67,9 +76,8 @@ let rec get_var ({ cache; resolved; doc; modules; _ } as store) var :
     let from_doc =
       (* Locate a documented module. *)
       match resolved with
-      | { kind = Global; name; _ } -> (
-        StringMap.find_opt name modules |> Option.map mk_module
-         )
+      | { kind = Global; name; _ } ->
+          StringMap.find_opt name modules |> Option.map (mk_module ~name ~ns:Namespace.module_)
       | { kind = Local _; definitions = [ (_, OfExpr e) ]; _ } -> get_expr store e
       | _ -> None
     in
@@ -91,12 +99,13 @@ and get_expr ({ resolved; libraries; _ } as store) :
   | Parens { paren_expr = e; _ } -> get_expr store e
   | ECall (Call { fn; args }) when Global.of_expr resolved fn = require -> (
     match Syntax.Helpers.get_call_args args with
-    | Some (Mono (String { lit_value; _ })) ->
+    | Some (Mono (String { lit_value = name; _ })) ->
         (* Identify calls to require("foo"), and find a module "foo". *)
-        let res = StringMap.find_opt lit_value libraries |> Option.map mk_module in
+        let res =
+          StringMap.find_opt name libraries |> Option.map (mk_module ~name ~ns:Namespace.library)
+        in
         Logs.info (fun f ->
-            f "Found module %s => %s" lit_value
-              (Option.fold ~none:"None" ~some:(fun _ -> "Some") res));
+            f "Found module %s => %s" name (Option.fold ~none:"None" ~some:(fun _ -> "Some") res));
         res
     | _ -> None )
   | _ -> None
@@ -122,10 +131,10 @@ let global_modules =
   let open IlluaminateData in
   let module SSet = Set.Make (String) in
   let module SMap = Map.Make (String) in
-  let module MKMap = Map.Make (Module.Kind) in
   let get data () =
-    need data Doc_extract.get_modules ()
-    |> MKMap.find_opt Module.Kind.module_ |> Option.value ~default:SMap.empty |> SMap.to_seq |> Seq.map fst
+    need data Doc_extract.get_pages ()
+    |> NMap.find_opt Namespace.module_ |> Option.value ~default:SMap.empty |> SMap.to_seq
+    |> Seq.map fst
     |> Seq.fold_left (Fun.flip SSet.add) SSet.empty
   in
   Key.key ~name:(__MODULE__ ^ ".global_modules") ~eq:SSet.equal get

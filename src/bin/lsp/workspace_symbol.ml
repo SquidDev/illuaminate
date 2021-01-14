@@ -3,7 +3,7 @@ module Doc = IlluaminateSemantics.Doc
 module Data = IlluaminateData
 open Doc.Syntax
 module StringMap = Map.Make (String)
-module MKMap = Map.Make (IlluaminateSemantics.Module.Kind)
+module NMap = Map.Make (IlluaminateSemantics.Namespace)
 
 module Trie = struct
   module Map = Map.Make (Char)
@@ -88,17 +88,20 @@ let dump_type ~container ({ descriptor = { type_members; type_name; _ }; _ } as 
     trie type_members
   |> add ~name:type_name ~container ~kind:Class self
 
-let dump_module ({ descriptor = { mod_types; mod_contents; mod_name = name; _ }; _ } as self) trie =
-  List.fold_left (fun trie ty -> dump_type ~container:name ty trie) trie mod_types
-  |> dump_term_contents ~container:name mod_contents
-  |> add_top ~name ~kind:Module self
+let dump_module ({ descriptor = { page_id = name; page_contents; _ }; _ } as self) trie =
+  match page_contents with
+  | Module { mod_types; mod_contents; _ } ->
+      List.fold_left (fun trie ty -> dump_type ~container:name ty trie) trie mod_types
+      |> dump_term_contents ~container:name mod_contents
+      |> add_top ~name ~kind:Module self
+  | Markdown -> trie
 
 type t = SymbolInformation.t Trie.t
 
 let key =
   Data.Key.key ~name:__MODULE__ @@ fun data () ->
-  Data.need data Doc.Extract.get_modules ()
-  |> MKMap.to_seq
+  Data.need data Doc.Extract.get_pages ()
+  |> NMap.to_seq
   |> Seq.flat_map (fun (_, x) -> StringMap.to_seq x)
   |> Seq.fold_left (fun a (_, x) -> dump_module x a) Trie.empty
 

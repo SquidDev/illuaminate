@@ -1,5 +1,5 @@
 ((description "A module demonstrating deprecated terms.\n\n")
- (body (name deprecation)
+ (body (id deprecation) (title deprecation)
   (contents
    (table (a ((body expr (ty ((name number))) (value 1)) (deprecated)))
     (b

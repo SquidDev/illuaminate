@@ -47,11 +47,19 @@ and type_info =
     type_members : member list
   }
 
-and module_info =
-  { mod_name : string;
-    mod_types : type_info documented list;
-    mod_kind : Module.Kind.t;
-    mod_contents : value
+and page_contents =
+  | Markdown
+  | Module of
+      { mod_types : type_info documented list;
+        mod_contents : value;
+        mod_kind : module_kind
+      }
+
+and page =
+  { page_title : string;
+    page_id : string;
+    page_namespace : Namespace.t;
+    page_contents : page_contents
   }
 
 let get_suffix = function
@@ -130,9 +138,14 @@ class iter =
     method type_info : span:Span.t -> type_info -> unit =
       fun ~span:_ { type_members; type_name = _ } -> List.iter self#member type_members
 
-    method module_info ~span { mod_name = _; mod_types; mod_kind = _; mod_contents } =
-      List.iter (self#documented self#type_info) mod_types;
-      self#value ~span mod_contents
+    method page_contents ~span =
+      function
+      | Module { mod_types; mod_contents; _ } ->
+          List.iter (self#documented self#type_info) mod_types;
+          self#value ~span mod_contents
+      | Markdown -> ()
+
+    method page ~span { page_contents; _ } = self#page_contents ~span page_contents
   end
 
 let iter_of f =
@@ -173,7 +186,7 @@ module Link = struct
       | _ -> malformed attrs
     in
     match attrs with
-    | ("module-kind", Some in_module_kind)
+    | ("namespace", Some namespace)
       :: ("module", Some in_module_name) :: ("sec", Some name) :: attrs ->
         let name : Reference.name_of =
           match CCString.chop_prefix ~pre:"v:" name with
@@ -184,12 +197,11 @@ module Link = struct
             | Some t -> Type t )
         in
         make
-          (Internal { in_module = (ModuleKind in_module_kind, in_module_name); name; definition })
+          (Internal { in_module = (Namespace namespace, in_module_name); name; definition })
           attrs
-    | ("module-kind", Some in_module_kind) :: ("module", Some in_module_name) :: attrs ->
+    | ("namespace", Some namespace) :: ("module", Some in_module_name) :: attrs ->
         make
-          (Internal
-             { in_module = (ModuleKind in_module_kind, in_module_name); name = Module; definition })
+          (Internal { in_module = (Namespace namespace, in_module_name); name = Module; definition })
           attrs
     | ("href", Some url) :: attrs -> make (External { url = Some url; name = "" }) attrs
     | ("link", Some link) :: attrs -> make (Unknown link) attrs
@@ -204,13 +216,13 @@ module Link = struct
     let attrs = [ ("style", Some style) ] in
     let make a : Omd.element = Html ("illuaminate:ref", a, description) in
     match link_reference with
-    | Internal { in_module = ModuleKind kind, module_name; name; _ } ->
+    | Internal { in_module = Namespace namespace, module_name; name; _ } ->
         let attrs =
           match Reference.section_of_name name with
           | None -> attrs
           | Some s -> ("sec", Some s) :: attrs
         in
-        make (("module-kind", Some kind) :: ("module", Some module_name) :: attrs)
+        make (("namespace", Some namespace) :: ("module", Some module_name) :: attrs)
     | External { url = Some url; _ } -> make (("href", Some url) :: attrs)
     | External { url = None; _ } -> make attrs
     | Unknown link -> make (("link", Some link) :: attrs)

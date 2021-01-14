@@ -1,5 +1,10 @@
 open IlluaminateCore
 
+type module_kind =
+  | MKModule
+  | MKLibrary
+  | MKNone
+
 type position =
   { path : string;
     start_line : int;
@@ -40,6 +45,11 @@ module type S = sig
     { description : Omd.t;
       description_pos : Span.t option
     }
+
+  type nonrec module_kind = module_kind =
+    | MKModule
+    | MKLibrary
+    | MKNone
 
   (** A link to a string, within a {!description}. *)
   type link =
@@ -118,6 +128,11 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
     { description : Omd.t;
       description_pos : Span.t option
     }
+
+  type nonrec module_kind = module_kind =
+    | MKModule
+    | MKLibrary
+    | MKNone
 
   type link =
     { link_reference : reference;

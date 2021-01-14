@@ -1,1 +1,1 @@
-((body (name local) (contents (table))))
+((body (id local) (title local) (contents (table))))

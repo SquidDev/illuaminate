@@ -3,7 +3,7 @@ open IlluaminateSemantics
 open IlluaminateConfig
 module Doc = Doc.Extract
 module D = IlluaminateData
-module MKMap = Map.Make (Module.Kind)
+module NMap = Map.Make (Namespace)
 
 let process ~go ~name contents out =
   let lexbuf = Lexing.from_string contents in
@@ -29,7 +29,7 @@ let process ~go ~name contents out =
       let docs = D.get data Doc.key parsed in
       Doc.errors docs
       |> List.iter (fun (e : Error.Error.t) -> Error.report errs e.tag e.span e.message);
-      Doc.get_module docs |> Option.iter (fun m -> go out data m) );
+      Doc.get_page docs |> Option.iter (fun m -> go out data m) );
 
   Error.display_of_string ~out (fun _ -> Some contents) errs
 
@@ -64,7 +64,7 @@ module Html_module = struct
       H.Options.make ~site_title:"My title" ~site_css:"main.css" ~site_js:"main.js" ~resolve:Fun.id
         ~data ~source_link ()
     in
-    H.emit_module ~options ~modules:MKMap.empty m
+    H.emit_page ~options ~pages:NMap.empty m
     |> Format.asprintf "%a" Html.Default.emit_pretty
     |> (fun x -> CCString.replace ~sub:date ~by:"xxxx-xx-xx" x)
     |> Format.pp_print_string out

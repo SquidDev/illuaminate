@@ -21,7 +21,7 @@ type name_of =
 (** A name which has been resolved to a known location. *)
 type resolved =
   | Internal of
-      { in_module : Module.Ref.t;  (** The module which this reference belongs to. *)
+      { in_module : Namespace.Ref.t;  (** The page/module which this reference belongs to. *)
         name : name_of;  (** The name within this module. *)
         definition : Span.t  (** The location of this definition. *)
       }  (** A reference to somewhere within this compilation unit. *)

@@ -46,9 +46,9 @@ let check_abstract ~r ~span =
 let linter =
   make_no_opt ~tags:[ tag ]
     ~program:(fun () context r prog ->
-      match IlluaminateData.need context.data E.key prog |> E.get_module with
+      match IlluaminateData.need context.data E.key prog |> E.get_page with
       | None -> ()
       | Some m ->
           let iter = iter_of (check_abstract ~r) in
-          iter#documented iter#module_info m)
+          iter#documented iter#page m)
     ()

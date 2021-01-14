@@ -496,26 +496,29 @@ module Build = struct
      * Other types
      *******************************)
     | "module" -> (
-        let mod_kind =
+        let mod_kind, mod_namespace =
           List.fold_left
-            (fun kind flag ->
+            (fun (kind, ns) flag ->
               match flag with
               | Named ({ value = "kind"; _ }, { contents = "library"; _ })
               | Marker { contents = "library"; _ } ->
-                  Some Module.Kind.library
+                  (Some MKLibrary, Some Namespace.library)
               | Named ({ value = "kind"; _ }, { contents = "module"; _ })
               | Marker { contents = "module"; _ } ->
-                  Some Module.Kind.module_
-              | Named ({ value = "kind"; _ }, { contents; _ }) -> Some (ModuleKind contents)
-              | f -> unknown b "@module" f; kind)
-            None flags
+                  (Some MKModule, Some Namespace.module_)
+              | Named ({ value = "kind"; _ }, { contents; _ }) ->
+                  (Some MKNone, Some (Namespace contents))
+              | f -> unknown b "@module" f; (kind, ns))
+            (None, None) flags
         in
         match b.b_module with
         | Some { value = { mod_name = inner_name; _ }; _ } ->
             report b Tag.duplicate_definitions tag.span
               "Duplicate @module definitions (named '%s' and '%s')" inner_name body.contents
         | None ->
-            b.b_module <- Some { value = { mod_name = body.contents; mod_kind }; span = tag.span } )
+            b.b_module <-
+              Some
+                { value = { mod_name = body.contents; mod_kind; mod_namespace }; span = tag.span } )
     | "type" -> (
         List.iter (unknown b "@type") flags;
         match b.b_type with

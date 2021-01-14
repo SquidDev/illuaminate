@@ -2,7 +2,7 @@ open IlluaminateCore
 open IlluaminateLint
 module StringMap = Map.Make (String)
 module StringSet = Set.Make (String)
-module MKMap = Map.Make (IlluaminateSemantics.Module.Kind)
+module NMap = Map.Make (IlluaminateSemantics.Namespace)
 module Config = IlluaminateConfigFormat
 open CCFun
 
@@ -141,7 +141,7 @@ let doc_gen path =
   |> Loader.load_from ~loader
   |> Option.iter @@ fun (config, _, builder) ->
      let data = IlluaminateData.Builder.(empty |> builder |> build) in
-     let modules = IlluaminateData.get data Doc.Extract.get_modules () in
+     let pages = IlluaminateData.get data Doc.Extract.get_pages () in
      let { Config.DocOptions.site_properties =
              { site_title; site_image; site_url; embed_head; embed_js; embed_css; source_link };
            index;
@@ -179,35 +179,35 @@ let doc_gen path =
        let open Fpath in
        v x |> relativize ~root:(Fpath.v mod_kind) |> Option.fold ~none:("../" ^ x) ~some:to_string
      in
-     ( Fun.flip MKMap.iter modules @@ fun _ m ->
-       Fun.flip StringMap.iter m @@ fun _ (modu : Doc.Syntax.module_info Doc.Syntax.documented) ->
-       let { mod_kind = ModuleKind mod_kind; mod_name; _ } = modu.descriptor in
-       let options = module_options mod_kind in
-       let path = Fpath.(destination / mod_kind / (mod_name ^ ".html")) in
+     ( Fun.flip NMap.iter pages @@ fun _ m ->
+       Fun.flip StringMap.iter m @@ fun _ (modu : Doc.Syntax.page Doc.Syntax.documented) ->
+       let { page_namespace = Namespace namespace; page_id; _ } = modu.descriptor in
+       let options = module_options namespace in
+       let path = Fpath.(destination / namespace / (page_id ^ ".html")) in
 
-       mkdirs Fpath.(destination / mod_kind);
-       E.Html.emit_module ~options ~modules modu
+       mkdirs Fpath.(destination / namespace);
+       E.Html.emit_page ~options ~pages modu
        |> emit_doc
        |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path) );
 
      let path = Fpath.(destination / "index.html") in
      Option.fold ~none:Html.Default.nil ~some:(parse_index ~options:(options Fun.id)) index
-     |> E.Html.emit_modules ~options:(options Fun.id) ~modules
+     |> E.Html.emit_index ~options:(options Fun.id) ~pages
      |> emit_doc
      |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path);
 
      if json_index then
        let path = Fpath.(destination / "index.json") in
-       let _, modules =
+       let _, pages =
          (* TODO: Pick a more way of doing this which doesn't just pick the first one. *)
-         MKMap.to_seq modules |> Seq.map snd |> Seq.flat_map StringMap.to_seq |> Seq.map snd
+         NMap.to_seq pages |> Seq.map snd |> Seq.flat_map StringMap.to_seq |> Seq.map snd
          |> Seq.fold_left
-              (fun (names, modus) (modu : Doc.Syntax.module_info Doc.Syntax.documented) ->
-                if StringSet.mem modu.descriptor.mod_name names then (names, modus)
-                else (StringSet.add modu.descriptor.mod_name names, modu :: modus))
+              (fun (names, pages) (modu : Doc.Syntax.page Doc.Syntax.documented) ->
+                if StringSet.mem modu.descriptor.page_id names then (names, pages)
+                else (StringSet.add modu.descriptor.page_id names, modu :: pages))
               (StringSet.empty, [])
        in
-       E.Summary.(everything ~source_link modules |> to_json)
+       E.Summary.(everything ~source_link pages |> to_json)
        |> Yojson.Safe.to_file (Fpath.to_string path) );
   Error.display_of_files errs;
   if Error.has_problems errs then exit 1

@@ -7,7 +7,7 @@ type t =
     full_name : string;
     summary : string option;
     source : string option;
-    in_module : IlluaminateSemantics.Module.Ref.t;
+    in_module : IlluaminateSemantics.Namespace.Ref.t;
     name_of : IlluaminateSemantics.Reference.name_of
   }
 
@@ -16,4 +16,4 @@ val to_json : t list -> Yojson.Safe.t
 
 (** Convert a list of documented modules into a flat list of index terms. *)
 val everything :
-  source_link:(AbstractSyntax.source -> string option) -> module_info documented list -> t list
+  source_link:(AbstractSyntax.source -> string option) -> page documented list -> t list

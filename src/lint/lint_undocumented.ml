@@ -51,17 +51,19 @@ and ty ~r ~span:_ { type_name; type_members; _ } =
        member_name
      |> documented value ~r member_value
 
-let modu ~r ~span { mod_contents; mod_types; _ } =
-  mod_types
-  |> List.iter (fun ({ descriptor = { type_name; _ }; _ } as t) ->
-         Printf.sprintf "Type '%s' is exported, but has no documentation." type_name
-         |> documented ty ~r t);
-  value ~r ~span mod_contents
+let page ~r ~span = function
+  | Markdown -> ()
+  | Module { mod_contents; mod_types; _ } ->
+      mod_types
+      |> List.iter (fun ({ descriptor = { type_name; _ }; _ } as t) ->
+             Printf.sprintf "Type '%s' is exported, but has no documentation." type_name
+             |> documented ty ~r t);
+      value ~r ~span mod_contents
 
 let linter =
   make_no_opt ~tags:[ tag; arg_tag; return_tag ]
     ~program:(fun () context r prog ->
-      match IlluaminateData.need context.data E.key prog |> E.get_module with
+      match IlluaminateData.need context.data E.key prog |> E.get_page with
       | None -> ()
       | Some { description; descriptor; definition; _ } ->
           (* Modules are a little odd, as we allow any module with the same name to have
@@ -69,16 +71,16 @@ let linter =
           ( match description with
           | Some _ -> ()
           | None ->
-              let module MK = Map.Make (Module.Kind) in
+              let module MN = Map.Make (Namespace) in
               let module MS = Map.Make (String) in
               let has_any =
-                IlluaminateData.need context.data E.get_modules ()
-                |> MK.find_opt descriptor.mod_kind
-                |> CCOpt.flat_map (MS.find_opt descriptor.mod_name)
+                IlluaminateData.need context.data E.get_pages ()
+                |> MN.find_opt descriptor.page_namespace
+                |> CCOpt.flat_map (MS.find_opt descriptor.page_id)
                 |> CCOpt.flat_map (fun (x : _ documented) -> x.description)
                 |> Option.is_some
               in
               if not has_any then r.r ~span:definition ~tag "Module is missing documentation" );
 
-          modu ~r ~span:definition descriptor)
+          page ~r ~span:definition descriptor.page_contents)
     ()

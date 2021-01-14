@@ -26,19 +26,18 @@ module Html : sig
 
   module Doc := IlluaminateSemantics.Doc
 
-  type module_list :=
-    Doc.Syntax.module_info Doc.Syntax.documented Map.Make(String).t
-    Map.Make(IlluaminateSemantics.Module.Kind).t
+  type page_list :=
+    Doc.Syntax.page Doc.Syntax.documented Map.Make(String).t
+    Map.Make(IlluaminateSemantics.Namespace).t
 
-  (** Emit an index file from a list of modules. *)
-  val emit_modules :
-    options:Options.t -> modules:module_list -> Html.Default.node -> Html.Default.node
+  (** Emit an index file from a list of pages. *)
+  val emit_index : options:Options.t -> pages:page_list -> Html.Default.node -> Html.Default.node
 
-  (** Emit a single module. *)
-  val emit_module :
+  (** Emit a single page. *)
+  val emit_page :
     options:Options.t ->
-    modules:module_list ->
-    Doc.Syntax.module_info Doc.Syntax.documented ->
+    pages:page_list ->
+    Doc.Syntax.page Doc.Syntax.documented ->
     Html.Default.node
 
   (** Load a file and convert it to HTML. This correctly handles loading markdown, HTML and text

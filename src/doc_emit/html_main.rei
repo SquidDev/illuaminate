@@ -1,21 +1,16 @@
-module Doc := IlluaminateSemantics.Doc;
-open Doc.Syntax;
+open IlluaminateSemantics.Doc.Syntax;
 
-type module_list :=
-  Map.Make(IlluaminateSemantics.Module.Kind).t(
-    Map.Make(String).t(documented(module_info)),
+type page_list :=
+  Map.Make(IlluaminateSemantics.Namespace).t(
+    Map.Make(String).t(documented(page)),
   );
 
-/** Emit an index file from a list of modules.  */
-let emit_modules:
-  (~options: Html_options.t, ~modules: module_list, Html.Default.node) =>
+/** Emit an index file from a list of page.  */
+let emit_index:
+  (~options: Html_options.t, ~pages: page_list, Html.Default.node) =>
   Html.Default.node;
 
-/** Emit a single module. */
-let emit_module:
-  (
-    ~options: Html_options.t,
-    ~modules: module_list,
-    documented(module_info)
-  ) =>
+/** Emit a single page. */
+let emit_page:
+  (~options: Html_options.t, ~pages: page_list, documented(page)) =>
   Html.Default.node;

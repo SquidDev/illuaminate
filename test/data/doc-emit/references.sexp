@@ -1,4 +1,4 @@
-((body (name references)
+((body (id references) (title references)
   (contents
    (table (my_term ((body table)))
     (unknown_1
@@ -16,7 +16,7 @@
        (label my_term) (span references.lua[16:12-16:18]))))
     (term_2
      ((description
-       "See <illuaminate:ref module-kind='library' module='references' sec='v:my_term' style='code'>my_term</illuaminate:ref>, <illuaminate:ref module-kind='library' module='references' sec='v:my_term' style='code'>references.my_term</illuaminate:ref> and <illuaminate:ref module-kind='library' module='references' sec='v:my_term' style='text'>custom label</illuaminate:ref>.\n\n")
+       "See <illuaminate:ref namespace='library' module='references' sec='v:my_term' style='code'>my_term</illuaminate:ref>, <illuaminate:ref namespace='library' module='references' sec='v:my_term' style='code'>references.my_term</illuaminate:ref> and <illuaminate:ref namespace='library' module='references' sec='v:my_term' style='text'>custom label</illuaminate:ref>.\n\n")
       (body (args))))
     (type_1
      ((body (args))
@@ -26,17 +26,17 @@
        (label my_term) (span references.lua[23:12-23:18]))))
     (type_2
      ((description
-       "See <illuaminate:ref module-kind='library' module='references' sec='ty:MyType' style='code'>MyType</illuaminate:ref> and <illuaminate:ref module-kind='library' module='references' sec='ty:MyType' style='code'>references.MyType</illuaminate:ref>\n\n")
+       "See <illuaminate:ref namespace='library' module='references' sec='ty:MyType' style='code'>MyType</illuaminate:ref> and <illuaminate:ref namespace='library' module='references' sec='ty:MyType' style='code'>references.MyType</illuaminate:ref>\n\n")
       (body (args))))
     (type_3
      ((description
-       "See <illuaminate:ref module-kind='library' module='references' sec='ty:MyType' style='code'>MyType</illuaminate:ref> and <illuaminate:ref module-kind='library' module='references' sec='ty:MyType' style='code'>references.MyType</illuaminate:ref>\n\n")
+       "See <illuaminate:ref namespace='library' module='references' sec='ty:MyType' style='code'>MyType</illuaminate:ref> and <illuaminate:ref namespace='library' module='references' sec='ty:MyType' style='code'>references.MyType</illuaminate:ref>\n\n")
       (body
        (returns
         (return (type ((in-module library!references) (name ty:MyType))))))))
     (method_1
      ((description
-       "See <illuaminate:ref module-kind='library' module='references' sec='ty:MyType:meth' style='code'>MyType:meth</illuaminate:ref> and <illuaminate:ref module-kind='library' module='references' sec='ty:MyType:meth' style='code'>MyType.meth</illuaminate:ref>\n\n")
+       "See <illuaminate:ref namespace='library' module='references' sec='ty:MyType:meth' style='code'>MyType:meth</illuaminate:ref> and <illuaminate:ref namespace='library' module='references' sec='ty:MyType:meth' style='code'>MyType.meth</illuaminate:ref>\n\n")
       (body (args))))
     (builtin_1
      ((body (args))
@@ -57,7 +57,7 @@
       (body (args))))
     (module_1
      ((description
-       "<illuaminate:ref module-kind='library' module='references' style='code'>references</illuaminate:ref>\n\n")
+       "<illuaminate:ref namespace='library' module='references' style='code'>references</illuaminate:ref>\n\n")
       (body (args))))))
   (type
    (body (name MyType)

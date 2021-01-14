@@ -5,7 +5,7 @@ module Pure = Pure
 module Reference = Reference
 module Resolve = Resolve
 module Module_resolve = Module_resolve
-module Module = Module
+module Namespace = Namespace
 
 (** Documentation comment parsing and processing *)
 module Doc : sig

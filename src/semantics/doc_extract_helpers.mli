@@ -24,7 +24,7 @@ module Merge : sig
 
   val doc_value : errs:Error.t -> value documented -> value documented -> value documented
 
-  val modules : errs:Error.t -> Span.t -> module_info -> module_info -> module_info
+  val page : errs:Error.t -> Span.t -> page -> page -> page
 end
 
 (** Drop any local definitions in a value. *)

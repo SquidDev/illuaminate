@@ -1,4 +1,4 @@
-((body (name types)
+((body (id types) (title types)
   (contents
    (table
     (no_clue ((description "A basic exported *value*.\n\n") (body table)))
