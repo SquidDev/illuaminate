@@ -12,6 +12,10 @@ let normalise_name name =
   let name = if name.[n - 1] = '_' then String.sub name 0 (n - 1) else name in
   String.map (fun x -> if x = '_' then '-' else x) name
 
+let is_jsx = function
+  | { attr_name = { txt = "JSX"; _ }; _ } -> true
+  | _ -> false
+
 let fixup =
   object
     inherit Ast_traverse.map as super
@@ -19,7 +23,7 @@ let fixup =
     method! expression exp =
       match super#expression exp with
       (* Locate nodes of the form "<exp>[@JSX]" *)
-      | { pexp_attributes = [ { attr_name = { txt = "JSX"; _ }; _ } ];
+      | { pexp_attributes = attrs;
           pexp_desc =
             Pexp_apply
               ( { pexp_desc = Pexp_ident { loc; txt = Lident name };
@@ -29,7 +33,8 @@ let fixup =
                 },
                 args );
           _
-        } ->
+        }
+        when List.exists is_jsx attrs ->
           let attributes, events, rest =
             List.fold_right
               (fun arg (attributes, events, rest) ->
