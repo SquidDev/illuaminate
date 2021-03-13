@@ -20,7 +20,7 @@ let show_page_list = (f, {custom, _}, xs) => {
     |> f(~title);
   [
     f'(~title="Globals", ~kind=Namespace.module_),
-    f'(~title="pages", ~kind=Namespace.library),
+    f'(~title="Modules", ~kind=Namespace.library),
     custom
     |> CCList.map(({Cfg.id, display}) => {
          f'(~title=display, ~kind=Namespace(id))
