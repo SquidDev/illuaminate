@@ -198,14 +198,9 @@ let doc_gen path =
 
      if json_index then
        let path = Fpath.(destination / "index.json") in
-       let _, pages =
-         (* TODO: Pick a more way of doing this which doesn't just pick the first one. *)
+       let pages =
          NMap.to_seq pages |> Seq.map snd |> Seq.flat_map StringMap.to_seq |> Seq.map snd
-         |> Seq.fold_left
-              (fun (names, pages) (modu : Doc.Syntax.page Doc.Syntax.documented) ->
-                if StringSet.mem modu.descriptor.page_id names then (names, pages)
-                else (StringSet.add modu.descriptor.page_id names, modu :: pages))
-              (StringSet.empty, [])
+         |> List.of_seq
        in
        E.Summary.(everything ~source_link pages |> to_json)
        |> Yojson.Safe.to_file (Fpath.to_string path));

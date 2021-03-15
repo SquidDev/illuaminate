@@ -1,5 +1,6 @@
 open IlluaminateSemantics
 open Doc.Syntax
+module SSet = Set.Make (String)
 
 type t =
   { name : string;
@@ -20,19 +21,23 @@ let ( @?: ) (name, value) rest : (string * Yojson.Safe.t) list =
 let ( @: ) (name, value) rest : (string * Yojson.Safe.t) list = (name, `String value) :: rest
 
 let to_json xs : Yojson.Safe.t =
-  List.rev_map
-    (fun { name; full_name; summary; source; in_module; name_of } ->
-      let Namespace module_kind, module_name = in_module in
-      let url = Helpers.reference_link in_module name_of in
-      let section = Reference.section_of_name name_of in
-      (* TODO: Drop section in a few months once we've updated the various bots that scrape this. *)
-      ( name,
-        `Assoc
-          (("name", full_name) @: ("source", source) @?: ("summary", summary)
-         @?: ("module", module_name) @: ("module-kind", module_kind) @: ("section", section)
-         @?: ("url", url) @: []) ))
-    xs
-  |> assoc
+  let _, items =
+    List.fold_left
+      (fun (seen, xs) { name; full_name; summary; source; in_module; name_of } ->
+        let Namespace module_kind, module_name = in_module in
+        let url = Helpers.reference_link in_module name_of in
+        let section = Reference.section_of_name name_of in
+        (* TODO: Drop section in a few months once we've updated the various bots that scrape this. *)
+        let term =
+          `Assoc
+            (("name", full_name) @: ("source", source) @?: ("summary", summary)
+           @?: ("module", module_name) @: ("module-kind", module_kind) @: ("section", section)
+           @?: ("url", url) @: [])
+        in
+        if SSet.mem name seen then (seen, xs) else (SSet.add name seen, (name, term) :: xs))
+      (SSet.empty, []) xs
+  in
+  assoc items
 
 let of_documented ~in_module ~name ~section ?(suffix = Fun.const "") ~source_link ~body = function
   | { local = true; _ } -> []
