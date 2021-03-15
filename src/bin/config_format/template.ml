@@ -20,7 +20,7 @@ let apply fn template =
     | Key k :: xs -> (
       match fn k with
       | Some x -> Buffer.add_string out x; go xs
-      | None -> None )
+      | None -> None)
   in
   go template
 

@@ -46,7 +46,7 @@ let rec get_config ~loader dir =
       let c =
         if Sys.file_exists config_path_s && not (Sys.is_directory config_path_s) then (
           Log.info (fun f -> f "Loading config from %S" config_path_s);
-          Config.of_file loader.errors (mk_name ~loader config_path) )
+          Config.of_file loader.errors (mk_name ~loader config_path))
         else if Fpath.is_root dir || dir = parent then Some Config.default
         else get_config ~loader parent
       in

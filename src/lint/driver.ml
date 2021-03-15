@@ -45,7 +45,7 @@ module Node = struct
       match (l, r) with
       | String l, String r -> l == r
       | Table l, Table r -> l == r
-      | l, r -> l == r )
+      | l, r -> l == r)
     | File, File -> File.( = ) l r
     | ( ( Stmt | Program | Token | BinOp | Name | FunctionName | Expr | Var | Call | Args | CallArgs
         | TableItem | File ),
@@ -306,9 +306,9 @@ let worker ~store ~data ~tags (Linter linter : t) document =
     else Format.ifprintf Format.std_formatter message
   in
 
-  ( match document with
+  (match document with
   | File.Lua x -> program_worker ~options ~data ~r:{ r } linter x
-  | _ -> () );
+  | _ -> ());
   linter.file options data { r = r ~kind:File ~source:document; e = r } document;
   messages
 
@@ -326,7 +326,7 @@ let fix_all (type a) fixes (w : a Witness.t) (original : a) : a =
       | { fix = Nothing | Block _; _ } -> go node xs
       | { fix = One f; _ } ->
           let node' = Result.value ~default:node (f node) in
-          if node' != node then node' else go node xs )
+          if node' != node then node' else go node xs)
   in
   Notes.Tbl.find_all fixes (Node (w, original)) |> go original
 
@@ -361,10 +361,10 @@ let fix_program prog (fixes : Notes.t) =
                      (* There's a risk here that this will result in an infinite loop, if the fixer
                         returns a list of statements which contains the original one. So don't do
                         that, OK? *)
-                     go_block rest stmts )
+                     go_block rest stmts)
              | { fix = One f; _ } ->
                  let node' = Result.value ~default:node (f node) in
-                 if node' != node then super#stmt node' :: rest else go rest node xs )
+                 if node' != node then super#stmt node' :: rest else go rest node xs)
          and go_stmt original xs =
            Notes.Tbl.find_all fixes (Node (Stmt, original)) |> go xs original
          and go_block rest xs = List.fold_right go_stmt xs rest in

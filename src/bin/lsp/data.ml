@@ -57,7 +57,7 @@ module FileDigest = struct
         | exception e ->
             let bt = Printexc.get_raw_backtrace () in
             close_in ic;
-            Printexc.raise_with_backtrace e bt )
+            Printexc.raise_with_backtrace e bt)
     in
 
     match previous with
@@ -72,11 +72,11 @@ module FileDigest = struct
               f "Checking digest for %S (previously %s, now %s)" path_s (Digest.to_hex digest)
                 (Digest.to_hex new_digest));
           if new_digest = digest then result ~digest value else read ~new_digest
-      | exception Sys_error msg -> error msg )
+      | exception Sys_error msg -> error msg)
     | None -> (
       match Digest.file path_s with
       | new_digest -> read ~new_digest
-      | exception Sys_error msg -> error msg )
+      | exception Sys_error msg -> error msg)
 
   let oracle ?delay ?container ?(eq = ( == )) ~name process =
     let compute path previous =

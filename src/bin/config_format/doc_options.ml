@@ -25,13 +25,13 @@ type t =
 let make_source_link ~root template =
   let git_commit =
     lazy
-      ( match
-          IlluaminateExec.exec "git" [| "git"; "-C"; Fpath.to_string root; "rev-parse"; "HEAD" |]
-        with
+      (match
+         IlluaminateExec.exec "git" [| "git"; "-C"; Fpath.to_string root; "rev-parse"; "HEAD" |]
+       with
       | Error e ->
           Log.err (fun f -> f "Cannot find git commit (%s)\n%!" e);
           None
-      | Ok l -> Some (String.trim l) )
+      | Ok l -> Some (String.trim l))
   in
   let link ~path ~start_line ~end_line =
     Fun.flip CCOpt.flat_map template @@ fun template ->

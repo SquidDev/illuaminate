@@ -31,9 +31,9 @@ let start () =
       let open Fiber.O in
       let+ res = server.request (wrap rpc) req in
       ( Rpc.Reply.now
-          ( match res with
+          (match res with
           | Ok r -> Ok r
-          | Error e -> Error e ),
+          | Error e -> Error e),
         () )
     in
     Server.Handler.make ~on_notification ~on_request:{ on_request } ()
@@ -89,7 +89,7 @@ let () =
       in
 
       Logs.set_level ~all:true (Some level);
-      Logs.set_reporter reporter );
+      Logs.set_reporter reporter);
 
     let open Lsp in
     Logger.with_log_file log_file (fun () -> start)

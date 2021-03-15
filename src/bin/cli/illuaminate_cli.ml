@@ -57,10 +57,10 @@ let lint paths github =
               |> Driver.Notes.to_seq
               |> Seq.iter (Driver.Note.report_any errs));
   Error.display_of_files errs;
-  ( if github then
-    match Github.publish_errors errs with
-    | Ok () -> ()
-    | Error msg -> Printf.eprintf "%s\n" msg; exit 2 );
+  (if github then
+   match Github.publish_errors errs with
+   | Ok () -> ()
+   | Error msg -> Printf.eprintf "%s\n" msg; exit 2);
   if Error.has_problems errs then exit 1
 
 let fix paths =
@@ -85,7 +85,7 @@ let fix paths =
         { Loader.body = Some newm; _ } )
       when oldm != newm -> (
       try write_file path (fun out -> File.emit out newm)
-      with e -> Log.err (fun f -> f "Error fixing %s (%s).\n" name (Printexc.to_string e)) )
+      with e -> Log.err (fun f -> f "Error fixing %s (%s).\n" name (Printexc.to_string e)))
     | _ -> ()
   in
   List.iter2 rewrite modules modules';
@@ -137,7 +137,7 @@ let doc_gen path =
   end in
   let errs = Error.make () in
   let loader = Loader.create errs in
-  ( CCOpt.get_lazy (fun () -> Sys.getcwd () |> Fpath.v) path
+  (CCOpt.get_lazy (fun () -> Sys.getcwd () |> Fpath.v) path
   |> Loader.load_from ~loader
   |> Option.iter @@ fun (config, _, builder) ->
      let data = IlluaminateData.Builder.(empty |> builder |> build) in
@@ -208,7 +208,7 @@ let doc_gen path =
               (StringSet.empty, [])
        in
        E.Summary.(everything ~source_link pages |> to_json)
-       |> Yojson.Safe.to_file (Fpath.to_string path) );
+       |> Yojson.Safe.to_file (Fpath.to_string path));
   Error.display_of_files errs;
   if Error.has_problems errs then exit 1
 
@@ -227,7 +227,7 @@ let dump_globals ~defined paths =
   let dump name xs =
     if not (StringSet.is_empty xs) then (
       Printf.printf "%s:\n" name;
-      StringSet.iter (Printf.printf " - %s\n") xs )
+      StringSet.iter (Printf.printf " - %s\n") xs)
   in
   let unbound_names, defined_names =
     List.fold_left
@@ -249,7 +249,7 @@ let dump_globals ~defined paths =
 let init_config config force =
   if (not force) && Sys.file_exists config then (
     Printf.eprintf "File already exists";
-    exit 1 );
+    exit 1);
   write_file (Fpath.v config) Config.generate
 
 let minify file =

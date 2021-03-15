@@ -7,10 +7,10 @@ module Filename = struct
     }
 
   let mk ?path ?name id =
-    ( match path with
+    (match path with
     | Some p when not (Fpath.is_abs p) ->
         Format.asprintf "Filename.mk: path %a must be absolute" Fpath.pp p |> invalid_arg
-    | _ -> () );
+    | _ -> ());
     { name = Option.value ~default:id name; path; id; hash = Hashtbl.hash id }
 
   let compare l r = String.compare l.id r.id

@@ -13,7 +13,7 @@ let name () (context : context) r = function
       match var with
       | { R.kind = ImplicitArg { kind = `Arg; _ }; _ } ->
           r.r ~tag "Using implicit vararg variable \"arg\"."
-      | _ -> () )
+      | _ -> ())
   | _ -> ()
 
 let linter = make_no_opt ~tags:[ tag ] ~name ()

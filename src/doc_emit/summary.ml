@@ -28,9 +28,9 @@ let to_json xs : Yojson.Safe.t =
       (* TODO: Drop section in a few months once we've updated the various bots that scrape this. *)
       ( name,
         `Assoc
-          ( ("name", full_name) @: ("source", source) @?: ("summary", summary)
-          @?: ("module", module_name) @: ("module-kind", module_kind) @: ("section", section)
-          @?: ("url", url) @: [] ) ))
+          (("name", full_name) @: ("source", source) @?: ("summary", summary)
+         @?: ("module", module_name) @: ("module-kind", module_kind) @: ("section", section)
+         @?: ("url", url) @: []) ))
     xs
   |> assoc
 

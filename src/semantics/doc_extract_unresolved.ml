@@ -117,22 +117,22 @@ module Infer = struct
   let add_resolved_var state var def =
     let update_info def =
       (* Add this term to the type map. Oh boy, this is almost definitely wrong *)
-      ( match !def with
+      (match !def with
       | { descriptor = Type ({ type_name; _ } as ty); _ } as def ->
           state.types <- StringMap.add type_name { def with descriptor = ty } state.types
-      | _ -> () );
+      | _ -> ());
       (* Export this variable if required. *)
       if !def.export then state.export <- Some def
     in
-    ( if not (VarTbl.mem state.vars var) then
-      match var with
-      | { kind = Global; name = "_ENV"; _ } -> VarTbl.add state.vars var state.globals
-      | { kind = Global; _ } -> (
-        match !(state.globals) with
-        | { descriptor = Table fs; _ } as globals ->
-            state.globals := { globals with descriptor = Table (fs @ [ (var.name, def) ]) }
-        | _ -> () )
-      | _ -> () );
+    (if not (VarTbl.mem state.vars var) then
+     match var with
+     | { kind = Global; name = "_ENV"; _ } -> VarTbl.add state.vars var state.globals
+     | { kind = Global; _ } -> (
+       match !(state.globals) with
+       | { descriptor = Table fs; _ } as globals ->
+           state.globals := { globals with descriptor = Table (fs @ [ (var.name, def) ]) }
+       | _ -> ())
+     | _ -> ());
     match VarTbl.find_opt state.vars var with
     | None ->
         let def = ref def in
@@ -153,15 +153,14 @@ module Infer = struct
           add_resolved_var state var (Lazy.force def)
       | NDot { tbl = Ref tbl; key; _ } ->
           Fun.flip go tbl
-            ( lazy
+            (lazy
               (let def = Lazy.force def in
-               simple_documented (Doc_syntax.Table [ (Node.contents.get key, def) ]) def.definition)
-              )
+               simple_documented (Doc_syntax.Table [ (Node.contents.get key, def) ]) def.definition))
       | NLookup { tbl = Ref tbl; key = String { lit_value; _ }; _ } ->
           Fun.flip go tbl
-            ( lazy
+            (lazy
               (let def = Lazy.force def in
-               simple_documented (Doc_syntax.Table [ (lit_value, def) ]) def.definition) )
+               simple_documented (Doc_syntax.Table [ (lit_value, def) ]) def.definition))
       | _ -> ()
     in
     match var with
@@ -190,8 +189,8 @@ module Infer = struct
         Expr
           { ty = Type_syntax.Builtin.string;
             value =
-              ( if String.length lit_value < 32 then Printf.sprintf "%S" lit_value |> Option.some
-              else None )
+              (if String.length lit_value < 32 then Printf.sprintf "%S" lit_value |> Option.some
+              else None)
           }
         |> simp
     | Number { lit_node; _ } | Int { lit_node; _ } | MalformedNumber lit_node ->
@@ -203,7 +202,7 @@ module Infer = struct
     | Ref v -> (
       match infer_name state v with
       | None -> simp Unknown
-      | Some x -> !x )
+      | Some x -> !x)
     | Parens { paren_expr; _ } -> infer_expr state paren_expr
     (* Visit children and return nothing. *)
     | Dots _ -> simp Unknown
@@ -237,7 +236,7 @@ module Infer = struct
       | { descriptor = Type { type_members; _ }; _ } ->
           List.find_opt (fun x -> Node.contents.get key = x.member_name) type_members
           |> Option.map (fun x -> ref x.member_value)
-      | _ -> None )
+      | _ -> None)
     | NLookup { tbl; key; _ } -> visit_expr state tbl; visit_expr state key; None
 
   (** Get a documented table entry *)
@@ -280,12 +279,12 @@ module Infer = struct
     match node with
     | Local { local_vars = Mono var; local_vals = Some (_, Mono (Ref (NVar def_var) as def)); _ } as
       s ->
-        ( match infer_var state def_var with
+        (match infer_var state def_var with
         | None -> infer_expr state def |> document_stmt state s |> add_var state var
         | Some def ->
             def := document_stmt state s !def;
             let var = R.get_definition var state.resolve in
-            VarTbl.add state.vars var def );
+            VarTbl.add state.vars var def);
         None
     | Local { local_vars = Mono var; local_vals = Some (_, Mono def); _ } as s ->
         infer_expr state def |> document_stmt state s |> add_var state var;
@@ -374,9 +373,9 @@ module Infer = struct
     let result =
       match module_comment with
       | Some
-          ( { module_info = Some { value = { mod_name; mod_kind = k; mod_namespace = ns; _ }; _ };
-              _
-            } as comment ) ->
+          ({ module_info = Some { value = { mod_name; mod_kind = k; mod_namespace = ns; _ }; _ };
+             _
+           } as comment) ->
           let merge pos implicit body =
             let mod_contents = Merge.value ~errs:state.errs pos implicit body in
             mk_page ~mod_name ~mod_contents ~mod_types
@@ -453,4 +452,4 @@ let unresolved_module_file =
                    page_namespace;
                    page_contents = Markdown
                  }
-             } )
+             })

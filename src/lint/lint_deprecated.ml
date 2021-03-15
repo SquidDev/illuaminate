@@ -16,7 +16,7 @@ let expr () ctx r = function
           r.r ~tag
             ?detail:(Option.map pp_description deprecation_message)
             "Using deprecated member."
-      | None | Some (_, { deprecated = None; _ }) -> () )
+      | None | Some (_, { deprecated = None; _ }) -> ())
   | _ -> ()
 
 let linter = make_no_opt ~tags:[ tag ] ~expr ()

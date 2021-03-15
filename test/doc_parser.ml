@@ -33,7 +33,7 @@ let process ~name contents out =
          | _ :: _ as errors ->
              let errs = Error.make () in
              List.iter (fun (tag, f, msg) -> Error.report errs tag f msg) errors;
-             Error.display_of_string ~out (fun _ -> Some contents) errs )
+             Error.display_of_string ~out (fun _ -> Some contents) errs)
 
 let process ~name contents = Format.asprintf "%t" (process ~name contents)
 

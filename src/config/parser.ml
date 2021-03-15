@@ -37,7 +37,7 @@ let atom_res ~ty parse : 'a t =
   | Atom (pos, txt) :: xs -> (
     match parse txt with
     | Error e -> Error (pos, e)
-    | Ok x -> Ok (x, xs) )
+    | Ok x -> Ok (x, xs))
 
 let atom ~ty parse =
   atom_res ~ty (fun x ->
@@ -67,7 +67,7 @@ let many (term : 'a t) : 'a list t =
     | ss -> (
       match term end_pos ss with
       | Error e -> Error e
-      | Ok (x, ss') -> go (x :: xs) end_pos ss' )
+      | Ok (x, ss') -> go (x :: xs) end_pos ss')
   in
   go []
 
@@ -105,7 +105,7 @@ let fields (body : 'a fields) : 'a t =
       | Ok (key, value) ->
           gather
             (StringMap.update key (fun x -> Some ((pos, value) :: Option.value ~default:[] x)) res)
-            xs )
+            xs)
   in
   let rec last = function
     | [] -> raise (Invalid_argument "Empty list")
@@ -127,7 +127,7 @@ let fields (body : 'a fields) : 'a t =
                 if Span.compare pos pos' < 0 then (key, pos) else (key', pos'))
               state (key, pos)
           in
-          Error (pos, Printf.sprintf "Unexpected key %S" key) )
+          Error (pos, Printf.sprintf "Unexpected key %S" key))
 
 let field ~name (body : 'a t) : 'a fields =
  fun pos fields ->
@@ -159,7 +159,7 @@ let field_repeated ~name (body : 'a t) : 'a list fields =
         | (pos, xs) :: xss -> (
           match parse_til_empty body (Span.finish pos) xs with
           | Error e -> Error e
-          | Ok x -> go (x :: res) xss )
+          | Ok x -> go (x :: res) xss)
       in
       go [] xs
 
@@ -188,13 +188,13 @@ let parse_buf (file : Span.filename) (lexbuf : Lexing.lexbuf) body =
         | (xs, xs_pos) :: stack ->
             go stack
               (List (Span.of_pos2 lines head_start lexbuf.lex_curr_p, List.rev head) :: xs)
-              xs_pos )
+              xs_pos)
       | End -> (
         match stack with
         | [] -> List.rev head
         | _ :: _ ->
             let head_start' = { head_start with pos_cnum = head_start.pos_cnum + 1 } in
-            raise (Lexer.Error ("Unclosed '('", head_start, head_start')) )
+            raise (Lexer.Error ("Unclosed '('", head_start, head_start')))
     in
     let value = go [] [] lexbuf.lex_curr_p in
     parse value body (Span.of_pos2 lines lexbuf.lex_curr_p lexbuf.lex_curr_p)

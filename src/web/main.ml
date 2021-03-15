@@ -96,7 +96,7 @@ and lint () : unit =
   let errs = Error.make () in
   let input = Js.to_string input##.value in
   let lexbuf = Lexing.from_string input in
-  ( match IlluaminateParser.program (Span.Filename.mk "=input") lexbuf with
+  (match IlluaminateParser.program (Span.Filename.mk "=input") lexbuf with
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok parsed ->
       let data = data () in
@@ -105,7 +105,7 @@ and lint () : unit =
       |> List.iter @@ fun l ->
          Driver.lint ~store ~data ~tags l (Lua parsed)
          |> Driver.Notes.to_seq
-         |> Seq.iter (Driver.Note.report_any errs) );
+         |> Seq.iter (Driver.Note.report_any errs));
   let out =
     Error.errors errs
     |> List.sort Error.Error.span_compare

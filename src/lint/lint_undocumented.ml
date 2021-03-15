@@ -64,7 +64,7 @@ let linter =
       | Some { description; descriptor; definition; _ } ->
           (* Modules are a little odd, as we allow any module with the same name to have
              documentation. *)
-          ( match description with
+          (match description with
           | Some _ -> ()
           | None ->
               let module MN = Map.Make (Namespace) in
@@ -76,7 +76,7 @@ let linter =
                 |> CCOpt.flat_map (fun (x : _ documented) -> x.description)
                 |> Option.is_some
               in
-              if not has_any then r.r ~span:definition ~tag "Module is missing documentation" );
+              if not has_any then r.r ~span:definition ~tag "Module is missing documentation");
 
           page ~r ~span:definition descriptor.page_contents)
     ()

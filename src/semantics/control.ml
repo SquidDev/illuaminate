@@ -81,9 +81,9 @@ let build_func t entry_block =
   let add_if stmt from test (truthy, truthy_b) (falsey, falsey_b) =
     let test = Eval.(eval test |> is_truthy) in
     (* Unless we're always true, jump to the false case.*)
-    ( match test with
+    (match test with
     | Some true -> ()
-    | _ -> add_edge from falsey (Jump stmt) falsey_b );
+    | _ -> add_edge from falsey (Jump stmt) falsey_b);
     (* Unless we're always false, jump to the true case. *)
     match test with
     | Some false -> ()
@@ -110,9 +110,9 @@ let build_func t entry_block =
         (* Do just yields whatever the body yields. *)
         go' loop bb body
     | Break _ ->
-        ( match loop with
+        (match loop with
         | None -> ()
-        | Some continue -> add_edge bb continue (Jump stmt) false );
+        | Some continue -> add_edge bb continue (Jump stmt) false);
         None
     | If { if_if; if_elseif; if_else; _ } ->
         let clause { clause_test; clause_body; _ } (next_block, bbs) =
@@ -230,7 +230,7 @@ let get_block stmt t =
       Lazy.force l |> ignore;
       match StmtTbl.find t.stmts stmt with
       | Resolved r -> r
-      | Unresolved _ -> failwith "Should have resolved statement but didn't." )
+      | Unresolved _ -> failwith "Should have resolved statement but didn't.")
 
 let write_dot out { entry; blocks; _ } =
   let open Format in

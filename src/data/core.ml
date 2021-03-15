@@ -73,7 +73,7 @@ module BoxedKey = struct
         let key = Key.Container.get_key c in
         match key with
         | Some key -> Format.fprintf out "%s(%a)" Key.name Key.pp key
-        | None -> Format.fprintf out "%s(missing)" Key.name )
+        | None -> Format.fprintf out "%s(missing)" Key.name)
     | _ -> Format.fprintf out "%s(unknown container)" Key.name
 
   let equal { container; _ } (Mk ((module Key), k)) =
@@ -178,7 +178,7 @@ module Key = struct
       | None -> Contained_tbl.strong ~eq:( == ) ()
     in
     let pp = Option.value ~default:default_pp pp in
-    ( module struct
+    (module struct
       type key = k
 
       type value = v
@@ -202,7 +202,7 @@ module Key = struct
       type values += Value of value
 
       type providers += Provider of (store, key, value) provider
-    end )
+    end)
 
   let builtin ~name ?pp ?container f = factory ~name ~eq:fail_eq ?pp ?container (Some f)
 
@@ -274,7 +274,7 @@ let build_result (type k v) store (k : (k, v) Key.t) (key : k) ~has_change ~prev
         match IntMap.find_opt K.id store.providers with
         | None -> Printf.sprintf "No provider for %S" K.name |> invalid_arg
         | Some (K.Provider f) -> f
-        | Some _ -> Printf.sprintf "Incorrect provider for %S" K.name |> failwith )
+        | Some _ -> Printf.sprintf "Incorrect provider for %S" K.name |> failwith)
     in
     let previous =
       match previous with
@@ -302,16 +302,16 @@ let build_result (type k v) store (k : (k, v) Key.t) (key : k) ~has_change ~prev
     match contents.changed with
     | NoChange ->
         log "did nothing";
-        ( match trace with
+        (match trace with
         | Depends [] -> ()
-        | Depends (_ :: _) -> failwith "Key returned NoChange, but has dependencies!" );
+        | Depends (_ :: _) -> failwith "Key returned NoChange, but has dependencies!");
         { old with contents = K.Value contents.value; checked_at = version }
     | RecomputeChange -> log "changed"; result
-    | RecomputeSame -> log "same"; { result with changed_at } )
+    | RecomputeSame -> log "same"; { result with changed_at })
   | _ ->
-      ( match contents.changed with
+      (match contents.changed with
       | NoChange -> failwith "Key returned NoChange for a new key!"
-      | _ -> () );
+      | _ -> ());
       log "new"; result
 
 let build_result store (Mk (k, key) : BoxedKey.t) ~has_change ~previous : result =
@@ -338,7 +338,7 @@ let has_change source build : result -> bool = function
               Log.debug (fun f ->
                   f "Rebuilding: %a - %a was built more recently (%d > %d)" BoxedKey.pp source
                     BoxedKey.pp_container container result.changed_at built_at);
-              true )
+              true)
       in
       List.exists has trace
 

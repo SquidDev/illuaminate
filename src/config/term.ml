@@ -191,12 +191,12 @@ module Repr = struct
         let+ value = field_opt ~name parse in
         match value with
         | None -> ReprNode { value = default; is_default = true }
-        | Some value -> ReprNode { value; is_default = false } )
+        | Some value -> ReprNode { value; is_default = false })
     | Node { name; body = Group body; _ } -> (
         let+ value = field_opt ~name (to_repr_parser body |> fields) in
         match value with
         | None -> default body
-        | Some v -> v )
+        | Some v -> v)
     | Const k -> Parser.const (ReprConst k)
     | Map (f, x) ->
         let+ x = to_repr_parser x in

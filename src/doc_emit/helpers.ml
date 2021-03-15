@@ -24,7 +24,7 @@ let get_summary ?(max_length = 120) (desc : Omd.t) =
         match sentence_end with
         | Some i -> Ok [ Text (CCString.take (i + 1) t) ]
         | None when String.length t >= space -> Ok [ Text (CCString.take space t ^ "...") ]
-        | None -> appending (Text t) (space - String.length t) xs )
+        | None -> appending (Text t) (space - String.length t) xs)
     (* Basic formatting blocks *)
     | Emph body :: xs -> on_child (fun x -> Emph x) space body xs
     | Bold body :: xs -> on_child (fun x -> Bold x) space body xs

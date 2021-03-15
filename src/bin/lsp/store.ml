@@ -69,7 +69,7 @@ module Workspace = struct
                 let wk_len = Fpath.to_string path |> String.length in
                 match best with
                 | Some (_, best_len) when wk_len <= best_len -> best
-                | _ -> Some (workspace, wk_len) )
+                | _ -> Some (workspace, wk_len))
         in
         UriMap.fold get_name workspaces None |> Option.map fst |> CCOpt.or_ ~else_:root
 
@@ -113,9 +113,9 @@ module Workspace = struct
     let config = need store config key in
     let files = ref [] in
     let add f = if Fpath.get_ext f = ".lua" then files := f :: !files in
-    ( match key.path with
+    (match key.path with
     | None -> Config.all_files add config
-    | Some p -> Config.files add config p );
+    | Some p -> Config.files add config p);
     let changed =
       match previous with
       | Absent -> Key.RecomputeChange
@@ -206,14 +206,14 @@ let create () =
                  FileDigest.with_change
                    ~process:(fun chan -> Lexing.from_channel chan |> IlluaminateParser.program file)
                    ~path digest
-                 |> Option.fold ~none:Unknown ~some:(fun x -> OnDisk x) ))
+                 |> Option.fold ~none:Unknown ~some:(fun x -> OnDisk x)))
     (* Then we use the above key to extract the actual program. *)
     |> key Programs.Files.file (fun store file ->
            match need store parsed_file file with
            | OnDisk { value; _ } | Open value -> (
              match value with
              | Ok x -> Some (Lua x)
-             | Error _ -> None )
+             | Error _ -> None)
            | Unknown -> None)
     (* The file list is derived from all matching patterns in the config file for each workspace *)
     |> key Programs.Files.files (fun store () ->
@@ -223,9 +223,9 @@ let create () =
              |> List.fold_left (fun s p -> FilenameSet.add (Filename.of_path p) s) all
            in
            let base = UriMap.fold (fun _ -> add) workspaces.workspaces FilenameSet.empty in
-           ( match workspaces.root with
+           (match workspaces.root with
            | None -> base
-           | Some w -> add w base )
+           | Some w -> add w base)
            |> FilenameSet.to_seq |> List.of_seq)
     (* A program's context is just derived from its workspace. *)
     |> key Programs.Context.key (fun store name ->

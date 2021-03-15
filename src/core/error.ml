@@ -145,9 +145,9 @@ let display_line out line { Error.tag; span; message; details } =
   Style.(printf (BrightColor (error_ansi tag.level)))
     out "%s:[%d:%d-%d:%d]: %s [%s]@\n" (Span.filename span).name start_l start_c finish_l finish_c
     message tag.name;
-  ( match details with
+  (match details with
   | None -> ()
-  | Some details -> Format.fprintf out "%t@\n" details );
+  | Some details -> Format.fprintf out "%t@\n" details);
   let fmt no line =
     Style.(printf (BrightColor Green)) out " %*s" (String.length line_no) no;
     if line = "" then Format.fprintf out " │@\n" else Format.fprintf out " │ %s@\n" line
@@ -197,12 +197,12 @@ let display_of_files ?(out = Format.err_formatter) ?(with_summary = true) store 
            | Some path -> (
                let ch = get_channel (Fpath.to_string path) in
                seek_in ch (Span.start_bol span);
-               try input_line ch with End_of_file -> "" )
+               try input_line ch with End_of_file -> "")
          in
          display_line out line err);
-  ( match !last with
+  (match !last with
   | Some (_, ch) -> close_in ch
-  | _ -> () );
+  | _ -> ());
   if with_summary then summary out store
 
 let display_of_string ?(out = Format.err_formatter) ?(with_summary = true) getter store =
@@ -214,10 +214,10 @@ let display_of_string ?(out = Format.err_formatter) ?(with_summary = true) gette
              let line =
                let bol = Span.start_bol span in
                String.sub contents bol
-                 ( ( match String.index_from_opt contents bol '\n' with
-                   | None -> String.length contents
-                   | Some x -> x )
-                 - bol )
+                 ((match String.index_from_opt contents bol '\n' with
+                  | None -> String.length contents
+                  | Some x -> x)
+                 - bol)
              in
              display_line out line err);
 

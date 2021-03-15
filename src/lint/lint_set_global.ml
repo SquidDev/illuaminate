@@ -41,7 +41,7 @@ let stmt opts (context : context) r = function
       | { kind = Global; _ } ->
           r.r ~span:(Spanned.var var) ~tag "Setting unknown global function %S."
             (Node.contents.get name)
-      | _ -> () )
+      | _ -> ())
   | _ -> ()
 
 let name opts context r name =
@@ -51,7 +51,7 @@ let name opts context r name =
       match R.get_definition var resolve with
       | { kind = Global; _ } ->
           r.r ~tag "Setting unknown global variable %S." (Node.contents.get name)
-      | _ -> () )
+      | _ -> ())
   | _ -> ()
 
 let linter = make ~options:Opt.parser ~tags:[ tag ] ~stmt ~name ()

@@ -86,7 +86,7 @@ let check ~r ~(context : context) = function
       | Some g when g = string_len && safe_args call.args ->
           r.e ~fix ~tag ~kind:Call ~source:c
             "Prefer passing function arguments to pcall, rather than using a closure."
-      | _ -> () )
+      | _ -> ())
   | _ -> ()
 
 let expr () context r = function

@@ -195,7 +195,7 @@ module Rename = struct
           let i, name = go t.index in
           t.index <- i + 1;
           R.VarTbl.add t.var_names var name;
-          name )
+          name)
 
   let rename_var t (Var name as v) =
     let n = R.get_var v t.resolve |> get_name t in

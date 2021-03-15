@@ -33,13 +33,13 @@ module Testable = struct
   include Alcotest
 
   let mk (type a) ~eq ~pp : a testable =
-    ( module struct
+    (module struct
       type t = a
 
       let pp = pp
 
       let equal = eq
-    end )
+    end)
 
   let yojson : Yojson.Safe.t testable = mk ~pp:pp_json ~eq:( = )
 
@@ -193,7 +193,7 @@ let rec get_request t f =
   | Some (Request' req) -> (
     match f (Request req) with
     | Some x -> x
-    | None -> get_request t f )
+    | None -> get_request t f)
 
 let rec get_notification t f =
   match Queue.take_opt t.outgoing with
@@ -202,7 +202,7 @@ let rec get_notification t f =
   | Some (Notification noti) -> (
     match f noti with
     | Some x -> x
-    | None -> get_notification t f )
+    | None -> get_notification t f)
 
 let read_file { workspace; _ } f =
   let path = Fpath.(append workspace (v f) |> to_string) in

@@ -34,7 +34,7 @@ let emit ~options ~data ~input visit tree =
     let xs = !stack in
     if List.exists Fun.id xs then (
       stack := false :: xs;
-      "" )
+      "")
     else
       match fn () |> CCOpt.flat_map (transform_ref ~options) with
       | Some (url, (node : 'a Doc.Syntax.documented)) ->

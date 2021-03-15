@@ -72,12 +72,12 @@ let get_suffix = function
           (fun (i, o) { arg_name; arg_opt; _ } ->
             if arg_opt <> Required then (
               if i > 0 then Buffer.add_char buf ' ';
-              Buffer.add_char buf '[' );
+              Buffer.add_char buf '[');
             if i > 0 then Buffer.add_string buf ", ";
             Buffer.add_string buf arg_name;
-            ( match arg_opt with
+            (match arg_opt with
             | Default x -> Buffer.add_char buf '='; Buffer.add_string buf x
-            | Required | Optional -> () );
+            | Required | Optional -> ());
             (i + 1, o + if arg_opt <> Required then 1 else 0))
           (0, 0) args
       in
@@ -194,7 +194,7 @@ module Link = struct
           | None -> (
             match CCString.chop_prefix ~pre:"ty:" name with
             | None -> invalid_arg ("Unknown name " ^ name)
-            | Some t -> Type t )
+            | Some t -> Type t)
         in
         make
           (Internal { in_module = (Namespace namespace, in_module_name); name; definition })

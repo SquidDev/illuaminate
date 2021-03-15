@@ -121,21 +121,21 @@ let leak =
 
   OmnomnomAlcotest.mk_alcotest_case "Memory leaks" `Slow @@ fun () ->
   Leak.run_unit ~n:1000
-    ( action ~name:"Parse file" (fun () ->
-          let contents = "print('hello world')" in
-          match Lexing.from_string contents |> IlluaminateParser.program name with
-          | Error err ->
-              let errs = Error.make () in
-              IlluaminateParser.Error.report errs err.span err.value;
-              Alcotest.failf "%t" (fun out ->
-                  Error.display_of_string ~out (fun _ -> Some contents) errs)
-          | Ok parsed -> parsed)
+    (action ~name:"Parse file" (fun () ->
+         let contents = "print('hello world')" in
+         match Lexing.from_string contents |> IlluaminateParser.program name with
+         | Error err ->
+             let errs = Error.make () in
+             IlluaminateParser.Error.report errs err.span err.value;
+             Alcotest.failf "%t" (fun out ->
+                 Error.display_of_string ~out (fun _ -> Some contents) errs)
+         | Ok parsed -> parsed)
     >-> action ~name:"Lint and fix" (fun prog ->
             match Driver.lint_and_fix_all ~store ~data Linters.all (Lua prog) with
             | Lua x, _ -> x
             | _ -> assert false)
     >-> action ~name:"Lint fixed program" (fun prog ->
-            List.iter (fun l -> Driver.lint ~store ~data l (Lua prog) |> ignore) Linters.all) )
+            List.iter (fun l -> Driver.lint ~store ~data l (Lua prog) |> ignore) Linters.all))
 
 let tests =
   group "Linting"

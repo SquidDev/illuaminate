@@ -20,9 +20,9 @@ let fix_args ({ args_args = args; _ } as rest) =
     | Mono _ as x -> Some x
     | Cons1 (x, t, xs) ->
         Some
-          ( match go xs with
+          (match go xs with
           | None -> Mono x
-          | Some xs -> Cons1 (x, t, xs) )
+          | Some xs -> Cons1 (x, t, xs))
   in
   { rest with args_args = Option.bind args go }
 
@@ -47,7 +47,7 @@ let check_args (context : context) r fix { args_args; _ } =
       match R.get_dots_definition dot resolve with
       | { R.dot_usages = []; dot_implicit = Some { usages = []; _ }; _ } ->
           r.r ~tag:tag_arg ~fix ~span:(Node.span dot) "Unused varargs."
-      | _ -> () )
+      | _ -> ())
   | _ -> ()
 
 let var () context r (Var name as var) =
@@ -65,7 +65,7 @@ let var () context r (Var name as var) =
               | _ -> tag_generic
             in
             r.r ~fix:fix_var ~tag "Unused variable %S." name
-        | _ -> () )
+        | _ -> ())
     | _ -> ()
 
 let stmt () context r = function

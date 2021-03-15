@@ -197,7 +197,7 @@ module Highlights = struct
         in
         match dot_node with
         | None -> res
-        | Some node -> { kind = Some Write; range = range (Node.span node) } :: res )
+        | Some node -> { kind = Some Write; range = range (Node.span node) } :: res)
 
   let find ~store ~position program : DocumentHighlight.t list =
     match Locate.locate position program with
@@ -273,15 +273,15 @@ let worker (type res) (client : Store.client_channel) store :
                       { code = ContentModified;
                         message = Option.value ~default:"Failed to apply" failureReason;
                         data = None
-                      } ) )
-        | _ -> Ok `Null |> Fiber.return )
+                      }))
+        | _ -> Ok `Null |> Fiber.return)
     | _ ->
         Error
           { Jsonrpc.Response.Error.code = InternalError;
             message = "Invalid arguments";
             data = None
           }
-        |> Fiber.return )
+        |> Fiber.return)
   | _ ->
       Log.err (fun f -> f "Unknown message (not implemented)");
       Error

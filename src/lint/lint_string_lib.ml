@@ -48,7 +48,7 @@ let check_format_args ~r ~span specs args =
           ()
       | Some arity ->
           r.r ~span ~tag:tag_format "Format string takes %a, but only given %a." plural
-            (arity, "parameter") plural (i, "argument") )
+            (arity, "parameter") plural (i, "argument"))
     (* If this expression has multiple values, there's very little we can infer from it. *)
     | _ :: _, Some (Mono arg) when Helpers.has_var_return arg -> ()
     | Known _ :: specs, Some (Mono _) -> go (i + 1) specs None
@@ -74,12 +74,12 @@ let check ~(context : context) ~r = function
         match Helpers.get_call_args args with
         | None -> ()
         | Some (Cons1 (fmt, _, args)) -> check_format ~r c fmt (Some args)
-        | Some (Mono fmt) -> check_format ~r c fmt None )
-      | _ -> () )
+        | Some (Mono fmt) -> check_format ~r c fmt None)
+      | _ -> ())
   | Invoke { obj; colon = _; meth; args } as c -> (
     match Node.contents.get meth with
     | "format" -> check_format ~r c obj (Helpers.get_call_args args)
-    | _ -> () )
+    | _ -> ())
 
 let expr () context r = function
   | ECall call -> check ~context ~r call

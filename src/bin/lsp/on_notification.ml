@@ -26,7 +26,7 @@ let worker client store : Client_notification.t -> unit Fiber.t = function
           send_diagnostics client store ?version doc
       | _ ->
           Log.err (fun f -> f "Cannot update file %a (not currently open)" Uri.pp uri);
-          Fiber.return () )
+          Fiber.return ())
   | TextDocumentDidClose { textDocument = { uri; _ } } ->
       Store.close_file store (Store.Filename.box uri);
       Fiber.return ()

@@ -23,7 +23,7 @@ let request ~token ~path ~mthd ~body : (Yojson.Safe.t, string) result =
   | Ok body -> (
     try Ok (Yojson.Safe.from_string body)
     with Yojson.Json_error _ ->
-      Error (Printf.sprintf "Cannot parse response of %s (%s)" path body) )
+      Error (Printf.sprintf "Cannot parse response of %s (%s)" path body))
   | Error e -> Error e
 
 let publish_errors ~token ~repo ~sha ~errors =

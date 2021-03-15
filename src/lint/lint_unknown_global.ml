@@ -77,7 +77,7 @@ let name known ctx r = function
            && not (IlluaminateData.need ctx.data Module_resolve.global_modules () |> SSet.mem name)
       ->
         r.r ~tag "Using unknown global %S" name
-    | _ -> () )
+    | _ -> ())
   | NDot _ | NLookup _ -> ()
 
 let linter = make ~tags:[ tag ] ~options ~name ()

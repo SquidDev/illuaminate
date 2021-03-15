@@ -44,11 +44,11 @@ module SepList1 = struct
     | Mono x -> (
       match f x with
       | None -> []
-      | Some x -> [ x ] )
+      | Some x -> [ x ])
     | Cons1 (x, _, xs) -> (
       match f x with
       | None -> filter_map' f xs
-      | Some x -> x :: filter_map' f xs )
+      | Some x -> x :: filter_map' f xs)
 
   let rec fold_left f s = function
     | Mono x -> f s x

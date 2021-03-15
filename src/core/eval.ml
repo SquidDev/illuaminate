@@ -26,7 +26,7 @@ let as_number = function
   | RString x -> (
     match float_of_string_opt x with
     | Some x -> Some x
-    | None -> None )
+    | None -> None)
   | RUnknown | RNil | RBool _ -> None
 
 (** Implicitly convert this value into a string. *)
@@ -78,16 +78,16 @@ let rec eval ?(var = fun _ -> RUnknown) =
       | UnOp.OpLen -> (
         match e with
         | RString x -> RNumber (String.length x |> float_of_int)
-        | _ -> RUnknown )
+        | _ -> RUnknown)
       | UnOp.OpNot -> (
         match is_truthy e with
         | Some b -> RBool (not b)
-        | None -> RUnknown )
+        | None -> RUnknown)
       | UnOp.OpNeg -> (
         match as_number e with
         | Some x -> RNumber (-.x)
-        | None -> RUnknown )
-      | UnOp.OpBNot -> RUnknown )
+        | None -> RUnknown)
+      | UnOp.OpBNot -> RUnknown)
   | BinOp { binop_lhs = lhs; binop_op = op; binop_rhs = rhs } -> (
       let lhs = eval lhs and rhs = eval rhs in
       match Node.contents.get op with
@@ -105,4 +105,4 @@ let rec eval ?(var = fun _ -> RUnknown) =
       | BinOp.OpAnd -> bin_op (fun x -> RBool x) is_truthy ( && ) lhs rhs
       | BinOp.OpOr -> bin_op (fun x -> RBool x) is_truthy ( || ) lhs rhs
       | BinOp.OpEq -> eq Fun.id lhs rhs
-      | BinOp.OpNe -> eq not lhs rhs )
+      | BinOp.OpNe -> eq not lhs rhs)

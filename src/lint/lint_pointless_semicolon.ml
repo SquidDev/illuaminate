@@ -26,7 +26,7 @@ let stmt () context r stmt =
             and after = after ^. (First.stmt -| Node.contents) in
             match (before, after) with
             | Token.CParen, (Token.OParen | Token.String _ | Token.OBrace) -> false
-            | _ -> true )
+            | _ -> true)
       in
       (* TODO: We shouldn't offer a fix if we've a chain of semicolons, and at least one is
          required. For instance: [(f)() ;;; f()] should offer fixes on all but the first. *)

@@ -32,7 +32,7 @@ module Category = struct
   let create ?parent ~name ~comment () = { parent; name; comment; id = new_id () }
 
   let add (type t) (term : t Term.t) owner : t key =
-    ( module struct
+    (module struct
       type value = t
 
       type values += Value of value Term.Repr.repr
@@ -42,7 +42,7 @@ module Category = struct
       let owner = owner
 
       let term = term
-    end )
+    end)
 end
 
 module Schema = struct

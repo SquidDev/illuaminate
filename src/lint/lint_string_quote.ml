@@ -34,11 +34,11 @@ let fix =
     let prefix = Quote.prefix quote in
     let out = Node.contents.get node |> String.length |> Buffer.create in
     Buffer.add_char out prefix;
-    ( parse node
+    (parse node
     |> Option.iter @@ List.iter
        @@ function
        | Segment x | Escape (x, _) -> Buffer.add_string out x
-       | Malformed (c, _) | Quote c -> Buffer.add_char out '\\'; Buffer.add_char out c );
+       | Malformed (c, _) | Quote c -> Buffer.add_char out '\\'; Buffer.add_char out c);
     Buffer.add_char out prefix;
     Lens.(Node.contents ^= Buffer.contents out) @@ node
   in
@@ -57,7 +57,7 @@ let expr quote _ r = function
     | ('\'' | '"') as prefix when prefix <> Quote.prefix quote ->
         r.r ~fix:(fix quote) ~tag "String should use %s quotes (%C)" (Quote.show quote)
           (Quote.prefix quote)
-    | _ -> () )
+    | _ -> ())
   | _ -> ()
 
 let linter = make ~options:Quote.options ~tags:[ tag ] ~expr ()

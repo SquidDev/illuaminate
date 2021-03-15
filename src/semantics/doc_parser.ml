@@ -242,9 +242,9 @@ module Build = struct
     in
     { all =
         IntMap.add idx
-          ( match IntMap.find_opt idx group.all with
+          (match IntMap.find_opt idx group.all with
           | None -> [ x ]
-          | Some xs -> x :: xs )
+          | Some xs -> x :: xs)
           group.all;
       last = Some idx
     }
@@ -320,7 +320,7 @@ module Build = struct
                (* TODO: Adjust to correct position. *)
                report b Tag.malformed_type (Lex.to_span ty)
                  "Parameter '%s' has malformed type '%s' ('%s')" name ty.contents msg;
-               (idx, arg) )
+               (idx, arg))
        | Marker cont -> (
          match CCInt.of_string cont.contents with
          | Some new_idx ->
@@ -330,7 +330,7 @@ module Build = struct
                    "Parameter '%s' has argument set '%d' and '%d'" name idx new_idx)
                idx;
              (* Check the group is consistent. *)
-             ( match b.b_args.last with
+             (match b.b_args.last with
              | None when new_idx <> 1 ->
                  report b Tag.bad_index (Lex.to_span cont)
                    "Parameter '%s' is part of parameter set '%d', but is the first parameter!" name
@@ -340,11 +340,11 @@ module Build = struct
                    "Parameter '%s' is part of parameter set '%d', but the previous arg is part of \
                     '%d'"
                    name new_idx idx
-             | _ -> () );
+             | _ -> ());
              (Some new_idx, arg)
          | None ->
              unknown b (Printf.sprintf "Parameter '%s'" name) flag;
-             (idx, arg) )
+             (idx, arg))
        | Named _ ->
            unknown b (Printf.sprintf "Parameter '%s'" name) flag;
            (idx, arg)
@@ -361,7 +361,7 @@ module Build = struct
            | Error msg ->
                report b Tag.malformed_type (Lex.to_span ty)
                  "Return value has malformed type '%s' ('%s')" ty.contents msg;
-               (idx, ret) )
+               (idx, ret))
        | Marker cont -> (
          match CCInt.of_string cont.contents with
          | Some new_idx ->
@@ -370,7 +370,7 @@ module Build = struct
                  report b Tag.duplicate_definitions (Lex.to_span cont)
                    "Return value is part of set '%d' and '%d'" idx new_idx)
                idx;
-             ( match b.b_rets.last with
+             (match b.b_rets.last with
              | None when new_idx <> 1 ->
                  report b Tag.bad_index (Lex.to_span cont)
                    "The first return value should be part of set [1] (is actually '%d')" new_idx
@@ -378,9 +378,9 @@ module Build = struct
                  report b Tag.bad_index (Lex.to_span cont)
                    "Return value is part of return set '%d', but the previous arg is part of '%d'"
                    new_idx idx
-             | _ -> () );
+             | _ -> ());
              (Some new_idx, ret)
-         | None -> unknown b "Return value" flag; (idx, ret) )
+         | None -> unknown b "Return value" flag; (idx, ret))
        | Named _ -> unknown b "Return value" flag; (idx, ret)
 
   (** Extract a {!documented} term from a comment and series of tags. *)
@@ -415,7 +415,7 @@ module Build = struct
                 see_span = Lex.to_span refr;
                 see_description
               }
-              :: b.b_see )
+              :: b.b_see)
     | "include" ->
         List.iter (unknown b "@include") flags;
         b.b_includes <- { value = Reference body.contents; span = Lex.to_span body } :: b.b_includes
@@ -466,7 +466,7 @@ module Build = struct
       | Some (ty, cont) ->
           add_flag b { tag with value = "param" }
             (Named ({ span = Lex.to_span body; value = "type" }, ty) :: flags)
-            cont )
+            cont)
     (* Extract the parameter name and then process flags *)
     | "param" ->
         let name, desc =
@@ -489,7 +489,7 @@ module Build = struct
       | Some (ty, cont) ->
           add_flag b { tag with value = "return" }
             (Named ({ span = Lex.to_span body; value = "type" }, ty) :: flags)
-            cont )
+            cont)
     (* And add a return value, processing flags *)
     | "return" ->
         let idx, ret =
@@ -530,14 +530,14 @@ module Build = struct
         | None ->
             b.b_module <-
               Some
-                { value = { mod_name = body.contents; mod_kind; mod_namespace }; span = tag.span } )
+                { value = { mod_name = body.contents; mod_kind; mod_namespace }; span = tag.span })
     | "type" -> (
         List.iter (unknown b "@type") flags;
         match b.b_type with
         | Some { type_name = inner_name; _ } ->
             report b Tag.duplicate_definitions tag.span
               "Duplicate @type definitions (named '%s' and '%s')" inner_name body.contents
-        | None -> b.b_type <- Some { type_name = body.contents } )
+        | None -> b.b_type <- Some { type_name = body.contents })
     | _ -> report b Tag.unknown_tag tag.span "Unknown tag @%s" tag.value
 
   let build ~span ~description b =
@@ -771,9 +771,9 @@ module Data = struct
     | Some t -> t
     | None ->
         let t = extract node in
-        ( match t with
+        (match t with
         | [], [] -> ()
-        | _ -> TermTbl.add comments key t );
+        | _ -> TermTbl.add comments key t);
         t
 
   let comments t =

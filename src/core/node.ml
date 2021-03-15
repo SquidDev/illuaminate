@@ -44,7 +44,7 @@ let trivia_start = function
   | Node { span; leading_trivia; _ } -> (
     match leading_trivia with
     | [] -> span
-    | t :: _ -> t.span )
+    | t :: _ -> t.span)
   | SimpleNode _ -> failwith "No span."
 
 (** Get the span of the last trivia node, or the current node *)
@@ -52,7 +52,7 @@ let trivia_finish = function
   | Node { span; trailing_trivia; _ } -> (
     match CCList.last_opt trailing_trivia with
     | None -> span
-    | Some t -> t.span )
+    | Some t -> t.span)
   | SimpleNode _ -> failwith "No span."
 
 (** Get the span of this node, including trivia of this node. *)

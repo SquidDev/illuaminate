@@ -34,7 +34,7 @@ let check skip r data ~table ~idx ~key =
        causing any false-positives. *)
     match R.get_name data idx with
     | Some _ -> ()
-    | None -> r.r ~tag "Unknown field %s in %a" (Node.contents.get key) R.Reference.pp rf )
+    | None -> r.r ~tag "Unknown field %s in %a" (Node.contents.get key) R.Reference.pp rf)
   | Some _ -> ()
 
 let expr skip { data; program; _ } r = function

@@ -26,10 +26,10 @@ module Fix = struct
       match fix_list1 is_discard trailing xs with
       | Ok (Empty tt) ->
           Ok
-            ( if is_discard v then Empty tt
-            else Present (SepList1.Mono (trailing.Lens.over (fun t -> t @ tt) v)) )
+            (if is_discard v then Empty tt
+            else Present (SepList1.Mono (trailing.Lens.over (fun t -> t @ tt) v)))
       | Ok (Present xs) -> Ok (Present (SepList1.Cons1 (v, s, xs)))
-      | Error e -> Error e )
+      | Error e -> Error e)
 
   (** Fix a list of arguments. *)
   let fix_args =
@@ -73,7 +73,7 @@ module Fix = struct
     | Cons1 (v, _, vs) -> (
       match flatten v with
       | Error e -> Error e
-      | Ok v -> flatten1 vs |> Result.map (fun vs -> v @ vs) )
+      | Ok v -> flatten1 vs |> Result.map (fun vs -> v @ vs))
 
   (** Checks arbitrary statements, removing redundant trailing discards. If the entire statement is
       redundant, we attempt to flatten the statements. *)
@@ -87,7 +87,7 @@ module Fix = struct
       match fix_list1 is_discard_name Lens.(Syntax.Last.name -| Node.trailing_trivia) vs with
       | Error e -> Error e
       | Ok (Present vs) -> Ok [ Assign { st with assign_vars = vs } ]
-      | Ok (Empty _) -> flatten1 es )
+      | Ok (Empty _) -> flatten1 es)
     | Local ({ local_vars = vs; local_vals = es; _ } as st) -> (
       match fix_list1 is_discard Lens.(Syntax.Last.var -| Node.trailing_trivia) vs with
       | Error e -> Error e
@@ -95,14 +95,14 @@ module Fix = struct
       | Ok (Empty _) -> (
         match es with
         | None -> Ok []
-        | Some (_, vs) -> flatten1 vs ) )
+        | Some (_, vs) -> flatten1 vs))
     | ForIn ({ forp_vars = SepList1.Cons1 (v, s, vs); _ } as forp) -> (
         let lens = Lens.(Syntax.Last.var -| Node.trailing_trivia) in
         match fix_list1 is_discard lens vs with
         | Error e -> Error e
         | Ok (Empty tt) ->
             Ok [ ForIn { forp with forp_vars = Mono (lens.over (fun t -> t @ tt) v) } ]
-        | Ok (Present vs) -> Ok [ ForIn { forp with forp_vars = Cons1 (v, s, vs) } ] )
+        | Ok (Present vs) -> Ok [ ForIn { forp with forp_vars = Cons1 (v, s, vs) } ])
     | LocalFunction _ | AssignFunction _ -> Ok []
     | _ -> Error "Oh no"
 
@@ -136,7 +136,7 @@ let stmt () _ r = function
        the middle? *)
     match SepList1.last.get vs with
     | NVar v when is_discard v -> note ~r Fix.fix_assignment v
-    | _ -> () )
+    | _ -> ())
   | Local { local_vars = vs; _ } | ForIn { forp_vars = SepList1.Cons1 (_, _, vs); _ } ->
       (* For loops need at least one variable, hence the odd pattern. *)
       let v = SepList1.last.get vs in
@@ -148,7 +148,7 @@ let stmt () _ r = function
       check_args ~r Fix.fix_stmt_args args;
       match n with
       | FVar v when is_discard v -> note ~r Fix.fix_assignment v
-      | _ -> () )
+      | _ -> ())
   | _ -> ()
 
 let expr () _ r = function

@@ -13,16 +13,16 @@ module LList = struct
   let add t value =
     let cell = { value; prev = t.last; next = None } in
     let s_cell = Some cell in
-    ( match t.last with
+    (match t.last with
     | None -> t.first <- s_cell
-    | Some last -> last.next <- s_cell );
+    | Some last -> last.next <- s_cell);
     t.last <- s_cell;
     cell
 
   let remove t cell =
-    ( match cell.prev with
+    (match cell.prev with
     | None -> t.first <- cell.next
-    | Some c -> c.next <- cell.next );
+    | Some c -> c.next <- cell.next);
     match cell.next with
     | None -> t.last <- cell.prev
     | Some c -> c.prev <- cell.prev

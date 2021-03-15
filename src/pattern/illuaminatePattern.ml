@@ -50,7 +50,7 @@ let rec match_end ~before paths pats =
       let before = path :: before in
       match match_end ~before paths' pats with
       | None -> match_end ~before paths pats'
-      | Some _ as x -> x )
+      | Some _ as x -> x)
 
 let match_end path pattern = match_end ~before:[] (Fpath.segs path) pattern
 
@@ -72,7 +72,7 @@ let iter_pats iter ~root path pats =
           Array.iter
             (fun child -> if not (Hashtbl.mem ignored_files child) then visit Fpath.(path / child))
             files
-      | exception Sys_error e -> Log.err (fun f -> f "Error when scanning %a:%s " Fpath.pp path e) )
+      | exception Sys_error e -> Log.err (fun f -> f "Error when scanning %a:%s " Fpath.pp path e))
     else if
       Fpath.is_rooted ~root path
       && List.exists (Fpath.relativize ~root path |> Option.get |> matches) pats
@@ -125,10 +125,10 @@ module Union = struct
       match paths with
       | [] -> false
       | path :: paths ->
-          ( match StringMap.find_opt path literals with
+          (match StringMap.find_opt path literals with
           | None -> false
-          | Some u -> matches_union paths u )
-          || List.exists (fun (re, u) -> Re.execp re path && matches_union paths u) regexes )
+          | Some u -> matches_union paths u)
+          || List.exists (fun (re, u) -> Re.execp re path && matches_union paths u) regexes)
 
   let matches p = matches_union (Fpath.segs p)
 
@@ -150,7 +150,7 @@ module Union = struct
                    if Re.execp re child then union matching this else matching)
                  base regexes
                |> visit Fpath.(path / child)
-        | exception Sys_error e -> Log.err (fun f -> f "Cannot read %a: %s" Fpath.pp path e) )
+        | exception Sys_error e -> Log.err (fun f -> f "Cannot read %a: %s" Fpath.pp path e))
     in
     visit
 

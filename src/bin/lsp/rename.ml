@@ -106,5 +106,5 @@ let rename data position new_name program =
           | None -> Ok (apply_rename var new_name)
           | Some (Var node) ->
               err "Renaming %s would shadow usage of %s on line %d." var.name new_name
-                (Node.span node |> Span.start_line) ) )
+                (Node.span node |> Span.start_line)))
     | _ -> Error "Not a variable."

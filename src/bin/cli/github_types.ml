@@ -162,14 +162,14 @@ module Consts = struct
       start_column = (if same_line then Some (Span.start_col.get span) else None);
       end_column = (if same_line then Some (Span.finish_col.get span) else None);
       annotation_level =
-        ( match tag.level with
+        (match tag.level with
         | Critical | Error -> Failure
         | Warning -> Warning
-        | Note -> Notice );
+        | Note -> Notice);
       message =
-        ( match details with
+        (match details with
         | None -> message
-        | Some d -> Format.asprintf "%s\n%t" message d );
+        | Some d -> Format.asprintf "%s\n%t" message d);
       title = None
     }
 

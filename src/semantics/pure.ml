@@ -15,7 +15,7 @@ module Safe = struct
     | (UnOp _ | BinOp _) as e -> (
       match Eval.eval e with
       | RUnknown -> false
-      | RNil | RString _ | RBool _ | RNumber _ -> true )
+      | RNil | RString _ | RBool _ | RNumber _ -> true)
     | Parens { paren_expr; _ } -> expr paren_expr
     | ECall _ -> false
     | Table t -> table t

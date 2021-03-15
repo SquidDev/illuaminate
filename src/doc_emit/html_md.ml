@@ -18,7 +18,7 @@ let md ~options x =
         let link, classes = Html_basic.reference_attrs ~options link_reference link_style in
         match link with
         | None -> Some [ Html ("span", [ ("class", Some classes) ], label) ]
-        | Some url -> Some [ Html ("a", [ ("href", Some url); ("class", Some classes) ], label) ] )
+        | Some url -> Some [ Html ("a", [ ("href", Some url); ("class", Some classes) ], label) ])
     | Html ("illuaminate:colour", [ ("colour", Some colour) ], label) ->
         Some
           [ Html
@@ -43,7 +43,7 @@ let md ~options x =
       | _ ->
           str contents
           |> Format.asprintf "<pre class=\"highlight highlight-%s\">%a</pre>" lang emit
-          |> Option.some )
+          |> Option.some)
     | _ -> None
   in
   x |> Omd_representation.visit preprocess |> Omd.to_html ~override:format ~cs:code_style |> raw

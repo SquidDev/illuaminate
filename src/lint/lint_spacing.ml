@@ -13,15 +13,15 @@ let has_trailing = function
   | Node.Node { trailing_trivia; _ } -> (
     match trailing_trivia with
     | { value = Whitespace ws; _ } :: _ when String.length ws > 0 -> true
-    | _ -> false )
+    | _ -> false)
 
 let has_leading prev = function
   | Node.SimpleNode _ -> true
   | Node.Node { leading_trivia; span; _ } ->
       Span.start_col.get span = 1
-      || ( match CCList.last_opt leading_trivia with
+      || (match CCList.last_opt leading_trivia with
          | Some { value = Whitespace ws; _ } when String.length ws > 0 -> true
-         | _ -> false )
+         | _ -> false)
       || has_trailing prev
 
 module Fix = struct

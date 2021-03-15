@@ -47,7 +47,7 @@ module Resolvers = struct
             (* TODO: Really should warn on ambiguous ones here. But propagating this is rather hard. *)
             match List.filter is_module matching with
             | [ (lazy x) ] -> Some x
-            | _ -> None )
+            | _ -> None)
         in
         state.unique_pages <- StringMap.add name unique state.unique_pages;
         unique

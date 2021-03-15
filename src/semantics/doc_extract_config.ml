@@ -50,7 +50,7 @@ let guess_module path : D.Programs.Context.t -> string option = function
               let name = Fpath.rem_ext name |> Fpath.segs |> String.concat "." in
               match best with
               | Some b when String.length b < String.length name -> best
-              | _ -> Some name )
+              | _ -> Some name)
         in
         List.fold_left shortest_module None module_path
 

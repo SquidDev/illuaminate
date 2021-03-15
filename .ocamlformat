@@ -8,7 +8,6 @@ type-decl = sparse
 break-separators = after
 break-cases = toplevel
 field-space = loose
-sequence-style = terminator
 break-sequences = false
 dock-collection-brackets = false
 cases-matching-exp-indent = compact

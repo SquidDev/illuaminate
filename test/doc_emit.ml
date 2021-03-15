@@ -9,7 +9,7 @@ let process ~go ~name contents out =
   let lexbuf = Lexing.from_string contents in
   let name = Span.Filename.mk name in
   let errs = Error.make () in
-  ( match IlluaminateParser.program name lexbuf with
+  (match IlluaminateParser.program name lexbuf with
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok parsed ->
       let context =
@@ -29,7 +29,7 @@ let process ~go ~name contents out =
       let docs = D.get data Doc.program parsed in
       Doc.errors docs
       |> List.iter (fun (e : Error.Error.t) -> Error.report errs e.tag e.span e.message);
-      Doc.get_page docs |> Option.iter (fun m -> go out data m) );
+      Doc.get_page docs |> Option.iter (fun m -> go out data m));
 
   Error.display_of_string ~out (fun _ -> Some contents) errs
 

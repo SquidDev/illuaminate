@@ -158,14 +158,14 @@ module Make (H : KeyContainer) = struct
       in
       for i = 0 to osize - 1 do
         insert_bucket odata.(i)
-      done )
+      done)
 
   let rec find_rec_opt key hkey = function
     | Empty -> None
     | Cons (hk, c, rest) when hkey = hk -> (
       match H.equal c key with
       | ETrue -> Some c
-      | EFalse | EDead -> find_rec_opt key hkey rest )
+      | EFalse | EDead -> find_rec_opt key hkey rest)
     | Cons (_, _, rest) -> find_rec_opt key hkey rest
 
   let find h key =
@@ -186,7 +186,7 @@ module Make (H : KeyContainer) = struct
       | Cons (hk, c, next) when hkey = hk -> (
         match H.equal c key with
         | ETrue -> H.set_data c info; c
-        | EFalse | EDead -> replace_bucket next )
+        | EFalse | EDead -> replace_bucket next)
       | Cons (_, _, next) -> replace_bucket next
     in
     replace_bucket l
@@ -195,11 +195,11 @@ module Make (H : KeyContainer) = struct
     let rec print_one = function
       | Empty -> ()
       | Cons (_, c, next) ->
-          ( match (H.get_key c, H.get_data c) with
+          (match (H.get_key c, H.get_data c) with
           | Some k, Some v -> Format.fprintf out "%a => %a@," key k value v
           | Some k, None -> if all then Format.fprintf out "%a => _@," key k
           | None, Some v -> if all then Format.fprintf out "_ => %a@," value v
-          | None, None -> if all then Format.fprintf out "_ => _@," );
+          | None, None -> if all then Format.fprintf out "_ => _@,");
           print_one next
     in
     Format.fprintf out "@[<v 2>{[%d]@," (Array.length data);
@@ -208,21 +208,21 @@ module Make (H : KeyContainer) = struct
 end
 
 let strong (type k) ?(hash = Hashtbl.hash) ~eq () =
-  ( module StrongContainer (struct
+  (module StrongContainer (struct
     type t = k
 
     let equal = eq
 
     let hash = hash
   end) : KeyContainer
-    with type t = k )
+    with type t = k)
 
 let weak (type k) ?(hash = Hashtbl.hash) ~eq () =
-  ( module WeakContainer (struct
+  (module WeakContainer (struct
     type t = k
 
     let equal = eq
 
     let hash = hash
   end) : KeyContainer
-    with type t = k )
+    with type t = k)

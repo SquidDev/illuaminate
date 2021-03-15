@@ -14,4 +14,4 @@ let load_file ~options path =
     | ext ->
         Format.asprintf "Cannot handle documentation index '%a' (unknown file extension %S)\n%!"
           Fpath.pp path ext
-        |> Result.error )
+        |> Result.error)

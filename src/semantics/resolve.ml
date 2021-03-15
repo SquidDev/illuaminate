@@ -197,7 +197,7 @@ let find_var s (S.Var var) =
             upvalue_mutated = false
           }
         in
-        Hashtbl.add s.store.globals var v; v )
+        Hashtbl.add s.store.globals var v; v)
 
 let var_usage s node =
   let var = find_var s node in
@@ -268,7 +268,7 @@ and resolve_stmt s (stmt : S.stmt) =
       let var_scope, vs =
         mk_locals (fun def -> Local { scope = s.active_scope; def }) s local_vars
       in
-      ( match local_vals with
+      (match local_vals with
       | None -> List.iter (fun v -> add_def s v Declare) vs
       | Some (_, es) ->
           let rec go vs es =
@@ -281,7 +281,7 @@ and resolve_stmt s (stmt : S.stmt) =
                 add_def s v (OfExpr e);
                 List.iteri (fun i v -> add_def s v (OfSelect (i + 1, e))) vs
           in
-          resolve_exprs s es; go vs es );
+          resolve_exprs s es; go vs es);
       var_scope
   | LocalFunction { localf_var; localf_args; localf_body; _ } ->
       let var_scope, name =
@@ -292,9 +292,9 @@ and resolve_stmt s (stmt : S.stmt) =
       resolve_stmts fun_scope localf_body;
       var_scope
   | AssignFunction { assignf_name; assignf_args; assignf_body; _ } ->
-      ( match resolve_function_name s assignf_name with
+      (match resolve_function_name s assignf_name with
       | Some v -> add_def s v (OfFunction (assignf_args, assignf_body))
-      | None -> () );
+      | None -> ());
       let fun_scope = mk_args (fresh_fun s) assignf_args in
       let fun_scope =
         match assignf_name with

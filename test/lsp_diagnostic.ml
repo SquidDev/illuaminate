@@ -6,7 +6,7 @@ let diagnostics ?uri t =
   | PublishDiagnostics t -> (
     match uri with
     | Some uri when t.uri <> uri -> None
-    | _ -> Some t.diagnostics )
+    | _ -> Some t.diagnostics)
   | _ -> None
 
 let tests =

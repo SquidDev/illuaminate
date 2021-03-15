@@ -44,8 +44,8 @@ let stmt () _ r = function
       | None, Some limit, Some step when limit <= 1.0 && step > 0.0 -> (
         match unwrap forn_start with
         | UnOp { unop_op = op; _ } when Node.contents.get op = UnOp.OpLen -> count_for ~limit r
-        | _ -> () )
-      | _ -> () )
+        | _ -> ())
+      | _ -> ())
   | _ -> ()
 
 let linter = make_no_opt ~tags:[ tag ] ~stmt ()

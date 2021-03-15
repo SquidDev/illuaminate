@@ -15,8 +15,8 @@ let process ~name contents =
       let updated =
         let buffer = Buffer.create 512 in
         let out = Format.formatter_of_buffer buffer in
-        ( D.compute (fun ctx -> minify ctx parsed) D.Builder.(build empty)
-        |> Emit.(with_wrapping out "%a" program) );
+        (D.compute (fun ctx -> minify ctx parsed) D.Builder.(build empty)
+        |> Emit.(with_wrapping out "%a" program));
         Buffer.contents buffer
       in
       Format.pp_print_string out updated;
@@ -28,7 +28,7 @@ let process ~name contents =
           IlluaminateParser.Error.report errs err.span err.value;
           Format.pp_print_string out "\n--[==[\n";
           Error.display_of_string ~out ~with_summary:false (fun _ -> Some updated) errs;
-          Format.pp_print_string out "]==]\n" )
+          Format.pp_print_string out "]==]\n")
 
 let tests =
   OmnomnomGolden.of_directory process ~group:"Minify" ~directory:"data/minify" ~extension:".lua" ()

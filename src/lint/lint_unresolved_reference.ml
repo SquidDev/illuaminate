@@ -45,7 +45,7 @@ let check_abstract ~r ~span =
         | Html ("illuaminate:ref", attrs, label) -> (
           match Link.of_tag attrs label with
           | { link_reference = Unknown x; _ } -> r.r ~span ~tag "Unknown reference %S." x
-          | _ -> () )
+          | _ -> ())
         | _ -> ()
       in
       Doc.AbstractSyntax.Omd'.iter omd description

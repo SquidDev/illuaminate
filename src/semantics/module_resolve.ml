@@ -107,7 +107,7 @@ and get_expr ({ resolved; libraries; _ } as store) :
         Logs.info (fun f ->
             f "Found module %s => %s" name (Option.fold ~none:"None" ~some:(fun _ -> "Some") res));
         res
-    | _ -> None )
+    | _ -> None)
   | _ -> None
 
 and get_name store : Syntax.name -> (Reference.t * value documented) option = function

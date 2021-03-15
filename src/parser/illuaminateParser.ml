@@ -65,7 +65,7 @@ let parse start (file : Span.filename) (lexbuf : Lexing.lexbuf) =
         let error = try Messages.message state |> String.trim with Not_found -> "Unknown error" in
         match last with
         | Some t -> Error { Span.span = Token.get_span t; value = UnexpectedToken (t, error) }
-        | None -> assert false )
+        | None -> assert false)
     | I.Accepted x -> Ok x
     | I.Rejected -> assert false
   in

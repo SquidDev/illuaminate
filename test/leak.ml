@@ -86,8 +86,8 @@ let run ?error ?(n = 1000) ?(threshold = 100_000) ~init:state actions =
     in
     if not (CCList.is_empty allocs) then (
       Printf.printf "== Allocations ==\n";
-      print_allocs allocs );
-    Alcotest.fail msg )
+      print_allocs allocs);
+    Alcotest.fail msg)
   else Printf.printf "%s\n" msg
 
 let run_unit = run ~init:()

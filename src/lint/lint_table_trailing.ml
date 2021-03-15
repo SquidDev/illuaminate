@@ -52,7 +52,7 @@ let add_sep insert =
                          span = Span.finish span;
                          leading_trivia = [];
                          trailing_trivia
-                       }) ) )
+                       }) ))
       in
       Ok (Table { t with table_body = over_last fix table_body })
   | _ -> Error "Expected a table"
@@ -90,7 +90,7 @@ let expr sep _ r = function
           Node.contents.get tok |> Token.show
           |> r.r ~fix:del_sep ~span:(Node.span tok) ~tag
                "Unexpected trailing %S on single line table"
-      | _ -> () )
+      | _ -> ())
   | _ -> ()
 
 let linter = make ~options:Separator.options ~tags:[ tag ] ~expr ()

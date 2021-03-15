@@ -54,9 +54,9 @@ let record ~loc flds = pexp_record ~loc flds None
 
 let construct ~loc id args =
   pexp_construct ~loc id
-    ( match args with
+    (match args with
     | [] -> None
-    | _ -> Some (pexp_tuple ~loc args) )
+    | _ -> Some (pexp_tuple ~loc args))
 
 let tuple ~loc es = pexp_tuple ~loc es
 
@@ -199,7 +199,7 @@ let rec type_expr_mapper ~(what : what) ~options te =
       in
       match params with
       | [] -> map
-      | _ -> eapply ~loc map (List.map (fun te -> type_expr_mapper ~options ~what te) params) )
+      | _ -> eapply ~loc map (List.map (fun te -> type_expr_mapper ~options ~what te) params))
   | _ -> what#any ~loc
 
 and map_variables ~(what : what) ~options vars tes =
@@ -257,9 +257,9 @@ let gen_variant ~(what : what) ~options ~loc cds =
                  let vars = vars_of_list args ~get_loc:(fun t -> t.ptyp_loc) in
                  let deconstruct =
                    ppat_construct cstr ~loc
-                     ( match vars with
+                     (match vars with
                      | [] -> None
-                     | _ -> Some (ppat_tuple ~loc (pvars_of_vars vars)) )
+                     | _ -> Some (ppat_tuple ~loc (pvars_of_vars vars)))
                  in
                  let reconstruct = construct cstr ~loc (evars_of_vars vars) in
                  let mappers = map_variables ~what ~options vars args in
@@ -282,7 +282,7 @@ let gen_mapper ~(what : what) ~options td =
     | Ptype_abstract -> (
       match td.ptype_manifest with
       | None -> what#any ~loc
-      | Some te -> type_expr_mapper ~what ~options te )
+      | Some te -> type_expr_mapper ~what ~options te)
   in
   List.fold_right
     (fun (ty, _) acc ->
@@ -363,11 +363,11 @@ let gen_class ~(what : what) ~loc ~options tds =
          (class_structure ~self:[%pat? (self : 'self)] ~fields:(virtual_methods @ methods)))
 
 let gen_str ~(what : what) ~loc ~path:_ (rf, tds) prefix names skip =
-  ( match rf with
+  (match rf with
   | Nonrecursive ->
       (* The method name would clash... *)
       Location.raise_errorf ~loc "illuaminate_traverse doesn't support nonrec"
-  | Recursive -> () );
+  | Recursive -> ());
   let prefix =
     match prefix with
     | None -> "traverse_"

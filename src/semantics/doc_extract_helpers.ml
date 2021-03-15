@@ -89,7 +89,7 @@ module Merge = struct
          only designed to detect constants. *)
       match (value, other.value) with
       | Some v, Some ov when v = ov -> Expr { value; ty }
-      | _ -> Expr { ty; value = None } )
+      | _ -> Expr { ty; value = None })
     | Expr { ty = NilTy; _ }, x | x, Expr { ty = NilTy; _ } ->
         (* If someone has assigned to nil and something else, prioritise that definition. *)
         x
@@ -105,7 +105,7 @@ module Merge = struct
           { type_name;
             type_members =
               type_members
-              @ ( fields
+              @ (fields
                 |> List.map (fun (member_name, value) ->
                        let member_value, member_is_method =
                          match value.descriptor with
@@ -115,7 +115,7 @@ module Merge = struct
                              ({ value with descriptor = v }, true)
                          | _ -> (value, false)
                        in
-                       { member_name; member_is_method; member_value }) )
+                       { member_name; member_is_method; member_value }))
           }
     | _ ->
         Printf.sprintf "Conflicting definitions, cannot merge `%s` and `%s`" (Value.debug_name left)

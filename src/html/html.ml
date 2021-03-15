@@ -48,13 +48,13 @@ struct
     let rec loop_escape b i =
       if i >= n then Buffer.contents b
       else (
-        ( match s.[i] with
+        (match s.[i] with
         | '"' -> Buffer.add_string b "&quot;"
         | '&' -> Buffer.add_string b "&amp;"
         | '<' -> Buffer.add_string b "&lt;"
         | '>' -> Buffer.add_string b "&gt;"
-        | c -> Buffer.add_char b c );
-        loop_escape b (i + 1) )
+        | c -> Buffer.add_char b c);
+        loop_escape b (i + 1))
     in
     let rec loop_pure i =
       if i >= n then s

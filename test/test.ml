@@ -28,7 +28,7 @@ let logging : Omnomnom.Ingredients.reporter =
     Logs.format_reporter ~pp_header ()
   in
 
-  ( module struct
+  (module struct
     type options = { verbose : int }
 
     let options =
@@ -52,7 +52,7 @@ let logging : Omnomnom.Ingredients.reporter =
       in
       Logs.set_level ~all:true (Some level);
       None
-  end )
+  end)
 
 let () =
   Omnomnom.run ~reporters:Omnomnom.Ingredients.[ console_reporter; OmnomnomJUnit.reporter; logging ]

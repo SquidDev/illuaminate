@@ -13,11 +13,11 @@ let fix =
            { tbl;
              dot = (Node.contents ^= Token.Dot) @@ open_k;
              key =
-               ( (Node.contents ^= lit_value)
+               ((Node.contents ^= lit_value)
                % Node.(
                    trailing_trivia %= fun e ->
                    join_trivia e
-                     (join_trivia (close_k ^. leading_trivia) (close_k ^. trailing_trivia))) )
+                     (join_trivia (close_k ^. leading_trivia) (close_k ^. trailing_trivia))))
                @@ lit_node
            })
   | _ -> Error "Not a valid term"
