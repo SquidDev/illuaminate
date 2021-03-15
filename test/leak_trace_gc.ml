@@ -27,7 +27,8 @@ module LList = struct
     | None -> t.last <- cell.prev
     | Some c -> c.prev <- cell.prev
 
-  let rec cell_to_seq { value; next; _ } () : 'a Seq.node =
+  let rec cell_to_seq cell () : 'a Seq.node =
+    let { value; next; _ } = cell in
     let next =
       match next with
       | None -> Seq.empty
@@ -47,22 +48,27 @@ module LList = struct
     t.last <- None
 end
 
+type allocation =
+  { n_samples : int;
+    size : int;
+    callstack : Printexc.raw_backtrace
+  }
+
 let working = ref false
 
 let tracking = ref true
 
 let allocations = LList.make ()
 
-let allocate x = if !tracking then Some (LList.add allocations x) else None
+let allocate (allocation : Gc.Memprof.allocation) =
+  if !tracking then
+    let allocation =
+      { n_samples = allocation.n_samples; size = allocation.size; callstack = allocation.callstack }
+    in
+    Some (LList.add allocations allocation)
+  else None
 
 let deallocate x = LList.remove allocations x
-
-type allocation = Gc.Memprof.allocation = private
-  { n_samples : int;
-    size : int;
-    unmarshalled : bool;
-    callstack : Printexc.raw_backtrace
-  }
 
 let pause () = tracking := false
 

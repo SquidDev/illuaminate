@@ -1,7 +1,6 @@
 type allocation = private
   { n_samples : int;
     size : int;
-    unmarshalled : bool;
     callstack : Printexc.raw_backtrace
   }
 

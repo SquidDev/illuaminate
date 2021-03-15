@@ -21,7 +21,8 @@ let check_renamable { definitions; kind; name; _ } =
       else err "Variable %S cannot be renamed." name
 
 (** Find the original definition. *)
-let find_definition { definitions; _ } d =
+let find_definition state d =
+  let { definitions; _ } = state in
   CCList.find_map
     (function
       | Some ({ node; _ } as v), _ when node == d -> Some v
@@ -38,7 +39,8 @@ let check data position program =
   | _ -> None
 
 (** Check a predicate holds for all usages of a variable. *)
-let check_usages { usages; definitions; _ } f =
+let check_usages state f =
+  let { usages; definitions; _ } = state in
   let check_def = function
     | None, _ -> None
     | Some v, _ -> f v
