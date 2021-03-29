@@ -2,11 +2,11 @@
  (name test)
  (libraries omnomnom omnomnom.golden omnomnom.junit omnomnom.alcotest
    omnomnom.qcheck containers illuaminate.core illuaminate.config
-   illuaminate.data illuaminate.parser illuaminate.lint illuaminate.minify
-   omd fpath illuaminate.semantics illuaminate.pattern illuaminate.doc_emit
-   illuaminate.exec.unix illuaminateConfigFormat illuaminateLsp lsp jsonrpc
-   lsp.fiber lsp.stdune logs cmdliner yojson result alcotest fmt
-   ppx_yojson_conv_lib qcheck-core html)
+   illuaminate.data illuaminate.parser illuaminate.parser_md illuaminate.lint
+   illuaminate.minify omd fpath illuaminate.semantics illuaminate.pattern
+   illuaminate.doc_emit illuaminate.exec.unix illuaminateConfigFormat
+   illuaminateLsp lsp jsonrpc lsp.fiber lsp.stdune logs cmdliner yojson
+   result alcotest fmt ppx_yojson_conv_lib qcheck-core html)
  (deps
   (source_tree data))
  (preprocess

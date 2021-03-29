@@ -181,7 +181,9 @@ module Lex = struct
     let finish = if finish <= start then start else finish - 1 in
     mk_span lbuf start finish
 
-  let to_span ({ contents; _ } as lbuf : string ranged) = mk_span' lbuf 0 (String.length contents)
+  let to_span ({ contents; _ } as lbuf : string ranged) =
+    Printf.printf "Making span from %d to %d\n%!" 0 (String.length contents);
+    mk_span' lbuf 0 (String.length contents)
 
   let to_spanned ({ contents; _ } as lbuf : string ranged) : string Span.spanned =
     { value = contents; span = to_span lbuf }

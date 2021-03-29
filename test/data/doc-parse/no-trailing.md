@@ -1,0 +1,1 @@
+No trailing new line!

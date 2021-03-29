@@ -60,6 +60,12 @@ module Lines = struct
     match lines.store with
     | Array _ -> failwith "using: lines has become an array"
     | Map (xs, _) ->
+        let current = buf.lex_curr_p in
+        let xs =
+          if current.pos_cnum > current.pos_bol then IntMap.add current.pos_lnum current.pos_cnum xs
+          else xs
+        in
+
         let arr = Array.make (fst (IntMap.max_binding xs) + 1) 0 in
         IntMap.iter (fun line pos -> arr.(line) <- pos) xs;
         lines.store <- Array arr;
