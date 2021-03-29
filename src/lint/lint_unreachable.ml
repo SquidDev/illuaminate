@@ -14,6 +14,12 @@ let msg_unreach ~r span = r.r ~tag:tag_unreach ~span "Unreachable code"
 
 let msg_loop ~r span = r.r ~tag:tag_loop ~span "Loop is executed at most once."
 
+(** Find the first non-trivial statement in a block. *)
+let rec first_stmt = function
+  | [] -> None
+  | Semicolon _ :: xs -> first_stmt xs
+  | s :: _ -> Some s
+
 let check_func ~r (func : C.func) =
   let check_block (block : C.basic_block) =
     if block.block_id <> func.entry.block_id && CCList.is_empty block.incoming then
@@ -26,8 +32,7 @@ let check_func ~r (func : C.func) =
          The inverse problem occurs with repeat/until loops, where the test will not be marked
          unreachable, but the loop is marked as only being iterable once.*)
       match block.contents with
-      | Block [] -> ()
-      | Block (s :: _) -> msg_unreach ~r (Spanned.stmt s)
+      | Block xs -> first_stmt xs |> Option.iter (fun s -> msg_unreach ~r (Spanned.stmt s))
       | Test e -> msg_unreach ~r (Spanned.expr e)
       | TestFor s -> msg_unreach ~r (Spanned.stmt s)
       | LoopEnd s -> msg_loop ~r (Spanned.stmt s)

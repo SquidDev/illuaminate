@@ -68,5 +68,9 @@ local function f(x)
   until x() -- ok
 end
 
+local function f()
+  return nil; -- ok
+end
+
 do return end
 print()
