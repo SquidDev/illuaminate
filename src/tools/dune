@@ -9,11 +9,6 @@
   (pps ppxlib.metaquot)))
 
 (executable
- (name esy)
- (modules esy)
- (libraries opam-file-format yojson))
-
-(executable
  (name quote)
  (modules quote)
  (libraries containers))

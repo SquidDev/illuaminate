@@ -14,7 +14,7 @@
  (modules illuaminate_lsp)
  (modes exe)
  (libraries illuaminateLsp cmdliner lsp logs yojson lsp.stdune lsp.fiber
-   lsp.fiber_unix lsp-fiber illuaminate.exec.unix))
+   lsp.fiber_unix lsp_fiber illuaminate.exec.unix))
 
 (rule
  (target illuaminate_lsp.min.exe)

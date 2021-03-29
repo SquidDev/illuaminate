@@ -27,11 +27,9 @@ files a reasonable size (it reduces them by 4x). It should be included in most
 package managers.
 
 ### Using Opam
- - Install [opam][] and set up a OCaml 4.08.1 switch (`opam switch create
-   4.08.1`). Later versions may work, but haven't been tested.
- - Install [omnomnom][] using `opam pin add omnomnom https://github.com/SquidDev/omnomnom.git`.
- - Install lsp using `opam pin add lsp https://github.com/SquidDev/ocaml-lsp-subtree.git`.
- - Install all other dependencies: `opam install --deps-only ./illuaminate.opam`
+ - Install [opam][] and set up an OCaml >=4.08.1 switch (e.g. `opam switch create
+   4.11.1`).
+ - Install all other dependencies: `opam install --deps-only --with-test .`
  - Build using Dune: `dune build @install @runtest`
  - You may either install illuaminate into opam using `dune install`, or use the
    files in the `_build/install/default/bin` directory.

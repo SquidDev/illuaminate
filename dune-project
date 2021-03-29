@@ -30,7 +30,6 @@
     (alcotest :with-test)
     (junit :with-test)
     (qcheck-core :with-test)
-    (omnomnom :with-test)
 
     ; Documentation generation
     (odoc :with-doc)
@@ -38,7 +37,6 @@
     ; Dev-only dependencies.
     (bisect_ppx (and :dev (>= 2.5.0)))
     (ocamlformat :dev)
-    (opam-file-format (and :dev (>= 2.1.0)))
 
     ; Core
     cmdliner
@@ -55,5 +53,4 @@
 
     ;; Language server
     (lsp (>= 1.4.0))
-    jsonrpc
-    lsp-fiber))
+    jsonrpc))
