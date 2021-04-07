@@ -17,7 +17,7 @@ let show_page_list = (f, {custom, _}, xs) => {
   let f' = (~title, ~kind) =>
     NMap.find_opt(kind, xs)
     |> Option.value(~default=StringMap.empty)
-    |> f(~title);
+    |> f(~title, ~kind);
   [
     f'(~title="Globals", ~kind=Namespace.module_),
     f'(~title="Modules", ~kind=Namespace.library),
@@ -86,12 +86,18 @@ let template =
       ~current,
       body,
     ) => {
-  let page_list = (~title, xs) =>
+  let page_list = (~title, ~kind, xs) => {
+    let expand =
+      switch (current) {
+      | None => true
+      | Some(page) => page.page_namespace == kind
+      };
     StringMap.to_seq(xs)
     |> Seq.map(snd)
     |> Seq.map(page_list_item(~options, ~current))
     |> List.of_seq
-    |> show_list(~tag="h2", title);
+    |> show_list(~tag="h2", ~expand, title);
+  };
   <html>
     <head>
       <meta charset="UTF-8" />
@@ -184,7 +190,7 @@ let emit_index = (~options as {site_title, _} as options, ~pages, contents) => {
       <td> {show_summary(~options, description)} </td>
     </tr>;
 
-  let emit_module_group = (~title, pages) =>
+  let emit_module_group = (~title, ~kind as _, pages) =>
     if (StringMap.is_empty(pages)) {
       nil;
     } else {
