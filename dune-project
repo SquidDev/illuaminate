@@ -45,6 +45,7 @@
     js_of_ocaml
     logs
     menhir
+    mtime
     (omd (= 1.3.1))
     ppx_deriving_yojson
     re
