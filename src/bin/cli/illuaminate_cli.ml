@@ -438,7 +438,7 @@ let run () =
       setup_common common;
       `Help (`Pager, None)
     in
-    (Term.(ret term), Term.info "illuaminate" ~doc ~exits:Term.default_exits)
+    (Term.(ret term), Term.info "illuaminate" ~doc ~version:"illuaminate %%VERSION%%" ~exits:Term.default_exits)
   in
 
   Term.exit
