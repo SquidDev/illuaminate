@@ -3,7 +3,7 @@
  (public_name illuaminate.html.jsx)
  (synopsis
    "Primitive JSX pre-processor. This consumes Reasons's @JSX annotations and replaces them with calls to create_node.")
- (libraries ppxlib ppxlib.ast base)
+ (libraries ppxlib ppxlib.ast)
  (kind ppx_rewriter)
  (ppx_runtime_libraries ppxlib)
  (preprocess

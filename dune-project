@@ -30,6 +30,7 @@
     (alcotest :with-test)
     (junit :with-test)
     (qcheck-core :with-test)
+    (fmt :with-test)
 
     ; Documentation generation
     (odoc :with-doc)
@@ -46,9 +47,11 @@
     js_of_ocaml
     logs
     menhir
+    menhirLib
     mtime
     (omd (= 1.3.1))
     ppx_deriving_yojson
+    ppx_yojson_conv_lib
     re
     result
     yojson
