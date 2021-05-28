@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>foo</title>
+    <meta property="og:title" content="foo" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="My title" />
+    <link rel="stylesheet" href="main.css" type="text/css" />
+  </head>
+  <body>
+    <nav>
+      <button class="nav-reveal" type="button">&#9776;</button>
+      <h1><a href="./">My title</a></h1>
+      <div class="nav-links">
+        <h2>Contents</h2><ul><li><a href="#v:a">a</a></li></ul>
+      </div>
+    </nav>
+    <div id="main">
+      <section id="content">
+        <h1>foo</h1>
+        <table class="definition-list">
+          <tr>
+            <th class="definition-name"><a href="#v:a">a = 1</a></th>
+            <td>Exposed through the metatable</td>
+          </tr>
+        </table>
+        <dl class="definition">
+          <dt>
+            <a name="v:a" href="#v:a"></a>
+            <span class="definition-name">a = 1</span>
+            <a href="setmetatable.lua[4:9-4:9]" class="source-link">
+              Source
+            </a>
+          </dt>
+          <dd><p>Exposed through the metatable</p>
+</dd>
+        </dl>
+      </section>
+      <footer>Last updated on xxxx-xx-xx</footer>
+    </div>
+    <script src="main.js" type="text/javascript" defer=""></script>
+  </body>
+</html>

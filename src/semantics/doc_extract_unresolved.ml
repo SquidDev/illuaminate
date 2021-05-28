@@ -206,6 +206,11 @@ module Infer = struct
     | Parens { paren_expr; _ } -> infer_expr state paren_expr
     (* Visit children and return nothing. *)
     | Dots _ -> simp Unknown
+    | ECall (Call { fn; args })
+      when Global.of_expr state.resolve fn = Some (Global.parse "setmetatable") -> (
+      match infer_args state args with
+      | x :: _ -> x
+      | [] -> simp Unknown)
     | ECall c -> visit_call state c; simp Unknown
     | UnOp { unop_rhs; _ } -> visit_expr state unop_rhs; simp Unknown
     | BinOp { binop_lhs; binop_rhs; _ } ->
@@ -213,14 +218,22 @@ module Infer = struct
 
   and visit_expr state v : unit = infer_expr state v |> ignore
 
-  and visit_call state =
-    let visit_args = function
-      | CallArgs { args; _ } -> SepList0.iter (visit_expr state) args
-      | CallString _ -> ()
-      | CallTable { table_body; _ } -> infer_table state table_body |> ignore
-    in
-    function
-    | Call { fn = e; args } | Invoke { obj = e; args; _ } -> visit_expr state e; visit_args args
+  and infer_args state = function
+    | CallArgs { args; _ } -> SepList0.map' (infer_expr state) args
+    | CallString _ -> []
+    | CallTable ({ table_body; _ } as table) ->
+        [ Doc_syntax.Table (infer_table state table_body)
+          |> Fun.flip simple_documented (Spanned.table table)
+        ]
+
+  and visit_args state = function
+    | CallArgs { args; _ } -> SepList0.iter (visit_expr state) args
+    | CallString _ -> ()
+    | CallTable { table_body; _ } -> infer_table state table_body |> ignore
+
+  and visit_call state = function
+    | Call { fn = e; args } | Invoke { obj = e; args; _ } ->
+        visit_expr state e; visit_args state args
 
   and infer_var state v : value documented ref option =
     match R.get_var v state.resolve with
