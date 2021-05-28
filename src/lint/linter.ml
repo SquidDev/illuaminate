@@ -15,12 +15,23 @@ end
 
 type 'a reporter =
   { r :
-      'f. ?fix:'a Fixer.t -> ?span:Span.t -> ?detail:(Format.formatter -> unit) ->
-      tag:Error.Tag.t -> ('f, Format.formatter, unit, unit) format4 -> 'f;
+      'f.
+      ?fix:'a Fixer.t ->
+      ?span:Span.t ->
+      ?detail:(Format.formatter -> unit) ->
+      tag:Error.Tag.t ->
+      ('f, Format.formatter, unit, unit) format4 ->
+      'f;
     e :
-      'a 'f. ?fix:'a Fixer.t -> ?span:Span.t -> ?detail:(Format.formatter -> unit) ->
-      tag:Error.Tag.t -> kind:'a Witness.t -> source:'a ->
-      ('f, Format.formatter, unit, unit) format4 -> 'f
+      'a 'f.
+      ?fix:'a Fixer.t ->
+      ?span:Span.t ->
+      ?detail:(Format.formatter -> unit) ->
+      tag:Error.Tag.t ->
+      kind:'a Witness.t ->
+      source:'a ->
+      ('f, Format.formatter, unit, unit) format4 ->
+      'f
   }
 
 type path_item =

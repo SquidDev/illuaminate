@@ -12,5 +12,12 @@
     sections[i].addEventListener("click", function(e) {
       this.classList.toggle("collapsed");
     });
+    sections[i].addEventListener("keydown", function(e) {
+      if(e.key === "Enter" || e.key === " ") {
+        this.classList.toggle("collapsed");
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
   }
 })();

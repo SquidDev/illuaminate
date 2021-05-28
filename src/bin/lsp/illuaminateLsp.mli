@@ -9,8 +9,8 @@ type client_channel =
 
 type server_channel =
   { request :
-      'res. client_channel -> 'res Client_request.t ->
-      ('res, Jsonrpc.Response.Error.t) result Fiber.t;
+      'res.
+      client_channel -> 'res Client_request.t -> ('res, Jsonrpc.Response.Error.t) result Fiber.t;
     notify : client_channel -> Client_notification.t -> unit Fiber.t
   }
 

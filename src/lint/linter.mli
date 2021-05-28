@@ -27,13 +27,24 @@ end
 (** A reporter, which may be used to report notes to the user. *)
 type 'a reporter =
   { r :
-      'f. ?fix:'a Fixer.t -> ?span:Span.t -> ?detail:(Format.formatter -> unit) ->
-      tag:Error.Tag.t -> ('f, Format.formatter, unit, unit) format4 -> 'f;
+      'f.
+      ?fix:'a Fixer.t ->
+      ?span:Span.t ->
+      ?detail:(Format.formatter -> unit) ->
+      tag:Error.Tag.t ->
+      ('f, Format.formatter, unit, unit) format4 ->
+      'f;
         (** Report a problem at the current location, with an optional fixer. *)
     e :
-      'a 'f. ?fix:'a Fixer.t -> ?span:Span.t -> ?detail:(Format.formatter -> unit) ->
-      tag:Error.Tag.t -> kind:'a Witness.t -> source:'a ->
-      ('f, Format.formatter, unit, unit) format4 -> 'f
+      'a 'f.
+      ?fix:'a Fixer.t ->
+      ?span:Span.t ->
+      ?detail:(Format.formatter -> unit) ->
+      tag:Error.Tag.t ->
+      kind:'a Witness.t ->
+      source:'a ->
+      ('f, Format.formatter, unit, unit) format4 ->
+      'f
         (** Report a problem on some child node.
 
             If [~span] is omitted, then we will use the location of the [~source] node instead. If

@@ -23,12 +23,15 @@ let reference_attrs ~options:{ resolve; _ } (reference : Reference.resolved) sty
   in
   (link, classes)
 
-let show_list ?(tag = "h3") ?(expand = true) title = function
+let show_list ?(tag = "h3") ?(expandable = false) ?(expand = true) title = function
   | [] -> Html.Default.nil
   | xs ->
       let open Html.Default in
       [ create_node ~tag ~children:[ str title ]
-          ~attributes:[ ("class", if expand then None else Some "collapsed") ]
+          ~attributes:
+            [ ("class", if expand then None else Some "collapsed");
+              ("tabindex", if expandable then Some "0" else None)
+            ]
           ();
         create_node ~tag:"ul"
           ~children:(List.map (fun x -> create_node ~tag:"li" ~children:[ x ] ()) xs)

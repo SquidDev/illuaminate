@@ -58,14 +58,14 @@ let module_toc = (mod_types, mod_contents) => {
     | Table(fields) =>
       fields
       |> List.map(((name, _)) => make_link(Value(name)))
-      |> show_list(~tag="h2", "Contents")
+      |> show_list(~tag="h2", ~expandable=true, "Contents")
     | _ => nil
     },
     mod_types
     |> List.map(({descriptor: {type_name, _}, _}) => {
          make_link(Type(type_name))
        })
-    |> show_list(~tag="h2", "Types"),
+    |> show_list(~tag="h2", ~expandable=true, "Types"),
   ]
   |> many;
 };
@@ -96,7 +96,7 @@ let template =
     |> Seq.map(snd)
     |> Seq.map(page_list_item(~options, ~current))
     |> List.of_seq
-    |> show_list(~tag="h2", ~expand, title);
+    |> show_list(~tag="h2", ~expandable=true, ~expand, title);
   };
   <html>
     <head>
