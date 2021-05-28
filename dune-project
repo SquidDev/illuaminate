@@ -57,5 +57,5 @@
     yojson
 
     ;; Language server
-    (lsp (>= 1.4.0))
+    (lsp (= 1.5.0))
     jsonrpc))

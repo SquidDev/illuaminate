@@ -21,7 +21,7 @@
     "@opam/re": "*",
     "@opam/result": "*",
     "@opam/yojson": "*",
-    "@opam/lsp": ">=1.4.0",
+    "@opam/lsp": "=1.5.0",
     "@opam/jsonrpc": "*"
   },
   "devDependencies": {
