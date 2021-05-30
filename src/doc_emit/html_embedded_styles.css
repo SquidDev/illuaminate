@@ -16,6 +16,8 @@
   --sidebar-header: #d7d7d7;
   --sidebar-header-hover: #d0d0d0;
   --sidebar-header-collapsed: #e7e7e7;
+  
+  --highlight-header-colour: #FFFF99;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -31,6 +33,8 @@
     --sidebar-header: #060606;
     --sidebar-header-hover: #101010;
     --sidebar-header-collapsed: #060606;
+    
+    --highlight-header-colour: #000005;
   }
 }
 
@@ -113,7 +117,7 @@ ol ol { margin-top: 0px; }
 ul ol { margin-top: 0px; }
 
 /* Make the target distinct; helps when we're navigating to a function */
-a:target + * { background-color: #FFFF99; }
+a:target + * { background-color: var(--highlight-header-colour); }
 
 /* Allow linking to any subsection */
 a[name]::before { content: "§"; }
