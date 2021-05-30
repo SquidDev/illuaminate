@@ -17,7 +17,7 @@
   --sidebar-header-hover: #d0d0d0;
   --sidebar-header-collapsed: #e7e7e7;
   
-    --highlight-header-colour: #FFFF99;
+  --highlight-header-colour: #FFFF99;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -34,7 +34,7 @@
     --sidebar-header-hover: #101010;
     --sidebar-header-collapsed: #060606;
     
-      --highlight-header-colour: #000005;
+    --highlight-header-colour: #000005;
   }
 }
 
