@@ -114,6 +114,9 @@ ul ol { margin-top: 0px; }
 
 /* Make the target distinct; helps when we're navigating to a function */
 a:target + * { background-color: #FFFF99; }
+@media (prefers-color-scheme: dark) {
+  a:target + * { background-color: #000005; }
+}
 
 /* Allow linking to any subsection */
 a[name]::before { content: "§"; }
