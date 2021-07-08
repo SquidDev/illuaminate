@@ -59,7 +59,7 @@ let check_theme_field' name f l r =
   | None -> r
   | Some _ ->
       Log.warn (fun f ->
-          f "Config option `(doc (%s ...))' should be specified as `(doc (theme (%s ...))' instead."
+          f "Config option `(doc (%s ...))' should be specified as `(doc (site (%s ...))' instead."
             name name);
       f l
 
@@ -160,11 +160,11 @@ let term =
     { site_properties =
         { site_properties with
           site_title = check_theme_field "title" site_title site_properties.site_title;
-          site_image = ofile @@ check_theme_field "title" site_image site_properties.site_image;
-          embed_css = ofile @@ check_theme_field "title" embed_css site_properties.embed_css;
-          embed_js = ofile @@ check_theme_field "title" embed_js site_properties.embed_js;
+          site_image = ofile @@ check_theme_field "logo" site_image site_properties.site_image;
+          embed_css = ofile @@ check_theme_field "styles" embed_css site_properties.embed_css;
+          embed_js = ofile @@ check_theme_field "scripts" embed_js site_properties.embed_js;
           source_link =
-            check_theme_field' "title" (make_source_link ~root) source_link
+            check_theme_field' "source-link" (make_source_link ~root) source_link
               site_properties.source_link
         };
       index = ofile index;
