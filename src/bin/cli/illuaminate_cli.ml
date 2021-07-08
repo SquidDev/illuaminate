@@ -151,6 +151,7 @@ let doc_gen path =
        Config.get_doc_options config
      in
 
+     mkdirs destination;
      let site_image = Option.map (resolve_logo ~destination) site_image in
      let site_css =
        gen_appended ~destination ~name:"main.css" ~contents:E.Html.embedded_css embed_css
