@@ -45,6 +45,7 @@ h1, h2, h3, h4, p, table, div, body, button {
   border: 0;
   font-size: 100%;
   font: inherit;
+  color: inherit;
   vertical-align: baseline;
 }
 
