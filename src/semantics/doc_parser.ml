@@ -472,7 +472,7 @@ module Build = struct
         parse_change ~change_span:tag.span ~change_kind:Added b body
     | "changed" ->
         List.iter (unknown b "@changed") flags;
-        parse_change ~change_span:tag.span ~change_kind:Added b body
+        parse_change ~change_span:tag.span ~change_kind:Changed b body
     (*******************************
      * Function tags
      *******************************)

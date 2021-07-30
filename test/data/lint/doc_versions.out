@@ -1,5 +1,5 @@
-doc_versions.lua:[6:4-6:11]: @since tag for version "1.1" must be the first changelog entry. [doc:unordered-versions]
+doc_versions.lua:[7:4-7:9]: @since tag for version "1.2" must be the first changelog entry. [doc:unordered-versions]
    │
- 6 │ -- @changed 1.1
-   │    ^^^^^^^^
+ 7 │ -- @since 1.2
+   │    ^^^^^^
 1 errors and 0 warnings
