@@ -135,10 +135,31 @@ let show_see = (~options, {see_reference, see_label, see_description, _}) =>
   ]
   |> many;
 
-let show_common = (~options, {examples, see, _}) => {
+let show_change =
+    (~options, {change_kind, change_version, change_description, _}) => {
+  let version =
+    switch (change_kind) {
+    | Added => Printf.sprintf("New in version %s", change_version)
+    | Changed => Printf.sprintf("Changed in version %s", change_version)
+    };
+  let version =
+    switch (change_description) {
+    | None => version
+    | Some(_) => version ++ ":"
+    };
+  [
+    <strong> {str(version)} </strong>,
+    str(" "),
+    show_desc_inline(~options, change_description),
+  ]
+  |> many;
+};
+
+let show_common = (~options, {examples, see, changes, _}) => {
   [
     show_list("Usage", List.map(show_example(~options), examples)),
     show_list("See also", List.map(show_see(~options), see)),
+    show_list("Changes", List.map(show_change(~options), changes)),
   ]
   |> many;
 };

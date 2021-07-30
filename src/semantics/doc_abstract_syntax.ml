@@ -15,6 +15,10 @@ type source =
   | Span of Span.t
   | Position of position
 
+type change_kind =
+  | Added
+  | Changed
+
 module Omd' = struct
   open Omd
 
@@ -50,6 +54,10 @@ module type S = sig
     | MKModule
     | MKLibrary
     | MKNone
+
+  type nonrec change_kind = change_kind =
+    | Added
+    | Changed
 
   (** A link to a string, within a {!description}. *)
   type link =
@@ -95,6 +103,15 @@ module type S = sig
       end_line : int
     }
 
+  type change =
+    { change_kind : change_kind;
+      change_version : string;
+      change_span : Span.t;
+      change_description : description option
+    }
+
+  type changes = change list
+
   class abstract_iter :
     object
       method reference : reference -> unit
@@ -112,6 +129,8 @@ module type S = sig
       method arg : arg -> unit
 
       method return : return -> unit
+
+      method change : change -> unit
     end
 end
 
@@ -133,6 +152,10 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
     | MKModule
     | MKLibrary
     | MKNone
+
+  type nonrec change_kind = change_kind =
+    | Added
+    | Changed
 
   type link =
     { link_reference : reference;
@@ -177,6 +200,15 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
       end_line : int
     }
 
+  type change =
+    { change_kind : change_kind;
+      change_version : string;
+      change_span : Span.t;
+      change_description : description option
+    }
+
+  type changes = change list
+
   class abstract_iter =
     object (self)
       method reference (_ : reference) = ()
@@ -203,6 +235,9 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
       method return { ret_type; ret_many = _; ret_description } =
         Option.iter self#type_ ret_type;
         Option.iter self#description ret_description
+
+      method change { change_description; change_kind = _; change_span = _; change_version = _ } =
+        Option.iter self#description change_description
     end
 end
 
@@ -249,5 +284,12 @@ module Lift (L : S) (R : S) = struct
     { R.ret_type = Option.map (ty lift) ret_type;
       ret_many;
       ret_description = Option.map (description lift) ret_description
+    }
+
+  let change lift { L.change_kind; change_version; change_span; change_description } =
+    { R.change_kind;
+      change_version;
+      change_span;
+      change_description = Option.map (description lift) change_description
     }
 end

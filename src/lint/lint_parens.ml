@@ -147,7 +147,8 @@ let expr { Opt.clarifying } { path; _ } r parens =
         (* If we've some latent parens, then we warn. However, we may need to leave some parens if
            required. *)
         | Parens { paren_expr = e; _ } -> go unwrap_most e
-        (* If we've got raw literals, then they only need to be wrapped when calling/indexing them. *)
+        (* If we've got raw literals, then they only need to be wrapped when calling/indexing
+           them. *)
         | Nil _ | True _ | False _ | Number _ | String _ | Int _ | MalformedNumber _ | Fun _
         | Table _ ->
             if is_fn_or_tbl () then msg else unwrap_all path

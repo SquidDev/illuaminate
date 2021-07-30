@@ -95,6 +95,19 @@ struct
     atom' "return" |> field' "type" type_ ret_type |> field_bool "many" ret_many
     |> field' "description" description ret_description
     |> record
+
+  let change { change_kind; change_version; change_span; change_description } =
+    let v_str =
+      match change_kind with
+      | Added -> "added"
+      | Changed -> "changed"
+    in
+    atom' "change"
+    |> field "kind" (atom' v_str)
+    |> field "version" (atom' change_version)
+    |> field "span" (span change_span)
+    |> field' "description" description change_description
+    |> record
 end
 
 module Comment = struct
@@ -117,6 +130,7 @@ module Comment = struct
     |> field_bool "export" c.export
     |> field' "deprecated" deprecation c.deprecated
     |> field' "custom-source" position c.custom_source
+    |> fields "changes" (one' % change) c.changes
     |> fields "args" (List.map arg) c.arguments
     |> fields "returns" (List.map return) c.returns
     |> fields "throws" description c.throws

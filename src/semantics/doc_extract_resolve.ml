@@ -44,7 +44,8 @@ module Resolvers = struct
           match matching with
           | [ (lazy x) ] -> Some x
           | _ -> (
-            (* TODO: Really should warn on ambiguous ones here. But propagating this is rather hard. *)
+            (* TODO: Really should warn on ambiguous ones here. But propagating this is rather
+               hard. *)
             match List.filter is_module matching with
             | [ (lazy x) ] -> Some x
             | _ -> None)
@@ -195,7 +196,8 @@ let go_documented lift go_child
       local;
       export;
       deprecated;
-      custom_source
+      custom_source;
+      changes
     } =
   { description = Option.map (Lift.description lift) description;
     descriptor = go_child lift descriptor;
@@ -205,7 +207,8 @@ let go_documented lift go_child
     local;
     export;
     deprecated = Option.map (Lift.deprecation lift) deprecated;
-    custom_source
+    custom_source;
+    changes = List.map (Lift.change lift) changes
   }
 
 let rec go_value ~cache lift = function

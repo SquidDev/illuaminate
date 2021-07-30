@@ -29,6 +29,7 @@ type comment =
     export : bool;
     deprecated : deprecation option;
     custom_source : position option;
+    changes : changes;
     (* Functions. *)
     arguments : arg list list;
     returns : return list list;

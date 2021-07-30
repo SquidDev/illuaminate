@@ -19,9 +19,7 @@ let linter =
              IlluaminateData.(need context Programs.Context.key (File.span file |> Span.filename))
            in
            let config = IlluaminateConfig.Schema.get Config.key context.config in
-           Namespace.module_
-           ::
-           Namespace.library
+           Namespace.module_ :: Namespace.library
            :: List.map (fun x -> Namespace.Namespace x.Config.id) config.module_kinds
            |> NSet.of_list)
       in

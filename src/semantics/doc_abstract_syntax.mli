@@ -30,6 +30,11 @@ module Omd' : sig
   val iter : (Omd.element -> unit) -> Omd.t -> unit
 end
 
+(** The kind of change in a changelog. *)
+type change_kind =
+  | Added  (** This feature was introduced in a specific version. *)
+  | Changed  (** This feature was changed in a specific version. *)
+
 module type S = sig
   type reference
 
@@ -44,6 +49,10 @@ module type S = sig
     | MKModule
     | MKLibrary
     | MKNone
+
+  type nonrec change_kind = change_kind =
+    | Added
+    | Changed
 
   (** A link to a string, within a {!description}. *)
   type link =
@@ -97,6 +106,17 @@ module type S = sig
       end_line : int
     }
 
+  (** A change which occurred to this documented term. *)
+  type change =
+    { change_kind : change_kind;  (** The kind of this change. *)
+      change_version : string;  (** The version this change occurred in *)
+      change_span : Span.t;  (** The position of this change entry. *)
+      change_description : description option
+    }
+
+  (** An ordered list of changes to a term, from oldest to most recent. *)
+  type changes = change list
+
   (** A base class for visitors over the document syntax tree. *)
   class abstract_iter :
     object
@@ -116,6 +136,8 @@ module type S = sig
       method arg : arg -> unit
 
       method return : return -> unit
+
+      method change : change -> unit
     end
 end
 
@@ -146,6 +168,8 @@ module Lift (L : S) (R : S) : sig
   val arg : t -> L.arg -> R.arg
 
   val return : t -> L.return -> R.return
+
+  val change : t -> L.change -> R.change
 
   val ty : t -> L.Type.t -> R.Type.t
 end

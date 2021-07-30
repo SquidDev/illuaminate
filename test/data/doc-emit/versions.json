@@ -1,0 +1,9 @@
+{
+  "foo": {
+    "name": "foo",
+    "source": "versions.lua[4:1-4:1]",
+    "module": "foo",
+    "module-kind": "module",
+    "url": "module/foo.html"
+  }
+}

@@ -1,0 +1,3 @@
+--- An item with some changes
+-- @since 1.2
+-- @changed 2.3 With some additional data

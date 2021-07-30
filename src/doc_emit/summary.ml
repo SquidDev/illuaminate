@@ -27,7 +27,8 @@ let to_json xs : Yojson.Safe.t =
         let Namespace module_kind, module_name = in_module in
         let url = Helpers.reference_link in_module name_of in
         let section = Reference.section_of_name name_of in
-        (* TODO: Drop section in a few months once we've updated the various bots that scrape this. *)
+        (* TODO: Drop section in a few months once we've updated the various bots that scrape
+           this. *)
         let term =
           `Assoc
             (("name", full_name) @: ("source", source) @?: ("summary", summary)

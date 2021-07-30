@@ -262,6 +262,7 @@ module Build = struct
       mutable b_export : bool;
       mutable b_deprecated : deprecation option;
       mutable b_custom_source : position option;
+      mutable b_changes : changes;
       (* Functions. *)
       mutable b_args : arg grouped;
       mutable b_rets : return grouped;
@@ -284,7 +285,8 @@ module Build = struct
       b_rets = empty_group;
       b_throws = [];
       b_module = None;
-      b_type = None
+      b_type = None;
+      b_changes = []
     }
 
   let report b tag span f = Format.kasprintf (fun x -> b.b_errors <- (tag, span, x) :: b.b_errors) f
@@ -383,6 +385,15 @@ module Build = struct
          | None -> unknown b "Return value" flag; (idx, ret))
        | Named _ -> unknown b "Return value" flag; (idx, ret)
 
+  let parse_change ~change_span ~change_kind b body =
+    match Lex.word body with
+    | None -> report b Tag.malformed_tag (Lex.to_span body) "Expected version."
+    | Some (version, cont) ->
+        let change_description = Lex.description' cont in
+        b.b_changes <-
+          { change_kind; change_version = version.contents; change_span; change_description }
+          :: b.b_changes
+
   (** Extract a {!documented} term from a comment and series of tags. *)
   let rec add_flag b (tag : string Span.spanned) (flags : doc_flag list) (body : string Lex.ranged)
       : unit =
@@ -456,6 +467,12 @@ module Build = struct
               (path, line, line)
         in
         b.b_custom_source <- Some { path; start_line; end_line }
+    | "since" ->
+        List.iter (unknown b "@since") flags;
+        parse_change ~change_span:tag.span ~change_kind:Added b body
+    | "changed" ->
+        List.iter (unknown b "@changed") flags;
+        parse_change ~change_span:tag.span ~change_kind:Added b body
     (*******************************
      * Function tags
      *******************************)
@@ -555,7 +572,8 @@ module Build = struct
       returns = get_group b.b_rets;
       throws = List.rev b.b_throws;
       module_info = b.b_module;
-      type_info = b.b_type
+      type_info = b.b_type;
+      changes = List.rev b.b_changes
     }
 end
 

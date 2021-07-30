@@ -15,7 +15,8 @@ type 'a documented =
     local : bool;  (** If this definition should not be exposed. *)
     export : bool;  (** Whether this term is the root exported term. *)
     deprecated : deprecation option;  (** Whether this term is deprecated. *)
-    custom_source : position option  (** Override the position of this term. *)
+    custom_source : position option;  (** Override the position of this term. *)
+    changes : changes  (** Historic changes to this term. *)
   }
 
 (** A value or expression which may be used in a documented program. *)

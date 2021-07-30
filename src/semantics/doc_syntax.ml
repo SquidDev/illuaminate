@@ -17,7 +17,8 @@ type 'a documented =
     local : bool;
     export : bool;
     deprecated : deprecation option;
-    custom_source : position option
+    custom_source : position option;
+    changes : changes
   }
 
 type value =
@@ -122,7 +123,8 @@ class iter =
             deprecated;
             local = _;
             export = _;
-            custom_source = _
+            custom_source = _;
+            changes
           } ->
         let abs = self#abstract_syntax ~span:definition in
         Option.iter abs#description description;
@@ -130,6 +132,7 @@ class iter =
         List.iter abs#example examples;
         List.iter abs#see see;
         Option.iter abs#deprecation deprecated;
+        List.iter abs#change changes;
         ()
 
     method member { member_name = _; member_is_method = _; member_value; _ } =

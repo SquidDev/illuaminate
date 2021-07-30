@@ -69,7 +69,8 @@ let to_json ~os fields item : (string * J.t) list =
       in
       let main, dev = List.fold_left add ([], []) depends.pelem in
       ("devDependencies", `Assoc (List.rev dev))
-      :: ("dependencies", `Assoc (List.rev main)) :: fields
+      :: ("dependencies", `Assoc (List.rev main))
+      :: fields
   | _ -> fields
 
 let () =
@@ -92,7 +93,7 @@ let () =
   let fields = List.fold_left (to_json ~os:!os) [] file_contents in
   let json : J.t =
     `Assoc
-      (("name", `String "illuaminate") :: List.rev fields
+      ((("name", `String "illuaminate") :: List.rev fields)
       @ [ ( "esy",
             `Assoc
               [ ("build", `String "dune build -p #{self.name}");

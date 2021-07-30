@@ -58,7 +58,8 @@ module Value = struct
       local = comment.local;
       export = comment.export;
       deprecated = Option.map (Lift.deprecation lift) comment.deprecated;
-      custom_source = comment.custom_source
+      custom_source = comment.custom_source;
+      changes = List.map (Lift.change lift) comment.changes
     }
 end
 
@@ -73,7 +74,8 @@ module Merge = struct
       local = implicit.local || explicit.local;
       export = implicit.export || explicit.export;
       deprecated = CCOpt.or_ ~else_:explicit.deprecated implicit.deprecated;
-      custom_source = CCOpt.or_ ~else_:explicit.custom_source implicit.custom_source
+      custom_source = CCOpt.or_ ~else_:explicit.custom_source implicit.custom_source;
+      changes = (if CCList.is_empty implicit.changes then explicit.changes else implicit.changes)
     }
 
   (** Right biased union of two values. *)

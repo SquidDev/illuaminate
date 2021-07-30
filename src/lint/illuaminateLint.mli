@@ -20,6 +20,7 @@ module Linters : sig
   module Detached_comment = Lint_detached_comment
   module Doc_extract = Lint_doc_extract
   module Doc_parse = Lint_doc_parse
+  module Doc_versions = Lint_doc_versions
   module Empty_block = Lint_empty_block
   module For_num = Lint_for_num
   module Invalid_break = Lint_invalid_break

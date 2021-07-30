@@ -5,7 +5,7 @@
   "license": "BSD-3-Clause",
   "homepage": "https://github.com/squiddev/illuaminate",
   "dependencies": {
-    "ocaml": ">=4.08 <4.12",
+    "ocaml": ">=4.08 <4.13",
     "@opam/dune": ">=2.7",
     "@opam/cmdliner": "*",
     "@opam/containers": ">=3.0.1",

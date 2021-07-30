@@ -61,7 +61,8 @@ module Infer = struct
       local = false;
       export = false;
       deprecated = None;
-      custom_source = None
+      custom_source = None;
+      changes = []
     }
 
   (** Annotate a value with documentation comments. *)
