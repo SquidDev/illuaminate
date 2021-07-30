@@ -10,14 +10,17 @@
   --background-2: #f0f0f0;
 
   --link-colour: #004080;
-  --code-color: #c7254e;
+  --code-colour: #c7254e;
   --source-link-colour: #505050;
 
   --sidebar-header: #d7d7d7;
   --sidebar-header-hover: #d0d0d0;
   --sidebar-header-collapsed: #e7e7e7;
-  
+
   --highlight-header-colour: #FFFF99;
+
+  --deprecated-colour: #664d03;
+  --deprecated-background: #fff3cd;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,13 +30,13 @@
     --background-2: #1c1c1c;
 
     --link-colour: #06cff7;
-    --code-color: #ff7699;
+    --code-colour: #ff7699;
     --source-link-colour: #bdbcbc;
 
     --sidebar-header: #060606;
     --sidebar-header-hover: #101010;
     --sidebar-header-collapsed: #060606;
-    
+
     --highlight-header-colour: #000005;
   }
 }
@@ -70,7 +73,7 @@ code, pre, kbd, .parameter, .type, .definition-name, .reference-code {
 
 /* Some definitions of basic tags */
 code {
-  color: var(--code-color);
+  color: var(--code-colour);
   background-color: var(--background-2);
 }
 
@@ -357,4 +360,12 @@ kbd {
 .highlight a {
   color: inherit;
   font-weight: normal;
+}
+
+.deprecated {
+  --size: 10px;
+  color: var(--deprecated-colour);
+  background: var(--deprecated-background);
+  padding: var(--size);
+  margin: 0 calc(-1 * var(--size));
 }
