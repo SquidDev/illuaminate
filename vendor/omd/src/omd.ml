@@ -31,7 +31,8 @@ let to_html ?highlight ~ref:f doc =
   let ref k x inl = Raw (f k x (to_string inl)) in
   to_string (of_doc ?highlight ~ref doc)
 
-let to_sexp ~ref ast = Format.asprintf "@[%a@]@." Sexp.print (Sexp.create ast)
+let to_sexp ~ref ast =
+  Format.asprintf "@[%a@]@." Sexp.print (Sexp.create ~ref ast)
 
 let to_plain_text = Html.to_plain_text
 

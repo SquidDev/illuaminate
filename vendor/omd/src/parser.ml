@@ -1925,7 +1925,6 @@ let reference st =
         Buffer.add_char b c;
         go ~kind ~link
     | None -> raise Fail
-    | _ -> go ~kind ~link
   in
   go ~kind:`Code ~link:None
 

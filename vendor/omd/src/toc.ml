@@ -9,6 +9,8 @@ let rec remove_links inline =
   | Link (_, link) -> link.label
   | Image (attr, link) ->
       Image (attr, { link with label = remove_links link.label })
+  | Ref (_, _, x) -> remove_links x
+  | Colour _
   | Hard_break _
   | Soft_break _
   | Html _
