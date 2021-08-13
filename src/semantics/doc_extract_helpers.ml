@@ -18,11 +18,7 @@ module Value = struct
 
   let mk_ref (Reference.Reference x) = Reference.Unknown x
 
-  let lift : Lift.t =
-    { any_ref = mk_ref;
-      type_ref = mk_ref;
-      description = (fun { description; description_pos } -> { description; description_pos })
-    }
+  let lift : Lift.t = { any_ref = mk_ref; type_ref = mk_ref }
 
   let debug_name = function
     | Function _ as x -> "function" ^ get_suffix x

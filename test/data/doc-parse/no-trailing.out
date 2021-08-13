@@ -1,1 +1,2 @@
-((source no-trailing.md[1:1-1:21]) (description "No trailing new line!\n\n"))
+((source no-trailing.md[1:1-1:21])
+ (description "<p>No trailing new line!</p>\n"))

@@ -20,24 +20,9 @@ type change_kind =
   | Changed
 
 module Omd' = struct
-  open Omd
+  let iter = Omd_transform.Iter.doc
 
-  let iter_element f =
-    let rec go x =
-      f x;
-      match x with
-      | H1 x | H2 x | H3 x | H4 x | H5 x | H6 x | Paragraph x | Emph x | Bold x -> List.iter go x
-      | Url (_, x, _) | Blockquote x | Html (_, _, x) | Html_block (_, _, x) -> List.iter go x
-      | Ul xs | Ol xs | Ulp xs | Olp xs -> List.iter (List.iter go) xs
-      | Ref (_, _, _, f) | Img_ref (_, _, _, f) -> List.iter go f#to_t
-      | Text _ | Code _ | Code_block _ | Br | Hr | NL | Html_comment _ | Raw _ | Raw_block _ | Img _
-        ->
-          ()
-      | X f -> Option.iter (List.iter go) (f#to_t [])
-    in
-    go
-
-  let iter f = List.iter (iter_element f)
+  let iter_code_blocks f = List.iter (Omd_transform.Iter.code_blocks f)
 end
 
 module type S = sig
@@ -46,7 +31,7 @@ module type S = sig
   module Type : Type_syntax.S with type reference = reference
 
   type description =
-    { description : Omd.t;
+    { description : reference Omd.doc;
       description_pos : Span.t option
     }
 
@@ -58,13 +43,6 @@ module type S = sig
   type nonrec change_kind = change_kind =
     | Added
     | Changed
-
-  (** A link to a string, within a {!description}. *)
-  type link =
-    { link_reference : reference;
-      link_label : description;
-      link_style : [ `Text | `Code ]
-    }
 
   type see =
     { see_reference : reference;
@@ -144,7 +122,7 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
   module Type = X.Type
 
   type description =
-    { description : Omd.t;
+    { description : reference Omd.doc;
       description_pos : Span.t option
     }
 
@@ -156,12 +134,6 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
   type nonrec change_kind = change_kind =
     | Added
     | Changed
-
-  type link =
-    { link_reference : reference;
-      link_label : description;
-      link_style : [ `Text | `Code ]
-    }
 
   type see =
     { see_reference : reference;
@@ -244,11 +216,11 @@ end
 module Lift (L : S) (R : S) = struct
   type t =
     { any_ref : L.reference -> R.reference;
-      type_ref : L.reference -> R.reference;
-      description : L.description -> R.description
+      type_ref : L.reference -> R.reference
     }
 
-  let description x = x.description
+  let description x { L.description; description_pos } =
+    { R.description = Omd_transform.Map.doc x.any_ref description; description_pos }
 
   let example lift : L.example -> R.example = function
     | RawExample e -> RawExample e

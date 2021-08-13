@@ -44,7 +44,9 @@ struct
 
   let reference = X.sexp
 
-  let description (d : description) = Omd.to_markdown d.description |> atom'
+  let description (d : description) =
+    Omd.to_html ~ref:(fun _ r x -> Format.asprintf "@{%a:%s}" pp (reference r) x) d.description
+    |> atom'
 
   let rec type_ = function
     | Type.NilTy -> atom' "nil"

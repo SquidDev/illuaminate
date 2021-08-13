@@ -45,7 +45,7 @@ let emit ~options ~data ~input visit tree =
             | None -> attrs
             | Some { description; _ } ->
                 let desc =
-                  Helpers.get_summary description |> Omd.to_text
+                  Helpers.get_summary description |> Omd.to_plain_text
                   |> CCString.replace ~sub:"\n" ~by:" "
                   |> String.trim
                 in
@@ -110,7 +110,7 @@ let do_lua ~options:({ Html_options.data; _ } as options) input =
 
 let lua ~options input = do_lua ~options input |> fst
 
-let lua_block ~options input =
+let lua_block ?(attrs = []) ~options input =
   let highlighted, kind = do_lua ~options input in
   let kind =
     match kind with
@@ -119,5 +119,5 @@ let lua_block ~options input =
     | Some `Stmt -> Some "stmt"
   in
   Html.Default.create_node ~tag:"pre"
-    ~attributes:[ ("class", Some "highlight highlight-lua"); ("data-lua-kind", kind) ]
+    ~attributes:(("class", Some "highlight highlight-lua") :: ("data-lua-kind", kind) :: attrs)
     ~children:[ highlighted ] ()

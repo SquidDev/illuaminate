@@ -3,7 +3,7 @@ open Doc_comment
 
 (** Parse a markdown string to a {!description}. This includes all extensions to the Markdown
     grammar. *)
-val parse_description : ?default_lang:string -> string -> Omd.t
+val parse_description : ?default_lua:bool -> string -> reference Omd.doc
 
 (** Extract all doc comments from an annotated node.
 

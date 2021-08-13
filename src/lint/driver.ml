@@ -94,13 +94,13 @@ let always : Error.Tag.filter = fun _ -> true
 type r =
   { r :
       'a 'b.
-      ?fix:'a IlluaminateLint__Linter.Fixer.t ->
-      ?span:IlluaminateCore__Span.t ->
-      ?detail:(Stdlib__format.formatter -> unit) ->
-      tag:IlluaminateCore__Error.Tag.t ->
-      kind:'a IlluaminateCore__Witness.t ->
+      ?fix:'a Linter.Fixer.t ->
+      ?span:IlluaminateCore.Span.t ->
+      ?detail:(Format.formatter -> unit) ->
+      tag:IlluaminateCore.Error.Tag.t ->
+      kind:'a IlluaminateCore.Witness.t ->
       source:'a ->
-      ('b, Stdlib__format.formatter, unit, unit, unit, unit) CamlinternalFormatBasics.format6 ->
+      ('b, Format.formatter, unit, unit, unit, unit) CamlinternalFormatBasics.format6 ->
       'b
   }
 

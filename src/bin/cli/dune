@@ -18,7 +18,7 @@
 (executable
  (name illuaminate)
  (modules illuaminate)
- (libraries illuaminate_cli illuaminate.exec.unix)
+ (libraries unix illuaminate_cli illuaminate.exec.unix)
  (modes exe))
 
 (executable

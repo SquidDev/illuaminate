@@ -2,54 +2,38 @@ open IlluaminateSemantics
 open Doc.Syntax
 open Html.Default
 
-let md ~options x =
-  let open Omd in
-  let code_style ~lang code =
-    match lang with
-    | "lua" -> Html_highlight.lua ~options code |> Format.asprintf "%a" emit
-    | _ -> code
-  in
-  let preprocess node =
-    match node with
-    | Html ("illuaminate:ref", attrs, label) -> (
-        let { link_reference; link_label = { description = label; _ }; link_style } =
-          Link.of_tag attrs label
-        in
-        let link, classes = Html_basic.reference_attrs ~options link_reference link_style in
-        match link with
-        | None -> Some [ Html ("span", [ ("class", Some classes) ], label) ]
-        | Some url -> Some [ Html ("a", [ ("href", Some url); ("class", Some classes) ], label) ])
-    | Html ("illuaminate:colour", [ ("colour", Some colour) ], label) ->
-        Some
-          [ Html
-              ( "span",
-                [ ("class", Some "colour") ],
-                Html
-                  ( "span",
-                    [ ("class", Some "colour-ref");
-                      ("style", Some ("background-color: #" ^ colour))
-                    ],
-                    [] )
-                :: label )
-          ]
-    | _ -> None
-  in
-  let format node =
-    match node with
-    | Code_block (lang, contents) -> (
-      match lang with
-      | "lua" ->
-          Html_highlight.lua_block ~options contents |> Format.asprintf "%a" emit |> Option.some
-      | _ ->
-          str contents
-          |> Format.asprintf "<pre class=\"highlight highlight-%s\">%a</pre>" lang emit
-          |> Option.some)
-    | _ -> None
-  in
-  x |> Omd_representation.visit preprocess |> Omd.to_html ~override:format ~cs:code_style |> raw
+let default_highlight attr label code =
+  let class_name = if String.trim label = "" then None else Some ("highlight highlight-" ^ label) in
+  create_node ~tag:"pre" ~attributes:(("class", class_name) :: attr)
+    ~children:[ create_node ~tag:"code" ~children:[ str code ] () ]
+    ()
 
-let rec md_inline ~options = function
-  | [ Omd.Paragraph t ] -> md_inline ~options t
+let highlight ~options attrs lang code =
+  let attrs = List.map (fun (k, v) -> (k, Some v)) attrs in
+  let node =
+    match lang with
+    | "lua" -> Html_highlight.lua_block ~attrs ~options code
+    | _ -> default_highlight attrs lang code
+  in
+  Format.asprintf "%a" emit node
+
+let ref ~options kind link label =
+  let link, classes = Html_basic.reference_attrs ~options link kind in
+  let node =
+    match link with
+    | None ->
+        create_node ~tag:"span" ~attributes:[ ("class", Some classes) ] ~children:[ str label ] ()
+    | Some url ->
+        create_node ~tag:"a"
+          ~attributes:[ ("href", Some url); ("class", Some classes) ]
+          ~children:[ str label ] ()
+  in
+  Format.asprintf "%a" emit node
+
+let md ~options x = x |> Omd.to_html ~highlight:(highlight ~options) ~ref:(ref ~options) |> raw
+
+let md_inline ~options = function
+  | [ Omd.Paragraph (_, t) ] -> Omd.inline_to_html ~ref:(ref ~options) t |> raw
   | t -> md ~options t
 
 let show_desc ~options = function
@@ -58,7 +42,8 @@ let show_desc ~options = function
 
 let show_summary ~options = function
   | None -> nil
-  | Some (d : description) -> Helpers.get_summary d.description |> md_inline ~options
+  | Some (d : description) ->
+      Helpers.get_summary d.description |> Omd.inline_to_html ~ref:(ref ~options) |> raw
 
 let show_desc_inline ~options = function
   | None -> nil

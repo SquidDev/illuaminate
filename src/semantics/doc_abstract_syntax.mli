@@ -25,9 +25,9 @@ type source =
   | Position of position
 
 module Omd' : sig
-  val iter_element : (Omd.element -> unit) -> Omd.element -> unit
+  val iter : ('a -> unit) -> 'a Omd.doc -> unit
 
-  val iter : (Omd.element -> unit) -> Omd.t -> unit
+  val iter_code_blocks : (Omd.attributes -> string -> string -> unit) -> 'a Omd.doc -> unit
 end
 
 (** The kind of change in a changelog. *)
@@ -41,7 +41,7 @@ module type S = sig
   module Type : Type_syntax.S with type reference = reference
 
   type description =
-    { description : Omd.t;
+    { description : reference Omd.doc;
       description_pos : Span.t option
     }
 
@@ -53,13 +53,6 @@ module type S = sig
   type nonrec change_kind = change_kind =
     | Added
     | Changed
-
-  (** A link to a string, within a {!description}. *)
-  type link =
-    { link_reference : reference;  (** The name this link points to. *)
-      link_label : description;  (** The description of this link. *)
-      link_style : [ `Text | `Code ]  (** Whether this label can be considered as text or code. *)
-    }
 
   (** A link to another name. *)
   type see =
@@ -152,9 +145,7 @@ module Lift (L : S) (R : S) : sig
   (** A series of functions to map between one reference kind and another. *)
   type t =
     { any_ref : L.reference -> R.reference;  (** Lift any kind of reference. *)
-      type_ref : L.reference -> R.reference;  (** Lift references specialised for types. *)
-      description : L.description -> R.description
-          (** Lift a description. This must handle [\[illuaminate:ref\]] HTML tags. *)
+      type_ref : L.reference -> R.reference  (** Lift references specialised for types. *)
     }
 
   val description : t -> L.description -> R.description

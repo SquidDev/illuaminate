@@ -4,12 +4,14 @@ open Doc.Syntax
 
 (** Try to extract a summary from a markdown document. This will take the first sentence or line of
     the document, or at most [\[max_length\]] characters. *)
-let get_summary ?(max_length = 120) (desc : Omd.t) =
-  let open Omd_representation in
-  let rec go space = function
-    | [] -> Ok []
-    | _ when space <= 0 -> Ok []
-    | Text t :: xs -> (
+let get_summary ?(max_length = 120) (desc : _ Omd.doc) : _ Omd.inline =
+  let open Omd in
+  let rec go space : (attributes, 'r) inline -> int * (attributes, 'r) inline = function
+    | _ when space <= 0 -> (0, Text ([], ""))
+    | Concat (a, xs) ->
+        let space, xs = go_list space [] xs in
+        (space, Concat (a, xs))
+    | Text (a, t) -> (
         let sentence_end =
           [ '.'; '!'; '?' ]
           |> List.map (String.index_opt t)
@@ -22,30 +24,32 @@ let get_summary ?(max_length = 120) (desc : Omd.t) =
                None
         in
         match sentence_end with
-        | Some i -> Ok [ Text (CCString.take (i + 1) t) ]
-        | None when String.length t >= space -> Ok [ Text (CCString.take space t ^ "...") ]
-        | None -> appending (Text t) (space - String.length t) xs)
+        | Some i -> (0, Text (a, CCString.take (i + 1) t))
+        | None when String.length t >= space -> (0, Text (a, CCString.take space t ^ "..."))
+        | None -> (space - String.length t, Text (a, t)))
     (* Basic formatting blocks *)
-    | Emph body :: xs -> on_child (fun x -> Emph x) space body xs
-    | Bold body :: xs -> on_child (fun x -> Bold x) space body xs
-    | Url (href, body, title) :: xs -> on_child (fun body -> Url (href, body, title)) space body xs
-    | (Ref (_, _, text, _) as x) :: xs -> appending x (space - String.length text) xs
-    | NL :: xs -> appending NL (space - 1) xs
-    | (Code (_, body) as c) :: xs -> appending c (space - String.length body) xs
-    (* Paragraphs are a forced break *)
-    | Paragraph body :: _ -> Ok [ Paragraph (Result.value (go space body) ~default:body) ]
-    | (Html _ as node) :: xs -> appending node space xs
-    (* Just abort here *)
-    | _ -> Ok []
-  and appending node space xs = Result.map (fun xs -> node :: xs) (go space xs)
-  and on_child factory space body xs =
-    match go space body with
-    | Ok x -> Ok [ Emph x ]
-    | Error space -> Result.map (fun x -> factory x :: x) (go space xs)
+    | Emph (a, body) -> on_child (fun x -> Emph (a, x)) space body
+    | Strong (a, body) -> on_child (fun x -> Strong (a, x)) space body
+    | Link (a, ({ label; _ } as link)) ->
+        on_child (fun label -> Link (a, { link with label })) space label
+    | Ref (`Code, _, Text (_, text)) as r -> (space - String.length text, r)
+    | Ref (kind, ref, text) -> on_child (fun text -> Ref (kind, ref, text)) space text
+    | Code (_, body) as c -> (space - String.length body, c)
+    | Colour c -> (space - String.length c, Colour c)
+    | Soft_break _ | Hard_break _ | Image _ | Html _ -> (space, Text ([], ""))
+  and on_child factory space node =
+    let space, node = go space node in
+    (space, factory node)
+  and go_list space ys = function
+    | [] -> (space, List.rev ys)
+    | _ when space <= 0 -> (space, List.rev ys)
+    | x :: xs ->
+        let space, x = go space x in
+        go_list space (x :: ys) xs
   in
-  match go max_length desc with
-  | Ok x -> x
-  | _ -> desc
+  match desc with
+  | (Paragraph (_, x) | Heading (_, _, x)) :: _ -> go max_length x |> snd
+  | _ -> Text ([], "")
 
 (** Get a link to a node. *)
 let link ~source_link { definition; custom_source; _ } =

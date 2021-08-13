@@ -256,7 +256,7 @@ let emit_page =
     | None => None
     | Some(x) =>
       Helpers.get_summary(x.description)
-      |> Omd.to_text
+      |> Omd.to_plain_text
       |> CCString.trim
       |> Option.some
     };

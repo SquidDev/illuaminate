@@ -49,7 +49,6 @@
     menhir
     menhirLib
     mtime
-    (omd (= 1.3.1))
     ppx_deriving_yojson
     ppx_yojson_conv_lib
     re

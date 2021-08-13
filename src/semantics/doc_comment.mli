@@ -43,9 +43,3 @@ type comment =
     (* Types. *)
     type_info : type_info option  (** Information about the type this term defines. *)
   }
-
-module Link : sig
-  val of_tag : (string * string option) list -> Omd.t -> link
-
-  val to_tag : link -> Omd.element
-end

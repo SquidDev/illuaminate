@@ -1,3 +1,4 @@
 ((body (id env) (title env)
   (contents
-   (table (foo ((description "This should be exported\n\n") (body (args))))))))
+   (table
+    (foo ((description "<p>This should be exported</p>\n") (body (args))))))))

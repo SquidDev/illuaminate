@@ -2,5 +2,5 @@
   (contents
    (table
     (a
-     ((description "Exposed through the metatable\n\n")
+     ((description "<p>Exposed through the metatable</p>\n")
       (body expr (ty ((name number))) (value 1))))))))

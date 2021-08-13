@@ -6,7 +6,7 @@
       (see (ref unknown) (label unknown) (span references.lua[10:12-10:18]))))
     (unknown_2
      ((description
-       "See <illuaminate:ref link='unknown' style='code'>unknown</illuaminate:ref> and <illuaminate:ref link='unknown' style='text'>custom label</illuaminate:ref>.\n\n")
+       "<p>See unknown:unknown} and unknown:custom label}.</p>\n")
       (body (args))))
     (term_1
      ((body (args))
@@ -16,7 +16,7 @@
        (label my_term) (span references.lua[16:12-16:18]))))
     (term_2
      ((description
-       "See <illuaminate:ref namespace='library' module='references' sec='v:my_term' style='code'>my_term</illuaminate:ref>, <illuaminate:ref namespace='library' module='references' sec='v:my_term' style='code'>references.my_term</illuaminate:ref> and <illuaminate:ref namespace='library' module='references' sec='v:my_term' style='text'>custom label</illuaminate:ref>.\n\n")
+       "<p>See ((in-module library!references) (name v:my_term)):my_term}, ((in-module library!references) (name v:my_term)):references.my_term} and ((in-module library!references) (name v:my_term)):custom label}.</p>\n")
       (body (args))))
     (type_1
      ((body (args))
@@ -26,17 +26,17 @@
        (label my_term) (span references.lua[23:12-23:18]))))
     (type_2
      ((description
-       "See <illuaminate:ref namespace='library' module='references' sec='ty:MyType' style='code'>MyType</illuaminate:ref> and <illuaminate:ref namespace='library' module='references' sec='ty:MyType' style='code'>references.MyType</illuaminate:ref>\n\n")
+       "<p>See ((in-module library!references) (name ty:MyType)):MyType} and ((in-module library!references) (name ty:MyType)):references.MyType}</p>\n")
       (body (args))))
     (type_3
      ((description
-       "See <illuaminate:ref namespace='library' module='references' sec='ty:MyType' style='code'>MyType</illuaminate:ref> and <illuaminate:ref namespace='library' module='references' sec='ty:MyType' style='code'>references.MyType</illuaminate:ref>\n\n")
+       "<p>See ((in-module library!references) (name ty:MyType)):MyType} and ((in-module library!references) (name ty:MyType)):references.MyType}</p>\n")
       (body
        (returns
         (return (type ((in-module library!references) (name ty:MyType))))))))
     (method_1
      ((description
-       "See <illuaminate:ref namespace='library' module='references' sec='ty:MyType:meth' style='code'>MyType:meth</illuaminate:ref> and <illuaminate:ref namespace='library' module='references' sec='ty:MyType:meth' style='code'>MyType.meth</illuaminate:ref>\n\n")
+       "<p>See ((in-module library!references) (name ty:MyType:meth)):MyType:meth} and ((in-module library!references) (name ty:MyType:meth)):MyType.meth}</p>\n")
       (body (args))))
     (builtin_1
      ((body (args))
@@ -53,11 +53,10 @@
        (label string.match) (span references.lua[37:12-37:23]))))
     (builtin_2
      ((description
-       "<illuaminate:ref href='https://www.lua.org/manual/5.1/manual.html#pdf-string.match' style='code'>string.match</illuaminate:ref>, <illuaminate:ref href='https://www.lua.org/manual/5.1/manual.html#5.4' style='code'>string</illuaminate:ref> and <illuaminate:ref style='code'>number</illuaminate:ref>\n\n")
+       "<p>((name string.match)\n (url https://www.lua.org/manual/5.1/manual.html#pdf-string.match)):string.match}, ((name string) (url https://www.lua.org/manual/5.1/manual.html#5.4)):string} and ((name number)):number}</p>\n")
       (body (args))))
     (module_1
-     ((description
-       "<illuaminate:ref namespace='library' module='references' style='code'>references</illuaminate:ref>\n\n")
+     ((description "<p>((in-module library!references)):references}</p>\n")
       (body (args))))))
   (type
    (body (name MyType)

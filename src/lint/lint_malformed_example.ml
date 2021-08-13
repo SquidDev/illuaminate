@@ -30,12 +30,12 @@ let check_abstract ~r ~span =
 
     method! description { description; description_pos } =
       let span = Option.value ~default:span description_pos in
-      let open Omd in
-      let omd = function
-        | Code ("lua", code) | Code_block ("lua", code) -> check ~r ~span code
+      let f _ lang code =
+        match lang with
+        | "lua" -> check ~r ~span code
         | _ -> ()
       in
-      Doc.AbstractSyntax.Omd'.iter omd description
+      Doc.AbstractSyntax.Omd'.iter_code_blocks f description
 
     method! example =
       function

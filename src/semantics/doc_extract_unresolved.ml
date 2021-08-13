@@ -436,7 +436,7 @@ let get_unresolved_module data program =
 
 let unresolved_module = D.Programs.key ~name:(__MODULE__ ^ ".unresolved") get_unresolved_module
 
-let is_pure : Omd.element -> bool = function
+let is_pure : _ Omd.inline -> bool = function
   | Text _ -> true
   | _ -> false
 
@@ -464,9 +464,11 @@ let unresolved_module_file =
              let d = Value.get_documented ~report:(fun _ _ _ -> ()) comment in
              let page_title, description =
                match d.description with
-               | Some { description = H1 title :: description; description_pos }
-                 when List.for_all is_pure title ->
-                   (Omd.to_text title, Some { description; description_pos })
+               | Some
+                   { description = Omd.Heading (_, 1, Text (_, title)) :: description;
+                     description_pos
+                   } ->
+                   (title, Some { description; description_pos })
                | x -> (page_id, x)
              in
              (* TODO: Warn if the above is a non-module/unknown. *)

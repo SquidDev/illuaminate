@@ -53,7 +53,7 @@ let of_documented ~in_module ~name ~section ?(suffix = Fun.const "") ~source_lin
         summary =
           Option.map
             (fun (d : description) ->
-              Helpers.get_summary d.description |> Omd.to_text |> String.trim)
+              Helpers.get_summary d.description |> Omd.to_plain_text |> String.trim)
             description;
         in_module;
         name_of = section

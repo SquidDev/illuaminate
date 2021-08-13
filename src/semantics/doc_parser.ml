@@ -37,78 +37,22 @@ module Markdown = struct
     if i = 0 && j = len - 1 then s else if i >= j then "" else sub s i (j - i + 1)
 
   (** Parse a markdown string into a description. *)
-  let parse =
-    let desc x = { description = x; description_pos = None } in
-    let open Omd_representation in
-    (* Gobble everything from | to }. *)
-    let rec gobble_name link accum r p = function
-      | Newlines 0 :: _ | [] -> None
-      | Cbrace :: l ->
-          let name = Omd_lexer.string_of_tokens (List.rev accum) in
-          let tag =
-            Link.to_tag
-              { link_reference = Reference link;
-                link_label = desc [ Text name ];
-                link_style = `Text
-              }
-          in
-          Some (tag :: r, Cbrace :: p, l)
-      | Newline :: l -> gobble_name link (Space :: accum) r (Newline :: p) l
-      | x :: l -> gobble_name link (x :: accum) r (x :: p) l
-    in
-    (* Gobble everything from @{ to }. Aborts on newlines, switches to gobble_name should we see a
-       '|'. *)
-    let rec gobble_link accum r p = function
-      | Newline :: _ | [] -> None
-      | Cbrace :: l ->
-          let link = Omd_lexer.string_of_tokens (List.rev accum) in
-          let tag =
-            Link.to_tag
-              { link_reference = Reference link;
-                link_label = desc [ Text (trim_reference link) ];
-                link_style = `Code
-              }
-          in
-          Some (tag :: r, Cbrace :: p, l)
-      | Bar :: l ->
-          let link = Omd_lexer.string_of_tokens (List.rev accum) in
-          gobble_name link [] r (Bar :: p) l
-      | x :: l -> gobble_link (x :: accum) r (x :: p) l
-    in
-    let is_hex = function
-      | '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' -> true
-      | _ -> false
-    in
-    (* Register an extension which recognises [[@{ foo }]], [[@{ foo|bar }]] and hex colours
-       ([[#fff]]) *)
-    let ext : extension =
-      object
-        method parser_extension r p =
-          function
-          | At :: Obrace :: l -> gobble_link [] r (Obrace :: At :: p) l
-          | Hash :: (Word w | Number w) :: l
-            when (String.length w = 3 || String.length w == 6) && CCString.for_all is_hex w ->
-              Some
-                ( Html ("illuaminate:colour", [ ("colour", Some w) ], [ Text ("#" ^ w) ]) :: r,
-                  Word w :: Hash :: p,
-                  l )
-          | _ -> None
+  let parse x = x |> md_trim |> Omd.of_string
 
-        method to_string = "Extension"
-      end
-    in
-    let fix_lang =
-      Omd_representation.visit @@ function
-      | Code_block ("__auto", contents) -> Some [ Code_block ("lua", contents) ]
-      | Code ("__auto", contents) -> Some [ Code ("", contents) ]
-      | _ -> None
-    in
-
-    fun ?(default_lang = "") x ->
-      x |> md_trim |> Omd.of_string ~extensions:[ ext ] ~default_lang |> fix_lang
+  (** Default empty code blocks to Lua. *)
+  let rec fix_lang : _ Omd.block -> _ Omd.block = function
+    | Code_block (attr, "", code) -> Code_block (attr, "lua", code)
+    | (Paragraph _ | Heading _ | Thematic_break _ | Definition_list _ | Html_block _ | Code_block _)
+      as block ->
+        block
+    | List (attr, ty, sp, bl) -> List (attr, ty, sp, List.map (List.map fix_lang) bl)
+    | Blockquote (attr, xs) -> Blockquote (attr, List.map fix_lang xs)
 end
 
-let parse_description = Markdown.parse
+let parse_description ?(default_lua = false) x =
+  let doc = Markdown.parse x in
+  let doc = if default_lua then List.map Markdown.fix_lang doc else doc in
+  Omd_transform.Map.doc (fun x -> Reference x) doc
 
 module Tag = struct
   let malformed_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:malformed-tag"
@@ -211,14 +155,14 @@ module Lex = struct
           ( { offset; mapping; contents = word },
             { offset = offset + len; mapping; contents = CCString.drop len contents } )
 
-  let description ?default_lang (ranged : string ranged) =
-    { description = Markdown.parse ?default_lang ranged.contents;
+  let description ?default_lua (ranged : string ranged) =
+    { description = parse_description ?default_lua ranged.contents;
       description_pos = Some (to_span ranged)
     }
 
-  let description' ?default_lang (ranged : string ranged) =
+  let description' ?default_lua (ranged : string ranged) =
     if CCString.for_all Markdown.is_space ranged.contents then None
-    else Some (description ?default_lang ranged)
+    else Some (description ?default_lua ranged)
 end
 
 type doc_flag =
@@ -407,7 +351,7 @@ module Build = struct
           match String.index_opt body.contents '\n' with
           | None -> RawExample (Lex.to_spanned body)
           | Some _ ->
-              let desc = Lex.description ~default_lang:"__auto" body in
+              let desc = Lex.description ~default_lua:true body in
               RichExample desc
         in
         b.b_usages <- usage :: b.b_usages

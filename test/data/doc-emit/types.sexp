@@ -1,10 +1,11 @@
 ((body (id types) (title types)
   (contents
    (table
-    (no_clue ((description "A basic exported *value*.\n\n") (body table)))
+    (no_clue
+     ((description "<p>A basic exported <em>value</em>.</p>\n") (body table)))
     (ty_1 ((body (args (arg (name a)) (arg (name b))))))
     (ty_2
-     ((description "Function type syntax\n\n")
+     ((description "<p>Function type syntax</p>\n")
       (body
        (args
         (arg (name a)
@@ -19,17 +20,17 @@
         (arg (name f) (type "function(...)"))
         (arg (name g) (type "function(...)"))))))
     (ty_3
-     ((description "Table syntax\n\n")
+     ((description "<p>Table syntax</p>\n")
       (body
        (args (arg (name a) (type {...})) (arg (name b) (type {...}))
         (arg (name c) (type {...}))))))
     (ref
-     ((description "Type references\n\n")
+     ((description "<p>Type references</p>\n")
       (body
        (args (arg (name a) (type no_clue))
         (arg (name b) (type ((in-module library!types) (name ty:Foo))))))))
     (opt
-     ((description "Optional arguments\n\n")
+     ((description "<p>Optional arguments</p>\n")
       (body
        (args
         (arg (name a) (opt)

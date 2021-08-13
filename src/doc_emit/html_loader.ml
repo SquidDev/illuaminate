@@ -8,8 +8,10 @@ let load_file ~options path =
     match Fpath.get_ext path with
     | ".html" | ".htm" -> raw contents |> Result.ok
     | ".md" | ".markdown" ->
-        let x = IlluaminateSemantics.Doc.Parser.parse_description contents in
-        Html_md.md ~options x |> Result.ok
+        let module R = IlluaminateSemantics.Reference in
+        IlluaminateSemantics.Doc.Parser.parse_description contents
+        |> IlluaminateSemantics__Omd_transform.Map.doc (fun (R.Reference r) -> R.Unknown r)
+        |> Html_md.md ~options |> Result.ok
     | ".txt" | "" -> create_node ~tag:"pre" ~children:[ str contents ] () |> Result.ok
     | ext ->
         Format.asprintf "Cannot handle documentation index '%a' (unknown file extension %S)\n%!"

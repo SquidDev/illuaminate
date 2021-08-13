@@ -40,15 +40,11 @@ let check_abstract ~r ~span =
 
     method! description { description; description_pos } =
       let span = Option.value ~default:span description_pos in
-      let open Omd in
-      let omd = function
-        | Html ("illuaminate:ref", attrs, label) -> (
-          match Link.of_tag attrs label with
-          | { link_reference = Unknown x; _ } -> r.r ~span ~tag "Unknown reference %S." x
-          | _ -> ())
+      let f = function
+        | Reference.Unknown x -> r.r ~span ~tag "Unknown reference %S." x
         | _ -> ()
       in
-      Doc.AbstractSyntax.Omd'.iter omd description
+      Doc.AbstractSyntax.Omd'.iter f description
   end
 
 let linter =

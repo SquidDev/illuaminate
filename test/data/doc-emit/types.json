@@ -54,7 +54,7 @@
   "types.no_clue": {
     "name": "types.no_clue",
     "source": "types.lua[8:13-8:14]",
-    "summary": "A basic exported value",
+    "summary": "A basic exported value.",
     "module": "types",
     "module-kind": "library",
     "section": "v:no_clue",

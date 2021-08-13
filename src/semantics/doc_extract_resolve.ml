@@ -158,31 +158,11 @@ type cache = Doc_syntax.value Doc_syntax.documented DocTbl.t
 
 type context = Lift.t
 
-let go_desc context { description; description_pos } =
-  let open Omd in
-  let visit = function
-    | Html ("illuaminate:ref", tags, label) ->
-        let { Doc_comment.link_reference = Reference link;
-              link_label = { description; description_pos };
-              link_style
-            } =
-          Doc_comment.Link.of_tag tags label
-        in
-        let r = Resolvers.name context ~types_only:false link in
-        Some
-          [ Link.to_tag
-              { link_reference = r; link_label = { description; description_pos }; link_style }
-          ]
-    | _ -> None
-  in
-  { description = Omd_representation.visit visit description; description_pos }
-
 let context pages current_page =
   let context = { Resolvers.pages; current_page; unique_pages = StringMap.empty } in
   let lift : Lift.t =
     { any_ref = Resolvers.ref context ~types_only:false;
-      type_ref = Resolvers.ref context ~types_only:true;
-      description = go_desc context
+      type_ref = Resolvers.ref context ~types_only:true
     }
   in
   (DocTbl.create 16, lift)
