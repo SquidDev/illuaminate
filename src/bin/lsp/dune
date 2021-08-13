@@ -13,7 +13,7 @@
  (name illuaminate_lsp)
  (modules illuaminate_lsp)
  (modes exe)
- (libraries illuaminateLsp cmdliner lsp logs yojson lsp.stdune lsp.fiber
+ (libraries unix illuaminateLsp cmdliner lsp logs yojson lsp.stdune lsp.fiber
    lsp.fiber_unix lsp_fiber illuaminate.exec.unix))
 
 (rule

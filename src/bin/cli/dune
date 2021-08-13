@@ -24,7 +24,7 @@
 (executable
  (name illuaminate_js)
  (modules illuaminate_js)
- (libraries illuaminate_cli illuaminate.exec.js)
+ (libraries unix illuaminate_cli illuaminate.exec.js)
  (modes js)
  (js_of_ocaml
   (javascript_files runtime.js)
