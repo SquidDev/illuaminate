@@ -1,5 +1,6 @@
 {
   "recommendations": [
-    "ms-vscode.vscode-typescript-tslint-plugin"
+    "ms-vscode.vscode-typescript-tslint-plugin",
+    "ocamllabs.ocaml-platform"
   ]
 }
