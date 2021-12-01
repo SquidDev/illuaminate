@@ -24,7 +24,7 @@ type t =
 let normalise_p p = Fpath.(normalize p |> rem_empty_seg)
 
 let create ?root errors =
-  let relative = CCOpt.get_lazy (fun () -> Fpath.(Sys.getcwd () |> v |> normalise_p)) root in
+  let relative = CCOption.get_lazy (fun () -> Fpath.(Sys.getcwd () |> v |> normalise_p)) root in
   { relative; errors; configs = StringMap.empty }
 
 let mk_name ~loader:{ relative; _ } path =

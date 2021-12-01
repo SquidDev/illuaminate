@@ -62,15 +62,15 @@ end
 module Merge = struct
   let documented (merge : Span.t -> 'a -> 'b -> 'c) (implicit : 'a documented)
       (explicit : 'b documented) =
-    { description = CCOpt.or_ ~else_:explicit.description implicit.description;
+    { description = CCOption.or_ ~else_:explicit.description implicit.description;
       definition = implicit.definition;
       descriptor = merge implicit.definition implicit.descriptor explicit.descriptor;
       examples = implicit.examples @ explicit.examples;
       see = implicit.see @ explicit.see;
       local = implicit.local || explicit.local;
       export = implicit.export || explicit.export;
-      deprecated = CCOpt.or_ ~else_:explicit.deprecated implicit.deprecated;
-      custom_source = CCOpt.or_ ~else_:explicit.custom_source implicit.custom_source;
+      deprecated = CCOption.or_ ~else_:explicit.deprecated implicit.deprecated;
+      custom_source = CCOption.or_ ~else_:explicit.custom_source implicit.custom_source;
       changes = (if CCList.is_empty implicit.changes then explicit.changes else implicit.changes)
     }
 

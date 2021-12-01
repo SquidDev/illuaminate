@@ -10,7 +10,7 @@ license: "BSD-3-Clause"
 homepage: "https://github.com/squiddev/illuaminate"
 bug-reports: "https://github.com/squiddev/illuaminate/issues"
 depends: [
-  "ocaml" {>= "4.08" & < "4.13"}
+  "ocaml" {>= "4.12" & < "5.0"}
   "dune" {>= "2.7"}
   "js_of_ocaml-compiler" {build & >= "3.6.0"}
   "js_of_ocaml-ppx" {build}
@@ -18,15 +18,16 @@ depends: [
   "ppxlib" {build & >= "0.14.0"}
   "reason" {build}
   "alcotest" {with-test}
-  "junit" {with-test}
-  "qcheck-core" {with-test}
   "fmt" {with-test}
+  "junit" {with-test}
+  "omnomnom" {with-test}
+  "qcheck-core" {with-test}
   "odoc" {with-doc}
   "bisect_ppx" {dev & >= "2.5.0"}
   "ocamlformat" {dev}
   "opam-file-format" {dev & >= "2.1.0"}
   "cmdliner"
-  "containers" {>= "3.0.1"}
+  "containers" {>= "3.6.0"}
   "fpath"
   "js_of_ocaml"
   "logs"
@@ -56,3 +57,6 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/squiddev/illuaminate.git"
+pin-depends: [
+  ["omnomnom.dev" "git+https://github.com/SquidDev/omnomnom.git#bbef94ef0e997b805aed3b2cccab37c328e598c5"]
+]

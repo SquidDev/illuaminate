@@ -129,7 +129,7 @@ let build_func t entry_block =
           | Some (_, body) ->
               let block = fresh_block (Block body) in
               add_edge bb block (Jump stmt) false;
-              (block, CCOpt.to_list (go' loop block body))
+              (block, CCOption.to_list (go' loop block body))
         in
         let entry_block, bbs = List.fold_right clause (if_if :: if_elseif) next in
         add_edge bb entry_block Fallthrough false;

@@ -119,7 +119,7 @@ and get_name store : Syntax.name -> (Reference.t * value documented) option = fu
             List.assoc_opt key ks |> Option.map (fun x -> (Reference.Dot (reference, key), x))
         | _ -> None
       in
-      get_expr store tbl |> CCOpt.flat_map find
+      get_expr store tbl |> CCOption.flat_map find
   | NLookup _ -> None
 
 let is_interesting r value =

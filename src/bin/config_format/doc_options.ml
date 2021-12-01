@@ -34,7 +34,7 @@ let make_source_link ~root template =
       | Ok l -> Some (String.trim l))
   in
   let link ~path ~start_line ~end_line =
-    Fun.flip CCOpt.flat_map template @@ fun template ->
+    Fun.flip CCOption.flat_map template @@ fun template ->
     Fun.flip Template.apply template @@ function
     | "path" -> path
     | "line" | "sline" -> string_of_int start_line |> Option.some
@@ -47,8 +47,8 @@ let make_source_link ~root template =
     | Span span ->
         let path =
           (Span.filename span).path
-          |> CCOpt.flat_map (Fpath.relativize ~root)
-          |> CCOpt.map Fpath.to_string
+          |> CCOption.flat_map (Fpath.relativize ~root)
+          |> CCOption.map Fpath.to_string
         in
         link ~path ~start_line:(Span.start_line span) ~end_line:(Span.finish_line span)
   in

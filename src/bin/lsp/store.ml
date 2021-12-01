@@ -71,11 +71,11 @@ module Workspace = struct
                 | Some (_, best_len) when wk_len <= best_len -> best
                 | _ -> Some (workspace, wk_len))
         in
-        UriMap.fold get_name workspaces None |> Option.map fst |> CCOpt.or_ ~else_:root
+        UriMap.fold get_name workspaces None |> Option.map fst |> CCOption.or_ ~else_:root
 
   let workspaces : (unit, workspaces) Data.Key.t =
     let eq a b =
-      CCOpt.equal ( == ) a.root b.root && UriMap.equal ( == ) a.workspaces b.workspaces
+      CCOption.equal ( == ) a.root b.root && UriMap.equal ( == ) a.workspaces b.workspaces
     in
     Data.Key.deferred ~eq ~name:(__MODULE__ ^ ".Workspace.workspaces") ()
 
@@ -96,7 +96,7 @@ module Workspace = struct
     let config_key = FileDigest.oracle ~name:(__MODULE__ ^ ".Workspace.config_file") read_config in
     Key.key ~name:(__MODULE__ ^ ".Workspace.config") ~pp @@ fun store workspace ->
     workspace.path
-    |> CCOpt.flat_map (fun path -> need store config_key Fpath.(path / "illuaminate.sexp"))
+    |> CCOption.flat_map (fun path -> need store config_key Fpath.(path / "illuaminate.sexp"))
     |> Option.value ~default:Config.default
 
   let context : (t, Data.Programs.Context.t) Data.Key.t =
@@ -135,11 +135,11 @@ module Workspace = struct
     let workspace = workspace_for ~root workspaces name in
     match workspace with
     | None ->
-        Log.info (fun f -> f "Default linters for %a" (CCOpt.pp Fpath.pp) name.path);
+        Log.info (fun f -> f "Default linters for %a" (CCOption.pp Fpath.pp) name.path);
         Config.(get_linters default ())
     | Some workspace ->
         let config = need store config workspace in
-        Log.info (fun f -> f "Getting linters for %a" (CCOpt.pp Fpath.pp) name.path);
+        Log.info (fun f -> f "Getting linters for %a" (CCOption.pp Fpath.pp) name.path);
         Config.get_linters config ?path:name.path ()
 end
 

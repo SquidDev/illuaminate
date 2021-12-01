@@ -60,7 +60,7 @@ module Resolvers = struct
     | Some i ->
         let kind = CCString.take i name and name = CCString.drop (i + 1) name in
         NMap.find_opt (Namespace kind) state.pages
-        |> CCOpt.flat_map (StringMap.find_opt name)
+        |> CCOption.flat_map (StringMap.find_opt name)
         |> Option.map Lazy.force
 
   (* Look up names within a module *)
@@ -86,12 +86,12 @@ module Resolvers = struct
     match page_contents with
     | Module { mod_types; _ } when not is_type ->
         String.index_opt name ':'
-        |> CCOpt.or_lazy ~else_:(fun () -> String.rindex_opt name '.')
-        |> CCOpt.flat_map @@ fun i ->
+        |> CCOption.or_lazy ~else_:(fun () -> String.rindex_opt name '.')
+        |> CCOption.flat_map @@ fun i ->
            let type_name = CCString.take i name and item_name = CCString.drop (i + 1) name in
            mod_types
            |> List.find_opt (fun ty -> ty.descriptor.type_name = type_name)
-           |> CCOpt.flat_map (fun ty ->
+           |> CCOption.flat_map (fun ty ->
                   List.find_opt
                     (fun { member_name; _ } -> member_name = item_name)
                     ty.descriptor.type_members)
@@ -126,9 +126,9 @@ module Resolvers = struct
       | Some i ->
           let page_id = CCString.take i name and item_name = CCString.drop (i + 1) name in
           lookup_module s page_id
-          |> CCOpt.flat_map (fun { descriptor = modu; _ } ->
+          |> CCOption.flat_map (fun { descriptor = modu; _ } ->
                  CCList.find_map (fun f -> f modu item_name is_type) in_module_finders)
-          |> CCOpt.or_lazy ~else_:(fun () -> go (i + 1))
+          |> CCOption.or_lazy ~else_:(fun () -> go (i + 1))
     in
     go 0
 

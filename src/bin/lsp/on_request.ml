@@ -101,7 +101,7 @@ module Declarations = struct
   let of_dots ~store program d =
     let resolved = D.get (Store.data store) Resolve.key program in
     Resolve.get_dots d resolved
-    |> CCOpt.flat_map (fun x -> x.Resolve.dot_node)
+    |> CCOption.flat_map (fun x -> x.Resolve.dot_node)
     |> Option.map (fun x -> `Location [ location (Node.span x) ])
 
   let find ~store ~position program : Locations.t option =

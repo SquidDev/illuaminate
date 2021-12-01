@@ -5,10 +5,10 @@
   "license": "BSD-3-Clause",
   "homepage": "https://github.com/squiddev/illuaminate",
   "dependencies": {
-    "ocaml": ">=4.08 <4.13",
+    "ocaml": ">=4.12 <5.0",
     "@opam/dune": ">=2.7",
     "@opam/cmdliner": "*",
-    "@opam/containers": ">=3.0.1",
+    "@opam/containers": ">=3.6.0",
     "@opam/fpath": "*",
     "@opam/js_of_ocaml": "*",
     "@opam/logs": "*",
@@ -30,13 +30,18 @@
     "@opam/ppxlib": ">=0.14.0",
     "@opam/reason": "*",
     "@opam/alcotest": "*",
-    "@opam/junit": "*",
-    "@opam/qcheck-core": "*",
     "@opam/fmt": "*",
+    "@opam/junit": "*",
+    "@opam/omnomnom": "*",
+    "@opam/qcheck-core": "*",
     "@opam/odoc": "*",
     "@opam/bisect_ppx": ">=2.5.0",
     "@opam/ocamlformat": "*",
     "@opam/opam-file-format": ">=2.1.0"
+  },
+  "resolutions": {
+    "@opam/omnomnom":
+      "git+https://github.com/SquidDev/omnomnom.git:omnomnom.opam#bbef94ef0e997b805aed3b2cccab37c328e598c5"
   },
   "esy": {
     "build": "dune build -p #{self.name}",

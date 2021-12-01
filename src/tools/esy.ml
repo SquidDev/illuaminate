@@ -13,9 +13,8 @@ let rec json_of_value value : J.t =
 type dep_kind =
   | Main
   | Dev
-  | Skip
 
-let dep_of_value ~os value : dep_kind * string * string =
+let dep_of_value value : dep_kind * string * string =
   match value.pelem with
   | String p -> (Main, p, "*")
   | Option ({ pelem = String p; _ }, constraints) ->
@@ -31,15 +30,6 @@ let dep_of_value ~os value : dep_kind * string * string =
             let this = OpamPrinter.FullPos.relop op ^ v in
             let version = Option.fold ~some:(Printf.sprintf "%s %s" this) ~none:this version in
             build (kind, Some version) xs
-        | { pelem =
-              Relop
-                ( { pelem = `Neq; _ },
-                  { pelem = Ident "os-family"; _ },
-                  { pelem = String this_os; _ } );
-            _
-          }
-          :: xs ->
-            if this_os <> os then build (kind, version) xs else (Skip, version)
         | c :: _ ->
             Printf.sprintf "Unknown constraint '%s' for '%s'" (OpamPrinter.FullPos.value c) p
             |> failwith
@@ -48,14 +38,14 @@ let dep_of_value ~os value : dep_kind * string * string =
       (kind, p, Option.value ~default:"*" version)
   | _ -> Printf.sprintf "Unknown package '%s'" (OpamPrinter.FullPos.value value) |> failwith
 
-let to_json ~os fields item : (string * J.t) list =
+let to_json fields item : (string * J.t) list =
   let add_field k v = (k, json_of_value v) :: fields in
   match item.pelem with
   | Variable ({ pelem = ("version" | "license" | "homepage") as k; _ }, v) -> add_field k v
   | Variable ({ pelem = "synopsis"; _ }, value) -> add_field "description" value
   | Variable ({ pelem = "depends"; _ }, { pelem = List depends; _ }) ->
       let add (main, dev) v =
-        let kind, name, version = dep_of_value ~os v in
+        let kind, name, version = dep_of_value v in
         let name =
           match name with
           | "ocaml" -> name
@@ -65,32 +55,42 @@ let to_json ~os fields item : (string * J.t) list =
         match kind with
         | Main -> (dep :: main, dev)
         | Dev -> (main, dep :: dev)
-        | Skip -> (main, dev)
       in
       let main, dev = List.fold_left add ([], []) depends.pelem in
       ("devDependencies", `Assoc (List.rev dev))
       :: ("dependencies", `Assoc (List.rev main))
       :: fields
+  | Variable ({ pelem = "pin-depends"; _ }, { pelem = List depends; _ }) ->
+      let pins =
+        List.map
+          (function
+            | { pelem =
+                  List { pelem = [ { pelem = String name; _ }; { pelem = String package; _ } ]; _ };
+                _
+              } ->
+                let name = CCString.chop_suffix ~suf:".dev" name |> Option.value ~default:name in
+                let package =
+                  match String.split_on_char '#' package with
+                  | [ l; r ] -> Printf.sprintf "%s:%s.opam#%s" l name r
+                  | _ -> package
+                in
+
+                ("@opam/" ^ name, `String package)
+            | pin -> Printf.sprintf "Unknown pin %s" (OpamPrinter.FullPos.value pin) |> failwith)
+          depends.pelem
+      in
+
+      ("resolutions", `Assoc (List.rev pins)) :: fields
   | _ -> fields
 
 let () =
-  let os =
-    match Sys.os_type |> String.lowercase_ascii with
-    | "win32" | "cygwin" -> "windows"
-    | "freebsd" | "openbsd" | "netbsd" | "dragonfly" -> "bsd"
-    | x -> x
-  in
-  let os = ref os and file = ref None in
-  Arg.parse
-    [ ("-o", Set_string os, "The operating system to generate for") ]
-    (fun x -> file := Some x)
-    "";
   let { file_contents; _ } =
-    match !file with
-    | Some x -> OpamParser.FullPos.file x
-    | None -> OpamParser.FullPos.channel stdin "=stdin"
+    match Sys.argv with
+    | [| _; x |] -> OpamParser.FullPos.file x
+    | [| _ |] -> OpamParser.FullPos.channel stdin "=stdin"
+    | _ -> Printf.eprintf "esy.exe INPUT\n"; exit 1
   in
-  let fields = List.fold_left (to_json ~os:!os) [] file_contents in
+  let fields = List.fold_left to_json [] file_contents in
   let json : J.t =
     `Assoc
       ((("name", `String "illuaminate") :: List.rev fields)

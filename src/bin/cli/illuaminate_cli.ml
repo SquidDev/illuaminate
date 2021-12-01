@@ -137,7 +137,7 @@ let doc_gen path =
   end in
   let errs = Error.make () in
   let loader = Loader.create errs in
-  (CCOpt.get_lazy (fun () -> Sys.getcwd () |> Fpath.v) path
+  (CCOption.get_lazy (fun () -> Sys.getcwd () |> Fpath.v) path
   |> Loader.load_from ~loader
   |> Option.iter @@ fun (config, _, builder) ->
      let data = IlluaminateData.Builder.(empty |> builder |> build) in

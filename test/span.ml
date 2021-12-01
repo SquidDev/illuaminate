@@ -50,8 +50,8 @@ let quickcheck =
     mk ~count:1000 ~name:"Changing column preserves line"
       (incr_other start_col (start_pos -| Lenses.fst));
     (* A couple of tests to verify that position bounds checks work. *)
-    QCheck.Test.make ~count:1000 ~name:"Can change column within bounds"
-      QCheck.(pair small_int small_signed_int)
+    QCheck2.Test.make ~count:1000 ~name:"Can change column within bounds"
+      QCheck2.Gen.(pair small_int small_signed_int)
       (fun (len, col) ->
         let in_bounds = col > 0 && col <= len + 1
         and ok =
@@ -60,8 +60,8 @@ let quickcheck =
           | exception Invalid_argument _ -> false
         in
         in_bounds = ok);
-    QCheck.Test.make ~count:1000 ~name:"Can change line within bounds"
-      QCheck.(pair small_int small_signed_int)
+    QCheck2.Test.make ~count:1000 ~name:"Can change line within bounds"
+      QCheck2.Gen.(pair small_int small_signed_int)
       (fun (len, line) ->
         let len = len + 1 in
         let in_bounds = line > 0 && line <= len

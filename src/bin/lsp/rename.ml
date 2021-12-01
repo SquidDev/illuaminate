@@ -45,7 +45,8 @@ let check_usages state f =
     | None, _ -> None
     | Some v, _ -> f v
   in
-  CCList.find_map f usages |> CCOpt.or_lazy ~else_:(fun () -> CCList.find_map check_def definitions)
+  CCList.find_map f usages
+  |> CCOption.or_lazy ~else_:(fun () -> CCList.find_map check_def definitions)
 
 (** Check whether any usages and definitions of this variable are shadowed by the new name. *)
 let check_usage_conflicts v existing_var new_name =
@@ -102,8 +103,8 @@ let rename data position new_name program =
         | None -> (
           (* Find a previous definition of this variable at the given point. *)
           match
-            CCOpt.or_lazy ~else_:(fun () -> Resolve.get_global resolved new_name) existing_var
-            |> CCOpt.flat_map (check_definition_conflicts var)
+            CCOption.or_lazy ~else_:(fun () -> Resolve.get_global resolved new_name) existing_var
+            |> CCOption.flat_map (check_definition_conflicts var)
           with
           | None -> Ok (apply_rename var new_name)
           | Some (Var node) ->

@@ -44,7 +44,7 @@ let build_resolver data contents =
     List.fold_left
       (fun modules file ->
         D.need data D.Programs.Files.file file
-        |> CCOpt.flat_map (D.need data U.unresolved_module_file)
+        |> CCOption.flat_map (D.need data U.unresolved_module_file)
         |> Option.fold ~none:modules ~some:(add_page modules))
       NMap.empty
       (D.need data D.Programs.Files.files ())
@@ -55,7 +55,7 @@ let build_resolver data contents =
        (* Bring all other modules with the same name into scope if required. *)
        let m =
          NMap.find_opt current.descriptor.page_namespace all
-         |> CCOpt.flat_map (StringMap.find_opt current.descriptor.page_id)
+         |> CCOption.flat_map (StringMap.find_opt current.descriptor.page_id)
        in
        match m with
        | None -> current

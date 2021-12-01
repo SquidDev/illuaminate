@@ -346,7 +346,7 @@ module Infer = struct
     | [] -> None
     | node :: xs ->
         let docs = infer_stmt state node and rest = infer_stmts state xs in
-        CCOpt.( <+> ) docs rest
+        CCOption.( <+> ) docs rest
 
   let extract_module data program =
     let errs = Error.make () in

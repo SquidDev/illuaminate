@@ -35,10 +35,10 @@ let parse_schema : Node.trivial Span.spanned -> _ = function
 let parse_schema program =
   program ^. (Syntax.First.program -| Node.leading_trivia)
   |> CCList.find_map parse_schema
-  |> CCOpt.get_lazy @@ fun () ->
+  |> CCOption.get_lazy @@ fun () ->
      program ^. (Syntax.Last.program -| Node.trailing_trivia)
      |> CCList.find_map parse_schema
-     |> CCOpt.get_lazy @@ fun () -> Schema.default schema
+     |> CCOption.get_lazy @@ fun () -> Schema.default schema
 
 let files ?out () =
   lazy

@@ -16,7 +16,7 @@
   (synopsis "Source code analysis for Lua")
   (description "Provides various tools for parsing, processing and producing Lua source code. Currently does very little, but will hopefully grow in the future.")
   (depends
-    (ocaml (and (>= 4.08) (< 4.13)))
+    (ocaml (and (>= 4.12) (< 5.0)))
 
     ;; Build-time
     dune ; While a build-tool, dune shouldn't be build-time only
@@ -28,9 +28,10 @@
 
     ; Test
     (alcotest :with-test)
-    (junit :with-test)
-    (qcheck-core :with-test)
     (fmt :with-test)
+    (junit :with-test)
+    (omnomnom :with-test)
+    (qcheck-core :with-test)
 
     ; Documentation generation
     (odoc :with-doc)
@@ -42,7 +43,7 @@
 
     ; Core
     cmdliner
-    (containers (>= 3.0.1))
+    (containers (>= 3.6.0))
     fpath
     js_of_ocaml
     logs

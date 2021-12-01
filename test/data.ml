@@ -28,7 +28,7 @@ let add_key =
 
 let count_key key k =
   let counter = ref 0 in
-  (Key.key ~name:"Count" ~pp:(Fmt.unit "") (fun s () -> incr counter; need s key k), counter)
+  (Key.key ~name:"Count" ~pp:(Fmt.any "") (fun s () -> incr counter; need s key k), counter)
 
 let ref_builder = Builder.oracle ref_key (fun x _ -> Ref.v x)
 

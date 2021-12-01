@@ -1,3 +1,0 @@
-[submodule "vendor/omnomnom"]
-	path = vendor/omnomnom
-	url = https://github.com/SquidDev/omnomnom.git

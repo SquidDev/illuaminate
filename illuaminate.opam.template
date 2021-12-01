@@ -1,0 +1,3 @@
+pin-depends: [
+  ["omnomnom.dev" "git+https://github.com/SquidDev/omnomnom.git#bbef94ef0e997b805aed3b2cccab37c328e598c5"]
+]

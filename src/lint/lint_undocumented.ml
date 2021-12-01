@@ -72,8 +72,8 @@ let linter =
               let has_any =
                 IlluaminateData.need context E.get_pages ()
                 |> MN.find_opt descriptor.page_namespace
-                |> CCOpt.flat_map (MS.find_opt descriptor.page_id)
-                |> CCOpt.flat_map (fun (x : _ documented) -> x.description)
+                |> CCOption.flat_map (MS.find_opt descriptor.page_id)
+                |> CCOption.flat_map (fun (x : _ documented) -> x.description)
                 |> Option.is_some
               in
               if not has_any then r.r ~span:definition ~tag "Module is missing documentation");

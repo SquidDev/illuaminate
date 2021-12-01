@@ -36,7 +36,7 @@ let emit ~options ~data ~input visit tree =
       stack := false :: xs;
       "")
     else
-      match fn () |> CCOpt.flat_map (transform_ref ~options) with
+      match fn () |> CCOption.flat_map (transform_ref ~options) with
       | Some (url, (node : 'a Doc.Syntax.documented)) ->
           stack := true :: xs;
           let attrs = [ ("href", url) ] in
