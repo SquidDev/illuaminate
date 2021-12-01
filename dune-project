@@ -37,7 +37,7 @@
     (odoc :with-doc)
 
     ; Dev-only dependencies.
-    (bisect_ppx (and :dev (>= 2.5.0)))
+    (bisect_ppx (and :with-test (>= 2.5.0)))
     (ocamlformat :dev)
     (opam-file-format (and :dev (>= 2.1.0)))
 
