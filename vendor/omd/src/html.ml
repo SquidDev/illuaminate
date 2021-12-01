@@ -92,10 +92,12 @@ let to_plain_text t =
   let rec go : _ inline -> unit = function
     | Concat (_, l) -> List.iter go l
     | Text (_, t)
+    | Colour t
     | Code (_, t) ->
         Buffer.add_string buf t
     | Emph (_, i)
     | Strong (_, i)
+    | Ref (_, _, i)
     | Link (_, { label = i; _ })
     | Image (_, { label = i; _ }) ->
         go i
@@ -109,14 +111,14 @@ let to_plain_text t =
 
 let nl = Raw "\n"
 
-let rec url label destination title attrs =
+let rec url ~ref label destination title attrs =
   let attrs =
     match title with
     | None -> attrs
     | Some title -> ("title", title) :: attrs
   in
   let attrs = ("href", escape_uri destination) :: attrs in
-  elt Inline "a" attrs (Some (inline label))
+  elt Inline "a" attrs (Some (inline ~ref label))
 
 and img label destination title attrs =
   let attrs =
@@ -129,24 +131,43 @@ and img label destination title attrs =
   in
   elt Inline "img" attrs None
 
-and inline = function
-  | Ast.Concat (_, l) -> concat_map inline l
+and inline ~ref = function
+  | Ast.Concat (_, l) -> concat_map (inline ~ref) l
   | Text (_, t) -> text t
-  | Emph (attr, il) -> elt Inline "em" attr (Some (inline il))
-  | Strong (attr, il) -> elt Inline "strong" attr (Some (inline il))
+  | Emph (attr, il) -> elt Inline "em" attr (Some (inline ~ref il))
+  | Strong (attr, il) -> elt Inline "strong" attr (Some (inline ~ref il))
   | Code (attr, s) -> elt Inline "code" attr (Some (text s))
   | Hard_break attr -> concat (elt Inline "br" attr None) nl
   | Soft_break _ -> nl
   | Html (_, body) -> raw body
   | Link (attr, { label; destination; title }) ->
-      url label destination title attr
+      url ~ref label destination title attr
   | Image (attr, { label; destination; title }) ->
       img label destination title attr
+  | Colour c ->
+      concat
+        (elt
+           Inline
+           "span"
+           [ ("class", "color-ref"); ("style", "background-color: " ^ c) ]
+           (Some Null))
+        (elt Inline "span" [ ("class", "color") ] (Some (text c)))
+  | Ref (k, r, c) -> ref k r (inline ~ref c)
 
-let rec block = function
+let default_highlight attr label code =
+  let code_attr =
+    if String.trim label = "" then
+      []
+    else
+      [ ("class", "language-" ^ label) ]
+  in
+  let c = text code in
+  elt Block "pre" attr (Some (elt Inline "code" code_attr (Some c)))
+
+let rec block ?(highlight = default_highlight) ~ref = function
   | Blockquote (attr, q) ->
-      elt Block "blockquote" attr (Some (concat nl (concat_map block q)))
-  | Paragraph (attr, md) -> elt Block "p" attr (Some (inline md))
+      elt Block "blockquote" attr (Some (concat nl (concat_map (block ~ref) q)))
+  | Paragraph (attr, md) -> elt Block "p" attr (Some (inline ~ref md))
   | List (attr, ty, sp, bl) ->
       let name =
         match ty with
@@ -161,8 +182,8 @@ let rec block = function
       let li t =
         let block' t =
           match (t, sp) with
-          | Paragraph (_, t), Tight -> concat (inline t) nl
-          | _ -> block t
+          | Paragraph (_, t), Tight -> concat (inline ~ref t) nl
+          | _ -> block ~ref t
         in
         let nl =
           if sp = Tight then
@@ -173,15 +194,7 @@ let rec block = function
         elt Block "li" [] (Some (concat nl (concat_map block' t)))
       in
       elt Block name attr (Some (concat nl (concat_map li bl)))
-  | Code_block (attr, label, code) ->
-      let code_attr =
-        if String.trim label = "" then
-          []
-        else
-          [ ("class", "language-" ^ label) ]
-      in
-      let c = text code in
-      elt Block "pre" attr (Some (elt Inline "code" code_attr (Some c)))
+  | Code_block (attr, label, code) -> highlight attr label code
   | Thematic_break attr -> elt Block "hr" attr None
   | Html_block (_, body) -> raw body
   | Heading (attr, level, text) ->
@@ -195,16 +208,16 @@ let rec block = function
         | 6 -> "h6"
         | _ -> "p"
       in
-      elt Block name attr (Some (inline text))
+      elt Block name attr (Some (inline ~ref text))
   | Definition_list (attr, l) ->
       let f { term; defs } =
         concat
-          (elt Block "dt" [] (Some (inline term)))
-          (concat_map (fun s -> elt Block "dd" [] (Some (inline s))) defs)
+          (elt Block "dt" [] (Some (inline ~ref term)))
+          (concat_map (fun s -> elt Block "dd" [] (Some (inline ~ref s))) defs)
       in
       elt Block "dl" attr (Some (concat_map f l))
 
-let of_doc doc = concat_map block doc
+let of_doc ?highlight ~ref doc = concat_map (block ?highlight ~ref) doc
 
 let to_string t =
   let buf = Buffer.create 1024 in

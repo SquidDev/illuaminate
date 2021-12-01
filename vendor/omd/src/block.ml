@@ -9,7 +9,7 @@ module Pre = struct
         * list_spacing
         * bool
         * int
-        * attributes Raw.block list list
+        * (attributes, string) Raw.block list list
         * t
     | Rparagraph of string list
     | Rfenced_code of
@@ -25,7 +25,7 @@ module Pre = struct
     | Rempty
 
   and t =
-    { blocks : attributes Raw.block list
+    { blocks : (attributes, string) Raw.block list
     ; next : container
     }
 

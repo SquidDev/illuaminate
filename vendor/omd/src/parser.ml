@@ -1159,7 +1159,7 @@ module Pre = struct
     | Bang_left_bracket
     | Left_bracket of link_kind
     | Emph of delim * delim * emph_style * int
-    | R of attributes inline
+    | R of (attributes, string) inline
 
   let concat = function
     | [ x ] -> x
@@ -1886,6 +1886,48 @@ let inline_link =
   <<< ws
   <<< char ')'
 
+let colour st =
+  let b = Buffer.create 6 in
+  let rec go () =
+    match peek st with
+    | Some c
+      when (c >= '0' && c <= '9')
+           || (c >= 'a' && c <= 'f')
+           || (c >= 'A' && c <= 'F') ->
+        junk st;
+        Buffer.add_char b c;
+        go ()
+    | _ -> ()
+  in
+  go ();
+  let len = Buffer.length b in
+  if len <> 3 && len <> 6 then raise Fail;
+  "#" ^ Buffer.contents b
+
+let reference st =
+  char '@' st;
+  char '{' st;
+
+  let b = Buffer.create 16 in
+  let rec go ~kind ~link =
+    match peek st with
+    | Some '}' ->
+        junk st;
+        let label = Buffer.contents b in
+        Ref (kind, Option.value ~default:label link, Text ([], label))
+    | Some '|' ->
+        junk st;
+        let link = Buffer.contents b in
+        Buffer.clear b;
+        go ~kind:`Text ~link:(Some link)
+    | Some c ->
+        junk st;
+        Buffer.add_char b c;
+        go ~kind ~link
+    | None -> raise Fail
+  in
+  go ~kind:`Code ~link:None
+
 let get_buf buf =
   let s = Buffer.contents buf in
   Buffer.clear buf;
@@ -2177,6 +2219,20 @@ let rec inline defs st =
           | None -> f ' ' n st
         in
         aux 0
+    | '#' -> (
+        junk st;
+        match protect colour st with
+        | col -> loop (Pre.R (Colour col) :: text acc) st
+        | exception Fail ->
+            Buffer.add_char buf '#';
+            loop acc st)
+    | '@' -> (
+        match protect reference st with
+        | r -> loop (Pre.R r :: text acc) st
+        | exception Fail ->
+            junk st;
+            Buffer.add_char buf '@';
+            loop acc st)
     | _ as c ->
         junk st;
         Buffer.add_char buf c;

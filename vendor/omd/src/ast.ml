@@ -16,55 +16,57 @@ type 'attr link_def =
   }
 
 module type T = sig
-  type 'a t
+  type ('attr, 'ref) t
 end
 
 module MakeBlock (I : T) = struct
-  type 'attr def_elt =
-    { term : 'attr I.t
-    ; defs : 'attr I.t list
+  type ('attr, 'ref) def_elt =
+    { term : ('attr, 'ref) I.t
+    ; defs : ('attr, 'ref) I.t list
     }
 
   (* A value of type 'attr is present in all variants of this type. We use it to associate
      extra information to each node in the AST. In the common case, the attributes type defined
      above is used. We might eventually have an alternative function to parse blocks while keeping
      concrete information such as source location and we'll use it for that as well. *)
-  type 'attr block =
-    | Paragraph of 'attr * 'attr I.t
-    | List of 'attr * list_type * list_spacing * 'attr block list list
-    | Blockquote of 'attr * 'attr block list
+  type ('attr, 'ref) block =
+    | Paragraph of 'attr * ('attr, 'ref) I.t
+    | List of 'attr * list_type * list_spacing * ('attr, 'ref) block list list
+    | Blockquote of 'attr * ('attr, 'ref) block list
     | Thematic_break of 'attr
-    | Heading of 'attr * int * 'attr I.t
+    | Heading of 'attr * int * ('attr, 'ref) I.t
     | Code_block of 'attr * string * string
     | Html_block of 'attr * string
-    | Definition_list of 'attr * 'attr def_elt list
+    | Definition_list of 'attr * ('attr, 'ref) def_elt list
 end
 
-type 'attr link =
-  { label : 'attr inline
+type ('attr, 'ref) link =
+  { label : ('attr, 'ref) inline
   ; destination : string
   ; title : string option
   }
 
 (* See comment on the block type above about the 'attr parameter *)
-and 'attr inline =
-  | Concat of 'attr * 'attr inline list
+and ('attr, 'ref) inline =
+  | Concat of 'attr * ('attr, 'ref) inline list
   | Text of 'attr * string
-  | Emph of 'attr * 'attr inline
-  | Strong of 'attr * 'attr inline
+  | Emph of 'attr * ('attr, 'ref) inline
+  | Strong of 'attr * ('attr, 'ref) inline
   | Code of 'attr * string
   | Hard_break of 'attr
   | Soft_break of 'attr
-  | Link of 'attr * 'attr link
-  | Image of 'attr * 'attr link
+  | Link of 'attr * ('attr, 'ref) link
+  | Image of 'attr * ('attr, 'ref) link
   | Html of 'attr * string
+  | Ref of [ `Text | `Code ] * 'ref * ('attr, 'ref) inline
+  | Colour of string
 
 module StringT = struct
-  type 'attr t = string
+  type ('attr, 'ref) t = string
 end
 
 module InlineT = struct
-  type 'attr t = 'attr inline
+  type ('attr, 'ref) t = ('attr, 'ref) inline
 end
 
 module Raw = MakeBlock (StringT)
@@ -75,8 +77,8 @@ module MakeMapper (Src : T) (Dst : T) = struct
   module SrcBlock = MakeBlock (Src)
   module DstBlock = MakeBlock (Dst)
 
-  let rec map (f : 'attr Src.t -> 'attr Dst.t) :
-      'attr SrcBlock.block -> 'attr DstBlock.block = function
+  let rec map (f : ('attr, 'ref) Src.t -> ('attr, 'ref) Dst.t) :
+      ('attr, 'ref) SrcBlock.block -> ('attr, 'ref) DstBlock.block = function
     | SrcBlock.Paragraph (attr, x) -> DstBlock.Paragraph (attr, f x)
     | List (attr, ty, sp, bl) ->
         List (attr, ty, sp, List.map (List.map (map f)) bl)

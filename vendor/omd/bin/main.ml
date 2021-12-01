@@ -20,7 +20,7 @@ let with_open_out fn f =
 
 let process ic oc =
   let md = Omd.of_channel ic in
-  output_string oc (Omd.to_html md)
+  output_string oc (Omd.to_html ~ref:(fun _ _ x -> x) md)
 
 let input = ref []
 

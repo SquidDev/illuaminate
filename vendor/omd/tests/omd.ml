@@ -18,6 +18,19 @@ let with_open_in fn f =
   let ic = open_in fn in
   protect ~finally:(fun () -> close_in_noerr ic) (fun () -> f ic)
 
+let ref kind _ label =
+  match kind with
+  | `Code ->
+      Format.sprintf
+        "<span class=\"reference reference-code \
+         reference-unresolved\">%s</span>"
+        label
+  | `Text ->
+      Format.sprintf
+        "<span class=\"reference reference-text \
+         reference-unresolved\">%s</span>"
+        label
+
 let () =
   with_open_in Sys.argv.(1) @@ fun ic ->
-  print_string (normalize_html (Omd.to_html (Omd.of_channel ic)))
+  print_string (normalize_html (Omd.to_html ~ref (Omd.of_channel ic)))

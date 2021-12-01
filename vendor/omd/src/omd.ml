@@ -1,7 +1,7 @@
 module Pre = Block.Pre
 include Ast
 
-type doc = attributes block list
+type 'ref doc = (attributes, 'ref) block list
 
 let parse_inline defs s = Parser.inline defs (Parser.P.of_string s)
 
@@ -18,9 +18,23 @@ let of_channel ic = parse_inlines (Pre.of_channel ic)
 
 let of_string s = parse_inlines (Pre.of_string s)
 
-let to_html doc = Html.to_string (Html.of_doc doc)
+let inline_to_html ~ref:f inl =
+  let open Html in
+  let ref k x inl = Raw (f k x (to_string inl)) in
+  to_string (inline ~ref inl)
 
-let to_sexp ast = Format.asprintf "@[%a@]@." Sexp.print (Sexp.create ast)
+let to_html ?highlight ~ref:f doc =
+  let open Html in
+  let highlight =
+    Option.map (fun f attrs lang code -> Raw (f attrs lang code)) highlight
+  in
+  let ref k x inl = Raw (f k x (to_string inl)) in
+  to_string (of_doc ?highlight ~ref doc)
+
+let to_sexp ~ref ast =
+  Format.asprintf "@[%a@]@." Sexp.print (Sexp.create ~ref ast)
+
+let to_plain_text = Html.to_plain_text
 
 let headers = Toc.headers
 

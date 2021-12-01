@@ -1,5 +1,5 @@
 (rule
- (deps spec.txt attributes.md def_list.md)
+ (deps spec.txt attributes.md def_list.md illuaminate_extensions.md)
  (targets
   spec-001.md spec-001.html
   spec-002.md spec-002.html
@@ -665,7 +665,17 @@
   attributes-013.md attributes-013.html
   attributes-014.md attributes-014.html
   attributes-015.md attributes-015.html
-  def_list-001.md def_list-001.html)
+  def_list-001.md def_list-001.html
+  illuaminate_extensions-001.md illuaminate_extensions-001.html
+  illuaminate_extensions-002.md illuaminate_extensions-002.html
+  illuaminate_extensions-003.md illuaminate_extensions-003.html
+  illuaminate_extensions-004.md illuaminate_extensions-004.html
+  illuaminate_extensions-005.md illuaminate_extensions-005.html
+  illuaminate_extensions-006.md illuaminate_extensions-006.html
+  illuaminate_extensions-007.md illuaminate_extensions-007.html
+  illuaminate_extensions-008.md illuaminate_extensions-008.html
+  illuaminate_extensions-009.md illuaminate_extensions-009.html
+  illuaminate_extensions-010.md illuaminate_extensions-010.html)
  (action (run ./extract_tests.exe -generate-test-files %{deps})))
 (rule
  (action
@@ -4673,6 +4683,86 @@
 (rule
  (alias def_list-001)
  (action (diff def_list-001.html def_list-001.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-001.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-001.md}))))
+(rule
+ (alias illuaminate_extensions-001)
+ (action
+  (diff illuaminate_extensions-001.html illuaminate_extensions-001.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-002.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-002.md}))))
+(rule
+ (alias illuaminate_extensions-002)
+ (action
+  (diff illuaminate_extensions-002.html illuaminate_extensions-002.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-003.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-003.md}))))
+(rule
+ (alias illuaminate_extensions-003)
+ (action
+  (diff illuaminate_extensions-003.html illuaminate_extensions-003.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-004.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-004.md}))))
+(rule
+ (alias illuaminate_extensions-004)
+ (action
+  (diff illuaminate_extensions-004.html illuaminate_extensions-004.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-005.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-005.md}))))
+(rule
+ (alias illuaminate_extensions-005)
+ (action
+  (diff illuaminate_extensions-005.html illuaminate_extensions-005.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-006.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-006.md}))))
+(rule
+ (alias illuaminate_extensions-006)
+ (action
+  (diff illuaminate_extensions-006.html illuaminate_extensions-006.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-007.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-007.md}))))
+(rule
+ (alias illuaminate_extensions-007)
+ (action
+  (diff illuaminate_extensions-007.html illuaminate_extensions-007.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-008.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-008.md}))))
+(rule
+ (alias illuaminate_extensions-008)
+ (action
+  (diff illuaminate_extensions-008.html illuaminate_extensions-008.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-009.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-009.md}))))
+(rule
+ (alias illuaminate_extensions-009)
+ (action
+  (diff illuaminate_extensions-009.html illuaminate_extensions-009.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-010.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-010.md}))))
+(rule
+ (alias illuaminate_extensions-010)
+ (action
+  (diff illuaminate_extensions-010.html illuaminate_extensions-010.html.new)))
 (alias
  (name runtest)
  (deps
@@ -5325,4 +5415,14 @@
   (alias attributes-013)
   (alias attributes-014)
   (alias attributes-015)
-  (alias def_list-001)))
+  (alias def_list-001)
+  (alias illuaminate_extensions-001)
+  (alias illuaminate_extensions-002)
+  (alias illuaminate_extensions-003)
+  (alias illuaminate_extensions-004)
+  (alias illuaminate_extensions-005)
+  (alias illuaminate_extensions-006)
+  (alias illuaminate_extensions-007)
+  (alias illuaminate_extensions-008)
+  (alias illuaminate_extensions-009)
+  (alias illuaminate_extensions-010)))

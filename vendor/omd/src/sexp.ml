@@ -6,37 +6,40 @@ type t =
 
 let atom s = Atom s
 
-let rec link { label; destination; title; _ } =
+let rec link ~ref { label; destination; title; _ } =
   let title =
     match title with
     | Some title -> [ Atom title ]
     | None -> []
   in
-  List (Atom "link" :: inline label :: Atom destination :: title)
+  List (Atom "link" :: inline ~ref label :: Atom destination :: title)
 
-and inline = function
-  | Concat (_, xs) -> List (Atom "concat" :: List.map inline xs)
+and inline ~ref = function
+  | Concat (_, xs) -> List (Atom "concat" :: List.map (inline ~ref) xs)
   | Text (_, s) -> Atom s
-  | Emph (_, il) -> List [ Atom "emph"; inline il ]
-  | Strong (_, il) -> List [ Atom "strong"; inline il ]
+  | Emph (_, il) -> List [ Atom "emph"; inline ~ref il ]
+  | Strong (_, il) -> List [ Atom "strong"; inline ~ref il ]
   | Code _ -> Atom "code"
   | Hard_break _ -> Atom "hard-break"
   | Soft_break _ -> Atom "soft-break"
-  | Link (_, def) -> List [ Atom "url"; link def ]
+  | Link (_, def) -> List [ Atom "url"; link ~ref def ]
   | Html (_, s) -> List [ Atom "html"; Atom s ]
   | Image _ -> Atom "img"
+  | Colour c -> List [ Atom "colour"; Atom c ]
+  | Ref (_, r, label) -> List [ Atom "ref"; Atom (ref r); inline ~ref label ]
 
-let rec block = function
-  | Paragraph (_, x) -> List [ Atom "paragraph"; inline x ]
+let rec block ~ref = function
+  | Paragraph (_, x) -> List [ Atom "paragraph"; inline ~ref x ]
   | List (_, _, _, bls) ->
       List
         (Atom "list"
-        :: List.map (fun xs -> List (Atom "list-item" :: List.map block xs)) bls
-        )
-  | Blockquote (_, xs) -> List (Atom "blockquote" :: List.map block xs)
+        :: List.map
+             (fun xs -> List (Atom "list-item" :: List.map (block ~ref) xs))
+             bls)
+  | Blockquote (_, xs) -> List (Atom "blockquote" :: List.map (block ~ref) xs)
   | Thematic_break _ -> Atom "thematic-break"
   | Heading (_, level, text) ->
-      List [ Atom "heading"; Atom (string_of_int level); inline text ]
+      List [ Atom "heading"; Atom (string_of_int level); inline ~ref text ]
   | Code_block (_, info, _) -> List [ Atom "code-block"; Atom info ]
   | Html_block (_, s) -> List [ Atom "html"; Atom s ]
   | Definition_list (_, l) ->
@@ -45,11 +48,14 @@ let rec block = function
         ; List
             (List.map
                (fun elt ->
-                 List [ inline elt.term; List (List.map inline elt.defs) ])
+                 List
+                   [ inline ~ref elt.term
+                   ; List (List.map (inline ~ref) elt.defs)
+                   ])
                l)
         ]
 
-let create ast = List (List.map block ast)
+let create ~ref ast = List (List.map (block ~ref) ast)
 
 let needs_quotes s =
   let rec loop i =

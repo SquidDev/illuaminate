@@ -11,6 +11,15 @@ type t =
   | Null
   | Concat of t * t
 
-val of_doc : attributes block list -> t
+val inline :
+  ref:([ `Text | `Code ] -> 'ref -> t -> t) -> (attributes, 'ref) inline -> t
+
+val of_doc :
+     ?highlight:(attributes -> string -> string -> t)
+  -> ref:([ `Text | `Code ] -> 'ref -> t -> t)
+  -> (attributes, 'ref) block list
+  -> t
+
+val to_plain_text : (_, _) inline -> string
 
 val to_string : t -> string
