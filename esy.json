@@ -40,6 +40,8 @@
     "@opam/opam-file-format": ">=2.1.0"
   },
   "resolutions": {
+    "@opam/reason":
+      "git+https://github.com/reasonml/reason.git:reason.opam#ccc34729994b4a80d4f6274cc0165cd9113444d6",
     "@opam/omnomnom":
       "git+https://github.com/SquidDev/omnomnom.git:omnomnom.opam#bbef94ef0e997b805aed3b2cccab37c328e598c5"
   },
