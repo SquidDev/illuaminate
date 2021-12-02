@@ -54,6 +54,12 @@ let rec block ~ref = function
                    ])
                l)
         ]
+  | Admonition (_, kind, title, body) ->
+      List
+        (Atom "admonition"
+        :: Atom (string_of_admonition kind)
+        :: inline ~ref title
+        :: List.map (block ~ref) body)
 
 let create ~ref ast = List (List.map (block ~ref) ast)
 

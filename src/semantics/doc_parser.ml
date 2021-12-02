@@ -47,6 +47,7 @@ module Markdown = struct
         block
     | List (attr, ty, sp, bl) -> List (attr, ty, sp, List.map (List.map fix_lang) bl)
     | Blockquote (attr, xs) -> Blockquote (attr, List.map fix_lang xs)
+    | Admonition (attr, kind, title, xs) -> Admonition (attr, kind, title, List.map fix_lang xs)
 end
 
 let parse_description ?(default_lua = false) x =
@@ -709,7 +710,7 @@ module Data = struct
 
   type t =
     { mutable all_comments : (comment list, Syntax.program) result;
-      mutable comments : (comment list * comment list) TermTbl.t
+      comments : (comment list * comment list) TermTbl.t
     }
 
   let program =

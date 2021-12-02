@@ -81,3 +81,89 @@ Needless to say, unclosed blocks are treated as normal text:
 .
 <p>@{print|print a string</p>
 ````````````````````````````````
+
+## Admonitions
+Illuaminate supports Admonitions, inspired by those from [Docusaurus](https://docusaurus.io/docs/markdown-features/admonitions)
+and [remark-admonitions](https://github.com/elviswolcott/remark-admonitions).
+
+These are wrapped by exactly three colons, with another block nested inside.
+
+```````````````````````````````` example
+:::warning
+Some content
+:::
+.
+<div class="admonition admonition-warning"><h5 class="admonition-heading">warning</h5>
+<p>Some content</p>
+</div>
+````````````````````````````````
+
+These admonitions can contain standard Markdown, including blocks and inline elements
+
+```````````````````````````````` example
+:::warning
+For instance, *we can have emphasis*
+
+ - Multiple paragraphs
+ - And lists
+:::
+.
+<div class="admonition admonition-warning"><h5 class="admonition-heading">warning</h5>
+<p>For instance, <em>we can have emphasis</em></p>
+<ul>
+<li>Multiple paragraphs</li>
+<li>And lists</li>
+</ul>
+</div>
+````````````````````````````````
+
+Like any other block, these are closed automatically when their context is terminated
+
+```````````````````````````````` example
+> :::warning
+> Closed by our blockquote
+
+ - :::warning
+   And by
+ - another list item
+.
+<blockquote>
+<div class="admonition admonition-warning"><h5 class="admonition-heading">warning</h5>
+<p>Closed by our blockquote</p>
+</div>
+</blockquote>
+<ul>
+<li><div class="admonition admonition-warning"><h5 class="admonition-heading">warning</h5>
+<p>And by</p>
+</div></li>
+<li>another list item</li>
+</ul>
+````````````````````````````````
+
+This does mean that ::: needs to be demoted to a normal string.
+
+```````````````````````````````` example
+> :::warning
+> Closed by our blockquote
+
+:::
+.
+<blockquote>
+<div class="admonition admonition-warning"><h5 class="admonition-heading">warning</h5>
+<p>Closed by our blockquote</p>
+</div>
+</blockquote>
+<p>:::</p>
+````````````````````````````````
+
+We also allow custom titles.
+
+```````````````````````````````` example
+:::warning *Custom title!*
+Some content
+:::
+.
+<div class="admonition admonition-warning"><h5 class="admonition-heading"><em>Custom title!</em></h5>
+<p>Some content</p>
+</div>
+````````````````````````````````

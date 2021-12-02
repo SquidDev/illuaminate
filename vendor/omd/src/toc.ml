@@ -33,7 +33,9 @@ let headers =
                   inline
               in
               headers := (attr, level, inline) :: !headers
-          | Blockquote (_, blocks) -> loop blocks
+          | Blockquote (_, blocks)
+          | Admonition (_, _, _, blocks) ->
+              loop blocks
           | List (_, _, _, block_lists) -> List.iter loop block_lists
           | Paragraph _
           | Thematic_break _
@@ -46,9 +48,8 @@ let headers =
     loop doc;
     List.rev !headers
 
-(* Given a list of headers — in the order of the document — go to the
-   requested subsection.  We first seek for the [number]th header at
-   [level]. *)
+(* Given a list of headers — in the order of the document — go to the requested subsection. We first
+   seek for the [number]th header at [level]. *)
 let rec find_start headers level number subsections =
   match headers with
   | (_, header_level, _) :: tl when header_level > level ->
@@ -61,7 +62,7 @@ let rec find_start headers level number subsections =
       else
         find_start tl level number subsections
   | (_, header_level, _) :: tl when header_level = level ->
-      (* At proper [level].  Have we reached the [number] one? *)
+      (* At proper [level]. Have we reached the [number] one? *)
       if number <= 1 then
         match subsections with
         | [] -> tl (* no subsection to find *)

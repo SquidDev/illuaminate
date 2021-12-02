@@ -8,8 +8,9 @@
     ; 42: Disambiguated constructor or label name (compatibility warning)
     ; 44: Open statement shadows already defined identifier
     ; 48: Implicit elimination of optional arguments.
+    ; 70: Missing .mli file
     -w
-    +A-4-40-42-44-48
+    +A-4-40-42-44-48-70
     -strict-sequence
     -safe-string
     -g

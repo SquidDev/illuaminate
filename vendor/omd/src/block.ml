@@ -22,6 +22,7 @@ module Pre = struct
     | Rindented_code of string list
     | Rhtml of Parser.html_kind * string list
     | Rdef_list of string * string list
+    | Radmonition of admonition * string * attributes * t
     | Rempty
 
   and t =
@@ -84,6 +85,8 @@ module Pre = struct
         in
         Code_block ([], "", concat (loop l)) :: blocks
     | Rhtml (_, l) -> Html_block ([], concat l) :: blocks
+    | Radmonition (kind, title, attrs, body) ->
+        Admonition (attrs, kind, title, finish body) :: blocks
     | Rempty -> blocks
 
   and finish link_defs state = List.rev (close link_defs state)
@@ -114,8 +117,11 @@ module Pre = struct
         { blocks
         ; next = Rlist (kind, Tight, false, indent, [], process empty s)
         }
-    | Rempty, (Lsetext_heading _ | Lparagraph | Ldef_list _) ->
+    | Rempty, (Lsetext_heading _ | Lparagraph | Ldef_list _ | Ladmonition_close)
+      ->
         { blocks; next = Rparagraph [ Sub.to_string s ] }
+    | Rempty, Ladmonition (adm, kind, attr) ->
+        { blocks; next = Radmonition (adm, kind, attr, empty) }
     | Rparagraph [ h ], Ldef_list def ->
         { blocks; next = Rdef_list (h, [ def ]) }
     | Rdef_list (term, defs), Ldef_list def ->
@@ -147,6 +153,10 @@ module Pre = struct
         { blocks
         ; next = Rfenced_code (ind, num, q, info, Sub.to_string s :: lines, a)
         }
+    | Radmonition (_, _, _, _), Ladmonition_close ->
+        { blocks = close { blocks; next }; next = Rempty }
+    | Radmonition (kind, title, attrs, body), _ ->
+        { blocks; next = Radmonition (kind, title, attrs, process body s) }
     | Rdef_list (term, d :: defs), Lparagraph ->
         { blocks
         ; next = Rdef_list (term, (d ^ "\n" ^ Sub.to_string s) :: defs)

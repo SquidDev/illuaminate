@@ -10,6 +10,13 @@ type list_spacing =
   | Loose
   | Tight
 
+type admonition =
+  | Note
+  | Info
+  | Tip
+  | Caution
+  | Warning
+
 type ('attr, 'ref) link =
   { label : ('attr, 'ref) inline
   ; destination : string
@@ -44,6 +51,8 @@ type ('attr, 'ref) block =
   | Code_block of 'attr * string * string
   | Html_block of 'attr * string
   | Definition_list of 'attr * ('attr, 'ref) def_elt list
+  | Admonition of
+      'attr * admonition * ('attr, 'ref) inline * ('attr, 'ref) block list
 
 type 'ref doc = (attributes, 'ref) block list
 (** A markdown document *)

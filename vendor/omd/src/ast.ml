@@ -15,6 +15,13 @@ type 'attr link_def =
   ; attributes : 'attr
   }
 
+type admonition =
+  | Note
+  | Info
+  | Tip
+  | Caution
+  | Warning
+
 module type T = sig
   type ('attr, 'ref) t
 end
@@ -25,10 +32,10 @@ module MakeBlock (I : T) = struct
     ; defs : ('attr, 'ref) I.t list
     }
 
-  (* A value of type 'attr is present in all variants of this type. We use it to associate
-     extra information to each node in the AST. In the common case, the attributes type defined
-     above is used. We might eventually have an alternative function to parse blocks while keeping
-     concrete information such as source location and we'll use it for that as well. *)
+  (* A value of type 'attr is present in all variants of this type. We use it to associate extra
+     information to each node in the AST. In the common case, the attributes type defined above is
+     used. We might eventually have an alternative function to parse blocks while keeping concrete
+     information such as source location and we'll use it for that as well. *)
   type ('attr, 'ref) block =
     | Paragraph of 'attr * ('attr, 'ref) I.t
     | List of 'attr * list_type * list_spacing * ('attr, 'ref) block list list
@@ -38,6 +45,8 @@ module MakeBlock (I : T) = struct
     | Code_block of 'attr * string * string
     | Html_block of 'attr * string
     | Definition_list of 'attr * ('attr, 'ref) def_elt list
+    | Admonition of
+        'attr * admonition * ('attr, 'ref) I.t * ('attr, 'ref) block list
 end
 
 type ('attr, 'ref) link =
@@ -92,6 +101,8 @@ module MakeMapper (Src : T) (Dst : T) = struct
         Definition_list (attr, List.map f l)
     | Code_block (attr, label, code) -> Code_block (attr, label, code)
     | Html_block (attr, x) -> Html_block (attr, x)
+    | Admonition (attr, kind, title, body) ->
+        Admonition (attr, kind, f title, List.map (map f) body)
 end
 
 module Mapper = MakeMapper (StringT) (InlineT)
@@ -102,3 +113,10 @@ let same_block_list_kind k1 k2 =
   | Bullet c1, Bullet c2 ->
       c1 = c2
   | _ -> false
+
+let string_of_admonition : admonition -> string = function
+  | Note -> "note"
+  | Info -> "info"
+  | Tip -> "tip"
+  | Caution -> "caution"
+  | Warning -> "warning"

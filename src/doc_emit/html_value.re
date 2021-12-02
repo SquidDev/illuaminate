@@ -104,15 +104,19 @@ let show_function = (~options, args, rets, throws) =>
   ]
   |> many;
 
+let warning_icon = raw("<span aria-hidden=\"true\">🛈</span> ");
+
 let show_preamble = (~options, {description, deprecated, _}) =>
   [
     switch (deprecated) {
     | None => nil
     | Some({deprecation_message}) =>
-      <div class_="deprecated">
-        <strong> {str("Deprecated")} </strong>
-        {str(" ")}
-        {show_desc_inline(~options, deprecation_message)}
+      <div class_="admonition admonition-caution">
+        <h5 class_="admonition-heading">
+          warning_icon
+          {str("Deprecated")}
+        </h5>
+        {show_desc(~options, deprecation_message)}
       </div>
     },
     show_desc(~options, description),

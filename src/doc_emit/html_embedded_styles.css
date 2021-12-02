@@ -19,8 +19,20 @@
 
   --highlight-header-colour: #FFFF99;
 
-  --deprecated-colour: #664d03;
-  --deprecated-background: #fff3cd;
+  --note-colour: var(--foreground);
+  --note-background: #ebebeb;
+
+  --info-colour: #005377;
+  --info-background: #b3e8ff;
+
+  --tip-colour: #00421c;
+  --tip-background: #8df3b8;
+
+  --caution-colour: #664d03;
+  --caution-background: #fff3cd;
+
+  --warning-colour: #3a0000;
+  --warning-background: #ffb4b4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -38,6 +50,20 @@
     --sidebar-header-collapsed: #060606;
 
     --highlight-header-colour: #000005;
+
+    --note-background: #3d3d3d;
+
+    --info-colour: #6ad2ff;
+    --info-background: #00374e;
+
+    --tip-colour: #68f5a2;
+    --tip-background: #033518;
+
+    --caution-colour: #e4c04c;
+    --caution-background: #4d3900;
+
+    --warning-colour: #fa9494;
+    --warning-background: #570000;
   }
 }
 
@@ -80,6 +106,7 @@ code {
 p {
   margin: 0.9em 0;
 }
+p:last-child { margin-bottom: 0 }
 
 h1 {
   font-size: 1.5em;
@@ -362,10 +389,46 @@ kbd {
   font-weight: normal;
 }
 
-.deprecated {
-  --size: 10px;
-  color: var(--deprecated-colour);
-  background: var(--deprecated-background);
-  padding: var(--size);
-  margin: 0 calc(-1 * var(--size));
+.admonition {
+  color: var(--admonition-colour);
+  background: var(--admonition-background);
+  padding: 0.5em;
+}
+
+.admonition-heading {
+  text-transform: uppercase;
+  font-weight: bold;
+  padding: 0;
+  margin: 0;
+}
+
+.admonition {
+  background: var(--admonition-background);
+  color: var(--admonition-colour);
+  border-left: solid 4px var(--admonition-colour);
+}
+
+.admonition-note {
+  --admonition-background: var(--note-background);
+  --admonition-colour: var(--note-colour);
+}
+
+.admonition-info {
+  --admonition-background: var(--info-background);
+  --admonition-colour: var(--info-colour);
+}
+
+.admonition-tip {
+  --admonition-background: var(--tip-background);
+  --admonition-colour: var(--tip-colour);
+}
+
+.admonition-caution {
+  --admonition-background: var(--caution-background);
+  --admonition-colour: var(--caution-colour);
+}
+
+.admonition-warning {
+  --admonition-background: var(--warning-background);
+  --admonition-colour: var(--warning-colour);
 }

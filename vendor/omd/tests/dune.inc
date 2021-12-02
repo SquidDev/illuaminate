@@ -675,7 +675,12 @@
   illuaminate_extensions-007.md illuaminate_extensions-007.html
   illuaminate_extensions-008.md illuaminate_extensions-008.html
   illuaminate_extensions-009.md illuaminate_extensions-009.html
-  illuaminate_extensions-010.md illuaminate_extensions-010.html)
+  illuaminate_extensions-010.md illuaminate_extensions-010.html
+  illuaminate_extensions-011.md illuaminate_extensions-011.html
+  illuaminate_extensions-012.md illuaminate_extensions-012.html
+  illuaminate_extensions-013.md illuaminate_extensions-013.html
+  illuaminate_extensions-014.md illuaminate_extensions-014.html
+  illuaminate_extensions-015.md illuaminate_extensions-015.html)
  (action (run ./extract_tests.exe -generate-test-files %{deps})))
 (rule
  (action
@@ -4763,6 +4768,46 @@
  (alias illuaminate_extensions-010)
  (action
   (diff illuaminate_extensions-010.html illuaminate_extensions-010.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-011.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-011.md}))))
+(rule
+ (alias illuaminate_extensions-011)
+ (action
+  (diff illuaminate_extensions-011.html illuaminate_extensions-011.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-012.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-012.md}))))
+(rule
+ (alias illuaminate_extensions-012)
+ (action
+  (diff illuaminate_extensions-012.html illuaminate_extensions-012.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-013.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-013.md}))))
+(rule
+ (alias illuaminate_extensions-013)
+ (action
+  (diff illuaminate_extensions-013.html illuaminate_extensions-013.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-014.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-014.md}))))
+(rule
+ (alias illuaminate_extensions-014)
+ (action
+  (diff illuaminate_extensions-014.html illuaminate_extensions-014.html.new)))
+(rule
+ (action
+  (with-stdout-to illuaminate_extensions-015.html.new
+   (run ./omd.exe %{dep:illuaminate_extensions-015.md}))))
+(rule
+ (alias illuaminate_extensions-015)
+ (action
+  (diff illuaminate_extensions-015.html illuaminate_extensions-015.html.new)))
 (alias
  (name runtest)
  (deps
@@ -5425,4 +5470,9 @@
   (alias illuaminate_extensions-007)
   (alias illuaminate_extensions-008)
   (alias illuaminate_extensions-009)
-  (alias illuaminate_extensions-010)))
+  (alias illuaminate_extensions-010)
+  (alias illuaminate_extensions-011)
+  (alias illuaminate_extensions-012)
+  (alias illuaminate_extensions-013)
+  (alias illuaminate_extensions-014)
+  (alias illuaminate_extensions-015)))

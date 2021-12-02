@@ -312,6 +312,8 @@ type t =
   | Llist_item of list_type * int * Sub.t
   | Lparagraph
   | Ldef_list of string
+  | Ladmonition of admonition * string * attributes
+  | Ladmonition_close
 
 let sp3 s =
   match Sub.head s with
@@ -667,6 +669,67 @@ let fenced_code ind s =
   | None ->
       raise Fail
 
+let take s c =
+  match Sub.head s with
+  | Some c' when c = c' -> Sub.tail s
+  | _ -> raise Fail
+
+let take_while s f =
+  let b = Buffer.create 8 in
+  let rec go s =
+    match Sub.head s with
+    | Some c when f c ->
+        Buffer.add_char b c;
+        go (Sub.tail s)
+    | Some _
+    | None ->
+        (s, Buffer.contents b)
+  in
+  go s
+
+let not_whitespace = function
+  | ' '
+  | '\t'
+  | '\010' .. '\013' ->
+      false
+  | _ -> true
+
+let admonition s =
+  let s = take s ':' in
+  let s = take s ':' in
+  let s = take s ':' in
+  match Sub.head s with
+  | Some '\n'
+  | Some '\r'
+  | None ->
+      Ladmonition_close
+  | _ ->
+      let s, name = take_while s not_whitespace in
+      let admonition =
+        match name with
+        | "note" -> Note
+        | "info" -> Info
+        | "tip" -> Tip
+        | "caution" -> Caution
+        | "warning"
+        | "danger" ->
+            Warning
+        | _ -> raise Fail
+      in
+      let s = ws (ws s) in
+      let s, attrs =
+        match Sub.head ~rev:() s with
+        | Some '}' -> attribute_string s
+        | _ -> (s, [])
+      in
+      let s = ws ~rev:() (ws s) in
+      let title =
+        match Sub.to_string s with
+        | "" -> name
+        | x -> x
+      in
+      Ladmonition (admonition, title, attrs)
+
 let indent s =
   let rec loop n s =
     match Sub.head s with
@@ -992,7 +1055,7 @@ let parse s0 =
   | Some '*' -> (thematic_break ||| unordered_list_item ind) s
   | Some '+' -> unordered_list_item ind s
   | Some '0' .. '9' -> ordered_list_item ind s
-  | Some ':' -> def_list s
+  | Some ':' -> (def_list ||| admonition) s
   | Some _ -> (blank ||| indented_code ind) s
   | None -> Lempty
 

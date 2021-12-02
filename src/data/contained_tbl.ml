@@ -108,8 +108,7 @@ module Make (H : KeyContainer) = struct
 
   type 'a t =
     { mutable size : int;  (** Number of entries *)
-      mutable data : 'a bucketlist array;  (** The buckets *)
-      initial_size : int  (** Initial array size *)
+      mutable data : 'a bucketlist array  (** The buckets *)
     }
 
   let rec power_2_above x n =
@@ -117,7 +116,7 @@ module Make (H : KeyContainer) = struct
 
   let create initial_size =
     let s = power_2_above 16 initial_size in
-    { initial_size = s; size = 0; data = Array.make s Empty }
+    { size = 0; data = Array.make s Empty }
 
   let key_index h hkey = hkey land (Array.length h.data - 1)
 

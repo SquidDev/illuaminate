@@ -216,6 +216,36 @@ let rec block ?(highlight = default_highlight) ~ref = function
           (concat_map (fun s -> elt Block "dd" [] (Some (inline ~ref s))) defs)
       in
       elt Block "dl" attr (Some (concat_map f l))
+  | Admonition (attr, kind, title, body) ->
+      let icon =
+        match kind with
+        | Info
+        | Note ->
+            Some "🛈"
+        | Caution -> Some "⚠"
+        | _ -> None
+      in
+      let icon =
+        match icon with
+        | None -> Null
+        | Some icon ->
+            let icon =
+              elt Inline "span" [ ("aria-hidden", "true") ] (Some (text icon))
+            in
+            concat icon (text " ")
+      in
+
+      let attr =
+        ("class", "admonition admonition-" ^ string_of_admonition kind) :: attr
+      in
+      let title =
+        elt
+          Block
+          "h5"
+          [ ("class", "admonition-heading") ]
+          (Some (concat icon (inline ~ref title)))
+      in
+      elt Block "div" attr (Some (concat title (concat_map (block ~ref) body)))
 
 let of_doc ?highlight ~ref doc = concat_map (block ?highlight ~ref) doc
 

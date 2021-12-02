@@ -20,6 +20,8 @@ module Map = struct
     | Paragraph (attr, x) -> Paragraph (attr, inline f x)
     | List (attr, ty, sp, bl) -> List (attr, ty, sp, List.map (List.map (block f)) bl)
     | Blockquote (attr, xs) -> Blockquote (attr, List.map (block f) xs)
+    | Admonition (attr, kind, title, xs) ->
+        Admonition (attr, kind, inline f title, List.map (block f) xs)
     | Thematic_break attr -> Thematic_break attr
     | Heading (attr, level, text) -> Heading (attr, level, inline f text)
     | Definition_list (attr, l) ->
@@ -47,6 +49,9 @@ module Iter = struct
     | Paragraph (_, x) -> inline f x
     | List (_, _, _, bl) -> List.iter (List.iter (block f)) bl
     | Blockquote (_, xs) -> List.iter (block f) xs
+    | Admonition (_, _, title, xs) ->
+        inline f title;
+        List.iter (block f) xs
     | Thematic_break _ | Code_block _ | Html_block _ -> ()
     | Heading (_, _, text) -> inline f text
     | Definition_list (_, l) ->
@@ -62,5 +67,6 @@ module Iter = struct
     | Paragraph _ | Thematic_break _ | Html_block _ | Heading _ | Definition_list _ -> ()
     | List (_, _, _, bl) -> List.iter (List.iter (code_blocks f)) bl
     | Blockquote (_, xs) -> List.iter (code_blocks f) xs
+    | Admonition (_, _, _, xs) -> List.iter (code_blocks f) xs
     | Code_block (attrs, lang, code) -> f attrs lang code
 end
