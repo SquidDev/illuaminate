@@ -3,93 +3,61 @@ name: CI
 on: [ push, pull_request ]
 
 jobs:
-  build_linux:
-    name: Linux
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - windows-latest
+        - ubuntu-latest
 
+    name: Build
+    runs-on: ${{matrix.os}}
     steps:
     - uses: actions/checkout@v2
-      with:
-        submodules: true
-    - name: Install Node
-      uses: actions/setup-node@v1
-      with: { node-version: 12.x }
-    - name: Install esy
-      run: npm install -g esy
-    - name: Log
-      run: echo $GITHUB_REF
 
-    - name: Setup dependencies
-      run: esy i
+    - name: Use OCaml
+      uses: ocaml/setup-ocaml@v2
+      with:
+        # Could set ocaml-variants.4.13.1+options,ocaml-option-static,ocaml-option-musl here for Linux, but we don't
+        # upload the Linux executable (yet!) - that's built with vampyroteuthis.
+        # As an aside, we don't use flambda as that ends up much buliker than without.
+        ocaml-compiler: 4.13.x
+
+    - name: Install deps
+      run: opam install . --deps-only --with-doc --with-test
 
     - name: Build
-      run: esy b --install
-
-    - name: Run with coverage
-      run: |
-        esy b dune clean
-        esy b dune runtest --instrument-with bisect_ppx --force
-        esy bisect-ppx-report html
-
-    - name: Upload coverage
-      run: esy bisect-ppx-report send-to Codecov
-
-  build_windows:
-    name: Windows
-    runs-on: windows-latest
-
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: true
-    - name: Install Node
-      uses: actions/setup-node@v1
-      with: { node-version: 12.x }
-    - name: Install esy
-      run: npm install -g esy
-
-    - name: Install UPX
-      run: |
-        mkdir _build_tools
-        Invoke-WebRequest -Uri https://github.com/upx/upx/releases/download/v3.96/upx-3.96-win64.zip -OutFile upx.zip
-        Expand-Archive -Path upx.zip -DestinationPath upx
-        Copy-Item upx\upx-3.96-win64\upx.exe _build_tools
-
-    - name: Setup dependencies
-      run: esy i
-
-    - name: Build
-      run: esy b --install
-
-    - name: Extract executable
-      run: |
-        mkdir bin
-        Copy-Item ((esy status | ConvertFrom-Json | Select-Object).rootInstallPath + "\bin\*.exe") bin
-
-    - name: Publish executable
-      uses: actions/upload-artifact@v1
-      with:
-        name: illuaminate-windows-x86-64
-        path: bin/
+      run: opam exec -- dune build
 
     - name: Test
-      run: |
-        esy b dune clean
-        esy b dune runtest -f
+      run: opam exec -- dune runtest
+
+    - name: Install
+      run: opam exec -- dune install --prefix=_install
+
+    - name: Publish executable
+      uses: actions/upload-artifact@v2
+      with:
+        name: illuaminate-windows-x86-64
+        path: |
+          _install/bin/illuaminate.exe
+          _install/bin/illuaminate-lsp.exe
+        if-no-files-found: error
+      if: runner.os == 'Windows'
 
   upload_archives:
-    name: Upload archives
+    name: Upload Windows Archives
     runs-on: ubuntu-latest
-    needs: build_windows
+    needs: build
     if: github.ref == 'refs/heads/master'
 
     steps:
     - uses: actions/checkout@v2
     - name: Download executable
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v2
       with:
         name: illuaminate-windows-x86-64
-        path: bin/
 
     - name: Upload
       run: .github/workflows/deploy.sh 2> /dev/null

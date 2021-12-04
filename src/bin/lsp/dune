@@ -17,10 +17,25 @@
    lsp.fiber_unix lsp_fiber illuaminate.exec.unix))
 
 (rule
- (target illuaminate_lsp.min.exe)
- (deps illuaminate_lsp.exe)
+ (target illuaminate_lsp.strip.exe)
  (action
-  (run upx -o %{target} %{deps})))
+  (run strip -o %{target} %{dep:illuaminate_lsp.exe}))
+ (enabled_if
+  (= %{system} "linux")))
+
+(rule
+ (target illuaminate_lsp.min.exe)
+ (action
+  (run upx -o %{target} %{dep:illuaminate_lsp.strip.exe}))
+ (enabled_if
+  (= %{system} "linux")))
+
+(rule
+ (target illuaminate_lsp.min.exe)
+ (action
+  (copy %{dep:illuaminate_lsp.exe} %{target}))
+ (enabled_if
+  (<> %{system} "linux")))
 
 (install
  (section bin)

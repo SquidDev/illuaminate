@@ -8,8 +8,7 @@
    illuaminate.parser illuaminate.parser_md illuaminate.semantics
    illuaminate.lint illuaminate.config illuaminateConfigFormat
    illuaminate.html illuaminate.minify illuaminate.pattern
-   illuaminate.doc_emit illuaminate.exec omd result logs yojson
-   ppx_deriving_yojson.runtime)
+   illuaminate.doc_emit illuaminate.exec omd result logs)
  (preprocess
   (pps ppx_deriving_yojson))
  (instrumentation
@@ -27,14 +26,28 @@
  (libraries unix illuaminate_cli illuaminate.exec.js)
  (modes js)
  (js_of_ocaml
-  (javascript_files runtime.js)
   (flags "--custom-header=#!/usr/bin/env node")))
 
 (rule
- (target illuaminate.min.exe)
- (deps illuaminate.exe)
+ (target illuaminate.strip.exe)
  (action
-  (run upx -o %{target} %{deps})))
+  (run strip -o %{target} %{dep:illuaminate.exe}))
+ (enabled_if
+  (= %{system} "linux")))
+
+(rule
+ (target illuaminate.min.exe)
+ (action
+  (run upx -o %{target} %{dep:illuaminate.strip.exe}))
+ (enabled_if
+  (= %{system} "linux")))
+
+(rule
+ (target illuaminate.min.exe)
+ (action
+  (copy %{dep:illuaminate.exe} %{target}))
+ (enabled_if
+  (<> %{system} "linux")))
 
 (install
  (section bin)

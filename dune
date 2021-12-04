@@ -18,23 +18,6 @@
 
 (vendored_dirs vendor)
 
-;; Generate esy.json from illuaminate.opam (in turn from dune-project).
-;; This means the two are guaranteed to be in sync.
-;;
-;; See src/tools/esy.ml for where version information is stored.
-
-(rule
- (targets esy.json)
- (alias opam)
- (deps
-  (:opam illuaminate.opam)
-  (:exe src/tools/esy.exe))
- (mode promote)
- (action
-  (with-stdout-to
-   %{targets}
-   (run %{exe} %{opam}))))
-
 (alias
  (name opam)
  (deps illuaminate.opam))
