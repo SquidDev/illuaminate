@@ -18,7 +18,6 @@ become more useful as it continues to develop.
    parenthesis, etc...).
  - Automatic code fixer for many of the detected problems.
  - Documentation generation, using LDoc syntax.
- - Integration with GitHub Actions
 
 ## Building
 
@@ -61,39 +60,6 @@ package managers.
  - You can get more fine-grained control over illuaminate using its
    configuration files. `illuamiante init-config illuaminate.sexp` will generate
    a template config file which can be adjusted to suit your needs.
-
-### GitHub actions
-While illuaminate can be used from any CI system, we have somewhat extended
-support for GitHub actions. Running `illuaminate lint --github` will upload any
-warnings as annotations, allowing them to be viewed within the GitHub
-interfaces:
-
-<p align="center">
-<img src="doc/gh-annotations.png"
-  alt="A warning displayed in GitHub's annotation view"
-  title="A warning displayed inline on GitHub"/>
-</p>
-
-This can be done by adding the following to your workflow file:
-
-```yml
-# name, on, etc...
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      # ...
-    - name: Lint Lua code
-      run: |
-        # Download illuaminate
-        test -d bin || mkdir bin
-        test -f bin/illuaminate || wget -q -Obin/illuaminate https://squiddev.cc/illuaminate/bin/illuaminate
-        chmod +x bin/illuaminate
-        # And run it
-        GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} bin/illuaminate lint --github
-```
 
 ## Language server
 Illuaminate has support for the [language server protocol][lsp]. This allows it

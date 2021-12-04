@@ -41,7 +41,7 @@ let reporter () =
   in
   Logs.format_reporter ~pp_header ()
 
-let lint paths github =
+let lint paths =
   let errs = Error.make () in
   let loader = Loader.create errs in
   let modules, builder = Loader.load_from_many ~loader paths in
@@ -57,10 +57,6 @@ let lint paths github =
               |> Driver.Notes.to_seq
               |> Seq.iter (Driver.Note.report_any errs));
   Error.display_of_files errs;
-  (if github then
-   match Github.publish_errors errs with
-   | Ok () -> ()
-   | Error msg -> Printf.eprintf "%s\n" msg; exit 2);
   if Error.has_problems errs then exit 1
 
 let fix paths =
@@ -365,18 +361,8 @@ let run () =
   let lint_cmd =
     let doc = "Checks all files, and reports errors." in
     let term =
-      let+ common = common
-      and+ github =
-        value & flag
-        & info
-            ~doc:
-              "Annotate your code with any warnings using GitHub's Checks API. This is designed to \
-               be run under GitHub actions, and so will search for appropriate information from \
-               the $(b,GITHUB_TOKEN), $(b,GITHUB_SHA) and $(b,GITHUB_REPOSITORY) environment \
-               variables."
-            [ "github" ]
-      and+ files = files_arg in
-      setup_common common; lint files github
+      let+ common = common and+ files = files_arg in
+      setup_common common; lint files
     in
     (term, Term.info "lint" ~doc ~man:[ `Blocks common_docs ])
   in
