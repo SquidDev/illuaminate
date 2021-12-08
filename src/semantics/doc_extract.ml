@@ -31,11 +31,11 @@ let crunch_pages : page documented list -> page documented = function
       List.fold_left Doc_extract_helpers.Merge.(documented (page ~errs)) x xs
 
 let add_page map modu =
-  NMap.update modu.descriptor.page_namespace
+  let ref = modu.descriptor.page_ref in
+  NMap.update ref.namespace
     (fun map ->
       Option.value map ~default:StringMap.empty
-      |> StringMap.update modu.descriptor.page_id (fun x ->
-             Some (modu :: Option.value ~default:[] x))
+      |> StringMap.update ref.id (fun x -> Some (modu :: Option.value ~default:[] x))
       |> Option.some)
     map
 
@@ -54,8 +54,8 @@ let build_resolver data contents =
     |> Option.map @@ fun current ->
        (* Bring all other modules with the same name into scope if required. *)
        let m =
-         NMap.find_opt current.descriptor.page_namespace all
-         |> CCOption.flat_map (StringMap.find_opt current.descriptor.page_id)
+         let ref = current.descriptor.page_ref in
+         NMap.find_opt ref.namespace all |> CCOption.flat_map (StringMap.find_opt ref.id)
        in
        match m with
        | None -> current

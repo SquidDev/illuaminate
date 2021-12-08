@@ -60,8 +60,8 @@ let link ~source_link { definition; custom_source; _ } =
   in
   source_link link
 
-let reference_link (Namespace.Namespace ns, mod_name) ref =
+let reference_link { Namespace.Ref.namespace = Namespace ns; id; _ } ref =
   let section = Reference.section_of_name ref in
   match section with
-  | None -> Format.asprintf "%s/%s.html" ns mod_name
-  | Some sec -> Format.asprintf "%s/%s.html#%s" ns mod_name sec
+  | None -> Format.asprintf "%s/%s.html" ns id
+  | Some sec -> Format.asprintf "%s/%s.html#%s" ns id sec

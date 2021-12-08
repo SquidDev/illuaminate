@@ -57,9 +57,7 @@ and page_contents =
       }
 
 and page =
-  { page_title : string;
-    page_id : string;
-    page_namespace : Namespace.t;
+  { page_ref : Namespace.Ref.t;
     page_contents : page_contents
   }
 

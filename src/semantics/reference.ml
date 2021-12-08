@@ -33,10 +33,11 @@ type resolved =
 
 (** Print an {!resolved} reference. *)
 let pp_resolved out = function
-  | Internal { in_module = _, in_module; name = Module; _ } -> Format.pp_print_string out in_module
-  | Internal { in_module = _, in_module; name = Value n | Type n; _ } ->
+  | Internal { in_module; name = Module; _ } ->
+      Format.pp_print_string out (Namespace.Ref.display_name in_module)
+  | Internal { in_module = { id = in_module; _ }; name = Value n | Type n; _ } ->
       Format.fprintf out "%s.%s" in_module n
-  | Internal { in_module = _, in_module; name = Member (ty, n); _ } ->
+  | Internal { in_module = { id = in_module; _ }; name = Member (ty, n); _ } ->
       Format.fprintf out "%s.%s:%s" in_module ty n
   | External { name; _ } | Unknown name -> Format.pp_print_string out name
 

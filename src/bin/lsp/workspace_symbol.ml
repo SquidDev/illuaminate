@@ -88,12 +88,12 @@ let dump_type ~container ({ descriptor = { type_members; type_name; _ }; _ } as 
     trie type_members
   |> add ~name:type_name ~container ~kind:Class self
 
-let dump_module ({ descriptor = { page_id = name; page_contents; _ }; _ } as self) trie =
+let dump_module ({ descriptor = { page_ref = { id; _ }; page_contents; _ }; _ } as self) trie =
   match page_contents with
   | Module { mod_types; mod_contents; _ } ->
-      List.fold_left (fun trie ty -> dump_type ~container:name ty trie) trie mod_types
-      |> dump_term_contents ~container:name mod_contents
-      |> add_top ~name ~kind:Module self
+      List.fold_left (fun trie ty -> dump_type ~container:id ty trie) trie mod_types
+      |> dump_term_contents ~container:id mod_contents
+      |> add_top ~name:id ~kind:Module self
   | Markdown -> trie
 
 type t = SymbolInformation.t Trie.t

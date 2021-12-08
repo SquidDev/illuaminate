@@ -136,9 +136,7 @@ module Merge = struct
           }
 
   let page ~errs span left right =
-    { page_id = left.page_id;
-      page_title = left.page_title;
-      page_namespace = left.page_namespace;
+    { page_ref = left.page_ref;
       page_contents = page_contents ~errs span left.page_contents right.page_contents
     }
 end

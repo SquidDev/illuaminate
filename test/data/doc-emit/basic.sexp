@@ -1,5 +1,5 @@
 ((description "<p>This is a simple module which contains a function</p>\n")
- (body (id fancy.module) (title fancy.module)
+ (body (id fancy.module)
   (contents
    ((args
      (arg (name a)

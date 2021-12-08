@@ -210,7 +210,7 @@ module Syntax = struct
 
   let module_info m : t =
     []
-    |> field "id" (atom' m.page_id)
-    |> field "title" (atom' m.page_title)
+    |> field "id" (atom' m.page_ref.id)
+    |> field' "title" atom' m.page_ref.title
     |> page_contents m.page_contents |> record
 end

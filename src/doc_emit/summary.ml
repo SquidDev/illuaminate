@@ -24,16 +24,15 @@ let to_json xs : Yojson.Safe.t =
   let _, items =
     List.fold_left
       (fun (seen, xs) { name; full_name; summary; source; in_module; name_of } ->
-        let Namespace module_kind, module_name = in_module in
+        let { namespace = Namespace module_kind; id; _ } = in_module in
         let url = Helpers.reference_link in_module name_of in
         let section = Reference.section_of_name name_of in
         (* TODO: Drop section in a few months once we've updated the various bots that scrape
            this. *)
         let term =
           `Assoc
-            (("name", full_name) @: ("source", source) @?: ("summary", summary)
-           @?: ("module", module_name) @: ("module-kind", module_kind) @: ("section", section)
-           @?: ("url", url) @: [])
+            (("name", full_name) @: ("source", source) @?: ("summary", summary) @?: ("module", id)
+           @: ("module-kind", module_kind) @: ("section", section) @?: ("url", url) @: [])
         in
         if SSet.mem name seen then (seen, xs) else (SSet.add name seen, (name, term) :: xs))
       (SSet.empty, []) xs
@@ -86,7 +85,7 @@ let of_term ~source_link ~in_module =
   go'
 
 let of_type ~source_link ~in_module =
-  let _, mod_name = in_module in
+  let mod_name = in_module.Namespace.Ref.id in
   let member ~type_name { member_name; member_value; _ } =
     of_term ~in_module ~source_link
       ~name:(Printf.sprintf "%s.%s.%s" mod_name type_name member_name)
@@ -100,12 +99,12 @@ let of_type ~source_link ~in_module =
       ~body:ty x
 
 let everything ~source_link =
-  CCList.flat_map @@ fun ({ descriptor = { page_namespace; page_id; page_contents; _ }; _ } as d) ->
-  let in_module = (page_namespace, page_id) in
+  CCList.flat_map @@ fun ({ descriptor = { page_ref = in_module; page_contents; _ }; _ } as d) ->
   match page_contents with
   | Module { mod_contents; mod_types; _ } ->
-      of_term ~in_module ~source_link ~name:page_id ~section:Module
+      of_term ~in_module ~source_link ~name:in_module.id ~section:Module
         { d with descriptor = mod_contents }
       @ CCList.flat_map (of_type ~source_link ~in_module) mod_types
   | Markdown ->
-      of_term ~in_module ~source_link ~name:page_id ~section:Module { d with descriptor = Unknown }
+      of_term ~in_module ~source_link ~name:in_module.id ~section:Module
+        { d with descriptor = Unknown }

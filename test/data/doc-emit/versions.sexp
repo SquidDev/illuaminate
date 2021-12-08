@@ -1,1 +1,1 @@
-((body (id foo) (title foo) (contents (table))))
+((body (id foo) (contents (table))))

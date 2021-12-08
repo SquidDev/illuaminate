@@ -44,9 +44,7 @@ type result =
       }
 
 let mk_page ~mod_name ~mod_namespace ~mod_kind ~mod_contents ~mod_types =
-  { page_id = mod_name;
-    page_title = mod_name;
-    page_namespace = mod_namespace;
+  { page_ref = { id = mod_name; title = None; namespace = mod_namespace };
     page_contents = Module { mod_contents; mod_types; mod_kind }
   }
 
@@ -448,31 +446,31 @@ let unresolved_module_file =
       match Doc_parser.Data.comments comment_ with
       | [] | _ :: _ :: _ -> None
       | [ comment ] ->
-          let page_name, page_namespace =
+          let id, namespace =
             match comment.module_info with
             | None ->
-                let page_name =
+                let id =
                   File.span file |> Span.filename
                   |> CCFun.flip Doc_extract_config.guess_module' data
                 in
-                (page_name, Namespace.module_)
+                (id, Namespace.module_)
             | Some { value = x; _ } ->
                 (Some x.mod_name, Option.value ~default:Namespace.module_ x.mod_namespace)
           in
-          page_name
-          |> Option.map @@ fun page_id ->
+          id
+          |> Option.map @@ fun id ->
              let d = Value.get_documented ~report:(fun _ _ _ -> ()) comment in
-             let page_title, description =
+             let title, description =
                match d.description with
                | Some
                    { description = Omd.Heading (_, 1, Text (_, title)) :: description;
                      description_pos
                    } ->
-                   (title, Some { description; description_pos })
-               | x -> (page_id, x)
+                   (Some title, Some { description; description_pos })
+               | x -> (None, x)
              in
              (* TODO: Warn if the above is a non-module/unknown. *)
              { d with
                description;
-               descriptor = { page_id; page_title; page_namespace; page_contents = Markdown }
+               descriptor = { page_ref = { id; title; namespace }; page_contents = Markdown }
              })

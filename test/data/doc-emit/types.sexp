@@ -1,4 +1,4 @@
-((body (id types) (title types)
+((body (id types)
   (contents
    (table
     (no_clue

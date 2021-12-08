@@ -1,4 +1,4 @@
-((body (id references) (title references)
+((body (id references)
   (contents
    (table (my_term ((body table)))
     (unknown_1

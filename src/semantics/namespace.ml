@@ -18,7 +18,15 @@ let v x = Namespace x
 
 (** A reference to a specific module. *)
 module Ref = struct
-  type nonrec t = t * string
+  type nonrec t =
+    { namespace : t;  (** The namespace this page lives under. *)
+      id : string;  (** The unique ID (under this namespace) of this page. *)
+      title : string option
+          (** A "pretty" name of this page if given. Otherwise, one should use the title. *)
+    }
 
-  let pp out ((kind, name) : t) : unit = Format.fprintf out "%a!%s" pp kind name
+  (** Get the display name of this reference. *)
+  let display_name x = Option.value ~default:x.id x.title
+
+  let pp out ({ namespace; id; _ } : t) : unit = Format.fprintf out "%a!%s" pp namespace id
 end

@@ -67,7 +67,8 @@ let key =
 let require = Some (Global.parse "require")
 
 let mk_module ~name ~ns ({ definition; _ } as d) =
-  (Reference.Reference (Internal { in_module = (ns, name); definition; name = Module }), d)
+  let in_module = { Namespace.Ref.namespace = ns; id = name; title = None } in
+  (Reference.Reference (Internal { in_module; definition; name = Module }), d)
 
 let rec get_var ({ cache; resolved; doc; modules; _ } as store) var :
     (Reference.t * value documented) option =

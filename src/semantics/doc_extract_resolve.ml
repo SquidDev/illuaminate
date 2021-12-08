@@ -64,25 +64,25 @@ module Resolvers = struct
         |> Option.map Lazy.force
 
   (* Look up names within a module *)
-  let in_module_value { page_namespace; page_id; page_contents; _ } name is_type =
+  let in_module_value { page_contents; page_ref } name is_type =
     match page_contents with
     | Module { mod_contents = Table fields; _ } when not is_type ->
         List.find_opt (fun (k, _) -> k = name) fields
         |> Option.map @@ fun (_, { definition; _ }) ->
-           Internal { in_module = (page_namespace, page_id); name = Value name; definition }
+           Internal { in_module = page_ref; name = Value name; definition }
     | _ -> None
 
   (** Look up types within a module *)
-  let in_module_type { page_namespace; page_id; page_contents; _ } name _ =
+  let in_module_type { page_contents; page_ref } name _ =
     match page_contents with
     | Markdown -> None
     | Module { mod_types; _ } ->
         List.find_opt (fun ty -> ty.descriptor.type_name = name) mod_types
         |> Option.map @@ fun { definition; _ } ->
-           Internal { in_module = (page_namespace, page_id); name = Type name; definition }
+           Internal { in_module = page_ref; name = Type name; definition }
 
   (** Look up methods within a module *)
-  let in_module_method { page_namespace; page_id; page_contents; _ } name is_type =
+  let in_module_method { page_contents; page_ref } name is_type =
     match page_contents with
     | Module { mod_types; _ } when not is_type ->
         String.index_opt name ':'
@@ -97,7 +97,7 @@ module Resolvers = struct
                     ty.descriptor.type_members)
            |> Option.map (fun { member_name; member_value; _ } ->
                   Internal
-                    { in_module = (page_namespace, page_id);
+                    { in_module = page_ref;
                       name = Member (type_name, member_name);
                       definition = member_value.definition
                     })
@@ -115,8 +115,8 @@ module Resolvers = struct
     if is_type then None
     else
       lookup_module s name
-      |> Option.map @@ fun { definition; descriptor = { page_namespace; page_id; _ }; _ } ->
-         Internal { in_module = (page_namespace, page_id); name = Module; definition }
+      |> Option.map @@ fun { definition; descriptor; _ } ->
+         Internal { in_module = descriptor.page_ref; name = Module; definition }
 
   (** Finds elements within modules. This tries foo.[bar.baz], then foo.bar.[baz], etc... *)
   let find_member s name is_type =
@@ -228,10 +228,6 @@ let go_page_contents ~cache lift = function
 
 let go_page ~cache lift to_resolve =
   go_documented lift
-    (fun lift { page_id; page_title; page_namespace; page_contents } ->
-      { page_id;
-        page_title;
-        page_namespace;
-        page_contents = go_page_contents ~cache lift page_contents
-      })
+    (fun lift { page_ref; page_contents } ->
+      { page_ref; page_contents = go_page_contents ~cache lift page_contents })
     to_resolve

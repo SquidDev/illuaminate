@@ -66,9 +66,8 @@ and page_contents =
       }
 
 and page =
-  { page_title : string;  (** The name of this page. *)
-    page_id : string;  (** Types defined in this module. *)
-    page_namespace : Namespace.t;  (** The namespace this page belongs to. *)
+  { page_ref : Namespace.Ref.t;
+        (** The unique reference of this page, including id, namespace and an optional title. *)
     page_contents : page_contents  (** The contents of this page. *)
   }
 

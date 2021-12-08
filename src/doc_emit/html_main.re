@@ -33,14 +33,14 @@ let page_list_item =
     (
       ~options as {resolve, _},
       ~current,
-      {descriptor: {page_namespace, page_id, page_title, _} as m, _},
+      {descriptor: {page_ref, _} as m, _},
     ) =>
   switch (current) {
-  | Some(current) when current === m => <strong> {str(page_title)} </strong>
+  | Some(current) when current === m =>
+    <strong> {str(Namespace.Ref.display_name(page_ref))} </strong>
   | _ =>
-    let href =
-      Helpers.reference_link((page_namespace, page_id), Module) |> resolve;
-    <a href> {str(page_title)} </a>;
+    let href = Helpers.reference_link(page_ref, Module) |> resolve;
+    <a href> {str(Namespace.Ref.display_name(page_ref))} </a>;
   };
 
 let module_toc = (mod_types, mod_contents) => {
@@ -90,7 +90,7 @@ let template =
     let expand =
       switch (current) {
       | None => true
-      | Some(page) => page.page_namespace == kind
+      | Some(page) => page.page_ref.namespace == kind
       };
     StringMap.to_seq(xs)
     |> Seq.map(snd)
@@ -173,18 +173,11 @@ let template =
   </html>;
 };
 let emit_index = (~options as {site_title, _} as options, ~pages, contents) => {
-  let emit_page_row =
-      (
-        {
-          descriptor: {page_namespace, page_id, page_title, _},
-          description,
-          _,
-        },
-      ) =>
+  let emit_page_row = ({descriptor: {page_ref, _}, description, _}) =>
     <tr>
       <th>
-        <a href={Helpers.reference_link((page_namespace, page_id), Module)}>
-          {str(page_title)}
+        <a href={Helpers.reference_link(page_ref, Module)}>
+          {str(Namespace.Ref.display_name(page_ref))}
         </a>
       </th>
       <td> {show_summary(~options, description)} </td>
@@ -231,10 +224,10 @@ let emit_page =
     (
       ~options,
       ~pages,
-      {descriptor: {page_title, page_contents, _} as m, _} as self,
+      {descriptor: {page_ref, page_contents} as m, _} as self,
     ) => {
   let content = [
-    <h1> {str(page_title)} </h1>,
+    <h1> {str(Namespace.Ref.display_name(page_ref))} </h1>,
     show_preamble(~options, self),
     show_common(~options, self),
     ...switch (page_contents) {
@@ -264,7 +257,7 @@ let emit_page =
     ~options,
     ~pages,
     ~current=Some(m),
-    ~title=page_title,
+    ~title=Namespace.Ref.display_name(page_ref),
     ~description?,
     content,
   );

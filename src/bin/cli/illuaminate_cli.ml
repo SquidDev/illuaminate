@@ -178,9 +178,9 @@ let doc_gen path =
      in
      ( Fun.flip NMap.iter pages @@ fun _ m ->
        Fun.flip StringMap.iter m @@ fun _ (modu : Doc.Syntax.page Doc.Syntax.documented) ->
-       let { page_namespace = Namespace namespace; page_id; _ } = modu.descriptor in
+       let { page_ref = { namespace = Namespace namespace; id; _ }; _ } = modu.descriptor in
        let options = module_options namespace in
-       let path = Fpath.(destination / namespace / (page_id ^ ".html")) in
+       let path = Fpath.(destination / namespace / (id ^ ".html")) in
 
        mkdirs Fpath.(destination / namespace);
        E.Html.emit_page ~options ~pages modu
