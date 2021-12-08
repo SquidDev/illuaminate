@@ -22,12 +22,13 @@ return {
 
   --- @see my_term
   -- @see references.my_term
+  -- @see library!references.my_term
   type_1 = function() end,
 
   --- See @{MyType} and @{references.MyType}
   type_2 = function() end,
 
-  --- See @{MyType} and @{references.MyType}
+  --- See @{MyType}, @{references.MyType} and @{library!references.MyType}
   -- @treturn MyType
   type_3 = function() end,
 

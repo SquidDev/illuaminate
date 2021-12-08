@@ -20,7 +20,10 @@ let of_string s = parse_inlines (Pre.of_string s)
 
 let inline_to_html ~ref:f inl =
   let open Html in
-  let ref k x inl = Raw (f k x (to_string inl)) in
+  let ref r = function
+    | `Raw _ as l -> Raw (f r l)
+    | `Desc inl -> Raw (f r (`Desc (to_string inl)))
+  in
   to_string (inline ~ref inl)
 
 let to_html ?highlight ~ref:f doc =
@@ -28,7 +31,10 @@ let to_html ?highlight ~ref:f doc =
   let highlight =
     Option.map (fun f attrs lang code -> Raw (f attrs lang code)) highlight
   in
-  let ref k x inl = Raw (f k x (to_string inl)) in
+  let ref r = function
+    | `Raw _ as l -> Raw (f r l)
+    | `Desc inl -> Raw (f r (`Desc (to_string inl)))
+  in
   to_string (of_doc ?highlight ~ref doc)
 
 let to_sexp ~ref ast =

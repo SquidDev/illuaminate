@@ -67,7 +67,8 @@ and ('attr, 'ref) inline =
   | Link of 'attr * ('attr, 'ref) link
   | Image of 'attr * ('attr, 'ref) link
   | Html of 'attr * string
-  | Ref of [ `Text | `Code ] * 'ref * ('attr, 'ref) inline
+  | Ref_raw of 'ref * string
+  | Ref_desc of 'ref * ('attr, 'ref) inline
   | Colour of string
 
 module StringT = struct

@@ -17,7 +17,12 @@ let highlight ~options attrs lang code =
   in
   Format.asprintf "%a" emit node
 
-let ref ~options kind link label =
+let ref ~options link text =
+  let kind, label =
+    match text with
+    | `Raw label -> (`Code, label)
+    | `Desc label -> (`Text, label)
+  in
   let link, classes = Html_basic.reference_attrs ~options link kind in
   let node =
     match link with

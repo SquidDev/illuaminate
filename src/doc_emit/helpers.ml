@@ -32,8 +32,8 @@ let get_summary ?(max_length = 120) (desc : _ Omd.doc) : _ Omd.inline =
     | Strong (a, body) -> on_child (fun x -> Strong (a, x)) space body
     | Link (a, ({ label; _ } as link)) ->
         on_child (fun label -> Link (a, { link with label })) space label
-    | Ref (`Code, _, Text (_, text)) as r -> (space - String.length text, r)
-    | Ref (kind, ref, text) -> on_child (fun text -> Ref (kind, ref, text)) space text
+    | Ref_raw (_, text) as r -> (space - String.length text, r)
+    | Ref_desc (ref, text) -> on_child (fun text -> Ref_desc (ref, text)) space text
     | Code (_, body) as c -> (space - String.length body, c)
     | Colour c -> (space - String.length c, Colour c)
     | Soft_break _ | Hard_break _ | Image _ | Html _ -> (space, Text ([], ""))

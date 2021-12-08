@@ -10,7 +10,7 @@ let load_file ~options path =
     | ".md" | ".markdown" ->
         let module R = IlluaminateSemantics.Reference in
         IlluaminateSemantics.Doc.Parser.parse_description contents
-        |> IlluaminateSemantics__Omd_transform.Map.doc (fun (R.Reference r) -> R.Unknown r)
+        |> IlluaminateSemantics__Omd_transform.Map.doc (fun (R.Reference r) -> (None, R.Unknown r))
         |> Html_md.md ~options |> Result.ok
     | ".txt" | "" -> create_node ~tag:"pre" ~children:[ str contents ] () |> Result.ok
     | ext ->

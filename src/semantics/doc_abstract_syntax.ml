@@ -215,7 +215,7 @@ end
 
 module Lift (L : S) (R : S) = struct
   type t =
-    { any_ref : L.reference -> R.reference;
+    { any_ref : L.reference -> string option * R.reference;
       type_ref : L.reference -> R.reference
     }
 
@@ -227,7 +227,12 @@ module Lift (L : S) (R : S) = struct
     | RichExample d -> RichExample (description lift d)
 
   let see lift { L.see_reference; see_label; see_span; see_description } =
-    { R.see_reference = lift.any_ref see_reference;
+    let see_label, see_reference =
+      match lift.any_ref see_reference with
+      | Some label, ref -> (label, ref)
+      | None, ref -> (see_label, ref)
+    in
+    { R.see_reference;
       see_label;
       see_span;
       see_description = Option.map (description lift) see_description

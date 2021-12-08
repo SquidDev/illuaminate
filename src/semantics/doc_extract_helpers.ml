@@ -16,9 +16,10 @@ end
 module Value = struct
   module Lift = Doc_abstract_syntax.Lift (Doc_comment) (Doc_syntax)
 
-  let mk_ref (Reference.Reference x) = Reference.Unknown x
-
-  let lift : Lift.t = { any_ref = mk_ref; type_ref = mk_ref }
+  let lift : Lift.t =
+    { any_ref = (fun (Reference x) -> (None, Unknown x));
+      type_ref = (fun (Reference x) -> Unknown x)
+    }
 
   let debug_name = function
     | Function _ as x -> "function" ^ get_suffix x

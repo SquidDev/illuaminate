@@ -66,7 +66,8 @@ module Hover = struct
           | None -> title
           | Some (d : description) ->
               (* TODO: Convert to markdown, not HTML. *)
-              Printf.sprintf "%s\n%s" title (Omd.to_html ~ref:(fun _ _ x -> x) d.description)
+              let ref _ (`Raw l | `Desc l) = l in
+              Printf.sprintf "%s\n%s" title (Omd.to_html ~ref d.description)
         in
         Hover.create
           ~range:(range (Syntax.Spanned.name name))

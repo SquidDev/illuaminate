@@ -26,7 +26,9 @@ and inline ~ref = function
   | Html (_, s) -> List [ Atom "html"; Atom s ]
   | Image _ -> Atom "img"
   | Colour c -> List [ Atom "colour"; Atom c ]
-  | Ref (_, r, label) -> List [ Atom "ref"; Atom (ref r); inline ~ref label ]
+  | Ref_raw (r, label) -> List [ Atom "ref[raw]"; Atom (ref r); atom label ]
+  | Ref_desc (r, label) ->
+      List [ Atom "ref[desc"; Atom (ref r); inline ~ref label ]
 
 let rec block ~ref = function
   | Paragraph (_, x) -> List [ Atom "paragraph"; inline ~ref x ]

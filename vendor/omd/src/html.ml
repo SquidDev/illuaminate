@@ -93,11 +93,12 @@ let to_plain_text t =
     | Concat (_, l) -> List.iter go l
     | Text (_, t)
     | Colour t
-    | Code (_, t) ->
+    | Code (_, t)
+    | Ref_raw (_, t) ->
         Buffer.add_string buf t
     | Emph (_, i)
     | Strong (_, i)
-    | Ref (_, _, i)
+    | Ref_desc (_, i)
     | Link (_, { label = i; _ })
     | Image (_, { label = i; _ }) ->
         go i
@@ -152,7 +153,8 @@ and inline ~ref = function
            [ ("class", "color-ref"); ("style", "background-color: " ^ c) ]
            (Some Null))
         (elt Inline "span" [ ("class", "color") ] (Some (text c)))
-  | Ref (k, r, c) -> ref k r (inline ~ref c)
+  | Ref_raw (r, c) -> ref r (`Raw c)
+  | Ref_desc (r, c) -> ref r (`Desc (inline ~ref c))
 
 let default_highlight attr label code =
   let code_attr =

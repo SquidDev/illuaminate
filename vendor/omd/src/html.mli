@@ -12,11 +12,13 @@ type t =
   | Concat of t * t
 
 val inline :
-  ref:([ `Text | `Code ] -> 'ref -> t -> t) -> (attributes, 'ref) inline -> t
+     ref:('ref -> [ `Raw of string | `Desc of t ] -> t)
+  -> (attributes, 'ref) inline
+  -> t
 
 val of_doc :
      ?highlight:(attributes -> string -> string -> t)
-  -> ref:([ `Text | `Code ] -> 'ref -> t -> t)
+  -> ref:('ref -> [ `Raw of string | `Desc of t ] -> t)
   -> (attributes, 'ref) block list
   -> t
 

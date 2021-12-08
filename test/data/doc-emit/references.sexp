@@ -21,6 +21,8 @@
     (type_1
      ((body (args))
       (see (ref ((in-module library!references) (name v:my_term)))
+       (label references.my_term) (span references.lua[25:11-25:36]))
+      (see (ref ((in-module library!references) (name v:my_term)))
        (label references.my_term) (span references.lua[24:11-24:28]))
       (see (ref ((in-module library!references) (name v:my_term)))
        (label my_term) (span references.lua[23:12-23:18]))))
@@ -30,7 +32,7 @@
       (body (args))))
     (type_3
      ((description
-       "<p>See ((in-module library!references) (name ty:MyType)):MyType} and ((in-module library!references) (name ty:MyType)):references.MyType}</p>\n")
+       "<p>See ((in-module library!references) (name ty:MyType)):MyType}, ((in-module library!references) (name ty:MyType)):references.MyType} and ((in-module library!references) (name ty:MyType)):references.MyType}</p>\n")
       (body
        (returns
         (return (type ((in-module library!references) (name ty:MyType))))))))
@@ -41,16 +43,16 @@
     (builtin_1
      ((body (args))
       (see (ref ((name number))) (label number)
-       (span references.lua[39:11-39:16]))
+       (span references.lua[40:11-40:16]))
       (see
        (ref
         ((name string) (url https://www.lua.org/manual/5.1/manual.html#5.4)))
-       (label string) (span references.lua[38:11-38:16]))
+       (label string) (span references.lua[39:11-39:16]))
       (see
        (ref
         ((name string.match)
          (url https://www.lua.org/manual/5.1/manual.html#pdf-string.match)))
-       (label string.match) (span references.lua[37:12-37:23]))))
+       (label string.match) (span references.lua[38:12-38:23]))))
     (builtin_2
      ((description
        "<p>((name string.match)\n (url https://www.lua.org/manual/5.1/manual.html#pdf-string.match)):string.match}, ((name string) (url https://www.lua.org/manual/5.1/manual.html#5.4)):string} and ((name number)):number}</p>\n")

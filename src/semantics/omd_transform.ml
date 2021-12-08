@@ -13,7 +13,10 @@ module Map = struct
     | Link (a, l) -> Link (a, link f l)
     | Image (a, l) -> Image (a, link f l)
     | Html (a, x) -> Html (a, x)
-    | Ref (k, r, inl) -> Ref (k, f r, inline f inl)
+    | Ref_desc (r, inl) -> Ref_desc (snd (f r), inline f inl)
+    | Ref_raw (r, label) ->
+        let label', r = f r in
+        Ref_raw (r, Option.value ~default:label label')
     | Colour c -> Colour c
 
   let rec block f : (Omd.attributes, 'a) Omd.block -> (Omd.attributes, 'b) Omd.block = function
@@ -43,7 +46,8 @@ module Iter = struct
     | Hard_break _ | Soft_break _ | Html _ | Colour _ | Text _ | Code _ -> ()
     | Link (_, l) -> link f l
     | Image (_, l) -> link f l
-    | Ref (_, r, inl) -> f r; inline f inl
+    | Ref_desc (r, inl) -> f r; inline f inl
+    | Ref_raw (r, _) -> f r
 
   let rec block f : (Omd.attributes, 'a) Omd.block -> unit = function
     | Paragraph (_, x) -> inline f x

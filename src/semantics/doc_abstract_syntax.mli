@@ -144,7 +144,7 @@ end) : S with type reference := X.reference and module Type = X.Type
 module Lift (L : S) (R : S) : sig
   (** A series of functions to map between one reference kind and another. *)
   type t =
-    { any_ref : L.reference -> R.reference;  (** Lift any kind of reference. *)
+    { any_ref : L.reference -> string option * R.reference;  (** Lift any kind of reference. *)
       type_ref : L.reference -> R.reference  (** Lift references specialised for types. *)
     }
 

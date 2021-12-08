@@ -45,7 +45,9 @@ struct
   let reference = X.sexp
 
   let description (d : description) =
-    Omd.to_html ~ref:(fun _ r x -> Format.asprintf "@{%a:%s}" pp (reference r) x) d.description
+    Omd.to_html
+      ~ref:(fun r (`Raw l | `Desc l) -> Format.asprintf "@{%a:%s}" pp (reference r) l)
+      d.description
     |> atom'
 
   let rec type_ = function

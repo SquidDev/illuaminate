@@ -17,7 +17,7 @@
   },
   "references.module_1": {
     "name": "references.module_1()",
-    "source": "references.lua[46:14-46:28]",
+    "source": "references.lua[47:14-47:28]",
     "summary": "references",
     "module": "references",
     "module-kind": "library",
@@ -26,7 +26,7 @@
   },
   "references.builtin_2": {
     "name": "references.builtin_2()",
-    "source": "references.lua[43:15-43:29]",
+    "source": "references.lua[44:15-44:29]",
     "summary": "string.match, string and number",
     "module": "references",
     "module-kind": "library",
@@ -35,7 +35,7 @@
   },
   "references.builtin_1": {
     "name": "references.builtin_1()",
-    "source": "references.lua[40:15-40:29]",
+    "source": "references.lua[41:15-41:29]",
     "module": "references",
     "module-kind": "library",
     "section": "v:builtin_1",
@@ -43,7 +43,7 @@
   },
   "references.method_1": {
     "name": "references.method_1()",
-    "source": "references.lua[35:14-35:27]",
+    "source": "references.lua[36:14-36:27]",
     "summary": "See MyType:meth and MyType.meth",
     "module": "references",
     "module-kind": "library",
@@ -52,8 +52,8 @@
   },
   "references.type_3": {
     "name": "references.type_3()",
-    "source": "references.lua[32:12-32:25]",
-    "summary": "See MyType and references.MyType",
+    "source": "references.lua[33:12-33:25]",
+    "summary": "See MyType, references.MyType and references.MyType",
     "module": "references",
     "module-kind": "library",
     "section": "v:type_3",
@@ -61,7 +61,7 @@
   },
   "references.type_2": {
     "name": "references.type_2()",
-    "source": "references.lua[28:12-28:25]",
+    "source": "references.lua[29:12-29:25]",
     "summary": "See MyType and references.MyType",
     "module": "references",
     "module-kind": "library",
@@ -70,7 +70,7 @@
   },
   "references.type_1": {
     "name": "references.type_1()",
-    "source": "references.lua[25:12-25:25]",
+    "source": "references.lua[26:12-26:25]",
     "module": "references",
     "module-kind": "library",
     "section": "v:type_1",
@@ -120,7 +120,7 @@
   },
   "references": {
     "name": "references",
-    "source": "references.lua[7:8-47:1]",
+    "source": "references.lua[7:8-48:1]",
     "module": "references",
     "module-kind": "library",
     "url": "library/references.html"

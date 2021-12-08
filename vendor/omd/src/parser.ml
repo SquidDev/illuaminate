@@ -1974,10 +1974,12 @@ let reference st =
   let b = Buffer.create 16 in
   let rec go ~kind ~link =
     match peek st with
-    | Some '}' ->
+    | Some '}' -> (
         junk st;
         let label = Buffer.contents b in
-        Ref (kind, Option.value ~default:label link, Text ([], label))
+        match link with
+        | None -> Ref_raw (label, label)
+        | Some link -> Ref_desc (link, Text ([], label)))
     | Some '|' ->
         junk st;
         let link = Buffer.contents b in

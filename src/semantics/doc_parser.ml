@@ -53,7 +53,7 @@ end
 let parse_description ?(default_lua = false) x =
   let doc = Markdown.parse x in
   let doc = if default_lua then List.map Markdown.fix_lang doc else doc in
-  Omd_transform.Map.doc (fun x -> Reference x) doc
+  Omd_transform.Map.doc (fun x -> (Some (trim_reference x), Reference x)) doc
 
 module Tag = struct
   let malformed_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:malformed-tag"

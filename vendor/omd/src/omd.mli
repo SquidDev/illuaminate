@@ -34,7 +34,8 @@ and ('attr, 'ref) inline =
   | Link of 'attr * ('attr, 'ref) link
   | Image of 'attr * ('attr, 'ref) link
   | Html of 'attr * string
-  | Ref of [ `Text | `Code ] * 'ref * ('attr, 'ref) inline
+  | Ref_raw of 'ref * string
+  | Ref_desc of 'ref * ('attr, 'ref) inline
   | Colour of string
 
 type ('attr, 'ref) def_elt =
@@ -62,13 +63,13 @@ val of_channel : in_channel -> string doc
 val of_string : string -> string doc
 
 val inline_to_html :
-     ref:([ `Text | `Code ] -> 'ref -> string -> string)
+     ref:('ref -> [ `Raw of string | `Desc of string ] -> string)
   -> (attributes, 'ref) inline
   -> string
 
 val to_html :
      ?highlight:(attributes -> string -> string -> string)
-  -> ref:([ `Text | `Code ] -> 'ref -> string -> string)
+  -> ref:('ref -> [ `Raw of string | `Desc of string ] -> string)
   -> 'ref doc
   -> string
 
@@ -78,7 +79,7 @@ val to_plain_text : (_, _) inline -> string
 
 val headers :
      ?remove_links:bool
-  -> ('attr, 'ref) block list
-  -> ('attr * int * ('attr, 'ref) inline) list
+  -> ('attr list, 'ref) block list
+  -> ('attr list * int * ('attr list, 'ref) inline) list
 
 val toc : ?start:int list -> ?depth:int -> 'ref doc -> 'ref doc

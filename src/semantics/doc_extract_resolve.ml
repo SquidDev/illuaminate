@@ -160,8 +160,13 @@ type context = Lift.t
 
 let context pages current_page =
   let context = { Resolvers.pages; current_page; unique_pages = StringMap.empty } in
+  let with_renaming f x =
+    match f x with
+    | Internal { name = Module; in_module = { title = Some title; _ }; _ } as x -> (Some title, x)
+    | x -> (None, x)
+  in
   let lift : Lift.t =
-    { any_ref = Resolvers.ref context ~types_only:false;
+    { any_ref = with_renaming (Resolvers.ref context ~types_only:false);
       type_ref = Resolvers.ref context ~types_only:true
     }
   in
