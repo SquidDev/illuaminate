@@ -1,11 +1,25 @@
 {
+  "types": {
+    "name": "types",
+    "source": "types.lua[6:8-45:1]",
+    "module": "types",
+    "module-kind": "library",
+    "url": "library/types.html"
+  },
   "types.Foo": {
     "name": "types.Foo",
     "source": "types.lua[4:13-4:14]",
     "module": "types",
     "module-kind": "library",
-    "section": "ty:Foo",
     "url": "library/types.html#ty:Foo"
+  },
+  "types.no_clue": {
+    "name": "types.no_clue",
+    "source": "types.lua[8:13-8:14]",
+    "summary": "A basic exported value.",
+    "module": "types",
+    "module-kind": "library",
+    "url": "library/types.html#v:no_clue"
   },
   "types.opt": {
     "name": "types.opt([a [, b=2]])",
@@ -13,7 +27,6 @@
     "summary": "Optional arguments",
     "module": "types",
     "module-kind": "library",
-    "section": "v:opt",
     "url": "library/types.html#v:opt"
   },
   "types.ref": {
@@ -22,17 +35,14 @@
     "summary": "Type references",
     "module": "types",
     "module-kind": "library",
-    "section": "v:ref",
     "url": "library/types.html#v:ref"
   },
-  "types.ty_3": {
-    "name": "types.ty_3(a, b, c)",
-    "source": "types.lua[32:10-32:30]",
-    "summary": "Table syntax",
+  "types.ty_1": {
+    "name": "types.ty_1(a, b)",
+    "source": "types.lua[15:10-15:27]",
     "module": "types",
     "module-kind": "library",
-    "section": "v:ty_3",
-    "url": "library/types.html#v:ty_3"
+    "url": "library/types.html#v:ty_1"
   },
   "types.ty_2": {
     "name": "types.ty_2(a, b, c, d, e, f, g)",
@@ -40,31 +50,14 @@
     "summary": "Function type syntax",
     "module": "types",
     "module-kind": "library",
-    "section": "v:ty_2",
     "url": "library/types.html#v:ty_2"
   },
-  "types.ty_1": {
-    "name": "types.ty_1(a, b)",
-    "source": "types.lua[15:10-15:27]",
+  "types.ty_3": {
+    "name": "types.ty_3(a, b, c)",
+    "source": "types.lua[32:10-32:30]",
+    "summary": "Table syntax",
     "module": "types",
     "module-kind": "library",
-    "section": "v:ty_1",
-    "url": "library/types.html#v:ty_1"
-  },
-  "types.no_clue": {
-    "name": "types.no_clue",
-    "source": "types.lua[8:13-8:14]",
-    "summary": "A basic exported value.",
-    "module": "types",
-    "module-kind": "library",
-    "section": "v:no_clue",
-    "url": "library/types.html#v:no_clue"
-  },
-  "types": {
-    "name": "types",
-    "source": "types.lua[6:8-45:1]",
-    "module": "types",
-    "module-kind": "library",
-    "url": "library/types.html"
+    "url": "library/types.html#v:ty_3"
   }
 }

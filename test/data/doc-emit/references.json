@@ -1,28 +1,31 @@
 {
-  "references.MyType.meth": {
-    "name": "references.MyType:meth()",
-    "source": "references.lua[5:1-5:26]",
+  "references": {
+    "name": "references",
+    "source": "references.lua[7:8-48:1]",
     "module": "references",
     "module-kind": "library",
-    "section": "ty:MyType:meth",
-    "url": "library/references.html#ty:MyType:meth"
+    "url": "library/references.html"
   },
   "references.MyType": {
     "name": "references.MyType",
     "source": "references.lua[3:16-3:17]",
     "module": "references",
     "module-kind": "library",
-    "section": "ty:MyType",
     "url": "library/references.html#ty:MyType"
   },
-  "references.module_1": {
-    "name": "references.module_1()",
-    "source": "references.lua[47:14-47:28]",
-    "summary": "references",
+  "references.MyType.meth": {
+    "name": "references.MyType:meth()",
+    "source": "references.lua[5:1-5:26]",
     "module": "references",
     "module-kind": "library",
-    "section": "v:module_1",
-    "url": "library/references.html#v:module_1"
+    "url": "library/references.html#ty:MyType:meth"
+  },
+  "references.builtin_1": {
+    "name": "references.builtin_1()",
+    "source": "references.lua[41:15-41:29]",
+    "module": "references",
+    "module-kind": "library",
+    "url": "library/references.html#v:builtin_1"
   },
   "references.builtin_2": {
     "name": "references.builtin_2()",
@@ -30,16 +33,7 @@
     "summary": "string.match, string and number",
     "module": "references",
     "module-kind": "library",
-    "section": "v:builtin_2",
     "url": "library/references.html#v:builtin_2"
-  },
-  "references.builtin_1": {
-    "name": "references.builtin_1()",
-    "source": "references.lua[41:15-41:29]",
-    "module": "references",
-    "module-kind": "library",
-    "section": "v:builtin_1",
-    "url": "library/references.html#v:builtin_1"
   },
   "references.method_1": {
     "name": "references.method_1()",
@@ -47,34 +41,29 @@
     "summary": "See MyType:meth and MyType.meth",
     "module": "references",
     "module-kind": "library",
-    "section": "v:method_1",
     "url": "library/references.html#v:method_1"
   },
-  "references.type_3": {
-    "name": "references.type_3()",
-    "source": "references.lua[33:12-33:25]",
-    "summary": "See MyType, references.MyType and references.MyType",
+  "references.module_1": {
+    "name": "references.module_1()",
+    "source": "references.lua[47:14-47:28]",
+    "summary": "references",
     "module": "references",
     "module-kind": "library",
-    "section": "v:type_3",
-    "url": "library/references.html#v:type_3"
+    "url": "library/references.html#v:module_1"
   },
-  "references.type_2": {
-    "name": "references.type_2()",
-    "source": "references.lua[29:12-29:25]",
-    "summary": "See MyType and references.MyType",
+  "references.my_term": {
+    "name": "references.my_term",
+    "source": "references.lua[8:13-8:14]",
     "module": "references",
     "module-kind": "library",
-    "section": "v:type_2",
-    "url": "library/references.html#v:type_2"
+    "url": "library/references.html#v:my_term"
   },
-  "references.type_1": {
-    "name": "references.type_1()",
-    "source": "references.lua[26:12-26:25]",
+  "references.term_1": {
+    "name": "references.term_1()",
+    "source": "references.lua[18:12-18:25]",
     "module": "references",
     "module-kind": "library",
-    "section": "v:type_1",
-    "url": "library/references.html#v:type_1"
+    "url": "library/references.html#v:term_1"
   },
   "references.term_2": {
     "name": "references.term_2()",
@@ -82,16 +71,37 @@
     "summary": "See my_term, references.my_term and custom label.",
     "module": "references",
     "module-kind": "library",
-    "section": "v:term_2",
     "url": "library/references.html#v:term_2"
   },
-  "references.term_1": {
-    "name": "references.term_1()",
-    "source": "references.lua[18:12-18:25]",
+  "references.type_1": {
+    "name": "references.type_1()",
+    "source": "references.lua[26:12-26:25]",
     "module": "references",
     "module-kind": "library",
-    "section": "v:term_1",
-    "url": "library/references.html#v:term_1"
+    "url": "library/references.html#v:type_1"
+  },
+  "references.type_2": {
+    "name": "references.type_2()",
+    "source": "references.lua[29:12-29:25]",
+    "summary": "See MyType and references.MyType",
+    "module": "references",
+    "module-kind": "library",
+    "url": "library/references.html#v:type_2"
+  },
+  "references.type_3": {
+    "name": "references.type_3()",
+    "source": "references.lua[33:12-33:25]",
+    "summary": "See MyType, references.MyType and references.MyType",
+    "module": "references",
+    "module-kind": "library",
+    "url": "library/references.html#v:type_3"
+  },
+  "references.unknown_1": {
+    "name": "references.unknown_1()",
+    "source": "references.lua[11:15-11:28]",
+    "module": "references",
+    "module-kind": "library",
+    "url": "library/references.html#v:unknown_1"
   },
   "references.unknown_2": {
     "name": "references.unknown_2()",
@@ -99,30 +109,6 @@
     "summary": "See unknown and custom label.",
     "module": "references",
     "module-kind": "library",
-    "section": "v:unknown_2",
     "url": "library/references.html#v:unknown_2"
-  },
-  "references.unknown_1": {
-    "name": "references.unknown_1()",
-    "source": "references.lua[11:15-11:28]",
-    "module": "references",
-    "module-kind": "library",
-    "section": "v:unknown_1",
-    "url": "library/references.html#v:unknown_1"
-  },
-  "references.my_term": {
-    "name": "references.my_term",
-    "source": "references.lua[8:13-8:14]",
-    "module": "references",
-    "module-kind": "library",
-    "section": "v:my_term",
-    "url": "library/references.html#v:my_term"
-  },
-  "references": {
-    "name": "references",
-    "source": "references.lua[7:8-48:1]",
-    "module": "references",
-    "module-kind": "library",
-    "url": "library/references.html"
   }
 }

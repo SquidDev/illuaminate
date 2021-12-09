@@ -1,18 +1,17 @@
 {
-  "foo.a": {
-    "name": "foo.a = 1",
-    "source": "setmetatable.lua[4:9-4:9]",
-    "summary": "Exposed through the metatable",
-    "module": "foo",
-    "module-kind": "library",
-    "section": "v:a",
-    "url": "library/foo.html#v:a"
-  },
   "foo": {
     "name": "foo",
     "source": "setmetatable.lua[3:21-5:1]",
     "module": "foo",
     "module-kind": "library",
     "url": "library/foo.html"
+  },
+  "foo.a": {
+    "name": "foo.a = 1",
+    "source": "setmetatable.lua[4:9-4:9]",
+    "summary": "Exposed through the metatable",
+    "module": "foo",
+    "module-kind": "library",
+    "url": "library/foo.html#v:a"
   }
 }

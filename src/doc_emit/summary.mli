@@ -12,8 +12,10 @@ type t =
   }
 
 (** Convert a list of index items into a JSON index. *)
-val to_json : t list -> Yojson.Safe.t
+val to_json : t Map.Make(String).t -> Yojson.Safe.t
 
 (** Convert a list of documented modules into a flat list of index terms. *)
 val everything :
-  source_link:(AbstractSyntax.source -> string option) -> page documented list -> t list
+  source_link:(AbstractSyntax.source -> string option) ->
+  page documented list ->
+  t Map.Make(String).t
