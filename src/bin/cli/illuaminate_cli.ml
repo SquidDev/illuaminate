@@ -271,7 +271,6 @@ module Args = struct
   include Cmdliner.Arg
 
   let ( let+ ) x f = Term.(const f $ x)
-
   let ( and+ ) a b = Term.(const (fun x y -> (x, y)) $ a $ b)
 
   type common =
@@ -361,44 +360,44 @@ let run () =
   let lint_cmd =
     let doc = "Checks all files, and reports errors." in
     let term =
-      let+ common = common and+ files = files_arg in
+      let+ common and+ files = files_arg in
       setup_common common; lint files
     in
-    (term, Term.info "lint" ~doc ~man:[ `Blocks common_docs ])
+    Cmd.v (Cmd.info "lint" ~doc ~man:[ `Blocks common_docs ]) term
   in
   let fix_cmd =
     let doc = "Checks all files and fixes problems in them." in
     let term =
-      let+ common = common and+ files = files_arg in
+      let+ common and+ files = files_arg in
       setup_common common; fix files
     in
-    (term, Term.info "fix" ~doc ~man:[ `Blocks common_docs ])
+    Cmd.v (Cmd.info "fix" ~doc ~man:[ `Blocks common_docs ]) term
   in
   let dump_global_cmd =
     let doc = "Dumps all usages of \"undefined\" globals, and global definitions." in
     let term =
-      let+ common = common
+      let+ common
       and+ files = files_arg
       and+ defined =
         value & flag & info ~doc:"Display definitions of global variables." [ "d"; "defined" ]
       in
       setup_common common; dump_globals ~defined files
     in
-    (term, Term.info "dump-global" ~doc ~man:[ `Blocks common_docs ])
+    Cmd.v (Cmd.info "dump-global" ~doc ~man:[ `Blocks common_docs ]) term
   in
   let doc_gen_cmd =
     let doc = "Generates HTML documentation" in
     let term =
-      let+ common = common and+ file = doc_file_arg in
+      let+ common and+ file = doc_file_arg in
       setup_common common; doc_gen file
     in
-    (term, Term.info "doc-gen" ~doc ~man:[ `Blocks common_docs ])
+    Cmd.v (Cmd.info "doc-gen" ~doc ~man:[ `Blocks common_docs ]) term
   in
 
   let init_config_cmd =
     let doc = "Generates a new config file." in
     let term =
-      let+ common = common
+      let+ common
       and+ config =
         required & pos 0 (some string) None & info ~doc:"The config to generate." ~docv:"CONFIG" []
       and+ force =
@@ -407,28 +406,21 @@ let run () =
       in
       setup_common common; init_config config force
     in
-    (term, Term.info "init-config" ~doc ~man:[ `Blocks common_docs ])
+    Cmd.v (Cmd.info "init-config" ~doc ~man:[ `Blocks common_docs ]) term
   in
   let minify_cmd =
     let doc = "Minify a Lua file" in
     let term =
-      let+ common = common and+ file = minify_file_arg in
+      let+ common and+ file = minify_file_arg in
       setup_common common; minify file
     in
-    (term, Term.info "minify" ~doc ~man:[ `Blocks common_docs ])
+    Cmd.v (Cmd.info "minify" ~doc ~man:[ `Blocks common_docs ]) term
   in
 
-  let default_cmd =
+  let info =
     let doc = "Provides basic source code analysis of Lua projects." in
-    let term =
-      let+ common = common in
-      setup_common common;
-      `Help (`Pager, None)
-    in
-    ( Term.(ret term),
-      Term.info "illuaminate" ~doc ~version:"illuaminate %%VERSION%%" ~exits:Term.default_exits )
+    Cmd.info "illuaminate" ~doc ~version:"illuaminate %%VERSION%%" ~exits:Cmd.Exit.defaults
   in
 
-  Term.exit
-  @@ Term.eval_choice default_cmd
-       [ lint_cmd; fix_cmd; doc_gen_cmd; dump_global_cmd; init_config_cmd; minify_cmd ]
+  Cmd.group info [ lint_cmd; fix_cmd; doc_gen_cmd; dump_global_cmd; init_config_cmd; minify_cmd ]
+  |> Cmd.eval |> exit

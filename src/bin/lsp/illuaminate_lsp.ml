@@ -92,11 +92,12 @@ let () =
       Logs.set_reporter reporter);
 
     let open Lsp in
-    Logger.with_log_file log_file (fun () -> start)
+    Logger.with_log_file log_file start
   in
 
   let cmd =
-    ( const setup $ log_file $ verbose,
-      info "illuaminate-lsp" ~doc:"Start a Language Server Protocol sever for illuaminate" )
+    Cmd.v
+      (Cmd.info "illuaminate-lsp" ~doc:"Start a Language Server Protocol sever for illuaminate")
+      (const setup $ log_file $ verbose)
   in
-  exit @@ eval cmd
+  Stdlib.exit @@ Cmd.eval cmd
