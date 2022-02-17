@@ -6,7 +6,7 @@ let client: LanguageClient | undefined;
 const startServer = () => {
   // Spin up a new server
   const command = workspace.getConfiguration("illuaminate").get<string>("executable", "illuaminate-lsp");
-  const serverOptions: ServerOptions = { command };
+  const serverOptions: ServerOptions = { command, args: ["--log=/home/squid/Documents/software/illuaminate/log.txt"] };
   const clientOptions: LanguageClientOptions = {
     documentSelector: [{ language: "lua" }],
     synchronize: {
