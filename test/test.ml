@@ -71,7 +71,8 @@ let () =
            [ Doc_parser.tests;
              Doc_emit.Json_summary.tests;
              Doc_emit.Html_module.tests;
-             Doc_emit.Dump_sexp.tests
+             Doc_emit.Dump_sexp.tests;
+             Doc_emit_summary.tests;
            ];
          group "Language server"
            [ Lsp_code_action.tests;

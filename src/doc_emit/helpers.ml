@@ -36,7 +36,8 @@ let get_summary ?(max_length = 120) (desc : _ Omd.doc) : _ Omd.inline =
     | Ref_desc (ref, text) -> on_child (fun text -> Ref_desc (ref, text)) space text
     | Code (_, body) as c -> (space - String.length body, c)
     | Colour c -> (space - String.length c, Colour c)
-    | Soft_break _ | Hard_break _ | Image _ | Html _ -> (space, Text ([], ""))
+    | Soft_break _ | Hard_break _ -> (space - 1, Text ([], " "))
+    | Image _ | Html _ -> (space, Text ([], ""))
   and on_child factory space node =
     let space, node = go space node in
     (space, factory node)
