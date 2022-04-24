@@ -1,4 +1,4 @@
-string_format_arity.lua:[6:11-6:37]: Format string takes 1 parameter, but only given 1 argument. [stdlib:string-format]
+string_format_arity.lua:[6:11-6:37]: Format string takes 2 parameters, but only given 1 argument. [stdlib:string-format]
    │
  6 │ local _ = string.format("%s %s", "a")
    │           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -14,7 +14,7 @@ string_format_arity.lua:[10:44-10:51]: Format string takes 2 parameters, but giv
     │
  10 │ local _ = string.format("%s %s", "a", "b", "c", ...)
     │                                            ^^^^^^^^
-string_format_arity.lua:[12:11-12:31]: Format string takes 1 parameter, but only given 1 argument. [stdlib:string-format]
+string_format_arity.lua:[12:11-12:31]: Format string takes 2 parameters, but only given 1 argument. [stdlib:string-format]
     │
  12 │ local _ = ("%s %s"):format("a")
     │           ^^^^^^^^^^^^^^^^^^^^^
