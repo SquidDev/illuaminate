@@ -34,7 +34,9 @@ jobs:
       run: opam exec -- dune runtest
 
     - name: Install
-      run: opam exec -- dune install --prefix=_install
+      run: |
+        opam exec -- dune build -p illuaminate @install
+        opam exec -- dune install --prefix=_install
 
     - name: Publish executable
       uses: actions/upload-artifact@v2

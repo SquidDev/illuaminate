@@ -1,8 +1,7 @@
-(lang dune 2.7)
-(using menhir 2.0)
+(lang dune 3.1)
+(using menhir 2.1)
 (implicit_transitive_deps false)
 (generate_opam_files true)
-(allow_approximate_merlin)
 
 (name illuaminate)
 (version 0.1.0)
@@ -19,8 +18,8 @@
     (ocaml (and (>= 4.12) (< 5.0)))
 
     ;; Build-time
-    dune ; While a build-tool, dune shouldn't be build-time only
-    (js_of_ocaml-compiler (and :build (>= 3.6.0)))
+    (dune (>= 3.1))
+    (js_of_ocaml-compiler (and :build (>= 4.0.0)))
     (js_of_ocaml-ppx :build)
     (ppx_deriving :build)
     (ppxlib (and :build (>= 0.14.0)))
