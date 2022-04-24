@@ -1910,11 +1910,12 @@ let inline_pre buf acc st =
         let finish () =
           let content = Buffer.contents bufcode in
           let content =
-            if
+            if String.for_all (fun c -> c = ' ') content then
+              content
+            else if
               String.length content >= 2
               && content.[0] = ' '
               && content.[String.length content - 1] = ' '
-              (* FIXME not fully whitespace *)
             then
               String.sub content 1 (String.length content - 2)
             else
@@ -1964,16 +1965,15 @@ let rec inline defs st =
     let off0 = pos st in
     match protect (link_label true) st with
     | lab -> (
-        let off1 = pos st in
-        let lab1 = inline defs (of_string lab) in
-        let reflink lab' =
-          let s = normalize lab' in
+        let reflink lab =
+          let s = normalize lab in
           match
             List.find_opt
               (fun ({ label; _ } : attributes link_def) -> label = s)
               defs
           with
           | Some { label = _; destination; title; attributes = attr } ->
+              let lab1 = inline defs (of_string lab) in
               let r =
                 let def = { label = lab1; destination; title } in
                 match kind with
@@ -1984,9 +1984,8 @@ let rec inline defs st =
           | None ->
               if kind = Img then Buffer.add_char buf '!';
               Buffer.add_char buf '[';
-              let acc = Pre.R lab1 :: text acc in
-              Buffer.add_char buf ']';
-              set_pos st off1;
+              let acc = text acc in
+              set_pos st (succ off0);
               loop acc st
         in
         match peek st with
