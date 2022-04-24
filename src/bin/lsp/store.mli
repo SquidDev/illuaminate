@@ -7,11 +7,8 @@ type client_channel =
 
 module Filename : sig
   val of_uri : Lsp.Uri.t -> Span.filename
-
   val to_uri : Span.filename -> Lsp.Uri.t
-
   val to_uri_json : Span.filename -> Yojson.Safe.t
-
   val box : Lsp.Types.DocumentUri.t -> Lsp.Uri.t
 end
 

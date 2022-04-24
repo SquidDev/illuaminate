@@ -8,14 +8,12 @@ module type S = sig
   type t
 
   val matches : Fpath.t -> t -> bool
-
   val iter : (Fpath.t -> unit) -> ?path:Fpath.t -> root:Fpath.t -> t -> unit
 end
 
 type t = Pattern.segment list
 
 let pp = Pattern.pp
-
 let parse str = Lexing.from_string ~with_positions:false str |> Parse.main
 
 let matches_seg p = function
@@ -36,7 +34,6 @@ let rec matches_pat paths pats =
   | _ :: paths', Anything :: pats' -> matches_pat paths pats' || matches_pat paths' pats
 
 let matches path pattern = matches_pat (Fpath.segs path) pattern
-
 let of_seqs x = String.concat "/" x |> Fpath.v
 
 (** The same as [matches_pat] but tracking the current sequence. *)

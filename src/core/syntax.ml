@@ -87,7 +87,6 @@ module SepList0 = struct
   type 'a t = 'a SepList1.t option [@@deriving show]
 
   let map' f x = Option.fold ~none:[] ~some:(SepList1.map' f) x
-
   let for_all f x = Option.fold ~none:true ~some:(SepList1.for_all f) x
 
   let map_with' f s = function
@@ -99,11 +98,8 @@ module SepList0 = struct
     | Some x -> SepList1.fold_left f s x
 
   let map f ?tok = Option.map (SepList1.map f ?tok)
-
   let iter f ?tok = Option.iter (SepList1.iter f ?tok)
-
   let last x = Option.map SepList1.last.get x
-
   let length x = fold_left (fun x _ -> x + 1) 0 x
 end
 
@@ -135,7 +131,6 @@ module UnOp = struct
     | OpBNot -> "~"
 
   let pp f x = Format.pp_print_string f (show x)
-
   let precedence (_ : t) = 1
 end
 
@@ -513,27 +508,16 @@ and repl_exprs =
 class iter =
   object (self)
     inherit _iter
-
     method string (_ : string) = ()
-
     method int64 (_ : Int64.t) = ()
-
     method float (_ : float) = ()
-
     method unit (_ : unit) = ()
-
     method bool (_ : bool) = ()
-
     method unop (_ : UnOp.t) = ()
-
     method binop (_ : BinOp.t) = ()
-
     method token (tok : token) = self#node (fun _ -> ()) tok
-
     method node : 'a. ('a -> unit) -> 'a Node.t -> unit = fun f x -> Node.contents.get x |> f
-
     method option : 'a. ('a -> unit) -> 'a option -> unit = Option.iter
-
     method list : 'a. ('a -> unit) -> 'a list -> unit = List.iter
 
     method seplist1 : 'a. ('a -> unit) -> 'a SepList1.t -> unit =
@@ -546,27 +530,16 @@ class iter =
 class map =
   object (self)
     inherit _map
-
     method string (x : string) = x
-
     method int64 (x : Int64.t) = x
-
     method float (x : float) = x
-
     method unit (x : unit) = x
-
     method bool (x : bool) = x
-
     method unop (x : UnOp.t) = x
-
     method binop (x : BinOp.t) = x
-
     method token (tok : token) = self#node Fun.id tok
-
     method node : 'a. ('a -> 'a) -> 'a Node.t -> 'a Node.t = Node.contents.over
-
     method option : 'a. ('a -> 'a) -> 'a option -> 'a option = Option.map
-
     method list : 'a. ('a -> 'a) -> 'a list -> 'a list = List.map
 
     method seplist1 : 'a. ('a -> 'a) -> 'a SepList1.t -> 'a SepList1.t =
@@ -581,25 +554,15 @@ module First = struct
   open Lens
 
   let do_stmt = Do_stmt.do_do
-
   let while_stmt = While_stmt.while_while
-
   let repeat_stmt = Repeat_stmt.repeat_repeat
-
   let for_num_stmt = For_num_stmt.forn_for
-
   let for_in_stmt = For_in_stmt.forp_for
-
   let local_stmt = Local_stmt.local_local
-
   let local_function_stmt = Local_function_stmt.localf_local
-
   let function_stmt = Function_stmt.assignf_function
-
   let return_stmt = Return_stmt.return_return
-
   let if_clause = If_clause.clause_if
-
   let if_stmt = If_stmt.if_if -| if_clause
 
   let ident =
@@ -638,11 +601,8 @@ module First = struct
     { get; over }
 
   let fun_expr = Fun_expr.fun_function
-
   let table = Table.table_open
-
   let unop_expr = Unop_expr.unop_op -| Node.lens_embed UnOp.token
-
   let paren_expr = Paren_expr.paren_open
 
   let literal_embed (get : 'a -> string -> Token.t) (set : Token.t -> 'a * string) =
@@ -828,21 +788,13 @@ module Last = struct
   open Lens
 
   let do_stmt = Do_stmt.do_end
-
   let while_stmt = While_stmt.while_end
-
   let for_num_stmt = For_num_stmt.forn_end
-
   let for_in_stmt = For_in_stmt.forp_end
-
   let function_stmt = Function_stmt.assignf_end
-
   let local_function_stmt = Local_function_stmt.localf_end
-
   let if_stmt = If_stmt.if_end
-
   let var = First.var
-
   let arg = First.arg
 
   let name =
@@ -858,7 +810,6 @@ module Last = struct
     { get; over }
 
   let fun_expr = Fun_expr.fun_end
-
   let table = Table.table_close
 
   let call_args =
@@ -943,7 +894,6 @@ module Last = struct
     { get; over }
 
   let assign_stmt = Assign_stmt.assign_vals -| SepList1.first -| expr
-
   let repeat_stmt = Repeat_stmt.repeat_test -| expr
 
   let function_name =
@@ -1024,31 +974,18 @@ module Spanned = struct
   open Lens
 
   let project first last x = Span.of_span2 (first.get x |> Node.span) (last.get x |> Node.span)
-
   let expr = project First.expr Last.expr
-
   let var x = First.var.get x |> Node.span
-
   let name = project First.name Last.name
-
   let stmt = project First.stmt Last.stmt
-
   let program = project First.program Last.program
-
   let table_item = project First.table_item Last.table_item
-
   let table = project First.table Last.table
-
   let call = project First.call Last.call
-
   let list1 f x = Span.of_span2 (SepList1.first.get x |> f) (SepList1.last.get x |> f)
-
   let function_name = project First.function_name Last.function_name
-
   let arg = project First.arg Last.arg
-
   let args = project First.args Last.args
-
   let call_args = project First.call_args Last.call_args
 end
 
@@ -1062,9 +999,16 @@ module Precedence = struct
 
   (** Get the precedence of an expression. *)
   let of_expr = function
-    | Nil _ | True _ | False _ | Number _ | Int _ | MalformedNumber _ | String _ | Fun _ | Table _
-    | Dots _ ->
-        Lit
+    | Nil _
+    | True _
+    | False _
+    | Number _
+    | Int _
+    | MalformedNumber _
+    | String _
+    | Fun _
+    | Table _
+    | Dots _ -> Lit
     | ECall _ | Ref _ | Parens _ -> Raw
     | UnOp { unop_op; _ } -> Op (Node.contents.get unop_op |> UnOp.precedence)
     | BinOp { binop_op; _ } -> Op (Node.contents.get binop_op |> BinOp.precedence)

@@ -33,13 +33,9 @@ module Filename = struct
     else None
 
   let of_uri uri = Span.Filename.mk ?path:(get_path uri) (Uri.to_string uri)
-
   let to_uri_json { Span.id; _ } : Yojson.Safe.t = `String id
-
   let box x = Uri.t_of_yojson (`String x)
-
   let to_uri { Span.id; _ } = box id
-
   let of_path path = Span.Filename.mk ~path (Fpath.to_string path |> Uri.of_path |> Uri.to_string)
 end
 
@@ -297,7 +293,6 @@ let update_workspace store ?root ~add ~remove () =
     }
 
 let linters = Workspace.linters
-
 let capabilities x = Option.get x.capabilities
 
 let set_capabilities cap x =

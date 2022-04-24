@@ -21,9 +21,7 @@ module Builtins = struct
     @ common
 
   let lua_52 = SSet.of_list @@ [ "_ENV"; "bit32"; "rawlen" ] @ common
-
   let lua_53 = SSet.of_list @@ [ "_ENV"; "bit32"; "rawlen"; "utf8" ] @ common
-
   let max = List.fold_left SSet.union SSet.empty [ lua_51; lua_52; lua_53 ]
 
   let parse = function
@@ -76,8 +74,7 @@ let name known ctx r = function
     | { definitions = []; kind = Global; name; _ }
       when (not (SSet.mem name known))
            && not (IlluaminateData.need ctx.data Module_resolve.global_modules () |> SSet.mem name)
-      ->
-        r.r ~tag "Using unknown global %S" name
+      -> r.r ~tag "Using unknown global %S" name
     | _ -> ())
   | NDot _ | NLookup _ -> ()
 

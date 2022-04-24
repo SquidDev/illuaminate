@@ -6,7 +6,6 @@ module R = Resolve
 module G = Global
 
 let string_len = G.parse "string.len"
-
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "stdlib:string-len"
 
 let check ~(context : context) ~r ?fix f =

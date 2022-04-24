@@ -7,7 +7,6 @@ type ('a, 'b) action =
   | Action : ('a, 'b) action * ('b, 'c) action -> ('a, 'c) action
 
 let action ~name f = One (name, f)
-
 let ( >-> ) f g = Action (f, g)
 
 let rec eval : 'a 'b. ('a, 'b) action -> 'a -> 'b =

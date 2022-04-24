@@ -33,5 +33,4 @@ let to_segment : builder -> segment option = function
   | Regex rs -> Some (Regex (List.rev rs |> Re.seq |> Re.whole_string |> Re.compile))
 
 let not_sep = Re.(diff any (char '/'))
-
 let ( **: ) x xs = CCList.cons_maybe (to_segment x) xs

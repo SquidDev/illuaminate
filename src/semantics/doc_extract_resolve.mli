@@ -1,5 +1,4 @@
 type cache
-
 type context
 
 (** Construct a context from a map of modules and a "current" module. *)

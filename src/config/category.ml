@@ -17,13 +17,10 @@ module Category = struct
 
   module type Key = sig
     type value
-
     type values += Value of value Term.Repr.repr
 
     val id : int
-
     val owner : t
-
     val term : value Term.t
   end
 
@@ -34,13 +31,10 @@ module Category = struct
   let add (type t) (term : t Term.t) owner : t key =
     (module struct
       type value = t
-
       type values += Value of value Term.Repr.repr
 
       let id = new_id ()
-
       let owner = owner
-
       let term = term
     end)
 end
@@ -113,7 +107,7 @@ module Schema = struct
       IntMap.fold
         (fun _ key rest ->
           let module K = (val key : Key) in
-          let+ term = Term.Repr.to_repr_parser K.term and+ rest = rest in
+          let+ term = Term.Repr.to_repr_parser K.term and+ rest in
           IntMap.add K.id (K.Value term) rest)
         keys (Parser.const IntMap.empty)
     in
@@ -124,7 +118,7 @@ module Schema = struct
             (let+ terms = build_keys terms and+ children = build_cats children in
              merge_nodup terms children)
             |> fields |> field_opt ~name
-          and+ rest = rest in
+          and+ rest in
           merge_nodup (Option.value ~default:IntMap.empty terms) rest)
         children (const IntMap.empty)
     in

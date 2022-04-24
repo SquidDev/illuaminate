@@ -47,7 +47,6 @@ module Lift (L : S) (R : S) : sig
 end
 
 module Unresolved : S with type reference = Reference.unresolved
-
 module Resolved : S with type reference = Reference.resolved
 
 module Builtin : sig

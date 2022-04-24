@@ -8,11 +8,8 @@ module Ref = struct
     }
 
   let hash { name; _ } = Hashtbl.hash name
-
   let mk name contents = { name; contents }
-
   let pp f out { name; contents } = Format.fprintf out "#%s = %a" name f contents
-
   let v (x : _ t) = x.contents
 end
 
@@ -31,7 +28,6 @@ let count_key key k =
   (Key.key ~name:"Count" ~pp:(Fmt.any "") (fun s () -> incr counter; need s key k), counter)
 
 let ref_builder = Builder.oracle ref_key (fun x _ -> Ref.v x)
-
 let test_case t s f = OmnomnomAlcotest.of_alcotest_case (test_case t s f)
 
 let tests =

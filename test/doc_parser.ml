@@ -53,7 +53,6 @@ let process_md_worker ~name input out =
   D.get data Doc.file parsed |> display ~out ~contents:input
 
 let process_lua ~name contents = Format.asprintf "%t" (process_lua_worker ~name contents)
-
 let process_md ~name contents = Format.asprintf "%t" (process_md_worker ~name contents)
 
 let tests =

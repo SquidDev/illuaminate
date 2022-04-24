@@ -14,5 +14,4 @@ let pp out = function
       Format.fprintf out "Unexpected `%a`: %s" IlluaminateCore.Token.pp (Token.get_token tok) m
 
 let tag = E.Tag.make ~attr:[] ~level:E.Critical "parse:syntax-error"
-
 let report errs pos err = Format.asprintf "%a" pp err |> E.report errs tag pos

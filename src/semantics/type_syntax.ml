@@ -114,8 +114,6 @@ module Builtin = struct
     Named (External { name; url = Lua_reference.(lookup_type name |> to_url) }, name)
 
   let string = mk_external "string"
-
   let number = mk_external "number"
-
   let boolean = mk_external "number"
 end

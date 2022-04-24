@@ -4,7 +4,6 @@ open CCSexp
 open CCFun
 
 let field name value rest = list (atom name :: value) :: rest
-
 let one x = [ x ]
 
 let one' : t -> t list = function
@@ -18,11 +17,8 @@ let list' = function
   | xs -> list xs
 
 let span = atom' % Span.show
-
 let record = list % List.rev
-
 let record' key xs = list (atom key :: List.rev xs)
-
 let field_bool key value rest = if value then field key [] rest else rest
 
 let field' name f value rest : t list =
@@ -31,7 +27,6 @@ let field' name f value rest : t list =
   | Some value -> field name (f value) rest
 
 let spanned f (x : _ Span.spanned) = [] |> field "value" (f x.value) |> field "span" (span x.span)
-
 let fields name f = List.fold_right (fun v rest -> field name (f v) rest)
 
 module Make (X : sig

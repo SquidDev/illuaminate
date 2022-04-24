@@ -5,7 +5,6 @@ module ArgTbl = Hashtbl.Make (struct
   type t = args
 
   let equal = ( == )
-
   let hash = Hashtbl.hash
 end)
 
@@ -13,7 +12,6 @@ module StmtTbl = Hashtbl.Make (struct
   type t = stmt
 
   let equal = ( == )
-
   let hash = Hashtbl.hash
 end)
 
@@ -194,7 +192,6 @@ let analyse _ prog =
      (* Walks the entire tree, and builds up our maps of statements and functions. This doesn't
         actually compute anything - we'll do that later. *)
      inherit Syntax.iter as super
-
      val func = entry_func
 
      method! stmt s =
@@ -218,9 +215,7 @@ let analyse _ prog =
   t
 
 let key = IlluaminateData.Programs.key ~name:__MODULE__ analyse
-
 let get_program t = Lazy.force t.entry_func
-
 let get_func func t = ArgTbl.find t.functions func |> Lazy.force
 
 let get_block stmt t =

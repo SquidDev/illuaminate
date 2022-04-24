@@ -27,11 +27,8 @@ and table_entry ~r ~span = function
 let check_abstract ~r ~span =
   object
     val span = span
-
     inherit abstract_iter
-
     method! reference = check ~r ~span ~kind:"reference"
-
     method! type_ = type_ ~r ~span
 
     method! see { see_reference; see_label = _; see_span = span; see_description } =

@@ -3,7 +3,6 @@ open Lsp.Types
 include IlluaminateLsp
 
 let pp_json out x = Format.pp_print_string out (Yojson.Safe.pretty_to_string x)
-
 let json_pp pp out x = pp_json out (pp x)
 
 module Check = struct
@@ -23,7 +22,6 @@ module Check = struct
     `Assoc (("message", `String message) :: bnds)
 
   let ok_response k = ok_json ~pp:json_err k
-
   let ok_s e = ok ~pp:Format.pp_print_string e
 end
 
@@ -37,12 +35,10 @@ module Testable = struct
       type t = a
 
       let pp = pp
-
       let equal = eq
     end)
 
   let yojson : Yojson.Safe.t testable = mk ~pp:pp_json ~eq:( = )
-
   let json pp : 'a Alcotest.testable = mk ~pp:(json_pp pp) ~eq:( = )
 
   let locations location link : Locations.t testable =
@@ -59,11 +55,8 @@ module Testable = struct
     mk ~pp ~eq
 
   let diagnostic = json Diagnostic.yojson_of_t
-
   let location = json Location.yojson_of_t
-
   let location_link = json LocationLink.yojson_of_t
-
   let document_highlight = json DocumentHighlight.yojson_of_t
 
   let command ?(title = string) ?(command = string) ?arguments () : Command.t testable =
@@ -80,13 +73,9 @@ module Testable = struct
         && equal arguments x.arguments y.arguments)
 
   let def_command = command ()
-
   let workspace_edit = json WorkspaceEdit.yojson_of_t
-
   let code_action_kind = json CodeActionKind.yojson_of_t
-
   let position = json Position.yojson_of_t
-
   let range = json Range.yojson_of_t
 
   let code_action ?(title = string) ?(diagnostic = diagnostic) ?(command = def_command) () =
@@ -260,9 +249,6 @@ let range l1 c1 l2 c2 =
     ~end_:(Position.create ~line:l2 ~character:c2)
 
 let pos l c = Position.create ~line:l ~character:c
-
 let request { client; server; _ } r = server.request client r |> force
-
 let notify { client; server; _ } r = server.notify client r |> force
-
 let drain { outgoing; _ } = Queue.clear outgoing

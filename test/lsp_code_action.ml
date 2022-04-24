@@ -26,7 +26,9 @@ let tests =
                          ~isPreferred:true
                          ~command:
                            (Command.create ~title:"Fix 'Unnecessary parenthesis.'"
-                              ~command:"illuaminate/fix" ~arguments:[ `Int 0; `String "" ] ())
+                              ~command:"illuaminate/fix"
+                              ~arguments:[ `Int 0; `String "" ]
+                              ())
                          ())
                   ]);
           ());

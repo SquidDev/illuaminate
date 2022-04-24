@@ -11,7 +11,6 @@ module Emitter = struct
     | x -> Emit.trivial out x
 
   let trivial_span out { Span.value; _ } = trivial out value
-
   let tagged t f out x = Format.pp_open_stag out t; f out x; Format.pp_close_stag out ()
 
   let node ~kind body out = function
@@ -26,7 +25,6 @@ module Emit = struct
   include Emit.Make (Emitter)
 
   let flush out = Format.pp_print_flush out ()
-
   let with_wrapping out fmt = Format.pp_set_margin out 80; Format.kfprintf flush out fmt
 end
 
@@ -71,12 +69,52 @@ let token_ident : Token.t -> token_kind = function
   | Concat -> Concat
   | OSquare -> OBracket
   | Sub -> Minus
-  | And | Break | Do | Else | ElseIf | End | False | For | Function | Ident _ | If | In | Local
-  | Nil | Not | Or | Repeat | Return | Then | True | Until | While ->
-      Ident
-  | Add | CBrace | Colon | Comma | CParen | CSquare | Div | Dot | Dots | EoF | Eq | Equals | Ge | Gt
-  | Le | Len | Lt | Mod | Mul | Ne | OBrace | OParen | Pow | Semicolon ->
-      Symbol
+  | And
+  | Break
+  | Do
+  | Else
+  | ElseIf
+  | End
+  | False
+  | For
+  | Function
+  | Ident _
+  | If
+  | In
+  | Local
+  | Nil
+  | Not
+  | Or
+  | Repeat
+  | Return
+  | Then
+  | True
+  | Until
+  | While -> Ident
+  | Add
+  | CBrace
+  | Colon
+  | Comma
+  | CParen
+  | CSquare
+  | Div
+  | Dot
+  | Dots
+  | EoF
+  | Eq
+  | Equals
+  | Ge
+  | Gt
+  | Le
+  | Len
+  | Lt
+  | Mod
+  | Mul
+  | Ne
+  | OBrace
+  | OParen
+  | Pow
+  | Semicolon -> Symbol
 
 (** Removes trivia from a node. We keep track of what sort of token the previous one was, and
     whether it needs a space around it. We use this to ensure that [local x] is not printed as
@@ -84,7 +122,6 @@ let token_ident : Token.t -> token_kind = function
 class remove_trivia =
   object (self)
     inherit Syntax.map
-
     val mutable last_kind = Symbol
 
     method private handle_node : 'a. now:token_kind -> ('a -> 'a) -> 'a Node.t -> 'a Node.t =
@@ -109,7 +146,6 @@ class remove_trivia =
       self#handle_node ~now:Ident f x
 
     method! var (Var v) = Var (self#handle_node ~now:Ident Fun.id v)
-
     method! token t = self#handle_node ~now:(token_ident (Node.contents.get t)) Fun.id t
 
     method! literal _ l =
@@ -162,11 +198,8 @@ module Rename = struct
     { resolve; keywords; var_names = R.VarTbl.create 32; index = 0 }
 
   let start_chars = "etaoinshrdlucmfwypvbgkqjxzETAOINSHRDLUCMFWYPVBGKQJXZ"
-
   let start_chars_len = String.length start_chars
-
   let other_chars = "etaoinshrdlucmfwypvbgkqjxz_0123456789ETAOINSHRDLUCMFWYPVBGKQJXZ"
-
   let other_chars_len = String.length other_chars
 
   let make_name i =
@@ -204,7 +237,6 @@ module Rename = struct
   class rename scopes =
     object
       inherit Syntax.map
-
       method! var = rename_var scopes
     end
 end

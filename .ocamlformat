@@ -5,9 +5,7 @@ parse-docstrings
 doc-comments = before
 
 type-decl = sparse
-break-separators = after
-break-cases = toplevel
-field-space = loose
+break-cases = fit-or-vertical
 break-sequences = false
 dock-collection-brackets = false
 cases-matching-exp-indent = compact

@@ -29,7 +29,6 @@ module FileStore = struct
     type t = Span.filename
 
     let hash = Hashtbl.hash
-
     let equal = ( == )
   end)
 
@@ -55,7 +54,6 @@ module FileStore = struct
     builder |> Core.Builder.oracle Files.file get_file |> Core.Builder.oracle Files.files get_files
 
   let builder store = lazy_builder (lazy store)
-
   let create () = { files = Tbl.create 16; file_list = None }
 
   let update store path program =
@@ -83,7 +81,6 @@ let on_program f : File.t option -> 'a option = function
   | Some (Markdown _) | None -> None
 
 let need_for data key file = Core.need data Files.file file |> on_program (Core.need data key)
-
 let get_for data key file = Core.get data Files.file file |> on_program (Core.get data key)
 
 let file_key ~name build =

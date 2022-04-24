@@ -152,6 +152,5 @@ class iter =
 let iter_of f =
   object
     inherit iter
-
     method! abstract_syntax = f
   end

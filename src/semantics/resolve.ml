@@ -79,7 +79,6 @@ module SVarTbl = Hashtbl.Make (struct
   type t = S.var
 
   let equal = ( == )
-
   let hash (S.Var n) = CCHash.string (n ^. Node.contents)
 end)
 
@@ -87,7 +86,6 @@ module TokenTbl = Hashtbl.Make (struct
   type t = S.token
 
   let equal = ( == )
-
   let hash t = CCHash.poly (Node.span t)
 end)
 
@@ -213,7 +211,6 @@ let use_var s name =
       if s.active_scope.fun_id <> scope.fun_id then var.captured <- true
 
 let rec resolve_stmts scope stmts = CCList.fold_left resolve_stmt scope stmts |> ignore
-
 and resolve_exprs scope = S.SepList1.iter (resolve_expr scope)
 
 and resolve_stmt s (stmt : S.stmt) =
@@ -400,9 +397,7 @@ let resolve _ { S.program; _ } =
   resolve_stmts context program; store
 
 let key = IlluaminateData.Programs.key ~name:__MODULE__ resolve
-
 let get_definition var { var_defs; _ } = SVarTbl.find var_defs var
-
 let get_usage var { var_usages; _ } = SVarTbl.find var_usages var
 
 let get_var var { var_defs; var_usages; _ } =
@@ -411,7 +406,6 @@ let get_var var { var_defs; var_usages; _ } =
   | None -> SVarTbl.find var_defs var
 
 let get_dots_definition dot { dots_defs; _ } = TokenTbl.find dots_defs dot
-
 let get_dots_usage dot { dots_usages; _ } = TokenTbl.find dots_usages dot
 
 let get_dots dots { dots_defs; dots_usages; _ } =
@@ -421,13 +415,11 @@ let get_dots dots { dots_defs; dots_usages; _ } =
   | None -> Some (TokenTbl.find dots_defs dots)
 
 let globals { globals; _ } = Hashtbl.to_seq_values globals
-
 let get_global { globals; _ } = Hashtbl.find_opt globals
 
 module VarTbl = Hashtbl.Make (struct
   type t = var
 
   let hash = Hashtbl.hash
-
   let equal = ( == )
 end)

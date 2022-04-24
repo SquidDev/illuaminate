@@ -35,7 +35,6 @@ module FileDigest = struct
     }
 
   let default_duration = Mtime.Span.of_uint64_ns 30_000_000_000L (* 30s *)
-
   let equal ~eq l r = l == r || (l.digest = r.digest && l.time = r.time && eq l.value r.value)
 
   (** Read a file and perform some processing function (such as parsing) if the contents has changed

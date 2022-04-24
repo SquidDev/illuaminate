@@ -7,7 +7,5 @@ type t =
   | UnexpectedToken of Grammar.token * string
 
 val report : Error.t -> Span.t -> t -> unit
-
 val tag : Error.Tag.t
-
 val pp : Format.formatter -> t -> unit

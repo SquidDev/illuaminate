@@ -47,10 +47,20 @@ module Node = struct
       | Table l, Table r -> l == r
       | l, r -> l == r)
     | File, File -> File.( = ) l r
-    | ( ( Stmt | Program | Token | BinOp | Name | FunctionName | Expr | Var | Call | Args | CallArgs
-        | TableItem | File ),
-        _ ) ->
-        false
+    | ( ( Stmt
+        | Program
+        | Token
+        | BinOp
+        | Name
+        | FunctionName
+        | Expr
+        | Var
+        | Call
+        | Args
+        | CallArgs
+        | TableItem
+        | File ),
+        _ ) -> false
     [@@coverage off]
 end
 
@@ -69,10 +79,20 @@ let extract (type a) (l : a Witness.t) (Note.Note ({ kind = r; _ } as note)) : a
   | Token, Token -> note
   | Var, Var -> note
   | File, File -> note
-  | ( ( Stmt | Program | Token | BinOp | Name | Expr | FunctionName | Var | Call | Args | CallArgs
-      | TableItem | File ),
-      _ ) ->
-      failwith "Witness mismatch!"
+  | ( ( Stmt
+      | Program
+      | Token
+      | BinOp
+      | Name
+      | Expr
+      | FunctionName
+      | Var
+      | Call
+      | Args
+      | CallArgs
+      | TableItem
+      | File ),
+      _ ) -> failwith "Witness mismatch!"
   [@@coverage off]
 
 module Notes = struct
@@ -81,11 +101,8 @@ module Notes = struct
   type t = Note.any Tbl.t
 
   let empty : t = Tbl.create 0
-
   let size = Tbl.length
-
   let find witness x t = Tbl.find_all t (Node.Node (witness, x)) |> List.rev_map (extract witness)
-
   let to_seq = Tbl.to_seq_values
 end
 
@@ -347,9 +364,7 @@ let fix_program prog (fixes : Notes.t) =
     let open Syntax in
     (object
        inherit Syntax.map as super
-
        method! token (tok : token) = fix_all fixes Token tok
-
        method! stmt x = fix_all fixes Stmt x |> super#stmt
 
        method! block =
@@ -376,13 +391,9 @@ let fix_program prog (fixes : Notes.t) =
          go_block []
 
        method! program program = fix_all fixes Program program |> super#program
-
        method! call x = fix_all fixes Call x |> super#call
-
        method! expr x = fix_all fixes Expr x |> super#expr
-
        method! args x = fix_all fixes Args x |> super#args
-
        method! table_item x = fix_all fixes TableItem x |> super#table_item
 
        method! call_args args =
@@ -406,7 +417,6 @@ let fix_program prog (fixes : Notes.t) =
          super#call_args args
 
        method! name name = fix_all fixes Name name |> super#name
-
        method! var var = fix_all fixes Var var |> super#var
     end)
       #program

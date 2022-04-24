@@ -5,9 +5,7 @@ open! Doc.Syntax
 module E = Doc.Extract
 
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:undocumented"
-
 let arg_tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:undocumented-arg"
-
 let return_tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:undocumented-return"
 
 let check ~r ~tag ~span description msg =

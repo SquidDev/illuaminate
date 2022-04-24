@@ -7,7 +7,6 @@ module G = Global
 module Safe = Pure.Safe
 
 let string_len = G.parse "pcall"
-
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "stdlib:pcall-eta"
 
 let safe_args = function

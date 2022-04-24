@@ -92,7 +92,6 @@ let file =
       }
 
 let get_page ({ contents; _ } : t) = contents
-
 let get_var ({ vars; _ } : t) var = VarTbl.find_opt vars var
 
 let get_pages =

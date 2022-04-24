@@ -34,8 +34,7 @@ let check data position program =
   match Locate.locate position program with
   | Var v
     when Data.get data Resolve.key program |> Resolve.get_var v |> check_renamable |> Result.is_ok
-    ->
-      Some (Syntax.Spanned.var v |> range)
+    -> Some (Syntax.Spanned.var v |> range)
   | _ -> None
 
 (** Check a predicate holds for all usages of a variable. *)

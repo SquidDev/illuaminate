@@ -37,19 +37,12 @@ let alphabet =
     (fun i -> String.make 1 (Char.chr (i + Char.code 'a')))
 
 let vars_of_list ~get_loc = List.mapi (fun i x -> { txt = alphabet.(i); loc = get_loc x })
-
 let evar_of_var { txt; loc } = evar ~loc txt
-
 let pvar_of_var { txt; loc } = pvar ~loc txt
-
 let tvar_of_var { txt; loc } = ptyp_var ~loc txt
-
 let evars_of_vars = List.map evar_of_var
-
 let pvars_of_vars = List.map pvar_of_var
-
 let tvars_of_vars = List.map tvar_of_var
-
 let record ~loc flds = pexp_record ~loc flds None
 
 let construct ~loc id args =
@@ -59,7 +52,6 @@ let construct ~loc id args =
     | _ -> Some (pexp_tuple ~loc args))
 
 let tuple ~loc es = pexp_tuple ~loc es
-
 let abstract ~loc patt expr = pexp_fun ~loc Nolabel None patt expr
 
 module Backends = struct
@@ -86,13 +78,9 @@ module Backends = struct
   let iterator : what =
     object
       method name = "iter"
-
       method higher_apply = eapply
-
       method typ ~loc ty = [%type: [%t ty] -> unit]
-
       method higher_typ ~loc ty = [%type: [%t ty] -> unit]
-
       method any ~loc = [%expr fun _ -> ()]
 
       method combine ~loc combinators ~reconstruct:_ =
@@ -105,13 +93,9 @@ module Backends = struct
   let mapper : what =
     object
       method name = "map"
-
       method higher_apply = eapply
-
       method typ ~loc ty = ptyp_arrow ~loc Nolabel ty ty
-
       method higher_typ ~loc ty = ptyp_arrow ~loc Nolabel ty ty
-
       method any ~loc = [%expr fun x -> x]
 
       method combine ~loc combinators ~reconstruct =

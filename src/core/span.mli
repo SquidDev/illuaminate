@@ -15,7 +15,6 @@ module Filename : sig
   val pp : Format.formatter -> t -> unit
 
   include Hashtbl.HashedType with type t := t
-
   include Set.OrderedType with type t := t
 
   (** Construct a new filename from a unique id, with an optional on-disk file and display name. *)
@@ -76,7 +75,6 @@ val finish_pos : (t, int * int) Lens.lens'
 val finish_offset : (t, int) Lens.lens'
 
 val show : t -> string
-
 val pp : Format.formatter -> t -> unit
 
 (** Compare two spans given their filename and position in the file. *)

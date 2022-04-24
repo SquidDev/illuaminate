@@ -17,7 +17,6 @@ let spec =
      { name; age })
 
 let cat = Category.create ~name:"companions" ~comment:"Your companions in life." ()
-
 let spec_key = Category.add spec cat
 
 let process spec proj ~name contents =

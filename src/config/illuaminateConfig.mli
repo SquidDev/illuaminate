@@ -21,19 +21,12 @@ module Term : sig
     type 'a t
 
     val bool : bool t
-
     val string : string t
-
     val float : float t
-
     val int : int t
-
     val list : 'a t -> 'a list t
-
     val enum : ty:string -> (string * 'a) list -> 'a t
-
     val pair : 'a t -> 'b t -> ('a * 'b) t
-
     val atom : ty:string -> (string -> ('a, string) result) -> ('a -> string) -> 'a t
   end
 
@@ -55,7 +48,6 @@ module Term : sig
   val default : 'a t -> 'a
 
   val ( let+ ) : 'a t -> ('a -> 'b) -> 'b t
-
   val ( and+ ) : 'a t -> 'b t -> ('a * 'b) t
 
   (** Write the default value to a formatter. *)

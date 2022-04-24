@@ -23,7 +23,5 @@ and of_expr_wk store xs = function
   | _ -> None
 
 let of_var store = of_var_wk store []
-
 let of_name store = of_name_wk store []
-
 let of_expr store = of_expr_wk store []

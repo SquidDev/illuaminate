@@ -27,7 +27,8 @@ let show_list ?(tag = "h3") ?(expandable = false) ?(expand = true) title = funct
   | [] -> Html.Default.nil
   | xs ->
       let open Html.Default in
-      [ create_node ~tag ~children:[ str title ]
+      [ create_node ~tag
+          ~children:[ str title ]
           ~attributes:
             [ ("class", if expand then None else Some "collapsed");
               ("tabindex", if expandable then Some "0" else None)

@@ -41,14 +41,11 @@ module type KeyContainer = sig
 end
 
 module StrongContainer (M : Hashtbl.HashedType) : KeyContainer with type t = M.t
-
 module WeakContainer (M : Hashtbl.HashedType) : KeyContainer with type t = M.t
 
 module type S = sig
   type key
-
   type 'a container
-
   type 'a t
 
   (** Construct a new hash table. *)

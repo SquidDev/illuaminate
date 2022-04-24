@@ -69,7 +69,6 @@ end
 
 module Builder : sig
   type store := t
-
   type t
 
   (** An empty builder. *)

@@ -6,7 +6,6 @@ module Key = struct
   type t = Syntax.var
 
   let equal = ( == )
-
   let hash = Hashtbl.hash
 end
 
@@ -52,8 +51,7 @@ let key =
     |> Seq.filter_map (function
          | ( name,
              ({ descriptor = { page_contents = Doc_syntax.Module { mod_contents; _ }; _ }; _ } as x)
-           ) ->
-             Some (name, { x with descriptor = mod_contents })
+           ) -> Some (name, { x with descriptor = mod_contents })
          | _ -> None)
     |> StringMap.of_seq
   in

@@ -7,9 +7,7 @@ module Separator : sig
     | Semicolon
 
   val token : t -> IlluaminateCore.Token.t
-
   val show : t -> string
-
   val options : t IlluaminateConfig.Category.key
 end
 

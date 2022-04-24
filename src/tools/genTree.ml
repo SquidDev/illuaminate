@@ -162,8 +162,7 @@ let () =
              (function
                | { ptype_name = { txt = "expr"; _ }; _ } -> true
                | _ -> false)
-             defs ->
-        defs
+             defs -> defs
     | _ :: xs -> find_ty_def xs
   in
   let ty_defs = find_ty_def Syntax.tree in

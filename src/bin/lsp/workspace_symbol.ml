@@ -54,7 +54,6 @@ let add_top ~name ?container ~kind d =
        ())
 
 let add ~container = add_top ~container
-
 let dot = Printf.sprintf "%s.%s"
 
 let rec dump_term ~name ~container ({ descriptor; _ } as self) trie =

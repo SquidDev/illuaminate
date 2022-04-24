@@ -16,7 +16,6 @@ module CommentCollection = Hashtbl.Make (struct
   type t = C.comment
 
   let equal = ( == )
-
   let hash = Hashtbl.hash
 end)
 
@@ -87,16 +86,14 @@ module Infer = struct
       | ({ C.source; _ } as c) :: _
         when Span.start_line source = start_line
              || (Span.finish_line source = start_line - 1 && Span.start_col.get source = start_col)
-        ->
-          Some c
+        -> Some c
       | _ -> None
     and after =
       match after with
       | ({ C.source; _ } as c) :: _
         when Span.finish_line source = finish_line
              || (Span.start_line source = finish_line + 1 && Span.start_col.get source = start_col)
-        ->
-          Some c
+        -> Some c
       | _ -> None
     in
     document state ~before ~after value
@@ -332,9 +329,7 @@ module Infer = struct
         let c =
           object
             inherit Syntax.iter
-
             method! block x = infer_stmts state x |> ignore
-
             method! expr x = infer_expr state x |> ignore
           end
         in
@@ -465,8 +460,7 @@ let unresolved_module_file =
                | Some
                    { description = Omd.Heading (_, 1, Text (_, title)) :: description;
                      description_pos
-                   } ->
-                   (Some title, Some { description; description_pos })
+                   } -> (Some title, Some { description; description_pos })
                | x -> (None, x)
              in
              (* TODO: Warn if the above is a non-module/unknown. *)

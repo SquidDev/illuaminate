@@ -14,7 +14,6 @@ let node : L.node Alcotest.testable =
     type t = L.node
 
     let pp = L.pp_node
-
     let equal = ( = )
   end)
 
@@ -60,8 +59,16 @@ let run path =
 
       method! expr x =
         (match x with
-        | Parens _ | Dots _ | Nil _ | True _ | False _ | Int _ | Number _ | MalformedNumber _
-        | Table _ | String _ ->
+        | Parens _
+        | Dots _
+        | Nil _
+        | True _
+        | False _
+        | Int _
+        | Number _
+        | MalformedNumber _
+        | Table _
+        | String _ ->
             locate_s (x ^. First.expr) |> Alcotest.check node "Located from opening expr" (Expr x);
             locate_f (x ^. Last.expr) |> Alcotest.check node "Located from closing expr" (Expr x)
         | _ -> ());

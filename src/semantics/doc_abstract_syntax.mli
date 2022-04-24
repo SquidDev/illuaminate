@@ -26,7 +26,6 @@ type source =
 
 module Omd' : sig
   val iter : ('a -> unit) -> 'a Omd.doc -> unit
-
   val iter_code_blocks : (Omd.attributes -> string -> string -> unit) -> 'a Omd.doc -> unit
 end
 
@@ -114,22 +113,16 @@ module type S = sig
   class abstract_iter :
     object
       method reference : reference -> unit
-
       method description : description -> unit
 
       (** Visit a type. Note, by default this does not visit any references within this type. *)
       method type_ : Type.t -> unit
 
       method see : see -> unit
-
       method deprecation : deprecation -> unit
-
       method example : example -> unit
-
       method arg : arg -> unit
-
       method return : return -> unit
-
       method change : change -> unit
     end
 end
@@ -149,18 +142,11 @@ module Lift (L : S) (R : S) : sig
     }
 
   val description : t -> L.description -> R.description
-
   val see : t -> L.see -> R.see
-
   val deprecation : t -> L.deprecation -> R.deprecation
-
   val example : t -> L.example -> R.example
-
   val arg : t -> L.arg -> R.arg
-
   val return : t -> L.return -> R.return
-
   val change : t -> L.change -> R.change
-
   val ty : t -> L.Type.t -> R.Type.t
 end

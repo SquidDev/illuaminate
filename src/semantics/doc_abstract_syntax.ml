@@ -21,7 +21,6 @@ type change_kind =
 
 module Omd' = struct
   let iter = Omd_transform.Iter.doc
-
   let iter_code_blocks f = List.iter (Omd_transform.Iter.code_blocks f)
 end
 
@@ -93,21 +92,13 @@ module type S = sig
   class abstract_iter :
     object
       method reference : reference -> unit
-
       method description : description -> unit
-
       method type_ : Type.t -> unit
-
       method see : see -> unit
-
       method deprecation : deprecation -> unit
-
       method example : example -> unit
-
       method arg : arg -> unit
-
       method return : return -> unit
-
       method change : change -> unit
     end
 end
@@ -184,9 +175,7 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
   class abstract_iter =
     object (self)
       method reference (_ : reference) = ()
-
       method description (_ : description) = ()
-
       method type_ (_ : Type.t) = ()
 
       method see { see_reference; see_label = _; see_span = _; see_description } =

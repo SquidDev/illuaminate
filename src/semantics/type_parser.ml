@@ -54,5 +54,4 @@ let parse_from f input =
   with Type_lexer.Error (e, _, _) -> Result.Error (show_error e)
 
 let parse = parse_from Incremental.main
-
 let parse_vararg = parse_from Incremental.main_vararg

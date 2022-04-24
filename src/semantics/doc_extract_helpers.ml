@@ -7,9 +7,7 @@ end
 
 module Tag = struct
   let type_mismatch = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:type-mismatch"
-
   let kind_mismatch = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:kind-mismatch"
-
   let all = [ kind_mismatch; type_mismatch ]
 end
 
@@ -109,7 +107,7 @@ module Merge = struct
                        let member_value, member_is_method =
                          match value.descriptor with
                          | Function { has_self = true; _ } -> (value, true)
-                         | Function ({ args = [ ({ arg_name = "self"; _ } :: args) ]; _ } as f) ->
+                         | Function ({ args = [ { arg_name = "self"; _ } :: args ]; _ } as f) ->
                              let v = Function { f with args = [ args ]; has_self = true } in
                              ({ value with descriptor = v }, true)
                          | _ -> (value, false)

@@ -43,8 +43,7 @@ module Markdown = struct
   let rec fix_lang : _ Omd.block -> _ Omd.block = function
     | Code_block (attr, "", code) -> Code_block (attr, "lua", code)
     | (Paragraph _ | Heading _ | Thematic_break _ | Definition_list _ | Html_block _ | Code_block _)
-      as block ->
-        block
+      as block -> block
     | List (attr, ty, sp, bl) -> List (attr, ty, sp, List.map (List.map fix_lang) bl)
     | Blockquote (attr, xs) -> Blockquote (attr, List.map fix_lang xs)
     | Admonition (attr, kind, title, xs) -> Admonition (attr, kind, title, List.map fix_lang xs)
@@ -57,18 +56,14 @@ let parse_description ?(default_lua = false) x =
 
 module Tag = struct
   let malformed_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:malformed-tag"
-
   let malformed_type = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:malformed-type"
-
   let unknown_flag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:unknown-flag"
-
   let unknown_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:unknown-tag"
 
   let duplicate_definitions =
     Error.Tag.make ~attr:[ Default ] ~level:Error "doc:duplicate-definitions"
 
   let bad_index = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:bad-index"
-
   let wrong_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:wrong-tag"
 
   let all =
@@ -475,11 +470,9 @@ module Build = struct
             (fun (kind, ns) flag ->
               match flag with
               | Named ({ value = "kind"; _ }, { contents = "library"; _ })
-              | Marker { contents = "library"; _ } ->
-                  (Some MKLibrary, Some Namespace.library)
+              | Marker { contents = "library"; _ } -> (Some MKLibrary, Some Namespace.library)
               | Named ({ value = "kind"; _ }, { contents = "module"; _ })
-              | Marker { contents = "module"; _ } ->
-                  (Some MKModule, Some Namespace.module_)
+              | Marker { contents = "module"; _ } -> (Some MKModule, Some Namespace.module_)
               | Named ({ value = "kind"; _ }, { contents; _ }) ->
                   (Some MKNone, Some (Namespace contents))
               | f -> unknown b "@module" f; (kind, ns))
@@ -699,7 +692,6 @@ module Term = struct
   type t = Node.trivial Span.spanned list * Node.trivial Span.spanned list
 
   let hash (x, y) = (Hashtbl.hash x * 31) + Hashtbl.hash y
-
   let equal (al, at) (bl, bt) = al == bl && at == bt
 end
 

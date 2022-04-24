@@ -3,7 +3,6 @@ open Js_of_ocaml
 class type result =
   object
     method out : Js.js_string Js.t Js.readonly_prop
-
     method code : int Js.readonly_prop
   end
 

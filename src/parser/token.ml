@@ -146,8 +146,7 @@ let get_span =
   | NE x
   | OR x
   | POW x
-  | SUB x ->
-      get_span x
+  | SUB x -> get_span x
   | LEN x | NOT x -> get_span x
   | BREAK x
   | CBRACE x
@@ -179,8 +178,7 @@ let get_span =
   | THEN x
   | TRUE x
   | UNTIL x
-  | WHILE x ->
-      get_span x
+  | WHILE x -> get_span x
   | IDENT x | MNUMBER x -> get_span x
   | STRING { lit_node; _ } -> get_span lit_node
   | NUMBER { lit_node; _ } -> get_span lit_node

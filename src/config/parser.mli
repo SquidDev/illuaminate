@@ -11,7 +11,6 @@ open IlluaminateCore
     using combinators to build nested data structures. *)
 module Kind : sig
   type term
-
   type fields
 end
 

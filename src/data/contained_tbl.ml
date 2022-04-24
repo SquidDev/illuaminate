@@ -1,22 +1,14 @@
 module type KeyContainer = sig
   type t
-
   type 'a container
 
   val hash : t -> int
-
   val equal : 'a container -> t -> Ephemeron.GenHashTable.equal
-
   val create : t -> 'a -> 'a container
-
   val get_key : 'a container -> t option
-
   val get_data : 'a container -> 'a option
-
   val set_data : 'a container -> 'a -> unit
-
   val check_key : 'a container -> bool
-
   val unset : 'a container -> unit
 end
 
@@ -34,15 +26,10 @@ module StrongContainer (M : Hashtbl.HashedType) : KeyContainer with type t = M.t
     if M.equal key key2 then ETrue else EFalse
 
   let create key value = { key; value }
-
   let get_key { key; _ } = Some key
-
   let get_data { value; _ } = Some value
-
   let set_data c v = c.value <- v
-
   let check_key _ = true
-
   let unset _ = ()
 end
 
@@ -50,7 +37,6 @@ module WeakContainer (M : Hashtbl.HashedType) : KeyContainer with type t = M.t =
   open Ephemeron.K1
 
   type 'a container = (M.t, 'a) t
-
   type t = M.t
 
   let create k d =
@@ -65,27 +51,19 @@ module WeakContainer (M : Hashtbl.HashedType) : KeyContainer with type t = M.t =
     | Some k' -> if M.equal k k' then ETrue else EFalse
 
   let get_data = get_data
-
   let get_key = get_key
-
   let set_data c d = unset_data c; set_data c d
-
   let check_key = check_key
-
   let unset c = unset_data c; unset_key c
 end
 
 module type S = sig
   type key
-
   type 'a container
-
   type 'a t
 
   val create : int -> 'a t
-
   val find : 'a t -> key -> 'a container option
-
   val insert : 'a t -> key -> 'a -> 'a container
 
   val pp :
@@ -99,7 +77,6 @@ end
 
 module Make (H : KeyContainer) = struct
   type key = H.t
-
   type 'a container = 'a H.container
 
   type 'a bucketlist =
@@ -211,7 +188,6 @@ let strong (type k) ?(hash = Hashtbl.hash) ~eq () =
     type t = k
 
     let equal = eq
-
     let hash = hash
   end) : KeyContainer
     with type t = k)
@@ -221,7 +197,6 @@ let weak (type k) ?(hash = Hashtbl.hash) ~eq () =
     type t = k
 
     let equal = eq
-
     let hash = hash
   end) : KeyContainer
     with type t = k)

@@ -17,7 +17,6 @@ module type Emitter = sig
   type t
 
   val tagged : Format.stag -> (t -> 'a -> unit) -> t -> 'a -> unit
-
   val node : kind:token_kind -> (Format.formatter -> 'a -> unit) -> t -> 'a Node.t -> unit
 end
 
@@ -25,29 +24,17 @@ module type S = sig
   include Emitter
 
   val token : kind:token_kind -> t -> token -> unit
-
   val var : t -> var -> unit
-
   val name : t -> name -> unit
-
   val call : t -> call -> unit
-
   val call_args : t -> call_args -> unit
-
   val args : t -> args -> unit
-
   val table_item : t -> table_item -> unit
-
   val function_name : t -> function_name -> unit
-
   val expr : t -> expr -> unit
-
   val stmt : t -> stmt -> unit
-
   val block : t -> block -> unit
-
   val program : t -> program -> unit
-
   val repl_exprs : t -> repl_exprs -> unit
 end
 

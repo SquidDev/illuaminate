@@ -26,7 +26,6 @@ let on_program ~default store ~uri f =
       Fiber.return (Ok default)
 
 let on_program' ~default store ~uri f = on_program ~default store ~uri:(Store.Filename.box uri) f
-
 let on_program_r' ~default store ~uri f = on_program' ~default store ~uri (Fiber.return % f)
 
 let dots_range = function

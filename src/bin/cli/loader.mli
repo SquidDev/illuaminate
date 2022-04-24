@@ -13,7 +13,6 @@ type file =
 type t
 
 val create : ?root:Fpath.t -> Error.t -> t
-
 val get_config : loader:t -> Fpath.t -> Config.t option
 
 (** Attempt to load files from a directory, skipping if there is a configuration error. *)

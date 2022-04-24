@@ -56,7 +56,8 @@ let to_code_action ~program (i, (Driver.Note.Note { message; fix; _ } as note)) 
   | One _ | Block _ ->
       let title = Printf.sprintf "Fix '%s'" message in
       let action =
-        CodeAction.create ~title ~kind:QuickFix ~diagnostics:[ note_to_diagnostic note ]
+        CodeAction.create ~title ~kind:QuickFix
+          ~diagnostics:[ note_to_diagnostic note ]
           ~isPreferred:true
           ~command:
             (Command.create ~title ~command:"illuaminate/fix"

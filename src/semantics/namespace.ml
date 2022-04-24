@@ -13,7 +13,6 @@ let library = Namespace "library"
 let builtins = [ module_; library ]
 
 let pp out (Namespace x) = Format.pp_print_string out x
-
 let v x = Namespace x
 
 (** A reference to a specific module. *)

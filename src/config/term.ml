@@ -12,11 +12,8 @@ module Converter = struct
     | List x -> fun xs -> List (List.map (get_printer x) xs)
 
   let bool : bool t = Atom (Parser.bool, fun x -> Atom (string_of_bool x))
-
   let string : string t = Atom (Parser.string, fun x -> Atom x)
-
   let float : float t = Atom (Parser.float, fun x -> Atom (string_of_float x))
-
   let int : int t = Atom (Parser.int, fun x -> Atom (string_of_int x))
 
   let pair left right =
@@ -31,7 +28,6 @@ module Converter = struct
     Atom (parse, print)
 
   let list x : 'a list t = List x
-
   let atom ~ty parse print : 'a t = Atom (Parser.atom_res ~ty parse, fun x -> Atom (print x))
 
   let enum ~ty opts =
@@ -79,11 +75,8 @@ let field ~name ~comment ~default converter =
   Node { name; comment; body = Field { default; converter } }
 
 let unit = Const ()
-
 let const x = Const x
-
 let ( let+ ) node map = Map (map, node)
-
 let ( and+ ) a b = Pair (a, b)
 
 let rec default : type a. a t -> a = function

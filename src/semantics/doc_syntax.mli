@@ -84,17 +84,11 @@ val is_documented : 'a documented -> bool
 class iter :
   object
     method abstract_syntax : span:Span.t -> abstract_iter
-
     method documented : 'a. (span:Span.t -> 'a -> unit) -> 'a documented -> unit
-
     method value : span:Span.t -> value -> unit
-
     method member : member -> unit
-
     method type_info : span:Span.t -> type_info -> unit
-
     method page_contents : span:Span.t -> page_contents -> unit
-
     method page : span:Span.t -> page -> unit
   end
 

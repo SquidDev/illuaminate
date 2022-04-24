@@ -3,7 +3,6 @@ open IlluaminateCore
 open IlluaminateLint
 
 let input = Dom_html.(getElementById_coerce "code-input" CoerceTo.textarea) |> Option.get
-
 let output = Dom_html.(getElementById_coerce "error-messages" CoerceTo.element) |> Option.get
 
 (** Default config values for linters. *)

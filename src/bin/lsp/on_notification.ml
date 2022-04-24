@@ -35,9 +35,12 @@ let worker client store : Client_notification.t -> unit Fiber.t = function
       Store.update_workspace store ~add:added ~remove:removed ();
       Fiber.return ()
   (* Whole bunch of notifications we can ignore. *)
-  | ChangeConfiguration _ | WillSaveTextDocument _ | DidSaveTextDocument _ | Initialized | Exit
-  | CancelRequest _ ->
-      Fiber.return ()
+  | ChangeConfiguration _
+  | WillSaveTextDocument _
+  | DidSaveTextDocument _
+  | Initialized
+  | Exit
+  | CancelRequest _ -> Fiber.return ()
   | Unknown_notification { method_ = "$/illuaminate/dump"; _ } ->
       Format.asprintf "%a" (D.pp_store ~all:true) (Store.data store) |> Printf.printf "%s\n";
       Fiber.return ()

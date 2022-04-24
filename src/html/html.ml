@@ -2,9 +2,7 @@ module Emitters = struct
   open Format
 
   let skip _ () = ()
-
   let attr out (k, v) = CCString.replace ~sub:"\"" ~by:"&quot;" v |> fprintf out " %s=\"%s\"" k
-
   let attrs = pp_print_list ~pp_sep:skip attr
 end
 
@@ -36,11 +34,8 @@ struct
     Element { tag; attributes; events; children }
 
   let str x = Text x
-
   let raw x = Raw x
-
   let nil = Nil
-
   let many xs = Many xs
 
   let html_escape s =
@@ -86,8 +81,7 @@ struct
       | Text x -> non_empty prev out @@ fun () -> pp_print_string out (html_escape x)
       | Element
           { tag = ("br" | "img" | "link" | "meta") as tag; attributes; children = []; events = [] }
-        ->
-          non_empty prev out @@ fun () -> fprintf out "<%s%a />" tag attrs attributes
+        -> non_empty prev out @@ fun () -> fprintf out "<%s%a />" tag attrs attributes
       | Element { tag; attributes; children; events = [] } ->
           non_empty prev out @@ fun () ->
           open_box out;
@@ -100,7 +94,6 @@ struct
     fun out node -> go out false node |> ignore
 
   let emit = do_emit ~indent:false
-
   let emit_pretty = do_emit ~indent:true
 
   let emit_doc out node =

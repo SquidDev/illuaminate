@@ -55,9 +55,7 @@ type allocation =
   }
 
 let working = ref false
-
 let tracking = ref true
-
 let allocations = LList.make ()
 
 let allocate (allocation : Gc.Memprof.allocation) =
@@ -69,9 +67,7 @@ let allocate (allocation : Gc.Memprof.allocation) =
   else None
 
 let deallocate x = LList.remove allocations x
-
 let pause () = tracking := false
-
 let resume () = tracking := true
 
 let run f =

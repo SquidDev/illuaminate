@@ -15,13 +15,10 @@ module Kind = struct
 end
 
 type ('a, 'kind) parser = Span.t -> 'kind -> ('a * 'kind, Span.t * string) result
-
 type 'a t = ('a, Kind.term) parser
-
 type 'a fields = ('a, Kind.fields) parser
 
 let const x _ state = Ok (x, state)
-
 let unit : (unit, 'k) parser = fun p -> const () p
 
 let ( let+ ) (node : ('a, 'k) parser) (f : 'a -> 'b) : ('b, 'k) parser =
@@ -46,11 +43,8 @@ let atom ~ty parse =
       | Some x -> Ok x)
 
 let bool : bool t = atom ~ty:"true or false" bool_of_string_opt
-
 let int : int t = atom ~ty:"int" int_of_string_opt
-
 let float : float t = atom ~ty:"number" float_of_string_opt
-
 let string : string t = atom ~ty:"string" Option.some
 
 let check_empty x = function

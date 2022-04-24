@@ -1,9 +1,7 @@
 module IntMap = Map.Make (Int)
 
 type 'a containers = ..
-
 type values = ..
-
 type providers = ..
 
 let src = Logs.Src.create ~doc:"A basic system for incremental computation" __MODULE__
@@ -31,27 +29,20 @@ type ('s, 'k, 'v) provider = 's -> 'k -> 'v KeyInfo.reason -> 'v KeyInfo.result
 
 module type Key = sig
   type key
-
   type value
-
   type store
 
   val id : int
-
   val name : string
 
   module Container : Contained_tbl.KeyContainer with type t = key
 
   val pp : Format.formatter -> key -> unit
-
   val eq : value -> value -> bool
-
   val factory : (store, key, value) provider option
 
   type 'a containers += Container of 'a Container.container
-
   type values += Value of value
-
   type providers += Provider of (store, key, value) provider
 end
 
@@ -64,7 +55,6 @@ module BoxedKey = struct
     }
 
   let hash (Mk ((module Key), k)) = Key.Container.hash k
-
   let pp out (Mk ((module Key), k)) = Format.fprintf out "%s(%a)" Key.name Key.pp k
 
   let pp_container out { key = (module Key); container } =
@@ -163,9 +153,7 @@ module Key = struct
     ('k, 'v) t
 
   let next_id = ref 0
-
   let default_pp out _ = Format.pp_print_string out "?"
-
   let fail_eq (_ : 'a) (_ : 'a) : bool = failwith "Cannot compare non-deferred keys"
 
   let factory (type k v) ~eq : (k, v, (context, k, v) provider option) factory =
@@ -180,27 +168,20 @@ module Key = struct
     let pp = Option.value ~default:default_pp pp in
     (module struct
       type key = k
-
       type value = v
-
       type nonrec store = context
 
       let id = id
-
       let name = name
 
       module Container = (val container)
 
       let eq = eq
-
       let pp = pp
-
       let factory = factory
 
       type 'a containers += Container of 'a Container.container
-
       type values += Value of value
-
       type providers += Provider of (store, key, value) provider
     end)
 
@@ -241,11 +222,8 @@ module Builder = struct
     IntMap.add Key.id (Key.Provider provider) providers
 
   let get_eq (type k v) ((module K) : (k, v) Key.t) = K.eq
-
   let key key f providers = builtin key (Key.mk_key ~eq:(get_eq key) f) providers
-
   let oracle key f providers = builtin key (Key.mk_oracle ~eq:(get_eq key) f) providers
-
   let build providers = { version = 0; providers; results = KeyTbl.create 32 }
 end
 

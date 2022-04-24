@@ -76,7 +76,6 @@ let parse start (file : Span.filename) (lexbuf : Lexing.lexbuf) =
     Error { Span.span = Span.of_pos2 lines start fin; value = err }
 
 let program = parse Grammar.Incremental.program
-
 let repl_exprs = parse Grammar.Incremental.repl_exprs
 
 module Lexer = struct

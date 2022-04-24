@@ -25,5 +25,4 @@ let apply fn template =
   go template
 
 let pp out = List.iter (Lex_template.pp out)
-
 let converter allowed = (parse allowed, Format.asprintf "%a" pp)

@@ -88,8 +88,7 @@ let expr { Opt.clarifying } { path; _ } r parens =
   let is_fn_or_tbl () =
     match path with
     | Expr (ECall (Call { fn = x; _ } | Invoke { obj = x; _ })) :: _
-    | Stmt (SCall (Call { fn = x; _ } | Invoke { obj = x; _ })) :: _ ->
-        x == parens
+    | Stmt (SCall (Call { fn = x; _ } | Invoke { obj = x; _ })) :: _ -> x == parens
     | Name (NDot { tbl; _ } | NLookup { tbl; _ }) :: _ -> tbl == parens
     | _ -> false
   in
@@ -105,8 +104,7 @@ let expr { Opt.clarifying } { path; _ } r parens =
         (SCall
           (Call { args = CallArgs { args; _ }; _ } | Invoke { args = CallArgs { args; _ }; _ }))
       :: _
-    | Stmt (Return { return_vals = args; _ }) :: _ ->
-        SepList0.last args |> contains parens
+    | Stmt (Return { return_vals = args; _ }) :: _ -> SepList0.last args |> contains parens
     (* If we're the last term in a table. *)
     | Expr (Table { table_body; _ }) :: _ ->
         let rec go = function
@@ -149,9 +147,15 @@ let expr { Opt.clarifying } { path; _ } r parens =
         | Parens { paren_expr = e; _ } -> go unwrap_most e
         (* If we've got raw literals, then they only need to be wrapped when calling/indexing
            them. *)
-        | Nil _ | True _ | False _ | Number _ | String _ | Int _ | MalformedNumber _ | Fun _
-        | Table _ ->
-            if is_fn_or_tbl () then msg else unwrap_all path
+        | Nil _
+        | True _
+        | False _
+        | Number _
+        | String _
+        | Int _
+        | MalformedNumber _
+        | Fun _
+        | Table _ -> if is_fn_or_tbl () then msg else unwrap_all path
         (* If we're a term which yields a variable number of arguments, we should protect when the
            last argument to a call, or last value in a binding. *)
         | ECall _ -> if is_variadic () then msg else unwrap_all path

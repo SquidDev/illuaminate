@@ -7,9 +7,7 @@ module Fixer = struct
     | Block : (Syntax.stmt -> (Syntax.stmt list, string) result) -> Syntax.stmt t
 
   let none = Nothing
-
   let fix f = One f
-
   let block f = Block f
 end
 
@@ -49,7 +47,6 @@ type context =
   }
 
 type ('op, 'term, 'context) full_visitor = 'op -> 'context -> 'term reporter -> 'term -> unit
-
 type ('op, 'term) visitor = ('op, 'term, context) full_visitor
 
 let default_visitor : ('op, 'term, 'context) full_visitor = fun _ _ _ _ -> ()

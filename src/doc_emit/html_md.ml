@@ -31,7 +31,8 @@ let ref ~options link text =
     | Some url ->
         create_node ~tag:"a"
           ~attributes:[ ("href", Some url); ("class", Some classes) ]
-          ~children:[ str label ] ()
+          ~children:[ str label ]
+          ()
   in
   Format.asprintf "%a" emit node
 

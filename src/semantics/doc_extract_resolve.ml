@@ -8,7 +8,6 @@ module DocTbl = Hashtbl.Make (struct
   type t = Doc_syntax.value documented
 
   let hash = Hashtbl.hash
-
   let equal = ( == )
 end)
 
@@ -155,7 +154,6 @@ module Resolvers = struct
 end
 
 type cache = Doc_syntax.value Doc_syntax.documented DocTbl.t
-
 type context = Lift.t
 
 let context pages current_page =

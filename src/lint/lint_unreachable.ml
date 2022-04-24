@@ -9,9 +9,7 @@ let tag_unreach =
   Error.Tag.make ~attr:[ Default ] ~level:Warning "control:unreachable"
 
 let tag_loop = Error.Tag.make ~attr:[ Default ] ~level:Warning "control:loop-once"
-
 let msg_unreach ~r span = r.r ~tag:tag_unreach ~span "Unreachable code"
-
 let msg_loop ~r span = r.r ~tag:tag_loop ~span "Loop is executed at most once."
 
 (** Find the first non-trivial statement in a block. *)

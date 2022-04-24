@@ -5,9 +5,7 @@ module Error : sig
   type t
 
   val report : Error.t -> Span.t -> t -> unit
-
   val pp : Format.formatter -> t -> unit
-
   val tag : Error.Tag.t
 end
 
