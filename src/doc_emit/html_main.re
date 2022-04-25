@@ -37,10 +37,14 @@ let page_list_item =
     ) =>
   switch (current) {
   | Some(current) when current === m =>
-    <strong> {str(Namespace.Ref.display_name(page_ref))} </strong>
+    <strong class_="sidebar-link selected">
+      {str(Namespace.Ref.display_name(page_ref))}
+    </strong>
   | _ =>
     let href = Helpers.reference_link(page_ref, Module) |> resolve;
-    <a href> {str(Namespace.Ref.display_name(page_ref))} </a>;
+    <a href class_="sidebar-link">
+      {str(Namespace.Ref.display_name(page_ref))}
+    </a>;
   };
 
 let module_toc = (mod_types, mod_contents) => {
@@ -51,7 +55,9 @@ let module_toc = (mod_types, mod_contents) => {
       | Type(s) => s
       | _ => assert(false)
       };
-    <a href={"#" ++ Option.get(section_of_name(x))}> {str(name)} </a>;
+    <a href={"#" ++ Option.get(section_of_name(x))} class_="sidebar-link">
+      {str(name)}
+    </a>;
   };
   [
     switch (mod_contents) {

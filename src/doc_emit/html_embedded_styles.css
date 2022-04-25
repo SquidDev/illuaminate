@@ -162,6 +162,8 @@ nav {
   left: 0;
 
   overflow-y: auto;
+
+  font-size: 0.9em;
 }
 
 nav, nav .nav-links {
@@ -180,7 +182,7 @@ nav h1 img {
   margin: 0 auto;
   padding: 10px;
 }
-nav h1, nav ul { padding: 0em 10px; }
+nav h1 { padding: 0em 10px; }
 
 nav .nav-reveal {
   display: none;
@@ -204,16 +206,30 @@ nav h2 {
   font-size: 1.1em;
   padding: 5px 10px;
   margin-top: 0.5em;
+
+  cursor: pointer;
 }
 
 nav h2:hover, nav h2.collapsed:hover { background-color: var(--sidebar-header-hover); }
 nav h2.collapsed { background-color: var(--sidebar-header-collapsed); }
 nav h2.collapsed + ul { display: none; }
 
+nav h2::after { content: "▲"; float: right; }
+nav h2.collapsed::after { content: "▼"; }
+
 nav ul {
   list-style-type: none;
   margin: 0;
+  padding: 0;
 }
+
+nav ul .sidebar-link {
+  display: block;
+  padding: 0 10px;
+}
+
+nav ul .sidebar-link:hover { background-color: var(--sidebar-header-hover); }
+nav ul .sidebar-link.selected { background-color: var(--sidebar-header); }
 
 #main {
   margin-left: var(--nav-width);
