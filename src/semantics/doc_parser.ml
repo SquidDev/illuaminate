@@ -735,13 +735,13 @@ module Data = struct
     match t.all_comments with
     | Ok x -> x
     | Error prog ->
-        (object
-           inherit Syntax.iter
+        object
+          inherit Syntax.iter
 
-           method! node f x =
-             comment x t |> ignore;
-             f (Node.contents.get x)
-        end)
+          method! node f x =
+            comment x t |> ignore;
+            f (Node.contents.get x)
+        end
           #program
           prog;
         let comments =

@@ -362,63 +362,62 @@ let fix_program prog (fixes : Notes.t) =
   if Notes.to_seq fixes |> no_fixers then prog
   else
     let open Syntax in
-    (object
-       inherit Syntax.map as super
-       method! token (tok : token) = fix_all fixes Token tok
-       method! stmt x = fix_all fixes Stmt x |> super#stmt
+    object
+      inherit Syntax.map as super
+      method! token (tok : token) = fix_all fixes Token tok
+      method! stmt x = fix_all fixes Stmt x |> super#stmt
 
-       method! block =
-         let rec go rest node = function
-           | [] -> super#stmt node :: rest
-           | x :: xs -> (
-             match extract Stmt x with
-             | { fix = Nothing; _ } -> go rest node xs
-             | { fix = Block f; _ } -> (
-                 let node' = f node in
-                 match node' with
-                 | Error _ -> go rest node xs
-                 | Ok stmts ->
-                     (* There's a risk here that this will result in an infinite loop, if the fixer
-                        returns a list of statements which contains the original one. So don't do
-                        that, OK? *)
-                     go_block rest stmts)
-             | { fix = One f; _ } ->
-                 let node' = Result.value ~default:node (f node) in
-                 if node' != node then super#stmt node' :: rest else go rest node xs)
-         and go_stmt original xs =
-           Notes.Tbl.find_all fixes (Node (Stmt, original)) |> go xs original
-         and go_block rest xs = List.fold_right go_stmt xs rest in
-         go_block []
+      method! block =
+        let rec go rest node = function
+          | [] -> super#stmt node :: rest
+          | x :: xs -> (
+            match extract Stmt x with
+            | { fix = Nothing; _ } -> go rest node xs
+            | { fix = Block f; _ } -> (
+                let node' = f node in
+                match node' with
+                | Error _ -> go rest node xs
+                | Ok stmts ->
+                    (* There's a risk here that this will result in an infinite loop, if the fixer
+                       returns a list of statements which contains the original one. So don't do
+                       that, OK? *)
+                    go_block rest stmts)
+            | { fix = One f; _ } ->
+                let node' = Result.value ~default:node (f node) in
+                if node' != node then super#stmt node' :: rest else go rest node xs)
+        and go_stmt original xs = Notes.Tbl.find_all fixes (Node (Stmt, original)) |> go xs original
+        and go_block rest xs = List.fold_right go_stmt xs rest in
+        go_block []
 
-       method! program program = fix_all fixes Program program |> super#program
-       method! call x = fix_all fixes Call x |> super#call
-       method! expr x = fix_all fixes Expr x |> super#expr
-       method! args x = fix_all fixes Args x |> super#args
-       method! table_item x = fix_all fixes TableItem x |> super#table_item
+      method! program program = fix_all fixes Program program |> super#program
+      method! call x = fix_all fixes Call x |> super#call
+      method! expr x = fix_all fixes Expr x |> super#expr
+      method! args x = fix_all fixes Args x |> super#args
+      method! table_item x = fix_all fixes TableItem x |> super#table_item
 
-       method! call_args args =
-         let args = fix_all fixes CallArgs args in
-         let rewrap = function
-           | Table t -> CallTable t
-           | String t -> CallString t
-           | e ->
-               CallArgs
-                 { open_a = SimpleNode { contents = OParen };
-                   args = Some (Mono e);
-                   close_a = SimpleNode { contents = CParen }
-                 }
-         in
-         let args =
-           match args with
-           | CallArgs _ -> args
-           | CallTable original -> fix_all fixes Expr (Table original) |> rewrap
-           | CallString original -> fix_all fixes Expr (String original) |> rewrap
-         in
-         super#call_args args
+      method! call_args args =
+        let args = fix_all fixes CallArgs args in
+        let rewrap = function
+          | Table t -> CallTable t
+          | String t -> CallString t
+          | e ->
+              CallArgs
+                { open_a = SimpleNode { contents = OParen };
+                  args = Some (Mono e);
+                  close_a = SimpleNode { contents = CParen }
+                }
+        in
+        let args =
+          match args with
+          | CallArgs _ -> args
+          | CallTable original -> fix_all fixes Expr (Table original) |> rewrap
+          | CallString original -> fix_all fixes Expr (String original) |> rewrap
+        in
+        super#call_args args
 
-       method! name name = fix_all fixes Name name |> super#name
-       method! var var = fix_all fixes Var var |> super#var
-    end)
+      method! name name = fix_all fixes Name name |> super#name
+      method! var var = fix_all fixes Var var |> super#var
+    end
       #program
       prog
 

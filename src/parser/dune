@@ -37,8 +37,13 @@
   (:complete messages_complete.txt)
   (:main messages.txt))
  (action
-  (run menhir --compare-errors %{complete} --compare-errors %{main}
-    %{grammar})))
+  (run
+   menhir
+   --compare-errors
+   %{complete}
+   --compare-errors
+   %{main}
+   %{grammar})))
 
 (alias
  (name runtest)

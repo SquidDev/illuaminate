@@ -1,9 +1,19 @@
 (library
  (name illuaminateConfigFormat)
  (synopsis "The actual")
- (libraries containers cmdliner fpath logs illuaminate.core illuaminate.data
-   illuaminate.lint illuaminate.semantics illuaminate.config
-   illuaminate.pattern illuaminate.exec result)
+ (libraries
+  containers
+  cmdliner
+  fpath
+  logs
+  illuaminate.core
+  illuaminate.data
+  illuaminate.lint
+  illuaminate.semantics
+  illuaminate.config
+  illuaminate.pattern
+  illuaminate.exec
+  result)
  (instrumentation
   (backend bisect_ppx)))
 
