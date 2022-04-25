@@ -492,7 +492,10 @@ a.search-result {
   padding: 0.5em;
   display: block;
 }
-a.search-result, a.search-result:focus, a.search-result:visited, a.search-result:active { color: inherit; }
+a.search-result, a.search-result:focus, a.search-result:visited, a.search-result:active {
+  font-weight: inherit;
+  color: inherit;
+}
 a.search-result:hover, a.search-result:focus {
   text-decoration: initial;
   background-color: var(--sidebar-header-hover);
@@ -501,6 +504,11 @@ a.search-result:hover, a.search-result:focus {
 .search-result > h3 {
   margin: 0;
   font-weight: normal;
+}
+
+.search-result > .search-page { font-size: 0.8em; }
+.search-result > .search-summary {
+  margin: 0;
 }
 
 .search-result .search-match { font-weight: bold; }
@@ -512,7 +520,6 @@ a.search-result:hover, a.search-result:focus {
   background: var(--warning-background);
 }
 
-.search-page { font-size: 0.8em; }
 
 #search-overlay {
   position: fixed;

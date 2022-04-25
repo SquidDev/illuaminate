@@ -89,6 +89,7 @@
 
         link.appendChild(createElem("h3", [], highlight(result, "name")));
         link.appendChild(createElem("span", ["search-page"], `/${result.item.url}`));
+        link.appendChild(createElem("p", ["search-summary"], highlight(result, "summary")));
 
         const elem = document.createElement("li");
         elem.appendChild(link);
@@ -103,8 +104,21 @@
     }
   };
 
+  const closeSearch = () => {
+    document.body.classList.remove("searching");
+    document.body.removeEventListener("click", onClick);
+    searchInput.blur();
+  }
+
+  const onClick = (e) => {
+    if (e.target !== searchInput) closeSearch();
+  }
+
   searchInput.addEventListener("focus", () => {
-    document.body.classList.add("searching");
+    if (!document.body.classList.contains("searching")) {
+      document.body.classList.add("searching");
+      document.body.addEventListener("click", onClick);
+    }
 
     if (!loadingIndex) {
       loadingIndex = true;
@@ -118,8 +132,9 @@
           }
 
           index = new Fuse(entries, {
-            keys: ["name", { name: "title", score: 0.8 }, { name: "summary", score: 0.5 }],
+            minMatchCharLength: 2,
             includeMatches: true,
+            keys: ["name", { name: "title", score: 0.9 }, { name: "summary", score: 0.9 }],
           });
 
           doSearch();
@@ -134,10 +149,6 @@
     doSearch();
   });
 
-  searchInput.addEventListener("blur", () => {
-    document.body.classList.remove("searching");
-  });
-
   const removeActive = (elem) => {
     elem.classList.remove("active");
     elem.ariaSelected = false;
@@ -150,34 +161,43 @@
     });
   };
 
+  const moveNext = () => {
+    const active = searchResults.querySelector("li.active");
+    if (!active) {
+      const elem = searchResults.querySelector("li");
+      if (elem) addActive(elem);
+    } else if (active.nextSibling) {
+      removeActive(active);
+      addActive(active.nextSibling);
+    }
+  }
+
+  const movePrevious = () => {
+    const active = searchResults.querySelector("li.active");
+    if (active && active.previousSibling) {
+      removeActive(active);
+      addActive(active.previousSibling);
+    }
+  }
+
   searchInput.addEventListener("keydown", (e) => {
     switch (e.key) {
-      case "Down":
-      case "ArrowDown": {
+      case "Tab":
         e.preventDefault();
-        const active = searchResults.querySelector("li.active");
-        if (!active) {
-          const elem = searchResults.querySelector("li");
-          if (elem) addActive(elem);
-        } else if (active.nextSibling) {
-          removeActive(active);
-          addActive(active.nextSibling);
-        }
-
+        if (e.shiftKey) movePrevious(); else moveNext();
         break;
-      }
+
+      case "Down":
+      case "ArrowDown":
+        e.preventDefault();
+        moveNext();
+        break;
 
       case "Up":
-      case "ArrowUp": {
+      case "ArrowUp":
         e.preventDefault();
-
-        const active = searchResults.querySelector("li.active");
-        if (active && active.previousSibling) {
-          removeActive(active);
-          addActive(active.previousSibling);
-        }
+        movePrevious();
         break;
-      }
 
       case "Enter": {
         e.preventDefault();
@@ -189,8 +209,7 @@
 
       case "Escape": {
         e.preventDefault();
-
-        searchInput.blur();
+        closeSearch();
         break;
       }
     }
