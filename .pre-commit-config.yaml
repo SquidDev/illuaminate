@@ -16,6 +16,12 @@ repos:
     entry: dune build @fmt --root=. --auto-promote
     pass_filenames: false
 
+  - id: ocaml-build
+    name: Build and run tests
+    language: system
+    entry: dune build @opam @install @runtest
+    pass_filenames: false
+
 exclude: |
   (?x)^(
     test/data|
