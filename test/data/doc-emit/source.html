@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="main.css" type="text/css" />
   </head>
   <body>
-    <nav>
-      <button class="nav-reveal" type="button">&#9776;</button>
+    <nav id="nav">
+      <button id="nav-reveal" type="button">&#9776;</button>
       <h1><a href="./">My title</a></h1>
       <div class="nav-links">
         <h2 tabindex="0">Contents</h2>
@@ -19,6 +19,12 @@
       </div>
     </nav>
     <div id="main">
+      <div id="search-form" role="form">
+        <input id="search-box" type="text" placeholder="Search..." autocomplete="off" tabindex="0">
+          
+        </input>
+        <div id="search-results"></div>
+      </div>
       <section id="content">
         <h1>source</h1>
         <table class="definition-list">
@@ -39,6 +45,7 @@
       </section>
       <footer>Last updated on xxxx-xx-xx</footer>
     </div>
+    <div id="search-overlay"></div>
     <script src="main.js" type="text/javascript" defer=""></script>
   </body>
 </html>

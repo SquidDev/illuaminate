@@ -27,7 +27,7 @@
 
 (rule
  (target html_embedded_scripts.ml)
- (deps html_embedded_scripts.js)
+ (deps ../../vendor/fuse.min.js html_embedded_scripts.js)
  (action
   (with-stdout-to
    %{target}

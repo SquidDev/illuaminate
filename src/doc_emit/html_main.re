@@ -141,8 +141,8 @@ let template =
        }}
     </head>
     <body>
-      <nav>
-        <button class_="nav-reveal" type_="button"> {raw("&#9776;")} </button>
+      <nav id="nav">
+        <button id="nav-reveal" type_="button"> {raw("&#9776;")} </button>
         {let link = h => <h1> <a href={resolve("./")}> h </a> </h1>;
          switch (site_image, site_title) {
          | (Some(site_image), Some(site_title)) =>
@@ -158,6 +158,16 @@ let template =
         </div>
       </nav>
       <div id="main">
+        <div id="search-form" role="form">
+          <input
+            id="search-box"
+            type_="text"
+            placeholder="Search..."
+            autocomplete="off"
+            tabindex="0"
+          />
+          <div id="search-results" />
+        </div>
         <section id="content"> ...body </section>
         <footer>
           {let time = Unix.time() |> Unix.gmtime;
@@ -170,6 +180,7 @@ let template =
            |> str}
         </footer>
       </div>
+      <div id="search-overlay" />
       <script
         src={resolve(options.site_js)}
         type_="text/javascript"
