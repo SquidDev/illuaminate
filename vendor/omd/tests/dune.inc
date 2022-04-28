@@ -650,6 +650,9 @@
   spec-647.md spec-647.html
   spec-648.md spec-648.html
   spec-649.md spec-649.html
+  spec-650.md spec-650.html
+  spec-651.md spec-651.html
+  spec-652.md spec-652.html
   attributes-001.md attributes-001.html
   attributes-002.md attributes-002.html
   attributes-003.md attributes-003.html
@@ -4578,6 +4581,24 @@
  (action (diff spec-649.html spec-649.html.new)))
 (rule
  (action
+  (with-stdout-to spec-650.html.new (run ./omd.exe %{dep:spec-650.md}))))
+(rule
+ (alias spec-650)
+ (action (diff spec-650.html spec-650.html.new)))
+(rule
+ (action
+  (with-stdout-to spec-651.html.new (run ./omd.exe %{dep:spec-651.md}))))
+(rule
+ (alias spec-651)
+ (action (diff spec-651.html spec-651.html.new)))
+(rule
+ (action
+  (with-stdout-to spec-652.html.new (run ./omd.exe %{dep:spec-652.md}))))
+(rule
+ (alias spec-652)
+ (action (diff spec-652.html spec-652.html.new)))
+(rule
+ (action
   (with-stdout-to attributes-001.html.new
    (run ./omd.exe %{dep:attributes-001.md}))))
 (rule
@@ -4985,6 +5006,7 @@
   (alias spec-172)
   (alias spec-173)
   (alias spec-174)
+  (alias spec-175)
   (alias spec-176)
   (alias spec-177)
   (alias spec-178)
@@ -4993,6 +5015,8 @@
   (alias spec-181)
   (alias spec-182)
   (alias spec-183)
+  (alias spec-184)
+  (alias spec-185)
   (alias spec-186)
   (alias spec-187)
   (alias spec-188)
@@ -5013,7 +5037,6 @@
   (alias spec-203)
   (alias spec-204)
   (alias spec-205)
-  (alias spec-206)
   (alias spec-207)
   (alias spec-208)
   (alias spec-209)
@@ -5022,8 +5045,6 @@
   (alias spec-212)
   (alias spec-213)
   (alias spec-214)
-  (alias spec-215)
-  (alias spec-216)
   (alias spec-217)
   (alias spec-218)
   (alias spec-219)
@@ -5315,9 +5336,9 @@
   (alias spec-513)
   (alias spec-514)
   (alias spec-515)
+  (alias spec-516)
   (alias spec-517)
   (alias spec-518)
-  (alias spec-519)
   (alias spec-520)
   (alias spec-521)
   (alias spec-522)
@@ -5334,9 +5355,9 @@
   (alias spec-533)
   (alias spec-534)
   (alias spec-535)
+  (alias spec-536)
   (alias spec-537)
   (alias spec-538)
-  (alias spec-539)
   (alias spec-540)
   (alias spec-541)
   (alias spec-542)
@@ -5447,6 +5468,9 @@
   (alias spec-647)
   (alias spec-648)
   (alias spec-649)
+  (alias spec-650)
+  (alias spec-651)
+  (alias spec-652)
   (alias attributes-001)
   (alias attributes-002)
   (alias attributes-003)
