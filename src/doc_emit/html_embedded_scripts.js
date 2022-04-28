@@ -11,10 +11,10 @@
   // Toggling of navigation section
   const sections = document.querySelectorAll("nav h2");
   for (let i = 0; i < sections.length; i++) {
-    sections[i].addEventListener("click", () => {
+    sections[i].addEventListener("click", function () {
       this.classList.toggle("collapsed");
     });
-    sections[i].addEventListener("keydown", (e) => {
+    sections[i].addEventListener("keydown", function (e) {
       if (e.key === "Enter" || e.key === " ") {
         this.classList.toggle("collapsed");
         e.preventDefault();
@@ -26,6 +26,14 @@
   // Search
   const searchInput = document.getElementById("search-box");
   const searchResults = document.getElementById("search-results");
+
+  document.addEventListener("keydown", e => {
+    // Allow pressing Ctrl+K to focus the input box.
+    if (e.key == "k" && e.ctrlKey && !e.altKey) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+  });
 
   let loadingIndex = false;
   let index;
