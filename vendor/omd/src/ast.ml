@@ -22,6 +22,12 @@ type admonition =
   | Caution
   | Warning
 
+type table_alignment =
+  | Default
+  | Left
+  | Right
+  | Center
+
 module type T = sig
   type ('attr, 'ref) t
 end
@@ -47,6 +53,11 @@ module MakeBlock (I : T) = struct
     | Definition_list of 'attr * ('attr, 'ref) def_elt list
     | Admonition of
         'attr * admonition * ('attr, 'ref) I.t * ('attr, 'ref) block list
+    | Table of
+        'attr
+        * table_alignment list
+        * ('attr, 'ref) I.t list
+        * ('attr, 'ref) I.t list list
 end
 
 type ('attr, 'ref) link =
@@ -104,6 +115,8 @@ module MakeMapper (Src : T) (Dst : T) = struct
     | Html_block (attr, x) -> Html_block (attr, x)
     | Admonition (attr, kind, title, body) ->
         Admonition (attr, kind, f title, List.map (map f) body)
+    | Table (attr, aligns, hs, rows) ->
+        Table (attr, aligns, List.map f hs, List.map (List.map f) rows)
 end
 
 module Mapper = MakeMapper (StringT) (InlineT)

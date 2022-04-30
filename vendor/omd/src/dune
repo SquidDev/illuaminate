@@ -9,3 +9,6 @@
   (chdir
    ../tools
    (run ./gen_entities.exe %{dep:../tools/entities.json}))))
+
+(ocamllex
+ (modules scanners))

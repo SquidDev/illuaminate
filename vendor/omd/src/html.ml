@@ -3,6 +3,7 @@ open Ast
 type element_type =
   | Inline
   | Block
+  | Container
 
 type t =
   | Element of element_type * string * attributes * t option
@@ -55,16 +56,10 @@ let rec add_to_buffer buf = function
       Printf.bprintf buf "<%s%a />" name add_attrs_to_buffer attrs;
       if eltype = Block then Buffer.add_char buf '\n'
   | Element (eltype, name, attrs, Some c) ->
-      Printf.bprintf
-        buf
-        "<%s%a>%a</%s>"
-        name
-        add_attrs_to_buffer
-        attrs
-        add_to_buffer
-        c
-        name;
-      if eltype = Block then Buffer.add_char buf '\n'
+      Printf.bprintf buf "<%s%a>" name add_attrs_to_buffer attrs;
+      if eltype = Container then Buffer.add_char buf '\n';
+      Printf.bprintf buf "%a</%s>" add_to_buffer c name;
+      if eltype = Block || eltype = Container then Buffer.add_char buf '\n'
   | Text s -> Buffer.add_string buf (htmlentities s)
   | Raw s -> Buffer.add_string buf s
   | Null -> ()
@@ -111,6 +106,12 @@ let to_plain_text t =
   Buffer.contents buf
 
 let nl = Raw "\n"
+
+let table_alignment_attrs : table_alignment -> (string * string) list = function
+  | Default -> []
+  | Left -> [ ("style", "text-align: left;") ]
+  | Right -> [ ("style", "text-align: right;") ]
+  | Center -> [ ("style", "text-align: center;") ]
 
 let rec url ~ref label destination title attrs =
   let attrs =
@@ -248,6 +249,31 @@ let rec block ?(highlight = default_highlight) ~ref = function
           (Some (concat icon (inline ~ref title)))
       in
       elt Block "div" attr (Some (concat title (concat_map (block ~ref) body)))
+  | Table (attr, aligns, hs, rows) ->
+      let mk_row el row =
+        let add_cell acc align cell =
+          concat acc (elt Block el (table_alignment_attrs align) (Some cell))
+        in
+        let rec go acc aligns row =
+          match (aligns, row) with
+          | align :: aligns, cell :: row ->
+              go (add_cell acc align (inline ~ref cell)) aligns row
+          | align :: aligns, [] -> go (add_cell acc align Null) aligns row
+          | [], _ -> acc
+        in
+        elt Container "tr" [] (Some (go Null aligns row))
+      in
+
+      let body =
+        match rows with
+        | [] -> Null
+        | rows ->
+            elt Container "tbody" [] (Some (concat_map (mk_row "td") rows))
+      in
+      let body =
+        concat (elt Container "thead" [] (Some (mk_row "th" hs))) body
+      in
+      elt Container "table" attr (Some body)
 
 let of_doc ?highlight ~ref doc = concat_map (block ?highlight ~ref) doc
 

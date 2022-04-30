@@ -42,7 +42,8 @@ let headers =
           | Thematic_break _
           | Html_block _
           | Definition_list _
-          | Code_block _ ->
+          | Code_block _
+          | Table _ ->
               ())
         blocks
     in

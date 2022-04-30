@@ -42,7 +42,7 @@ end = struct
     ; len : int
     }
 
-  let of_string ?(off=0) base = { base; off; len = String.length base - off }
+  let of_string ?(off = 0) base = { base; off; len = String.length base - off }
 
   let to_string { base; off; len } = String.sub base off len
 
@@ -176,7 +176,7 @@ module P : sig
 
   val pair : 'a t -> 'b t -> ('a * 'b) t
 
-  val on_sub : (Sub.t -> ('a * Sub.t)) -> 'a t
+  val on_sub : (Sub.t -> 'a * Sub.t) -> 'a t
 end = struct
   type state =
     { str : string
@@ -319,6 +319,7 @@ type t =
   | Ldef_list of string
   | Ladmonition of admonition * string * attributes
   | Ladmonition_close
+  | Ltable_row of Sub.t * int * string list
 
 let sp3 s =
   match Sub.head s with
@@ -1034,6 +1035,67 @@ let def_list s =
       Ldef_list (String.trim (Sub.to_string s))
   | _ -> raise Fail
 
+let table_row s =
+  if not (Sub.exists (fun c -> c = '|') s) then raise Fail;
+
+  let buffer = Buffer.create 16 in
+  let all_blank, has_row, n, xs =
+    Sub.lexbuf s |> Scanners.table_row buffer true false 0 []
+  in
+  if not has_row then raise Fail;
+
+  let n, xs =
+    if all_blank then
+      (n, xs)
+    else
+      (n + 1, String.trim (Buffer.contents buffer) :: xs)
+  in
+  Ltable_row (s, n, xs)
+
+let table_alignment s =
+  let len = String.length s in
+  if len <= 0 then
+    None
+  else
+    let is_start, start =
+      if s.[0] = ':' then
+        (true, 1)
+      else
+        (false, 0)
+    in
+    let is_end, len =
+      if s.[len - 1] = ':' then
+        (true, len - 1)
+      else
+        (false, len)
+    in
+    let rec check_rest i =
+      if i >= len then
+        true
+      else if s.[i] <> '-' then
+        false
+      else
+        check_rest (i + 1)
+    in
+    if not (check_rest start) then
+      None
+    else
+      match (is_start, is_end) with
+      | false, false -> Some Default
+      | true, false -> Some Left
+      | false, true -> Some Right
+      | true, true -> Some Center
+
+let table_alignments xs =
+  let rec go acc = function
+    | [] -> Some acc
+    | x :: xs ->
+    match table_alignment x with
+    | None -> None
+    | Some a -> go (a :: acc) xs
+  in
+  go [] xs
+
 let indented_code ind s =
   if indent s + ind < 4 then raise Fail;
   Lindented_code (Sub.offset (4 - ind) s)
@@ -1060,8 +1122,8 @@ let parse s0 =
   | Some '*' -> (thematic_break ||| unordered_list_item ind) s
   | Some '+' -> unordered_list_item ind s
   | Some '0' .. '9' -> ordered_list_item ind s
-  | Some ':' -> (def_list ||| admonition) s
-  | Some _ -> (blank ||| indented_code ind) s
+  | Some ':' -> (def_list ||| admonition ||| table_row) s
+  | Some _ -> (blank ||| indented_code ind ||| table_row) s
   | None -> Lempty
 
 let parse s =
@@ -1122,8 +1184,7 @@ let entity buf st =
   junk st;
   match on_sub entity st with
   | cs -> List.iter (Buffer.add_utf_8_uchar buf) cs
-  | exception Fail ->
-      Buffer.add_char buf '&'
+  | exception Fail -> Buffer.add_char buf '&'
 
 module Pre = struct
   type delim =

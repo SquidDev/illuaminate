@@ -18,14 +18,14 @@ let with_open_in fn f =
   let ic = open_in fn in
   protect ~finally:(fun () -> close_in_noerr ic) (fun () -> f ic)
 
-let ref kind _ label =
+let ref _ kind =
   match kind with
-  | `Code ->
+  | `Raw label ->
       Format.sprintf
         "<span class=\"reference reference-code \
          reference-unresolved\">%s</span>"
         label
-  | `Text ->
+  | `Desc label ->
       Format.sprintf
         "<span class=\"reference reference-text \
          reference-unresolved\">%s</span>"

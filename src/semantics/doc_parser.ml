@@ -42,8 +42,13 @@ module Markdown = struct
   (** Default empty code blocks to Lua. *)
   let rec fix_lang : _ Omd.block -> _ Omd.block = function
     | Code_block (attr, "", code) -> Code_block (attr, "lua", code)
-    | (Paragraph _ | Heading _ | Thematic_break _ | Definition_list _ | Html_block _ | Code_block _)
-      as block -> block
+    | ( Paragraph _
+      | Heading _
+      | Thematic_break _
+      | Definition_list _
+      | Html_block _
+      | Code_block _
+      | Table _ ) as block -> block
     | List (attr, ty, sp, bl) -> List (attr, ty, sp, List.map (List.map fix_lang) bl)
     | Blockquote (attr, xs) -> Blockquote (attr, List.map fix_lang xs)
     | Admonition (attr, kind, title, xs) -> Admonition (attr, kind, title, List.map fix_lang xs)

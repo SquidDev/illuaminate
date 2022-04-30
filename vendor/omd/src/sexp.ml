@@ -62,6 +62,12 @@ let rec block ~ref = function
         :: Atom (string_of_admonition kind)
         :: inline ~ref title
         :: List.map (block ~ref) body)
+  | Table (_, _align, hs, rows) ->
+      List
+        [ Atom "table"
+        ; List (List.map (inline ~ref) hs)
+        ; List (List.map (fun row -> List (List.map (inline ~ref) row)) rows)
+        ]
 
 let create ~ref ast = List (List.map (block ~ref) ast)
 

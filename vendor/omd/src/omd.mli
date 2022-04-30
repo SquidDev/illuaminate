@@ -17,6 +17,12 @@ type admonition =
   | Caution
   | Warning
 
+type table_alignment =
+  | Default
+  | Left
+  | Right
+  | Center
+
 type ('attr, 'ref) link =
   { label : ('attr, 'ref) inline
   ; destination : string
@@ -54,6 +60,11 @@ type ('attr, 'ref) block =
   | Definition_list of 'attr * ('attr, 'ref) def_elt list
   | Admonition of
       'attr * admonition * ('attr, 'ref) inline * ('attr, 'ref) block list
+  | Table of
+      'attr
+      * table_alignment list
+      * ('attr, 'ref) inline list
+      * ('attr, 'ref) inline list list
 
 type 'ref doc = (attributes, 'ref) block list
 (** A markdown document *)

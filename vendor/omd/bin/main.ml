@@ -20,7 +20,7 @@ let with_open_out fn f =
 
 let process ic oc =
   let md = Omd.of_channel ic in
-  output_string oc (Omd.to_html ~ref:(fun _ _ x -> x) md)
+  output_string oc (Omd.to_html ~ref:(fun _ (`Desc x | `Raw x) -> x) md)
 
 let print_version () =
   let version =

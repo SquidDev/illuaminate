@@ -32,6 +32,8 @@ module Map = struct
         Definition_list (attr, List.map f l)
     | Code_block (attr, label, code) -> Code_block (attr, label, code)
     | Html_block (attr, x) -> Html_block (attr, x)
+    | Table (attr, aligns, hs, rows) ->
+        Table (attr, aligns, List.map (inline f) hs, List.map (List.map (inline f)) rows)
 
   let doc f = List.map (block f)
 end
@@ -64,11 +66,14 @@ module Iter = struct
           List.iter (inline f) defs
         in
         List.iter f l
+    | Table (_, _, hs, rows) ->
+        List.iter (inline f) hs;
+        List.iter (List.iter (inline f)) rows
 
   let doc f = List.iter (block f)
 
   let rec code_blocks f : (Omd.attributes, 'a) Omd.block -> unit = function
-    | Paragraph _ | Thematic_break _ | Html_block _ | Heading _ | Definition_list _ -> ()
+    | Paragraph _ | Thematic_break _ | Html_block _ | Heading _ | Definition_list _ | Table _ -> ()
     | List (_, _, _, bl) -> List.iter (List.iter (code_blocks f)) bl
     | Blockquote (_, xs) -> List.iter (code_blocks f) xs
     | Admonition (_, _, _, xs) -> List.iter (code_blocks f) xs

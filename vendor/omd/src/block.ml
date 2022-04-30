@@ -23,6 +23,9 @@ module Pre = struct
     | Rhtml of Parser.html_kind * string list
     | Rdef_list of string * string list
     | Radmonition of admonition * string * attributes * t
+    | Rtable_header of Sub.t * int * string list
+    | Rtable of
+        attributes * table_alignment list * string list * string list list
     | Rempty
 
   and t =
@@ -87,6 +90,9 @@ module Pre = struct
     | Rhtml (_, l) -> Html_block ([], concat l) :: blocks
     | Radmonition (kind, title, attrs, body) ->
         Admonition (attrs, kind, title, finish body) :: blocks
+    | Rtable_header (sub, _, _) -> Paragraph ([], Sub.to_string sub) :: blocks
+    | Rtable (attr, align, header, rows) ->
+        Table (attr, align, header, List.rev rows) :: blocks
     | Rempty -> blocks
 
   and finish link_defs state = List.rev (close link_defs state)
@@ -95,11 +101,15 @@ module Pre = struct
 
   let classify_line s = Parser.parse s
 
-  let rec process link_defs { blocks; next } s =
+  let rec process link_defs state s =
+    reprocess link_defs state s (classify_line s)
+
+  and reprocess link_defs { blocks; next } s block =
     let process = process link_defs in
+    let reprocess state = reprocess link_defs state s block in
     let close = close link_defs in
     let finish = finish link_defs in
-    match (next, classify_line s) with
+    match (next, block) with
     | Rempty, Parser.Lempty -> { blocks; next = Rempty }
     | Rempty, Lblockquote s -> { blocks; next = Rblockquote (process empty s) }
     | Rempty, Lthematic_break ->
@@ -122,6 +132,8 @@ module Pre = struct
         { blocks; next = Rparagraph [ Sub.to_string s ] }
     | Rempty, Ladmonition (adm, kind, attr) ->
         { blocks; next = Radmonition (adm, kind, attr, empty) }
+    | Rempty, Ltable_row (fallback, n, cells) ->
+        { blocks; next = Rtable_header (fallback, n, cells) }
     | Rparagraph [ h ], Ldef_list def ->
         { blocks; next = Rdef_list (h, [ def ]) }
     | Rdef_list (term, defs), Ldef_list def ->
@@ -133,7 +145,7 @@ module Pre = struct
       , ( Lempty | Lblockquote _ | Lthematic_break | Latx_heading _
         | Lfenced_code _
         | Lhtml (true, _) ) ) ->
-        process { blocks = close { blocks; next }; next = Rempty } s
+        reprocess { blocks = close { blocks; next }; next = Rempty }
     | Rparagraph (_ :: _ as lines), Lsetext_heading (level, _) ->
         let text = String.trim (String.concat "\n" (List.rev lines)) in
         { blocks = Heading ([], level, text) :: blocks; next = Rempty }
@@ -157,6 +169,18 @@ module Pre = struct
         { blocks = close { blocks; next }; next = Rempty }
     | Radmonition (kind, title, attrs, body), _ ->
         { blocks; next = Radmonition (kind, title, attrs, process body s) }
+    | Rtable_header (sub, n, headers), Ltable_row (_, n', headers') when n = n'
+      -> (
+        match Parser.table_alignments headers' with
+        | Some align ->
+            { blocks; next = Rtable ([], align, List.rev headers, []) }
+        | None -> reprocess { blocks; next = Rparagraph [ Sub.to_string sub ] })
+    | Rtable_header (sub, _, _), _ ->
+        reprocess { blocks; next = Rparagraph [ Sub.to_string sub ] }
+    | Rtable (attr, align, headers, rows), Ltable_row (_, _, row) ->
+        { blocks; next = Rtable (attr, align, headers, List.rev row :: rows) }
+    | Rtable (_, _, _, _), _ ->
+        reprocess { blocks = close { blocks; next }; next = Rempty }
     | Rdef_list (term, d :: defs), Lparagraph ->
         { blocks
         ; next = Rdef_list (term, (d ^ "\n" ^ Sub.to_string s) :: defs)
@@ -170,7 +194,7 @@ module Pre = struct
         let s = Sub.offset n s in
         { blocks; next = Rindented_code (Sub.to_string s :: lines) }
     | Rindented_code _, _ ->
-        process { blocks = close { blocks; next }; next = Rempty } s
+        reprocess { blocks = close { blocks; next }; next = Rempty }
     | Rhtml ((Hcontains l as k), lines), _
       when List.exists (fun t -> Sub.contains t s) l ->
         { blocks = close { blocks; next = Rhtml (k, Sub.to_string s :: lines) }
@@ -188,7 +212,7 @@ module Pre = struct
         }
     | Rlist (_, _, true, ind, _, { blocks = []; next = Rempty }), _
       when Parser.indent s >= ind ->
-        process { blocks = close { blocks; next }; next = Rempty } s
+        reprocess { blocks = close { blocks; next }; next = Rempty }
     | Rlist (kind, style, prev_empty, ind, items, state), _
       when Parser.indent s >= ind ->
         let s = Sub.offset ind s in

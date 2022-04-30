@@ -1,5 +1,5 @@
 (rule
- (deps spec.txt attributes.md def_list.md illuaminate_extensions.md)
+ (deps spec.txt attributes.md def_list.md pipe_tables.md illuaminate_extensions.md)
  (targets
   spec-001.md spec-001.html
   spec-002.md spec-002.html
@@ -669,6 +669,18 @@
   attributes-014.md attributes-014.html
   attributes-015.md attributes-015.html
   def_list-001.md def_list-001.html
+  pipe_tables-001.md pipe_tables-001.html
+  pipe_tables-002.md pipe_tables-002.html
+  pipe_tables-003.md pipe_tables-003.html
+  pipe_tables-004.md pipe_tables-004.html
+  pipe_tables-005.md pipe_tables-005.html
+  pipe_tables-006.md pipe_tables-006.html
+  pipe_tables-007.md pipe_tables-007.html
+  pipe_tables-008.md pipe_tables-008.html
+  pipe_tables-009.md pipe_tables-009.html
+  pipe_tables-010.md pipe_tables-010.html
+  pipe_tables-011.md pipe_tables-011.html
+  pipe_tables-012.md pipe_tables-012.html
   illuaminate_extensions-001.md illuaminate_extensions-001.html
   illuaminate_extensions-002.md illuaminate_extensions-002.html
   illuaminate_extensions-003.md illuaminate_extensions-003.html
@@ -4711,6 +4723,90 @@
  (action (diff def_list-001.html def_list-001.html.new)))
 (rule
  (action
+  (with-stdout-to pipe_tables-001.html.new
+   (run ./omd.exe %{dep:pipe_tables-001.md}))))
+(rule
+ (alias pipe_tables-001)
+ (action (diff pipe_tables-001.html pipe_tables-001.html.new)))
+(rule
+ (action
+  (with-stdout-to pipe_tables-002.html.new
+   (run ./omd.exe %{dep:pipe_tables-002.md}))))
+(rule
+ (alias pipe_tables-002)
+ (action (diff pipe_tables-002.html pipe_tables-002.html.new)))
+(rule
+ (action
+  (with-stdout-to pipe_tables-003.html.new
+   (run ./omd.exe %{dep:pipe_tables-003.md}))))
+(rule
+ (alias pipe_tables-003)
+ (action (diff pipe_tables-003.html pipe_tables-003.html.new)))
+(rule
+ (action
+  (with-stdout-to pipe_tables-004.html.new
+   (run ./omd.exe %{dep:pipe_tables-004.md}))))
+(rule
+ (alias pipe_tables-004)
+ (action (diff pipe_tables-004.html pipe_tables-004.html.new)))
+(rule
+ (action
+  (with-stdout-to pipe_tables-005.html.new
+   (run ./omd.exe %{dep:pipe_tables-005.md}))))
+(rule
+ (alias pipe_tables-005)
+ (action (diff pipe_tables-005.html pipe_tables-005.html.new)))
+(rule
+ (action
+  (with-stdout-to pipe_tables-006.html.new
+   (run ./omd.exe %{dep:pipe_tables-006.md}))))
+(rule
+ (alias pipe_tables-006)
+ (action (diff pipe_tables-006.html pipe_tables-006.html.new)))
+(rule
+ (action
+  (with-stdout-to pipe_tables-007.html.new
+   (run ./omd.exe %{dep:pipe_tables-007.md}))))
+(rule
+ (alias pipe_tables-007)
+ (action (diff pipe_tables-007.html pipe_tables-007.html.new)))
+(rule
+ (action
+  (with-stdout-to pipe_tables-008.html.new
+   (run ./omd.exe %{dep:pipe_tables-008.md}))))
+(rule
+ (alias pipe_tables-008)
+ (action (diff pipe_tables-008.html pipe_tables-008.html.new)))
+(rule
+ (action
+  (with-stdout-to pipe_tables-009.html.new
+   (run ./omd.exe %{dep:pipe_tables-009.md}))))
+(rule
+ (alias pipe_tables-009)
+ (action (diff pipe_tables-009.html pipe_tables-009.html.new)))
+(rule
+ (action
+  (with-stdout-to pipe_tables-010.html.new
+   (run ./omd.exe %{dep:pipe_tables-010.md}))))
+(rule
+ (alias pipe_tables-010)
+ (action (diff pipe_tables-010.html pipe_tables-010.html.new)))
+(rule
+ (action
+  (with-stdout-to pipe_tables-011.html.new
+   (run ./omd.exe %{dep:pipe_tables-011.md}))))
+(rule
+ (alias pipe_tables-011)
+ (action (diff pipe_tables-011.html pipe_tables-011.html.new)))
+(rule
+ (action
+  (with-stdout-to pipe_tables-012.html.new
+   (run ./omd.exe %{dep:pipe_tables-012.md}))))
+(rule
+ (alias pipe_tables-012)
+ (action (diff pipe_tables-012.html pipe_tables-012.html.new)))
+(rule
+ (action
   (with-stdout-to illuaminate_extensions-001.html.new
    (run ./omd.exe %{dep:illuaminate_extensions-001.md}))))
 (rule
@@ -5487,6 +5583,18 @@
   (alias attributes-014)
   (alias attributes-015)
   (alias def_list-001)
+  (alias pipe_tables-001)
+  (alias pipe_tables-002)
+  (alias pipe_tables-003)
+  (alias pipe_tables-004)
+  (alias pipe_tables-005)
+  (alias pipe_tables-006)
+  (alias pipe_tables-007)
+  (alias pipe_tables-008)
+  (alias pipe_tables-009)
+  (alias pipe_tables-010)
+  (alias pipe_tables-011)
+  (alias pipe_tables-012)
   (alias illuaminate_extensions-001)
   (alias illuaminate_extensions-002)
   (alias illuaminate_extensions-003)

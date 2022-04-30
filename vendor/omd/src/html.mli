@@ -3,6 +3,7 @@ open Ast
 type element_type =
   | Inline
   | Block
+  | Container
 
 type t =
   | Element of element_type * string * attributes * t option
