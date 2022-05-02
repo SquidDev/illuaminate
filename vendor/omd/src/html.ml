@@ -167,9 +167,13 @@ let default_highlight attr label code =
   let c = text code in
   elt Block "pre" attr (Some (elt Inline "code" code_attr (Some c)))
 
-let rec block ?(highlight = default_highlight) ~ref = function
+let rec block ~highlight ~ref = function
   | Blockquote (attr, q) ->
-      elt Block "blockquote" attr (Some (concat nl (concat_map (block ~ref) q)))
+      elt
+        Block
+        "blockquote"
+        attr
+        (Some (concat nl (concat_map (block ~highlight ~ref) q)))
   | Paragraph (attr, md) -> elt Block "p" attr (Some (inline ~ref md))
   | List (attr, ty, sp, bl) ->
       let name =
@@ -186,7 +190,7 @@ let rec block ?(highlight = default_highlight) ~ref = function
         let block' t =
           match (t, sp) with
           | Paragraph (_, t), Tight -> concat (inline ~ref t) nl
-          | _ -> block ~ref t
+          | _ -> block ~highlight ~ref t
         in
         let nl =
           if sp = Tight then
@@ -248,7 +252,11 @@ let rec block ?(highlight = default_highlight) ~ref = function
           [ ("class", "admonition-heading") ]
           (Some (concat icon (inline ~ref title)))
       in
-      elt Block "div" attr (Some (concat title (concat_map (block ~ref) body)))
+      elt
+        Block
+        "div"
+        attr
+        (Some (concat title (concat_map (block ~highlight ~ref) body)))
   | Table (attr, aligns, hs, rows) ->
       let mk_row el row =
         let add_cell acc align cell =
@@ -275,7 +283,8 @@ let rec block ?(highlight = default_highlight) ~ref = function
       in
       elt Container "table" attr (Some body)
 
-let of_doc ?highlight ~ref doc = concat_map (block ?highlight ~ref) doc
+let of_doc ?(highlight = default_highlight) ~ref doc =
+  concat_map (block ?highlight ~ref) doc
 
 let to_string t =
   let buf = Buffer.create 1024 in

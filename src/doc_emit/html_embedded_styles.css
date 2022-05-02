@@ -103,10 +103,10 @@ code {
   background-color: var(--background-2);
 }
 
-p {
+p, .admonition {
   margin: 0.9em 0;
 }
-p:last-child { margin-bottom: 0 }
+p:last-child, .admonition:last-child { margin-bottom: 0 }
 
 h1 {
   font-size: 2.2em;
