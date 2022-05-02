@@ -20,7 +20,7 @@ let show_arg = (~options, {arg_name, arg_opt, arg_type, arg_description}) =>
      | Default(x) =>
        <span class_="default-value">
          {str(" = ")}
-         <code class_="highlight highlight-lua">
+         <code class_="language language-lua">
            {Html_highlight.lua(~options, x)}
          </code>
        </span>

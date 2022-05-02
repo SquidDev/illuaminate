@@ -2,10 +2,13 @@ open IlluaminateSemantics
 open Doc.Syntax
 open Html.Default
 
-let default_highlight attr label code =
-  let class_name = if String.trim label = "" then None else Some ("highlight highlight-" ^ label) in
-  create_node ~tag:"pre" ~attributes:(("class", class_name) :: attr)
-    ~children:[ create_node ~tag:"code" ~children:[ str code ] () ]
+let default_highlight pre_attr label code =
+  let pre_attr, code_attr =
+    if String.trim label = "" then (pre_attr, [])
+    else (("class", Some "highlight") :: pre_attr, [ ("class", Some ("language-" ^ label)) ])
+  in
+  create_node ~tag:"pre" ~attributes:pre_attr
+    ~children:[ create_node ~tag:"code" ~attributes:code_attr ~children:[ str code ] () ]
     ()
 
 let highlight ~options attrs lang code =

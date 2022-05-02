@@ -119,5 +119,5 @@ let lua_block ?(attrs = []) ~options input =
     | Some `Stmt -> Some "stmt"
   in
   Html.Default.create_node ~tag:"pre"
-    ~attributes:(("class", Some "highlight highlight-lua") :: ("data-lua-kind", kind) :: attrs)
+    ~attributes:(("class", Some "highlight") :: ("data-lua-kind", kind) :: attrs)
     ~children:[ highlighted ] ()
