@@ -364,7 +364,7 @@ span.parameter:after { content:":"; padding-left: 0.3em; }
 .default-value code { background: none; }
 
 /** Fancy colour display. */
-.colour-ref {
+.color-ref {
   display: inline-block;
   width: 0.8em;
   height: 0.8em;
