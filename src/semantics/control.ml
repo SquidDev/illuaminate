@@ -188,28 +188,28 @@ let analyse _ prog =
     }
   and new_func b = lazy (build_func t b)
   and entry_func = lazy (build_func t prog.program) in
-  object
-    (* Walks the entire tree, and builds up our maps of statements and functions. This doesn't
-       actually compute anything - we'll do that later. *)
-    inherit Syntax.iter as super
-    val func = entry_func
+  (object
+     (* Walks the entire tree, and builds up our maps of statements and functions. This doesn't
+        actually compute anything - we'll do that later. *)
+     inherit Syntax.iter as super
+     val func = entry_func
 
-    method! stmt s =
-      StmtTbl.add t.stmts s (Unresolved func);
-      match s with
-      | LocalFunction { localf_args = args; localf_body = body; _ }
-      | AssignFunction { assignf_args = args; assignf_body = body; _ } ->
-          let func = new_func body in
-          ArgTbl.add t.functions args func; {<func>}#block body
-      | _ -> super#stmt s
+     method! stmt s =
+       StmtTbl.add t.stmts s (Unresolved func);
+       match s with
+       | LocalFunction { localf_args = args; localf_body = body; _ }
+       | AssignFunction { assignf_args = args; assignf_body = body; _ } ->
+           let func = new_func body in
+           ArgTbl.add t.functions args func; {<func>}#block body
+       | _ -> super#stmt s
 
-    method! expr =
-      function
-      | Fun { fun_args = args; fun_body = body; _ } ->
-          let func = new_func body in
-          ArgTbl.add t.functions args func; {<func>}#block body
-      | e -> super#expr e
-  end
+     method! expr =
+       function
+       | Fun { fun_args = args; fun_body = body; _ } ->
+           let func = new_func body in
+           ArgTbl.add t.functions args func; {<func>}#block body
+       | e -> super#expr e
+  end)
     #program
     prog;
   t

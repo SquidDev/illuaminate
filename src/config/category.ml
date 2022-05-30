@@ -107,7 +107,7 @@ module Schema = struct
       IntMap.fold
         (fun _ key rest ->
           let module K = (val key : Key) in
-          let+ term = Term.Repr.to_repr_parser K.term and+ rest in
+          let+ term = Term.Repr.to_repr_parser K.term and+ rest = rest in
           IntMap.add K.id (K.Value term) rest)
         keys (Parser.const IntMap.empty)
     in
@@ -118,7 +118,7 @@ module Schema = struct
             (let+ terms = build_keys terms and+ children = build_cats children in
              merge_nodup terms children)
             |> fields |> field_opt ~name
-          and+ rest in
+          and+ rest = rest in
           merge_nodup (Option.value ~default:IntMap.empty terms) rest)
         children (const IntMap.empty)
     in
