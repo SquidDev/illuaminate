@@ -70,7 +70,6 @@ type 'ref doc = (attributes, 'ref) block list
 (** A markdown document *)
 
 val of_channel : in_channel -> string doc
-
 val of_string : string -> string doc
 
 val inline_to_html :
@@ -85,7 +84,6 @@ val to_html :
   -> string
 
 val to_sexp : ref:('ref -> string) -> 'ref doc -> string
-
 val to_plain_text : (_, _) inline -> string
 
 val headers :

@@ -123,9 +123,7 @@ module Mapper = MakeMapper (StringT) (InlineT)
 
 let same_block_list_kind k1 k2 =
   match (k1, k2) with
-  | Ordered (_, c1), Ordered (_, c2)
-  | Bullet c1, Bullet c2 ->
-      c1 = c2
+  | Ordered (_, c1), Ordered (_, c2) | Bullet c1, Bullet c2 -> c1 = c2
   | _ -> false
 
 let string_of_admonition : admonition -> string = function

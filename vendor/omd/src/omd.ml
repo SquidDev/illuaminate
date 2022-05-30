@@ -15,7 +15,6 @@ let parse_inlines (md, defs) =
   List.map (Mapper.map (parse_inline defs)) md
 
 let of_channel ic = parse_inlines (Pre.of_channel ic)
-
 let of_string s = parse_inlines (Pre.of_string s)
 
 let inline_to_html ~ref:f inl =
@@ -41,7 +40,5 @@ let to_sexp ~ref ast =
   Format.asprintf "@[%a@]@." Sexp.print (Sexp.create ~ref ast)
 
 let to_plain_text = Html.to_plain_text
-
 let headers = Toc.headers
-
 let toc = Toc.toc

@@ -13,17 +13,11 @@ type t =
   | Concat of t * t
 
 let elt etype name attrs childs = Element (etype, name, attrs, childs)
-
 let text s = Text s
-
 let raw s = Raw s
 
 let concat t1 t2 =
-  match (t1, t2) with
-  | Null, t
-  | t, Null ->
-      t
-  | _ -> Concat (t1, t2)
+  match (t1, t2) with Null, t | t, Null -> t | _ -> Concat (t1, t2)
 
 let concat_map f l = List.fold_left (fun accu x -> concat accu (f x)) Null l
 
@@ -31,8 +25,7 @@ let concat_map f l = List.fold_left (fun accu x -> concat accu (f x)) Null l
 let htmlentities s =
   let b = Buffer.create (String.length s) in
   let rec loop i =
-    if i >= String.length s then
-      Buffer.contents b
+    if i >= String.length s then Buffer.contents b
     else begin
       begin
         match s.[i] with
@@ -86,10 +79,7 @@ let to_plain_text t =
   let buf = Buffer.create 1024 in
   let rec go : _ inline -> unit = function
     | Concat (_, l) -> List.iter go l
-    | Text (_, t)
-    | Colour t
-    | Code (_, t)
-    | Ref_raw (_, t) ->
+    | Text (_, t) | Colour t | Code (_, t) | Ref_raw (_, t) ->
         Buffer.add_string buf t
     | Emph (_, i)
     | Strong (_, i)
@@ -97,9 +87,7 @@ let to_plain_text t =
     | Link (_, { label = i; _ })
     | Image (_, { label = i; _ }) ->
         go i
-    | Hard_break _
-    | Soft_break _ ->
-        Buffer.add_char buf ' '
+    | Hard_break _ | Soft_break _ -> Buffer.add_char buf ' '
     | Html _ -> ()
   in
   go t;
@@ -115,18 +103,14 @@ let table_alignment_attrs : table_alignment -> (string * string) list = function
 
 let rec url ~ref label destination title attrs =
   let attrs =
-    match title with
-    | None -> attrs
-    | Some title -> ("title", title) :: attrs
+    match title with None -> attrs | Some title -> ("title", title) :: attrs
   in
   let attrs = ("href", escape_uri destination) :: attrs in
   elt Inline "a" attrs (Some (inline ~ref label))
 
 and img label destination title attrs =
   let attrs =
-    match title with
-    | None -> attrs
-    | Some title -> ("title", title) :: attrs
+    match title with None -> attrs | Some title -> ("title", title) :: attrs
   in
   let attrs =
     ("src", escape_uri destination) :: ("alt", to_plain_text label) :: attrs
@@ -159,10 +143,7 @@ and inline ~ref = function
 
 let default_highlight attr label code =
   let code_attr =
-    if String.trim label = "" then
-      []
-    else
-      [ ("class", "language-" ^ label) ]
+    if String.trim label = "" then [] else [ ("class", "language-" ^ label) ]
   in
   let c = text code in
   elt Block "pre" attr (Some (elt Inline "code" code_attr (Some c)))
@@ -176,11 +157,7 @@ let rec block ~highlight ~ref = function
         (Some (concat nl (concat_map (block ~highlight ~ref) q)))
   | Paragraph (attr, md) -> elt Block "p" attr (Some (inline ~ref md))
   | List (attr, ty, sp, bl) ->
-      let name =
-        match ty with
-        | Ordered _ -> "ol"
-        | Bullet _ -> "ul"
-      in
+      let name = match ty with Ordered _ -> "ol" | Bullet _ -> "ul" in
       let attr =
         match ty with
         | Ordered (n, _) when n <> 1 -> ("start", string_of_int n) :: attr
@@ -192,12 +169,7 @@ let rec block ~highlight ~ref = function
           | Paragraph (_, t), Tight -> concat (inline ~ref t) nl
           | _ -> block ~highlight ~ref t
         in
-        let nl =
-          if sp = Tight then
-            Null
-          else
-            nl
-        in
+        let nl = if sp = Tight then Null else nl in
         elt Block "li" [] (Some (concat nl (concat_map block' t)))
       in
       elt Block name attr (Some (concat nl (concat_map li bl)))
@@ -226,9 +198,7 @@ let rec block ~highlight ~ref = function
   | Admonition (attr, kind, title, body) ->
       let icon =
         match kind with
-        | Info
-        | Note ->
-            Some "🛈"
+        | Info | Note -> Some "🛈"
         | Caution -> Some "⚠"
         | _ -> None
       in
@@ -284,7 +254,7 @@ let rec block ~highlight ~ref = function
       elt Container "table" attr (Some body)
 
 let of_doc ?(highlight = default_highlight) ~ref doc =
-  concat_map (block ?highlight ~ref) doc
+  concat_map (block ~highlight ~ref) doc
 
 let to_string t =
   let buf = Buffer.create 1024 in

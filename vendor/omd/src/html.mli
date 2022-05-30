@@ -24,5 +24,4 @@ val of_doc :
   -> t
 
 val to_plain_text : (_, _) inline -> string
-
 val to_string : t -> string
