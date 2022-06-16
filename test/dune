@@ -19,7 +19,6 @@
   illuaminate.semantics
   illuaminate.pattern
   illuaminate.doc_emit
-  illuaminate.exec.unix
   illuaminateConfigFormat
   illuaminateLsp
   lsp

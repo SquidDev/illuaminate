@@ -26,12 +26,21 @@ let make_source_link ~root template =
   let git_commit =
     lazy
       (match
-         IlluaminateExec.exec "git" [| "git"; "-C"; Fpath.to_string root; "rev-parse"; "HEAD" |]
+         let channel =
+           Unix.open_process_args_in "git"
+             [| "git"; "-C"; Fpath.to_string root; "rev-parse"; "HEAD" |]
+         in
+         Fun.protect
+           ~finally:(fun () -> In_channel.close channel)
+           (fun () -> In_channel.input_all channel)
        with
-      | Error e ->
-          Log.err (fun f -> f "Cannot find git commit (%s)\n%!" e);
+      | exception Unix.Unix_error (err, fn, msg) ->
+          Log.err (fun f -> f "Cannot find git commit (%s: %s %s)" fn (Unix.error_message err) msg);
           None
-      | Ok l -> Some (String.trim l))
+      | exception Sys_error msg ->
+          Log.err (fun f -> f "Cannot find git commit (%s)" msg);
+          None
+      | l -> Some (String.trim l))
   in
   let link ~path ~start_line ~end_line =
     Fun.flip CCOption.flat_map template @@ fun template ->

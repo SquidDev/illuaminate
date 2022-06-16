@@ -43,7 +43,6 @@ package managers.
    ```
    > wget https://squiddev.cc/illuaminate/linux-x86-64/illuaminate # A x86-64 Linux static binary
    > wget https://squiddev.cc/illuaminate/windows-x86-64/illuaminate.exe # A x86-64 Windows binary
-   > wget https://squiddev.cc/illuaminate/linux-x86-64/illuaminate.js # JavaScript file which can be run with Node
    ```
 
    You may need to `chmod +x` the downloaded file to make it executable.

@@ -3,7 +3,7 @@
  (synopsis
   "A library containing the main CLI for illuaminate. Does not fulful all virtual modules.")
  (modules
-  (:standard \ illuaminate illuaminate_js))
+  (:standard \ illuaminate))
  (libraries
   containers
   cmdliner
@@ -20,7 +20,6 @@
   illuaminate.minify
   illuaminate.pattern
   illuaminate.doc_emit
-  illuaminate.exec
   omd
   result
   logs)
@@ -32,16 +31,8 @@
 (executable
  (name illuaminate)
  (modules illuaminate)
- (libraries unix illuaminate_cli illuaminate.exec.unix)
- (modes exe))
-
-(executable
- (name illuaminate_js)
- (modules illuaminate_js)
- (libraries unix illuaminate_cli illuaminate.exec.js)
- (modes js)
- (js_of_ocaml
-  (flags "--custom-header=#!/usr/bin/env node")))
+ (libraries unix illuaminate_cli)
+ (modes byte exe))
 
 (rule
  (target illuaminate.strip.exe)
@@ -68,5 +59,4 @@
  (section bin)
  (package illuaminate)
  (files
-  (illuaminate.min.exe as illuaminate)
-  (illuaminate_js.bc.js as illuaminate.js)))
+  (illuaminate.min.exe as illuaminate)))

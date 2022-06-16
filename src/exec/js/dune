@@ -1,9 +1,0 @@
-(library
- (name iluaminateExec_js)
- (public_name illuaminate.exec.js)
- (implements illuaminate.exec)
- (libraries js_of_ocaml)
- (preprocess
-  (pps js_of_ocaml-ppx jsx))
- (instrumentation
-  (backend bisect_ppx)))

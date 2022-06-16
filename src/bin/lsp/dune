@@ -42,8 +42,7 @@
   lsp.stdune
   lsp.fiber
   lsp.fiber_unix
-  lsp_fiber
-  illuaminate.exec.unix))
+  lsp_fiber))
 
 (rule
  (target illuaminate_lsp.strip.exe)
@@ -65,9 +64,3 @@
   (copy %{dep:illuaminate_lsp.exe} %{target}))
  (enabled_if
   (<> %{system} "linux")))
-
-(install
- (section bin)
- (package illuaminate)
- (files
-  (illuaminate_lsp.min.exe as illuaminate-lsp)))
