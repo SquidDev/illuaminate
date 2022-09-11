@@ -16,7 +16,7 @@ jobs:
           dune-flags:
 
         - name: Linux
-          uses: ubuntu-latest
+          uses: ubuntu-22.04
           # We don't use flambda as that ends up much buliker than without.
           ocaml: ocaml-variants.4.14.0+options,ocaml-option-musl
           input-file: illuaminate
