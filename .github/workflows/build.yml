@@ -13,19 +13,22 @@ jobs:
           ocaml: 4.14.x
           input-file: illuaminate.exe
           output-file: illuaminate-windows-x86_64.exe
+          dune-flags:
 
         - name: Linux
           uses: ubuntu-latest
           # We don't use flambda as that ends up much buliker than without.
-          ocaml: ocaml-variants.4.14.0+options,ocaml-option-musl,ocaml-option-static
+          ocaml: ocaml-variants.4.14.0+options,ocaml-option-musl
           input-file: illuaminate
           output-file: illuaminate-linux-x86_64
+          dune-flags: --workspace dune-workspace.release
 
         - name: macOS
           uses: macos-latest
           ocaml: 4.14.x
           input-file: illuaminate
           output-file: illuaminate-macos-x86_64
+          dune-flags:
 
     name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.uses }}
@@ -51,7 +54,7 @@ jobs:
     - name: Build release
       run: |
         opam exec -- dune subst
-        opam exec -- dune build -p illuaminate @install
+        opam exec -- dune build ${{ matrix.dune-flags }} -p illuaminate @install
         opam exec -- dune install --prefix=_install
         cp _install/bin/${{ matrix.input-file }} ${{ matrix.output-file }}
 
