@@ -42,6 +42,7 @@ let ident_tail = ident_head | '_' | digit
 rule token l = parse
 | white+ as x           { Trivial (Whitespace x) }
 | '\n'                  { new_line l; Trivial (Whitespace "\n") }
+| '\r' '\n'             { new_line l; Trivial (Whitespace "\r\n") }
 | "--[" ('='* as x) '[' { long_string (Buffer.create 16) (String.length x) mk_long_comment l lexbuf }
 (* We split line comments into two parts. Otherwise "--[^\n]*" would match "--[[foo]]". *)
 | "--"                  { line_comment lexbuf }
@@ -136,7 +137,7 @@ and string contents value c = parse
                       Buffer.add_char value (int_of_string x |> char_of_int);
                       string contents value c lexbuf }
 
-| "\\" ([^ '\n'] as x)
+| "\\" ([^ '\r' '\n'] as x)
                     { Buffer.add_char contents '\\'; Buffer.add_char contents x;
                       Buffer.add_char value x;
                       string contents value c lexbuf }
@@ -147,17 +148,19 @@ and string contents value c = parse
                       string contents value c lexbuf }
 
 | eof { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
+| '\r' { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
 | '\n' { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
 | _ { raise (Error (lexeme_spanned lexbuf (UnexpectedCharacter (Lexing.lexeme lexbuf)))) }
 
 and long_string buf eqs term l = parse
-| [^']' '\n']+ as x { Buffer.add_string buf x;              long_string buf eqs term l lexbuf }
-| ']' '='* ']' as x { if String.length x == eqs + 2
-                      then term eqs (Buffer.contents buf)
-                      else (Buffer.add_string buf x;        long_string buf eqs term l lexbuf) }
-| ']'               { Buffer.add_char buf ']';              long_string buf eqs term l lexbuf }
-| '\n'              { Buffer.add_char buf '\n'; new_line l; long_string buf eqs term l lexbuf }
-| eof               { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
+| [^']' '\r' '\n']+ as x { Buffer.add_string buf x;              long_string buf eqs term l lexbuf }
+| ']' '='* ']' as x      { if String.length x == eqs + 2
+                           then term eqs (Buffer.contents buf)
+                           else (Buffer.add_string buf x;        long_string buf eqs term l lexbuf) }
+| ']'                    { Buffer.add_char buf ']';              long_string buf eqs term l lexbuf }
+| '\n'                   { Buffer.add_char buf '\n'; new_line l; long_string buf eqs term l lexbuf }
+| '\r' '\n'              { Buffer.add_string buf "\r\n"; new_line l; long_string buf eqs term l lexbuf }
+| eof                    { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
 
 and line_comment = parse
-| [^'\n']* as x     { Trivial (LineComment x) }
+| [^'\r' '\n']* as x     { Trivial (LineComment x) }
