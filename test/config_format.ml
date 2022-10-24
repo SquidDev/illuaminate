@@ -60,5 +60,9 @@ let tests =
                 "Format string is correct"
                 (Span.Filename.mk "=in" |> mk_span |> get_source_link "[ ${line} ]")
                 (Some "[ 1 ]"))
-        ]
+        ];
+      mk_alcotest_case "Round trips correctly" `Quick (fun () ->
+          (* There's not much we can do right not to correctly assert things. *)
+          let _roundtrip = Format.asprintf "%t" C.generate |> parse in
+          ())
     ]

@@ -96,9 +96,9 @@ let write_key out write_body body ~name ~comment prev =
     pp_force_newline out ()
   done;
   (* Comment *)
-  pp_print_string out ";; ";
-  pp_print_string out comment;
-  pp_force_newline out ();
+  String.split_on_char '\n' comment
+  |> List.iter (fun x -> pp_print_string out ";; "; pp_print_string out x; pp_force_newline out ());
+
   (* Value *)
   pp_open_box out 2;
   pp_print_string out "(";
@@ -117,12 +117,22 @@ let rec write_term : type a. Format.formatter -> a t -> int -> int =
   | Pair (l, r) -> write_term out l prev |> write_term out r
   | Const _ -> prev
 
-and write_group : 'a. Format.formatter -> 'a body -> unit =
+and write_group : type a. Format.formatter -> a body -> unit =
  fun out t ->
   match t with
-  | Field { default; converter } ->
-      Format.pp_print_space out ();
-      Sexp.pp out (Converter.get_printer converter default)
+  | Field { default; converter } -> (
+    match (converter, default) with
+    | Atom _, _ ->
+        Format.pp_print_space out ();
+        Sexp.pp out (Converter.get_printer converter default)
+    | List _, [] -> ()
+    | List conv, _ ->
+        let printer = Converter.get_printer conv in
+        List.iter
+          (fun x ->
+            Format.pp_print_space out ();
+            Sexp.pp out (printer x))
+          default)
   | Group g -> write_term out g 1 |> ignore
 
 let write_default out term = write_term out term 0 |> ignore
