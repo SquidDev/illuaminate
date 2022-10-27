@@ -111,13 +111,9 @@ let of_type ~source_link ~in_module =
 
 let everything ~source_link =
   CCList.fold_left
-    (fun names ({ descriptor = { page_ref = in_module; page_contents; _ }; _ } as d) ->
-      match page_contents with
-      | Module { mod_contents; mod_types; _ } ->
-          let names = CCList.fold_left (of_type ~source_link ~in_module) names mod_types in
-          of_term ~in_module ~source_link ~name:in_module.id ~section:Module names
-            { d with descriptor = mod_contents }
-      | Markdown ->
-          of_term ~in_module ~source_link ~name:in_module.id ~section:Module names
-            { d with descriptor = Unknown })
+    (fun names ({ descriptor = { page_ref = in_module; page_value; page_types; _ }; _ } as d) ->
+      let names = CCList.fold_left (of_type ~source_link ~in_module) names page_types in
+      let value = Option.value page_value ~default:Unknown in
+      of_term ~in_module ~source_link ~name:in_module.id ~section:Module names
+        { d with descriptor = value })
     SMap.empty

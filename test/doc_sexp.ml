@@ -197,17 +197,11 @@ module Syntax = struct
     |> field "value" [ documented (one % value) x.member_value ]
     |> record
 
-  let page_contents m (xs : t list) : t list =
-    match m with
-    | Module { mod_contents; mod_types; _ } ->
-        xs
-        |> field "contents" [ value mod_contents ]
-        |> fields "type" (one' % documented (one' % type_info)) mod_types
-    | Markdown -> xs
-
   let module_info m : t =
     []
     |> field "id" (atom' m.page_ref.id)
     |> field' "title" atom' m.page_ref.title
-    |> page_contents m.page_contents |> record
+    |> field' "contents" (one % value) m.page_value
+    |> fields "type" (one' % documented (one' % type_info)) m.page_types
+    |> record
 end

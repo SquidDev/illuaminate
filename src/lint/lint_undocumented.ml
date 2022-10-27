@@ -45,15 +45,6 @@ and ty ~r ~span:_ { type_name; type_members; _ } =
        member_name
      |> documented value ~r member_value
 
-let page ~r ~span = function
-  | Markdown -> ()
-  | Module { mod_contents; mod_types; _ } ->
-      mod_types
-      |> List.iter (fun ({ descriptor = { type_name; _ }; _ } as t) ->
-             Printf.sprintf "Type '%s' is exported, but has no documentation." type_name
-             |> documented ty ~r t);
-      value ~r ~span mod_contents
-
 let linter =
   make_no_opt ~tags:[ tag; arg_tag; return_tag ]
     ~file:(fun () context r file ->
@@ -76,5 +67,9 @@ let linter =
               in
               if not has_any then r.r ~span:definition ~tag "Module is missing documentation");
 
-          page ~r ~span:definition descriptor.page_contents)
+          descriptor.page_types
+          |> List.iter (fun ({ descriptor = { type_name; _ }; _ } as t) ->
+                 Printf.sprintf "Type '%s' is exported, but has no documentation." type_name
+                 |> documented ty ~r t);
+          Option.iter (value ~r ~span:definition) descriptor.page_value)
     ()

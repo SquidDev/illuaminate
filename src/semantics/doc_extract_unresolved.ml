@@ -44,7 +44,9 @@ type result =
 
 let mk_page ~mod_name ~mod_namespace ~mod_kind ~mod_contents ~mod_types =
   { page_ref = { id = mod_name; title = None; namespace = mod_namespace };
-    page_contents = Module { mod_contents; mod_types; mod_kind }
+    page_value = Some mod_contents;
+    page_types = mod_types;
+    page_module_kind = mod_kind
   }
 
 module Infer = struct
@@ -464,7 +466,13 @@ let unresolved_module_file =
                | x -> (None, x)
              in
              (* TODO: Warn if the above is a non-module/unknown. *)
+             (* I don't even know what this code is meant to be doing! Maybe worth some comments! *)
              { d with
                description;
-               descriptor = { page_ref = { id; title; namespace }; page_contents = Markdown }
+               descriptor =
+                 { page_ref = { id; title; namespace };
+                   page_value = None;
+                   page_types = [];
+                   page_module_kind = MKNone
+                 }
              })

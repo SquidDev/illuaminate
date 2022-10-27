@@ -47,7 +47,7 @@ let page_list_item =
     </a>;
   };
 
-let module_toc = (mod_types, mod_contents) => {
+let page_toc = ({page_types, page_value, _}) => {
   let make_link = x => {
     let name =
       switch (x) {
@@ -60,14 +60,14 @@ let module_toc = (mod_types, mod_contents) => {
     </a>;
   };
   [
-    switch (mod_contents) {
-    | Table(fields) =>
+    switch (page_value) {
+    | Some(Table(fields)) =>
       fields
       |> List.map(((name, _)) => make_link(Value(name)))
       |> show_list(~tag="h2", ~expandable=true, "Contents")
     | _ => nil
     },
-    mod_types
+    page_types
     |> List.map(({descriptor: {type_name, _}, _}) => {
          make_link(Type(type_name))
        })
@@ -75,13 +75,6 @@ let module_toc = (mod_types, mod_contents) => {
   ]
   |> many;
 };
-
-let page_toc = x =>
-  switch (x.page_contents) {
-  | Markdown => nil
-  | Module({mod_types, mod_contents, _}) =>
-    module_toc(mod_types, mod_contents)
-  };
 
 let template =
     (
@@ -241,23 +234,21 @@ let emit_page =
     (
       ~options,
       ~pages,
-      {descriptor: {page_ref, page_contents} as m, _} as self,
+      {descriptor: {page_ref, page_value, page_types, _} as m, _} as self,
     ) => {
   let content = [
     <h1> {str(Namespace.Ref.display_name(page_ref))} </h1>,
     show_preamble(~options, self),
     show_common(~options, self),
-    ...switch (page_contents) {
-       | Markdown => []
-       | Module({mod_types, mod_contents, _}) => [
-           show_value(~options, mod_contents),
-           ...switch (mod_types) {
-              | [] => []
-              | _ => [
-                  <h3> {str("Types")} </h3>,
-                  ...List.map(show_type(~options), mod_types),
-                ]
-              },
+    switch (page_value) {
+    | None => nil
+    | Some(value) => show_value(~options, value)
+    },
+    ...switch (page_types) {
+       | [] => []
+       | _ => [
+           <h3> {str("Types")} </h3>,
+           ...List.map(show_type(~options), page_types),
          ]
        },
   ];

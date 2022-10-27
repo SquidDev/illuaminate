@@ -48,17 +48,11 @@ and type_info =
     type_members : member list
   }
 
-and page_contents =
-  | Markdown
-  | Module of
-      { mod_types : type_info documented list;
-        mod_contents : value;
-        mod_kind : module_kind
-      }
-
-and page =
+type page =
   { page_ref : Namespace.Ref.t;
-    page_contents : page_contents
+    page_value : value option;
+    page_types : type_info documented list;
+    page_module_kind : module_kind
   }
 
 let get_suffix = function
@@ -139,14 +133,9 @@ class iter =
     method type_info : span:Span.t -> type_info -> unit =
       fun ~span:_ { type_members; type_name = _ } -> List.iter self#member type_members
 
-    method page_contents ~span =
-      function
-      | Module { mod_types; mod_contents; _ } ->
-          List.iter (self#documented self#type_info) mod_types;
-          self#value ~span mod_contents
-      | Markdown -> ()
-
-    method page ~span { page_contents; _ } = self#page_contents ~span page_contents
+    method page ~span { page_ref = _; page_value; page_types; page_module_kind = _ } =
+      Option.iter (self#value ~span) page_value;
+      List.iter (self#documented self#type_info) page_types
   end
 
 let iter_of f =

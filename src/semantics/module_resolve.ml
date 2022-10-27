@@ -49,9 +49,8 @@ let key =
     |> Option.value ~default:StringMap.empty
     |> StringMap.to_seq
     |> Seq.filter_map (function
-         | ( name,
-             ({ descriptor = { page_contents = Doc_syntax.Module { mod_contents; _ }; _ }; _ } as x)
-           ) -> Some (name, { x with descriptor = mod_contents })
+         | name, ({ descriptor = { page_value = Some value; _ }; _ } as x) ->
+             Some (name, { x with descriptor = value })
          | _ -> None)
     |> StringMap.of_seq
   in

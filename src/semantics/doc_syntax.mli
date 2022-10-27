@@ -56,19 +56,14 @@ and type_info =
     type_members : member list  (** The members belonging to this type. *)
   }
 
-(** A documented module. *)
-and page_contents =
-  | Markdown
-  | Module of
-      { mod_types : type_info documented list;  (** Types defined in this module. *)
-        mod_contents : value;  (** The value this module exposes. *)
-        mod_kind : module_kind  (** The kind of this module. *)
-      }
-
-and page =
+type page =
   { page_ref : Namespace.Ref.t;
         (** The unique reference of this page, including id, namespace and an optional title. *)
-    page_contents : page_contents  (** The contents of this page. *)
+    page_value : value option;
+        (** The value this module exposes. This may be {!None} if this module is not directly
+            consumable in user code. *)
+    page_types : type_info documented list;  (** Types defined in this page. *)
+    page_module_kind : module_kind  (** The kind of this module. *)
   }
 
 (** Get additional information about a definition, to be appended after a name.
@@ -88,7 +83,6 @@ class iter :
     method value : span:Span.t -> value -> unit
     method member : member -> unit
     method type_info : span:Span.t -> type_info -> unit
-    method page_contents : span:Span.t -> page_contents -> unit
     method page : span:Span.t -> page -> unit
   end
 

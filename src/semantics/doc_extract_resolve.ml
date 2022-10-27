@@ -25,10 +25,6 @@ module Resolvers = struct
       current_page : page documented option
     }
 
-  let is_module = function
-    | (lazy { descriptor = { page_contents = Module _; _ }; _ }) -> true
-    | (lazy { descriptor = { page_contents = Markdown; _ }; _ }) -> false
-
   (** Find a unique module by a name.*)
   let lookup_unique_module state name =
     match StringMap.find_opt name state.unique_pages with
@@ -37,16 +33,17 @@ module Resolvers = struct
         let matching =
           NMap.to_seq state.pages |> Seq.map snd
           |> Seq.filter_map (StringMap.find_opt name)
-          |> List.of_seq
+          |> Seq.map Lazy.force |> List.of_seq
         in
         let unique =
           match matching with
-          | [ (lazy x) ] -> Some x
+          | [ x ] -> Some x
           | _ -> (
+            (* If we can't resolve, prefer finding a module with values rather than one without. *)
             (* TODO: Really should warn on ambiguous ones here. But propagating this is rather
                hard. *)
-            match List.filter is_module matching with
-            | [ (lazy x) ] -> Some x
+            match List.filter (fun x -> Option.is_some x.descriptor.page_value) matching with
+            | [ x ] -> Some x
             | _ -> None)
         in
         state.unique_pages <- StringMap.add name unique state.unique_pages;
@@ -63,44 +60,40 @@ module Resolvers = struct
         |> Option.map Lazy.force
 
   (* Look up names within a module *)
-  let in_module_value { page_contents; page_ref } name is_type =
-    match page_contents with
-    | Module { mod_contents = Table fields; _ } when not is_type ->
+  let in_module_value { page_ref; page_value; _ } name is_type =
+    match page_value with
+    | Some (Table fields) when not is_type ->
         List.find_opt (fun (k, _) -> k = name) fields
         |> Option.map @@ fun (_, { definition; _ }) ->
            Internal { in_module = page_ref; name = Value name; definition }
     | _ -> None
 
   (** Look up types within a module *)
-  let in_module_type { page_contents; page_ref } name _ =
-    match page_contents with
-    | Markdown -> None
-    | Module { mod_types; _ } ->
-        List.find_opt (fun ty -> ty.descriptor.type_name = name) mod_types
-        |> Option.map @@ fun { definition; _ } ->
-           Internal { in_module = page_ref; name = Type name; definition }
+  let in_module_type { page_ref; page_types; _ } name _ =
+    List.find_opt (fun ty -> ty.descriptor.type_name = name) page_types
+    |> Option.map @@ fun { definition; _ } ->
+       Internal { in_module = page_ref; name = Type name; definition }
 
   (** Look up methods within a module *)
-  let in_module_method { page_contents; page_ref } name is_type =
-    match page_contents with
-    | Module { mod_types; _ } when not is_type ->
-        String.index_opt name ':'
-        |> CCOption.or_lazy ~else_:(fun () -> String.rindex_opt name '.')
-        |> CCOption.flat_map @@ fun i ->
-           let type_name = CCString.take i name and item_name = CCString.drop (i + 1) name in
-           mod_types
-           |> List.find_opt (fun ty -> ty.descriptor.type_name = type_name)
-           |> CCOption.flat_map (fun ty ->
-                  List.find_opt
-                    (fun { member_name; _ } -> member_name = item_name)
-                    ty.descriptor.type_members)
-           |> Option.map (fun { member_name; member_value; _ } ->
-                  Internal
-                    { in_module = page_ref;
-                      name = Member (type_name, member_name);
-                      definition = member_value.definition
-                    })
-    | _ -> None
+  let in_module_method { page_ref; page_types; _ } name is_type =
+    if is_type then None
+    else
+      String.index_opt name ':'
+      |> CCOption.or_lazy ~else_:(fun () -> String.rindex_opt name '.')
+      |> CCOption.flat_map @@ fun i ->
+         let type_name = CCString.take i name and item_name = CCString.drop (i + 1) name in
+         page_types
+         |> List.find_opt (fun ty -> ty.descriptor.type_name = type_name)
+         |> CCOption.flat_map (fun ty ->
+                List.find_opt
+                  (fun { member_name; _ } -> member_name = item_name)
+                  ty.descriptor.type_members)
+         |> Option.map (fun { member_name; member_value; _ } ->
+                Internal
+                  { in_module = page_ref;
+                    name = Member (type_name, member_name);
+                    definition = member_value.definition
+                  })
 
   let in_module_finders = [ in_module_value; in_module_type; in_module_method ]
 
@@ -220,17 +213,12 @@ and go_type ~cache lift { type_name; type_members } =
   in
   { type_name; type_members = List.map go_member type_members }
 
-let go_page_contents ~cache lift = function
-  | Markdown -> Markdown
-  | Module { mod_kind; mod_contents; mod_types } ->
-      Module
-        { mod_kind;
-          mod_contents = go_value ~cache lift mod_contents;
-          mod_types = List.map (go_documented lift (go_type ~cache)) mod_types
-        }
-
 let go_page ~cache lift to_resolve =
   go_documented lift
-    (fun lift { page_ref; page_contents } ->
-      { page_ref; page_contents = go_page_contents ~cache lift page_contents })
+    (fun lift { page_ref; page_value; page_types; page_module_kind } ->
+      { page_ref;
+        page_value = Option.map (go_value ~cache lift) page_value;
+        page_types = List.map (go_documented lift (go_type ~cache)) page_types;
+        page_module_kind
+      })
     to_resolve

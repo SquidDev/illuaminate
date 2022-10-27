@@ -123,20 +123,16 @@ module Merge = struct
   (** Merge two documented values. *)
   let doc_value ~errs = documented (value ~errs)
 
-  let page_contents ~errs span left right =
+  let page_value ~errs span left right =
     match (left, right) with
-    | _, Markdown | Markdown, _ ->
-        left (* TODO: Error. Markdown documents should never be merged. *)
-    | Module left, Module right ->
-        Module
-          { mod_kind = left.mod_kind;
-            mod_types = left.mod_types @ right.mod_types;
-            mod_contents = value ~errs span left.mod_contents right.mod_contents
-          }
+    | _, None | None, _ -> left (* TODO: Error. Markdown documents should never be merged. *)
+    | Some left, Some right -> Some (value ~errs span left right)
 
   let page ~errs span left right =
     { page_ref = left.page_ref;
-      page_contents = page_contents ~errs span left.page_contents right.page_contents
+      page_value = page_value ~errs span left.page_value right.page_value;
+      page_types = left.page_types @ right.page_types;
+      page_module_kind = left.page_module_kind
     }
 end
 
