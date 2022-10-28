@@ -14,6 +14,7 @@
 %token OSQUARE "[" CSQUARE "]"
 
 %token <string> IDENT STRING
+%token <string * string> MIDENT
 %token <int> INT
 %token <float> NUMBER
 
@@ -59,11 +60,12 @@ let return :=
   | ":" ; ty = simple_type ; "..." ;      { ([], Some ty) }
 
 let var :=
-  | ~ = name ;                            <>
-  | tbl = var ; "." ; field = name ;      { tbl ^ "." ^ field }
+  | ~ = name ;                            { (name, name) }
+  | ~ = MIDENT ;                          <>
+  | tbl = var ; "." ; field = name ;      { let (whole, display) = tbl in (whole ^ "." ^ field, display ^ "." ^ field) }
 
 let simple_type :=
-  | ~ = var ;                         { Named (Reference var, var) }
+  | ~ = var ;                         { let (whole, display) = var in Named (Reference whole, display) }
   | FUNCTION ;                        { Named (Reference "function", "function") }
   | "(" ; ~ =  ty ; ")" ;             <>
   | NIL ;                             { NilTy }

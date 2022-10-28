@@ -22,6 +22,7 @@ let show_token = function
   | STRING _ -> "string"
   | INT _ | NUMBER _ -> "number"
   | IDENT _ -> "ident"
+  | MIDENT _ -> "ident (with module kind)"
   | EOF -> "eof"
 
 let show_error = function

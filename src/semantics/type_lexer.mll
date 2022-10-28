@@ -51,7 +51,8 @@ rule token = parse
 | digit* '.' digit+ ['E' 'e'] ['+' '-'] digit+ as i { (NUMBER (float_of_string i)) }
 
 (* Identifiers *)
-| ident_head ident_tail* as i { (IDENT i) }
+| ident_head ident_tail* as i { IDENT i }
+| ident_head ident_tail* '!' (ident_head ident_tail* as d) as i { MIDENT (i, d) }
 
 | '\"'          { string (Buffer.create 17) '\"' lexbuf }
 | '\''          { string (Buffer.create 17) '\'' lexbuf }
