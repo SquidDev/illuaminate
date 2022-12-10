@@ -41,8 +41,8 @@ package managers.
 ## Usage
  - Either build Illuaminate as above, or download a pre-built version:
    ```
-   > wget https://squiddev.cc/illuaminate/linux-x86-64/illuaminate # A x86-64 Linux static binary
-   > wget https://squiddev.cc/illuaminate/windows-x86-64/illuaminate.exe # A x86-64 Windows binary
+   > wget https://squiddev.cc/illuaminate/bin/latest/illuaminate-linux-x86_64 # A x86-64 Linux static binary
+   > wget https://squiddev.cc/illuaminate/bin/latest/illuaminate-windows-x86_64.exe # A x86-64 Windows binary
    ```
 
    You may need to `chmod +x` the downloaded file to make it executable.
@@ -60,53 +60,8 @@ package managers.
    configuration files. `illuamiante init-config illuaminate.sexp` will generate
    a template config file which can be adjusted to suit your needs.
 
-## Language server
-Illuaminate has support for the [language server protocol][lsp]. This allows it
-to be used with [many different editors and tools][lsp_editors].
-
-We provide [plugins for Emacs and VS Code][editor_tree]. Currently one must
-build-from source, or copy into your own setup as we do not currently publish
-them on the package repositories - this will change as illuaminate matures.
-
-The server can be downloaded as with [normal illuaminate](#usage) - just change
-the executable to `illuaminate-lsp`.
-
-The language server has support for the following features:
-
-### Documentation
-Illuaminate parses documentation comments, and uses them to display information
-about modules and functions.
-
-<p align="center">
-<img src="doc/emacs-doc.png" title="Displaying member documentation within Emacs." />
-</p>
-
-### Find all references and go to definition
-One may find all references of local variables, and jump to the definition of
-any local or module variable.
-
-<p align="center">
-<img src="doc/emacs-references.png" title="Find all references of a local variable" />
-</p>
-<p align="center">
-<img src="doc/emacs-highlight.png" title="Highlight all references and assignments of a variable." />
-</p>
-
-### Diagnostics and code fixes
-Any error or warning message that `illuaminate lint` reports is also shown in
-your editor. For any warning which has an automatic fix, we provide a code
-action to apply it.
-
-<p align="center">
-<img src="doc/emacs-warning.png" title="A basic warning and available code action." />
-</p>
-
-
 [opam]: https://opam.ocaml.org/doc/Install.html "Installing opam"
 [omnomnom]: https://github.com/SquidDev/omnomnom "omnomnom on GitHub"
 [actions]: https://github.com/features/actions "An introduction to GitHub actions"
 [esy]: https://esy.sh/
-[lsp]: https://microsoft.github.io/language-server-protocol "The Language Server Protocol"
-[lsp_editors]: https://microsoft.github.io/language-server-protocol/implementors/tools
-[editor_tree]: https://github.com/SquidDev/illuaminate/tree/master/src/editor
 [upx]: https://github.com/upx/upx "upx on GitHub"
