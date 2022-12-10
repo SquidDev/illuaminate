@@ -3,6 +3,7 @@
 .merlin
 *.install
 /node_modules
+/result
 
 # Parser files
 *.conflicts
