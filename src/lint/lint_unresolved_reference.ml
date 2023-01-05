@@ -26,7 +26,7 @@ let check ~ctx ~span ~kind = function
       match modu with
       | Some { local = true; _ } ->
           ctx.report.r ~span ~tag:local_tag
-            "This %s references a private %S, and so cannot be referenced from public code." kind
+            "This references a private module %S, and so cannot be referenced from public code."
             in_module.id
       | _ -> ())
   | Internal _ | External _ -> ()
