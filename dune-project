@@ -48,7 +48,7 @@
     logs
     menhir
     menhirLib
-    mtime
+    (mtime (< 2.0))
     ppx_deriving_yojson
     ppx_yojson_conv_lib
     re
