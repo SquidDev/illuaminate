@@ -1,6 +1,6 @@
 --- config: (lint (only doc:unresolved-reference))
 -- Foo
--- @module
+-- @module x
 
 --- @type Foo
 local Foo = {}

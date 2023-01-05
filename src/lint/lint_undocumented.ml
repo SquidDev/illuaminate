@@ -59,7 +59,7 @@ let linter =
               let module MN = Map.Make (Namespace) in
               let module MS = Map.Make (String) in
               let has_any =
-                IlluaminateData.need context E.get_pages ()
+                IlluaminateData.need context E.all_pages ()
                 |> MN.find_opt descriptor.page_ref.namespace
                 |> CCOption.flat_map (MS.find_opt descriptor.page_ref.id)
                 |> CCOption.flat_map (fun (x : _ documented) -> x.description)

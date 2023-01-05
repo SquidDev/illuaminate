@@ -94,8 +94,8 @@ let file =
 let get_page ({ contents; _ } : t) = contents
 let get_var ({ vars; _ } : t) var = VarTbl.find_opt vars var
 
-let get_pages =
-  D.Key.key ~name:(__MODULE__ ^ ".get_pages") @@ fun data () ->
+let all_pages =
+  D.Key.key ~name:(__MODULE__ ^ ".all_pages") @@ fun data () ->
   D.need data D.Programs.Files.files ()
   |> List.fold_left
        (fun pages filename ->
@@ -104,3 +104,8 @@ let get_pages =
          | Some { contents = Some result; _ } -> add_page pages result)
        NMap.empty
   |> NMap.map (StringMap.map crunch_pages)
+
+let public_pages =
+  D.Key.key ~name:(__MODULE__ ^ ".public_pages") @@ fun data () ->
+  D.need data all_pages ()
+  |> NMap.map (fun pages -> StringMap.filter (fun _ modu -> not modu.local) pages)

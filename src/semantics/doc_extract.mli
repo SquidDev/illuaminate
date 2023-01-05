@@ -59,5 +59,9 @@ val get_var : t -> Resolve.var -> value documented option
 val get_page : t -> page documented option
 
 (** Get all available pages. *)
-val get_pages :
+val all_pages :
+  (unit, page documented Map.Make(String).t Map.Make(Namespace).t) IlluaminateData.Key.t
+
+(** Get all public (i.e. non-[@local]) pages. *)
+val public_pages :
   (unit, page documented Map.Make(String).t Map.Make(Namespace).t) IlluaminateData.Key.t

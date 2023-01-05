@@ -44,7 +44,7 @@ let key =
   let open IlluaminateData in
   Programs.key ~name:__MODULE__ @@ fun data prog ->
   let modules ns =
-    need data Doc_extract.get_pages ()
+    need data Doc_extract.all_pages ()
     |> NMap.find_opt ns
     |> Option.value ~default:StringMap.empty
     |> StringMap.to_seq
@@ -130,7 +130,7 @@ let global_modules =
   let module SSet = Set.Make (String) in
   let module SMap = Map.Make (String) in
   let get data () =
-    need data Doc_extract.get_pages ()
+    need data Doc_extract.all_pages ()
     |> NMap.find_opt Namespace.module_ |> Option.value ~default:SMap.empty |> SMap.to_seq
     |> Seq.map fst
     |> Seq.fold_left (Fun.flip SSet.add) SSet.empty

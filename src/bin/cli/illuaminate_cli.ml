@@ -137,7 +137,7 @@ let doc_gen path =
   |> Loader.load_from ~loader
   |> Option.iter @@ fun (config, _, builder) ->
      let data = IlluaminateData.Builder.(empty |> builder |> build) in
-     let pages = IlluaminateData.get data Doc.Extract.get_pages () in
+     let pages = IlluaminateData.get data Doc.Extract.public_pages () in
      let { Config.DocOptions.site_properties =
              { site_title; site_image; site_url; embed_head; embed_js; embed_css; source_link };
            index;
