@@ -1,4 +1,4 @@
-doc_extract.lua:[3:1-6:12]: Term is marked as both a function and a type [doc:kind-mismatch]
+doc_extract.lua:[3:1-6:12]: Documentation comment cannot have both @param/@return and @type [doc:kind-mismatch]
    │
  3 │ --- Marked as type and function
    │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

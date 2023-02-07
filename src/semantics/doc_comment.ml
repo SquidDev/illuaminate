@@ -16,6 +16,13 @@ type module_info =
 
 type type_info = { type_name : string } [@@unboxed]
 
+type field =
+  { field_pos : Span.t;
+    field_name : string;
+    field_type : Type.t option;
+    field_description : description option
+  }
+
 type comment =
   { (* Some general information about this comment. *)
     source : Span.t;
@@ -34,6 +41,8 @@ type comment =
     arguments : arg list list;
     returns : return list list;
     throws : description list;
+    (* Tables *)
+    fields : field list;
     (* Modules. *)
     module_info : module_info Span.spanned option;
     (* Types. *)

@@ -9,11 +9,19 @@ include
 type module_info =
   { mod_name : string;  (** The name of this module. *)
     mod_namespace : Namespace.t option;  (** This namespace of this module. *)
-    mod_kind : Doc_syntax.module_kind option  (** This kind of this module. *)
+    mod_kind : module_kind option  (** This kind of this module. *)
   }
 
 (** Information about this type/class. *)
 type type_info = { type_name : string } [@@unboxed]
+
+(** An additional field on a type, not described in the Lua code itself. *)
+type field =
+  { field_pos : Span.t;  (** The position of this field. *)
+    field_name : string;  (** The name of this field. *)
+    field_type : Type.t option;  (** The type of this field. *)
+    field_description : description option  (** An additional description of the field. *)
+  }
 
 (** A documentation comment.
 
@@ -37,6 +45,8 @@ type comment =
     arguments : arg list list;  (** A list of possible function argument signatures. *)
     returns : return list list;  (** A list of possible function return signatures. *)
     throws : description list;  (** Possible errors this function throws. *)
+    (* Tables *)
+    fields : field list;  (** Additional fields on this type. *)
     (* Modules. *)
     module_info : module_info Span.spanned option;
         (** Information about the module this term defines. *)

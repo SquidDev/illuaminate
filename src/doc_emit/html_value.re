@@ -32,10 +32,10 @@ let show_arg = (~options, {arg_name, arg_opt, arg_type, arg_description}) =>
 let show_return = (~options, {ret_type, ret_many, ret_description}) =>
   <li>
     {switch (ret_type) {
-     | None => nil
-     | Some(ty) =>
+     | None when !ret_many => nil
+     | ty =>
        <span class_="type">
-         {show_type(~options, ty)}
+         {Option.fold(~none=nil, ~some=show_type(~options), ty)}
          {if (ret_many) {
             str("...");
           } else {
@@ -187,7 +187,18 @@ let rec show_named_value =
             ? "definition-name definition-deprecated" : "definition-name"
         }>
         {str(field)}
-        {value.descriptor |> get_suffix |> str}
+        {switch (value.descriptor) {
+         | Expr({value: Some(value), _}) => str(" = " ++ value)
+         | Expr({ty, _}) =>
+           let (is_opt, ty) = Html_type.opt_ty(ty);
+           [
+             show_opt(~kind="field", is_opt),
+             <span class_="type-sep"> {str(":")} </span>,
+             <span class_="type"> {show_type(~options, ty)} </span>,
+           ]
+           |> many;
+         | value => get_suffix(value) |> str
+         }}
       </span>
       {show_pos(~source_link, value)}
     </dt>,

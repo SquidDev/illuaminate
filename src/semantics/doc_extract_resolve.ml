@@ -197,7 +197,8 @@ let rec go_value ~cache lift = function
         }
   | Table fields ->
       Table (List.map (fun (name, field) -> (name, go_value_doc ~cache lift field)) fields)
-  | (Expr _ | Unknown | Undefined) as e -> e
+  | Expr { ty; value } -> Expr { ty = Lift.ty lift ty; value }
+  | (Unknown | Undefined) as e -> e
   | Type t -> Type (go_type ~cache lift t)
 
 and go_value_doc ~cache lift value =

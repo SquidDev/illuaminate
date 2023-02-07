@@ -11,6 +11,23 @@ let show_opt = (~kind, optional) =>
     nil;
   };
 
+let opt_ty = ty =>
+  switch (ty) {
+  | Union(tys) =>
+    let (is_opt, ty) =
+      List.fold_right(
+        (ty, (is_opt, tys)) =>
+          switch (ty) {
+          | NilTy => (true, tys)
+          | _ => (is_opt, [ty] @ tys)
+          },
+        tys,
+        (false, []),
+      );
+    (is_opt, Union(ty));
+  | _ => (false, ty)
+  };
+
 let show_reference = (~options, x, label) => {
   let (link, class_) = Html_basic.reference_attrs(~options, x, `Code);
   switch (link) {

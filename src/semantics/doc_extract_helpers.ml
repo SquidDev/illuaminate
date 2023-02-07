@@ -35,13 +35,42 @@ module Value = struct
         and throws = List.map (Lift.description lift) throws in
         Some (Function { args; rets; throws; has_self = false })
 
+  let field_value (field : C.field) : value documented =
+    let descriptor =
+      match field.field_type with
+      | None -> Unknown
+      | Some ty -> Expr { ty = Lift.ty lift ty; value = None }
+    in
+    { description = Option.map (Lift.description lift) field.field_description;
+      descriptor;
+      definition = field.field_pos;
+      examples = [];
+      see = [];
+      local = false;
+      export = false;
+      deprecated = None;
+      custom_source = None;
+      changes = []
+    }
+
+  let field_member (field : C.field) =
+    { member_name = field.field_name; member_is_method = false; member_value = field_value field }
+
   let get_value ~report (comment : C.comment) =
-    match (get_function comment, comment.type_info) with
-    | None, None -> Unknown
-    | Some x, None -> x
-    | None, Some { type_name } -> Type { type_name; type_members = [] }
-    | Some _, Some _ ->
-        report Tag.kind_mismatch comment.source "Term is marked as both a function and a type";
+    match (get_function comment, comment.type_info, comment.fields) with
+    | None, None, [] -> Unknown
+    | Some x, None, [] -> x
+    | None, Some { type_name }, fields ->
+        Type { type_name; type_members = List.map field_member fields }
+    | None, None, (_ :: _ as fields) ->
+        Table (List.map (fun f -> (f.C.field_name, field_value f)) fields)
+    | Some _, Some _, _ ->
+        report Tag.kind_mismatch comment.source
+          "Documentation comment cannot have both @param/@return and @type";
+        Undefined
+    | Some _, None, _ ->
+        report Tag.kind_mismatch comment.source
+          "Documentation comment cannot have both @param/@return and @field";
         Undefined
 
   let get_documented ~report (comment : C.comment) =

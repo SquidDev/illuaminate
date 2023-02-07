@@ -1,0 +1,33 @@
+{
+  "fields": {
+    "name": "fields",
+    "source": "fields.lua[8:1-9:1]",
+    "module": "fields",
+    "module-kind": "module",
+    "url": "module/fields.html"
+  },
+  "fields.A": {
+    "name": "fields.A",
+    "source": "fields.lua[8:11-8:12]",
+    "summary": "A table with some fields",
+    "module": "fields",
+    "module-kind": "module",
+    "url": "module/fields.html#ty:A"
+  },
+  "fields.A.a": {
+    "name": "fields.A:a",
+    "source": "fields.lua[5:4-5:10]",
+    "summary": "Field a.",
+    "module": "fields",
+    "module-kind": "module",
+    "url": "module/fields.html#ty:A:a"
+  },
+  "fields.A.b": {
+    "name": "fields.A:b",
+    "source": "fields.lua[6:4-6:9]",
+    "summary": "Field b.",
+    "module": "fields",
+    "module-kind": "module",
+    "url": "module/fields.html#ty:A:b"
+  }
+}

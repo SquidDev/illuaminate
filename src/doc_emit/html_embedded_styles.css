@@ -360,7 +360,7 @@ dl.definition h3 {
 a.source-link, a.source-link:visited, a.source-link:active { color: var(--source-link-colour); }
 
 /* Method definitions */
-span.parameter:after { content:":"; padding-left: 0.3em; }
+span.parameter:after, span.type-sep { content:":"; padding-left: 0.3em; }
 .optional { text-decoration: underline dotted; }
 .default-value code { background: none; }
 

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>fields</title>
+    <meta property="og:title" content="fields" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="My title" />
+    <link rel="stylesheet" href="main.css" type="text/css" />
+  </head>
+  <body>
+    <nav id="nav">
+      <button id="nav-reveal" type="button">&#9776;</button>
+      <h1><a href="./">My title</a></h1>
+      <div class="nav-links">
+        <h2 tabindex="0">Types</h2>
+        <ul><li><a href="#ty:A" class="sidebar-link">A</a></li></ul>
+      </div>
+    </nav>
+    <div id="main">
+      <div id="search-form" role="form">
+        <input id="search-box" type="text" placeholder="Search..." autocomplete="off" tabindex="0">
+          
+        </input>
+        <div id="search-results"></div>
+      </div>
+      <section id="content">
+        <h1>fields</h1>
+        <h3>Types</h3>
+        <h3><a name="ty:A" href="#ty:A"></a> <span>A</span></h3>
+        <p>A table with some fields</p>
+
+        <dl class="definition">
+          <dt>
+            <a name="ty:A:a" href="#ty:A:a"></a>
+            <span class="definition-name">
+              A.a
+              <span class="optional" title="This field is optional">?</span>
+              <span class="type-sep">:</span>
+              <span class="type">
+                <span class="reference reference-code">number</span>
+              </span>
+            </span>
+            <a href="fields.lua[5:4-5:10]" class="source-link">Source</a>
+          </dt>
+          <dd><p>Field a.</p>
+</dd>
+          <dt>
+            <a name="ty:A:b" href="#ty:A:b"></a>
+            <span class="definition-name">A.b</span>
+            <a href="fields.lua[6:4-6:9]" class="source-link">Source</a>
+          </dt>
+          <dd><p>Field b.</p>
+</dd>
+        </dl>
+      </section>
+      <footer>Last updated on xxxx-xx-xx</footer>
+    </div>
+    <div id="search-overlay"></div>
+    <script src="main.js" type="text/javascript" defer=""></script>
+  </body>
+</html>

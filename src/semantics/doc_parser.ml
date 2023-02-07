@@ -214,7 +214,8 @@ module Build = struct
       mutable b_throws : description list;
       (* Other *)
       mutable b_module : module_info Span.spanned option;
-      mutable b_type : type_info option
+      mutable b_type : type_info option;
+      mutable b_fields : field list
     }
 
   let create () =
@@ -226,12 +227,13 @@ module Build = struct
       b_export = false;
       b_deprecated = None;
       b_custom_source = None;
+      b_changes = [];
       b_args = empty_group;
       b_rets = empty_group;
       b_throws = [];
       b_module = None;
       b_type = None;
-      b_changes = []
+      b_fields = []
     }
 
   let report b tag span f = Format.kasprintf (fun x -> b.b_errors <- (tag, span, x) :: b.b_errors) f
@@ -309,6 +311,7 @@ module Build = struct
                report b Tag.malformed_type (Lex.to_span ty)
                  "Return value has malformed type '%s' ('%s')" ty.contents msg;
                (idx, ret))
+       | Marker { contents = "..."; _ } -> (idx, { ret with ret_many = true })
        | Marker cont -> (
          match CCInt.of_string cont.contents with
          | Some new_idx ->
@@ -339,6 +342,25 @@ module Build = struct
           { change_kind; change_version = version.contents; change_span; change_description }
           :: b.b_changes
 
+  let parse_field b field =
+    field
+    |> List.fold_left @@ fun field flag ->
+       let name = field.field_name in
+       match flag with
+       | Named ({ value = "type"; span }, ty) -> (
+           if Option.is_some field.field_type then
+             report b Tag.duplicate_definitions span "Field '%s' has multiple types." name;
+           match Type_parser.parse ty.contents with
+           | Ok ty -> { field with field_type = Some ty }
+           | Error msg ->
+               (* TODO: Adjust to correct position. *)
+               report b Tag.malformed_type (Lex.to_span ty)
+                 "Field '%s' has malformed type '%s' ('%s')" name ty.contents msg;
+               field)
+       | Marker _ | Named _ ->
+           unknown b (Printf.sprintf "Parameter '%s'" name) flag;
+           field
+
   (** Extract a {!documented} term from a comment and series of tags. *)
   let rec add_flag b (tag : string Span.spanned) (flags : doc_flag list) (body : string Lex.ranged)
       : unit =
@@ -362,7 +384,7 @@ module Build = struct
     | "see" -> (
         List.iter (unknown b "@see") flags;
         match Lex.word body with
-        | None -> report b Tag.malformed_tag (Lex.to_span body) "Expected type name."
+        | None -> report b Tag.malformed_tag (Lex.to_span body) "Expected reference name."
         | Some (refr, body) ->
             let see_description = Lex.description' body in
             b.b_see <-
@@ -493,11 +515,36 @@ module Build = struct
                 { value = { mod_name = body.contents; mod_kind; mod_namespace }; span = tag.span })
     | "type" -> (
         List.iter (unknown b "@type") flags;
-        match b.b_type with
-        | Some { type_name = inner_name; _ } ->
-            report b Tag.duplicate_definitions tag.span
-              "Duplicate @type definitions (named '%s' and '%s')" inner_name body.contents
-        | None -> b.b_type <- Some { type_name = body.contents })
+        match Lex.word body with
+        | None -> report b Tag.malformed_tag (Lex.to_span body) "Expected type name."
+        | Some ({ contents = type_name; _ }, _rest) -> (
+          (* TODO: Handle non-empty body. *)
+          match b.b_type with
+          | Some { type_name = inner_name; _ } ->
+              report b Tag.duplicate_definitions tag.span
+                "Duplicate @type definitions (named '%s' and '%s')" inner_name type_name
+          | None -> b.b_type <- Some { type_name }))
+    | "tfield" -> (
+      match Lex.word body with
+      | None -> report b Tag.malformed_tag (Lex.to_span body) "Expected field type."
+      | Some (ty, cont) ->
+          add_flag b { tag with value = "field" }
+            (Named ({ span = Lex.to_span body; value = "type" }, ty) :: flags)
+            cont)
+    | "field" ->
+        let name, desc =
+          match Lex.word body with
+          | None ->
+              report b Tag.malformed_tag (Lex.to_span body) "Expected field name.";
+              ("?", None)
+          | Some (name, body) -> (name.contents, Lex.description' body)
+        in
+        let field =
+          parse_field b
+            { field_pos = tag.span; field_name = name; field_type = None; field_description = desc }
+            flags
+        in
+        b.b_fields <- field :: b.b_fields
     | _ -> report b Tag.unknown_tag tag.span "Unknown tag @%s" tag.value
 
   let build ~span ~description b =
@@ -510,13 +557,14 @@ module Build = struct
       includes = List.rev b.b_includes;
       export = b.b_export;
       deprecated = b.b_deprecated;
+      changes = List.rev b.b_changes;
       custom_source = b.b_custom_source;
       arguments = get_group b.b_args;
       returns = get_group b.b_rets;
       throws = List.rev b.b_throws;
       module_info = b.b_module;
       type_info = b.b_type;
-      changes = List.rev b.b_changes
+      fields = List.rev b.b_fields
     }
 end
 
