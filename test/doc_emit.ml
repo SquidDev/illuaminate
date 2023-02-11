@@ -28,7 +28,8 @@ let process ~go ~name contents out =
       in
       let docs = D.get data Doc.program parsed in
       Doc.errors docs
-      |> List.iter (fun (e : Error.Error.t) -> Error.report errs e.tag e.span e.message);
+      |> List.iter (fun (e : Error.Error.t) ->
+             Error.report_detailed errs e.tag e.span e.message e.annotations);
       Doc.get_page docs |> Option.iter (fun m -> go out data m));
 
   Error.display_of_string ~out (fun _ -> Some contents) errs

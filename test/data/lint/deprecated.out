@@ -1,14 +1,16 @@
-deprecated.lua:[10:1-10:1]: Using deprecated member. [var:deprecated]
+deprecated.lua: Using deprecated member. [var:deprecated]
     │
  10 │ x.a = 1
     │ ^
-deprecated.lua:[11:7-11:7]: Using deprecated member. [var:deprecated]
+
+deprecated.lua: Using deprecated member. [var:deprecated]
     │
  11 │ print(x, y)
     │       ^
-deprecated.lua:[11:10-11:10]: Using deprecated member. [var:deprecated]
-Use something else instead
+
+deprecated.lua: Using deprecated member. [var:deprecated]
     │
  11 │ print(x, y)
     │          ^
+Use something else instead
 No errors and 3 warnings

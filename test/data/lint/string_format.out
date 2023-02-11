@@ -1,12 +1,14 @@
-string_format.lua:[3:11-3:39]: Format string takes 3 parameters, but only given 0 arguments. [stdlib:string-format]
+string_format.lua: Format string takes 3 parameters, but only given 0 arguments. [stdlib:string-format]
    │
  3 │ local _ = string.format("%s %.2f % +s") -- ok
    │           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-string_format.lua:[4:25-4:28]: Unknown specifier '%?' [stdlib:string-format]
+
+string_format.lua: Unknown specifier '%?' [stdlib:string-format]
    │
  4 │ local _ = string.format("%?")
    │                         ^^^^
-string_format.lua:[6:25-6:29]: Redundant flags to format string '%' [stdlib:string-format]
+
+string_format.lua: Redundant flags to format string '%' [stdlib:string-format]
    │
  6 │ local _ = string.format("%2%")
    │                         ^^^^^

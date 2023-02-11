@@ -1,18 +1,20 @@
-bracket_space_nospace.lua:[3:11-3:14]: Inconsistent spacing [format:bracket-space]
-Should not have spaces within the brackets.
+bracket_space_nospace.lua: Inconsistent spacing [format:bracket-space]
    │
  3 │ local _ = { 1}, {1 }, {1}, { 1 }
    │           ^^^^
-bracket_space_nospace.lua:[3:17-3:20]: Inconsistent spacing [format:bracket-space]
 Should not have spaces within the brackets.
+
+bracket_space_nospace.lua: Inconsistent spacing [format:bracket-space]
    │
  3 │ local _ = { 1}, {1 }, {1}, { 1 }
    │                 ^^^^
-bracket_space_nospace.lua:[3:28-3:32]: Inconsistent spacing [format:bracket-space]
 Should not have spaces within the brackets.
+
+bracket_space_nospace.lua: Inconsistent spacing [format:bracket-space]
    │
  3 │ local _ = { 1}, {1 }, {1}, { 1 }
    │                            ^^^^^
+Should not have spaces within the brackets.
 No errors and 3 warnings
  -- config: (lint (only format:bracket-space) (bracket-spaces (table no-space)))
  

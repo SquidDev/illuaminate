@@ -1,24 +1,29 @@
-string_len.lua:[3:11-3:26]: Prefer `#` over string.len [stdlib:string-len]
+string_len.lua: Prefer `#` over string.len [stdlib:string-len]
    │
  3 │ local _ = string.len "foo"
    │           ^^^^^^^^^^^^^^^^
-string_len.lua:[4:11-4:27]: Prefer `#` over string.len [stdlib:string-len]
+
+string_len.lua: Prefer `#` over string.len [stdlib:string-len]
    │
  4 │ local _ = string.len("foo") -- Basic application
    │           ^^^^^^^^^^^^^^^^^
-string_len.lua:[5:11-5:36]: Prefer `#` over string.len [stdlib:string-len]
+
+string_len.lua: Prefer `#` over string.len [stdlib:string-len]
    │
  5 │ local _ = string.len("foo" .. "bar") -- Needs parens
    │           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-string_len.lua:[6:11-6:34]: Prefer `#` over string.len [stdlib:string-len]
+
+string_len.lua: Prefer `#` over string.len [stdlib:string-len]
    │
  6 │ local _ = string.len("foo", "bar") -- Warns, but no change
    │           ^^^^^^^^^^^^^^^^^^^^^^^^
-string_len.lua:[9:11-9:29]: Prefer `#` over string.len [stdlib:string-len]
+
+string_len.lua: Prefer `#` over string.len [stdlib:string-len]
    │
  9 │ local _ = string.len( "foo" )
    │           ^^^^^^^^^^^^^^^^^^^
-string_len.lua:[10:11-10:29]: Prefer `#` over string.len [stdlib:string-len]
+
+string_len.lua: Prefer `#` over string.len [stdlib:string-len]
     │
  10 │ local _ = string.len( "foo" ) + 2
     │           ^^^^^^^^^^^^^^^^^^^

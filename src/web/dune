@@ -3,6 +3,7 @@
  (libraries
   js_of_ocaml
   containers
+  fmt
   fpath
   illuaminate.core
   illuaminate.parser

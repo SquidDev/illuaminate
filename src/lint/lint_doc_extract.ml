@@ -8,5 +8,5 @@ let linter =
     ~file:(fun () context r prog ->
       IlluaminateData.need context E.file prog
       |> E.errors
-      |> List.iter (fun { Error.Error.span; tag; message; _ } -> r.r ~span ~tag "%s" message))
+      |> List.iter (fun { Error.Error.span; tag; message; _ } -> r.r ~span ~tag "%a" message ()))
     ()

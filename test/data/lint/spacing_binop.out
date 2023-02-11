@@ -1,8 +1,9 @@
-spacing_binop.lua:[3:13-3:13]: Expected whitespace around "+". [format:separator-space]
+spacing_binop.lua: Expected whitespace around "+". [format:separator-space]
    │
  3 │ local x = (0+0)*0 + 1
    │             ^
-spacing_binop.lua:[3:16-3:16]: Expected whitespace around "*". [format:separator-space]
+
+spacing_binop.lua: Expected whitespace around "*". [format:separator-space]
    │
  3 │ local x = (0+0)*0 + 1
    │                ^

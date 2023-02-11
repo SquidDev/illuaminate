@@ -9,6 +9,7 @@
   illuaminate.data
   illuaminate.semantics
   illuaminate.parser
+  fmt
   ppx_deriving.runtime
   omd)
  (instrumentation

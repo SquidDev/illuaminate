@@ -1,6 +1,6 @@
 ((source deprecate.lua[1:1-3:14]) (description "<p>Deprecated twice</p>\n")
  (deprecated))
-deprecate.lua:[3:4-3:14]: Duplicate @deprecated tags [doc:duplicate-definitions]
+deprecate.lua: Duplicate @deprecated tags [doc:duplicate-definitions]
    │
  3 │ -- @deprecated
    │    ^^^^^^^^^^^

@@ -1,4 +1,4 @@
-unresolved_member_dynamic.lua:[5:7-5:22]: Unknown field unknown in b_module [var:unresolved-member]
+unresolved_member_dynamic.lua: Unknown field unknown in b_module [var:unresolved-member]
    │
  5 │ print(b_module.unknown)
    │       ^^^^^^^^^^^^^^^^

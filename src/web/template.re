@@ -54,13 +54,14 @@ let error = (line, ~fix=?, {Error.Error.span, message, tag, _}) => {
 
   <div class_={"error error-" ++ level(tag.level)}>
     <div class_="error-pos">
-      {Printf.sprintf(
-         "[%d:%d-%d:%d]: %s [%s]",
+      {Format.asprintf(
+         "[%d:%d-%d:%d]: %a [%s]",
          start_line,
          start_col,
          finish_line,
          finish_col,
          message,
+         (),
          tag.name,
        )
        |> str}

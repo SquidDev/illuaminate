@@ -1,12 +1,13 @@
-unused_var.lua:[2:10-2:10]: Unused variable "y". [var:unused]
+unused_var.lua: Unused variable "y". [var:unused]
    │
  2 │ local x, y, z, _ = 0, 0, 0
    │          ^
-unused_var.lua:[5:1-5:1]: Unused variable "y". [var:unused]
+unused_var.lua: Unused variable "y". [var:unused]
    │
  5 │ y = 0
    │ ^
-unused_var.lua:[8:1-8:6]: Unused variable "global". [var:unused-global]
+
+unused_var.lua: Unused variable "global". [var:unused-global]
    │
  8 │ global = 0
    │ ^^^^^^

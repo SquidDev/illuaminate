@@ -54,12 +54,16 @@ module Tag : sig
 end
 
 module Error : sig
+  type annotation =
+    | Message of unit Fmt.t
+    | Annotation of Span.t * unit Fmt.t option
+
   (** An error reported within the system. *)
   type t = private
     { tag : Tag.t;
       span : Span.t;
-      message : string;
-      details : (Format.formatter -> unit) option
+      message : unit Fmt.t;
+      annotations : annotation list
     }
 
   (** Compare two errors by their position. This is suitable for sorting, but obviously does not
@@ -76,10 +80,8 @@ val make : unit -> t
 (** Report a new error at a specific position *)
 val report : t -> Tag.t -> Span.t -> string -> unit
 
-(** Report a new error at a specific position with additional details.
-
-    The detail printer may use the styles provided by {!Style} to provide richer messages. *)
-val report_detailed : t -> Tag.t -> Span.t -> string -> (Format.formatter -> unit) -> unit
+(** Report a new error at a specific position with additional details. *)
+val report_detailed : t -> Tag.t -> Span.t -> unit Fmt.t -> Error.annotation list -> unit
 
 (** Determine if the error reporter has any problems in it. *)
 val has_problems : t -> bool

@@ -1,88 +1,104 @@
-bracket_space.lua:[3:6-3:9]: Inconsistent spacing [format:bracket-space]
-No space after the opening bracket, but spaces before the closing one.
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
    │
  3 │ print(1 ) print( 1) local _ = print(1 )
    │      ^^^^
-bracket_space.lua:[3:16-3:19]: Inconsistent spacing [format:bracket-space]
-Spaces after the opening bracket, but no spaces before the closing one.
+No space after the opening bracket, but spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
    │
  3 │ print(1 ) print( 1) local _ = print(1 )
    │                ^^^^
-bracket_space.lua:[3:36-3:39]: Inconsistent spacing [format:bracket-space]
-No space after the opening bracket, but spaces before the closing one.
+Spaces after the opening bracket, but no spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
    │
  3 │ print(1 ) print( 1) local _ = print(1 )
    │                                    ^^^^
-bracket_space.lua:[4:11-4:14]: Inconsistent spacing [format:bracket-space]
-Spaces after the opening bracket, but no spaces before the closing one.
+No space after the opening bracket, but spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
    │
  4 │ local _ = ( 1), (1 )
    │           ^^^^
-bracket_space.lua:[4:17-4:20]: Inconsistent spacing [format:bracket-space]
-No space after the opening bracket, but spaces before the closing one.
+Spaces after the opening bracket, but no spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
    │
  4 │ local _ = ( 1), (1 )
    │                 ^^^^
-bracket_space.lua:[5:11-5:14]: Inconsistent spacing [format:bracket-space]
-Spaces after the opening bracket, but no spaces before the closing one.
+No space after the opening bracket, but spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
    │
  5 │ local _ = { 1}, {1 }
    │           ^^^^
-bracket_space.lua:[5:17-5:20]: Inconsistent spacing [format:bracket-space]
-No space after the opening bracket, but spaces before the closing one.
+Spaces after the opening bracket, but no spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
    │
  5 │ local _ = { 1}, {1 }
    │                 ^^^^
-bracket_space.lua:[6:13-6:16]: Inconsistent spacing [format:bracket-space]
 No space after the opening bracket, but spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
    │
  6 │ local _ = { [1 ] = true }, { [ 1] = true }
    │             ^^^^
-bracket_space.lua:[6:30-6:33]: Inconsistent spacing [format:bracket-space]
-Spaces after the opening bracket, but no spaces before the closing one.
+No space after the opening bracket, but spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
    │
  6 │ local _ = { [1 ] = true }, { [ 1] = true }
    │                              ^^^^
-bracket_space.lua:[7:12-7:15]: Inconsistent spacing [format:bracket-space]
-No space after the opening bracket, but spaces before the closing one.
+Spaces after the opening bracket, but no spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
    │
  7 │ local _ = x[1 ], x[ 1]
    │            ^^^^
-bracket_space.lua:[7:19-7:22]: Inconsistent spacing [format:bracket-space]
-Spaces after the opening bracket, but no spaces before the closing one.
+No space after the opening bracket, but spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
    │
  7 │ local _ = x[1 ], x[ 1]
    │                   ^^^^
-bracket_space.lua:[9:17-9:20]: Inconsistent spacing [format:bracket-space]
 Spaces after the opening bracket, but no spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
    │
  9 │ local function f( x) end
    │                 ^^^^
-bracket_space.lua:[10:17-10:20]: Inconsistent spacing [format:bracket-space]
-No space after the opening bracket, but spaces before the closing one.
+Spaces after the opening bracket, but no spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
     │
  10 │ local function f(x ) end
     │                 ^^^^
-bracket_space.lua:[12:11-12:14]: Inconsistent spacing [format:bracket-space]
-Spaces after the opening bracket, but no spaces before the closing one.
+No space after the opening bracket, but spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
     │
  12 │ function f( x) end
     │           ^^^^
-bracket_space.lua:[13:11-13:14]: Inconsistent spacing [format:bracket-space]
-No space after the opening bracket, but spaces before the closing one.
+Spaces after the opening bracket, but no spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
     │
  13 │ function f(x ) end
     │           ^^^^
-bracket_space.lua:[15:19-15:22]: Inconsistent spacing [format:bracket-space]
-Spaces after the opening bracket, but no spaces before the closing one.
+No space after the opening bracket, but spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
     │
  15 │ local f = function( x) end
     │                   ^^^^
-bracket_space.lua:[16:19-16:22]: Inconsistent spacing [format:bracket-space]
-No space after the opening bracket, but spaces before the closing one.
+Spaces after the opening bracket, but no spaces before the closing one.
+
+bracket_space.lua: Inconsistent spacing [format:bracket-space]
     │
  16 │ local f = function(x ) end
     │                   ^^^^
+No space after the opening bracket, but spaces before the closing one.
 No errors and 17 warnings
  -- config: (lint (only format:bracket-space))
  

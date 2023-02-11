@@ -1,8 +1,9 @@
-table_separator.lua:[3:17-3:17]: Table fields should be separated by a comma. [format:table-separator]
+table_separator.lua: Table fields should be separated by a comma. [format:table-separator]
    │
  3 │ local _ = { a, b; c, d; }
    │                 ^
-table_separator.lua:[3:23-3:23]: Table fields should be separated by a comma. [format:table-separator]
+
+table_separator.lua: Table fields should be separated by a comma. [format:table-separator]
    │
  3 │ local _ = { a, b; c, d; }
    │                       ^

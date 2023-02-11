@@ -1,4 +1,4 @@
-empty_if.allowed.lua:[6:1-6:4]: Empty else clause [syntax:empty-if]
+empty_if.allowed.lua: Empty else clause [syntax:empty-if]
    │
  6 │ else
    │ ^^^^

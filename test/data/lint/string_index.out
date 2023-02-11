@@ -1,8 +1,9 @@
-string_index.lua:[3:1-3:8]: String index can be replaced by identifier. [syntax:string-index]
+string_index.lua: String index can be replaced by identifier. [syntax:string-index]
    │
  3 │ x["foo"] = x["foo"]
    │ ^^^^^^^^
-string_index.lua:[3:12-3:19]: String index can be replaced by identifier. [syntax:string-index]
+
+string_index.lua: String index can be replaced by identifier. [syntax:string-index]
    │
  3 │ x["foo"] = x["foo"]
    │            ^^^^^^^^

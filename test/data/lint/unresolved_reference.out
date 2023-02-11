@@ -1,20 +1,24 @@
-unresolved_reference.lua:[9:7-11:33]: Unknown reference "UnknownDescription". [doc:unresolved-reference]
+unresolved_reference.lua: Unknown reference "UnknownDescription". [doc:unresolved-reference]
    │
  9 │   --- A small test
    │       ^^^^^^^^^^^^
-unresolved_reference.lua:[15:11-15:20]: Unknown reference "UnknownSee". [doc:unresolved-reference]
+
+unresolved_reference.lua: Unknown reference "UnknownSee". [doc:unresolved-reference]
     │
  15 │   -- @see UnknownSee
     │           ^^^^^^^^^^
-unresolved_reference.lua:[17:13-20:8]: Unknown reference "UnknownExample". [doc:unresolved-reference]
+
+unresolved_reference.lua: Unknown reference "UnknownExample". [doc:unresolved-reference]
     │
  17 │   -- @usage See @{UnknownExample}
     │             ^^^^^^^^^^^^^^^^^^^^^
-unresolved_reference.lua:[21:14-21:28]: Unknown type "UnknownRetType". [doc:unresolved-reference]
+
+unresolved_reference.lua: Unknown type "UnknownRetType". [doc:unresolved-reference]
     │
  21 │   has_docs = function(f) end,
     │              ^^^^^^^^^^^^^^^
-unresolved_reference.lua:[21:14-21:28]: Unknown type "UnknownArgType". [doc:unresolved-reference]
+
+unresolved_reference.lua: Unknown type "UnknownArgType". [doc:unresolved-reference]
     │
  21 │   has_docs = function(f) end,
     │              ^^^^^^^^^^^^^^^

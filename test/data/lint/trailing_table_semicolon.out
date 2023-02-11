@@ -1,4 +1,4 @@
-trailing_table_semicolon.lua:[4:3-4:3]: Expected trailing ";" on multiline table [format:table-trailing]
+trailing_table_semicolon.lua: Expected trailing ";" on multiline table [format:table-trailing]
    │
  4 │   0
    │   ^

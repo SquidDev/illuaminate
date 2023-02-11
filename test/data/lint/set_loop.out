@@ -1,8 +1,9 @@
-set_loop.lua:[3:3-3:3]: Mutating loop variable "x". [var:set-loop]
+set_loop.lua: Mutating loop variable "x". [var:set-loop]
    │
  3 │   x = x + 1
    │   ^
-set_loop.lua:[7:3-7:3]: Mutating loop variable "k". [var:set-loop]
+
+set_loop.lua: Mutating loop variable "k". [var:set-loop]
    │
  7 │   k = 0
    │   ^

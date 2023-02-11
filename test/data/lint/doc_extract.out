@@ -1,8 +1,9 @@
-doc_extract.lua:[3:1-6:12]: Documentation comment cannot have both @param/@return and @type [doc:kind-mismatch]
+doc_extract.lua: Documentation comment cannot have both @param/@return and @type [doc:kind-mismatch]
    │
  3 │ --- Marked as type and function
    │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-doc_extract.lua:[10:11-10:11]: Conflicting definitions, cannot merge `? = 0` and `function()` [doc:kind-mismatch]
+
+doc_extract.lua: Conflicting definitions, cannot merge `? = 0` and `function()` [doc:kind-mismatch]
     │
  10 │ local x = 0
     │           ^

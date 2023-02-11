@@ -1,24 +1,29 @@
-for_num.lua:[8:1-8:24]: Numeric for loop counts up from 1 to 10, but has a negative step. [control:for-num]
+for_num.lua: Numeric for loop counts up from 1 to 10, but has a negative step. [control:for-num]
    │
  8 │ for _ = 1, 10, -1 do end
    │ ^^^^^^^^^^^^^^^^^^^^^^^^
-for_num.lua:[11:1-11:23]: Numeric for loop has a step of 0. It will never progress. [control:for-num]
+
+for_num.lua: Numeric for loop has a step of 0. It will never progress. [control:for-num]
     │
  11 │ for _ = 1, 10, 0 do end
     │ ^^^^^^^^^^^^^^^^^^^^^^^
-for_num.lua:[14:1-14:21]: Numeric for loop counts down from 1 to -10, but has a non-negative step. [control:for-num]
+
+for_num.lua: Numeric for loop counts down from 1 to -10, but has a non-negative step. [control:for-num]
     │
  14 │ for _ = 1, -10 do end
     │ ^^^^^^^^^^^^^^^^^^^^^
-for_num.lua:[20:1-20:20]: Numeric for loop counts down from #(expr) to 1, but has a non-negative step. [control:for-num]
+
+for_num.lua: Numeric for loop counts down from #(expr) to 1, but has a non-negative step. [control:for-num]
     │
  20 │ for _ = #t, 1 do end
     │ ^^^^^^^^^^^^^^^^^^^^
-for_num.lua:[23:1-23:19]: This loop has the same start and stop point, and so will only execute once. [control:for-num]
+
+for_num.lua: This loop has the same start and stop point, and so will only execute once. [control:for-num]
     │
  23 │ for _ = 1, 1 do end
     │ ^^^^^^^^^^^^^^^^^^^
-for_num.lua:[24:1-24:23]: This loop has the same start and stop point, and so will only execute once. [control:for-num]
+
+for_num.lua: This loop has the same start and stop point, and so will only execute once. [control:for-num]
     │
  24 │ for _ = 1 + 4, 5 do end
     │ ^^^^^^^^^^^^^^^^^^^^^^^

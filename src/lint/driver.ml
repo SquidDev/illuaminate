@@ -16,7 +16,9 @@ module Note = struct
   let report err { detail; tag; span; message; _ } =
     match detail with
     | None -> Error.report err tag span message
-    | Some detail -> Error.report_detailed err tag span message detail
+    | Some detail ->
+        Error.report_detailed err tag span (Fmt.const Fmt.string message)
+          [ Annotation (span, None); Message (fun out () -> detail out) ]
 
   type any = Note : 'a t -> any
 

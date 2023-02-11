@@ -1,4 +1,4 @@
-doc_module_kind.lua:[5:5-5:11]: Unknown module kind "kind2" [doc:unknown-module-kind]
+doc_module_kind.lua: Unknown module kind "kind2" [doc:unknown-module-kind]
    │
  5 │ --- @module[kind=kind2]
    │     ^^^^^^^

@@ -43,9 +43,11 @@ let notes =
 
 let diagnostics store : Store.document -> Diagnostic.t list = function
   | { program = Error { span; value }; _ } ->
-      [ diagnostic ~span ~tag:IlluaminateParser.Error.tag
-          (Format.asprintf "%a" IlluaminateParser.Error.pp value)
-      ]
+      let e = IlluaminateCore.Error.make () in
+      IlluaminateParser.Error.report e span value;
+      IlluaminateCore.Error.errors e
+      |> List.map (fun (e : IlluaminateCore.Error.Error.t) ->
+             diagnostic ~span:e.span ~tag:e.tag (Format.asprintf "%a" e.message ()))
   | { program = Ok prog; _ } ->
       D.get (Store.data store) notes prog
       |> Array.to_seq |> Seq.map note_to_diagnostic |> CCList.of_seq_rev
