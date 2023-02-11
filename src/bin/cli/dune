@@ -8,6 +8,8 @@
   containers
   cmdliner
   fpath
+  fmt
+  fmt.tty
   illuaminate.core
   illuaminate.data
   illuaminate.parser
@@ -22,7 +24,8 @@
   illuaminate.doc_emit
   omd
   result
-  logs)
+  logs
+  logs.fmt)
  (preprocess
   (pps ppx_deriving_yojson))
  (instrumentation

@@ -99,12 +99,7 @@ and get_expr ({ resolved; libraries; _ } as store) :
     match Syntax.Helpers.get_call_args args with
     | Some (Mono (String { lit_value = name; _ })) ->
         (* Identify calls to require("foo"), and find a module "foo". *)
-        let res =
-          StringMap.find_opt name libraries |> Option.map (mk_module ~name ~ns:Namespace.library)
-        in
-        Logs.info (fun f ->
-            f "Found module %s => %s" name (Option.fold ~none:"None" ~some:(fun _ -> "Some") res));
-        res
+        StringMap.find_opt name libraries |> Option.map (mk_module ~name ~ns:Namespace.library)
     | _ -> None)
   | _ -> None
 

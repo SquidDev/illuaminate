@@ -17,29 +17,27 @@ let write_file path f =
   Format.pp_print_flush formatter ()
 
 let reporter () =
-  let open Error.Style in
-  let app_name =
-    match Array.length Sys.argv with
-    | 0 -> Filename.basename Sys.executable_name
-    | _ -> Filename.basename Sys.argv.(0)
+  let pp_level out style h src =
+    Fmt.pf out "%s: [%a] " (Logs.Src.name src) Fmt.(styled style string) h
   in
-  let pp_with out style h =
-    Format.fprintf out "%s: [" app_name;
-    printf style out "%s" h;
-    Format.fprintf out "] "
+  let pp_header out (l, h, s) =
+    match l with
+    | Logs.App -> (
+      match h with
+      | None -> ()
+      | Some h -> pp_level out `Cyan h s)
+    | Logs.Error -> pp_level out `Red (Option.value ~default:"ERROR" h) s
+    | Logs.Warning -> pp_level out `Yellow (Option.value ~default:"WARNING" h) s
+    | Logs.Info -> pp_level out `Blue (Option.value ~default:"INFO" h) s
+    | Logs.Debug -> pp_level out `Green (Option.value ~default:"DEBUG" h) s
   in
-  let pp_header out (level, header) =
-    let style, default =
-      match level with
-      | Logs.App -> (DullColor Cyan, "APP")
-      | Logs.Error -> (DullColor Red, "ERROR")
-      | Logs.Warning -> (DullColor Yellow, "WARN")
-      | Logs.Info -> (DullColor Blue, "INFO")
-      | Logs.Debug -> (DullColor Green, "DEBUG")
-    in
-    pp_with out style (Option.value ~default header)
+
+  let report src level ~over k msgf =
+    let k _ = over (); k () in
+    msgf @@ fun ?header ?tags:_ fmt ->
+    Format.kfprintf k Format.err_formatter ("%a@[" ^^ fmt ^^ "@]@.") pp_header (level, header, src)
   in
-  Logs.format_reporter ~pp_header ()
+  { Logs.report }
 
 let lint paths =
   let errs = Error.make () in
@@ -304,21 +302,9 @@ module Args = struct
          sub-command, not before."
     ]
 
-  let uses_ansi force channel =
-    match force with
-    | Some x -> x
-    | None ->
-        let dumb =
-          match Sys.getenv_opt "TERM" with
-          | Some ("dumb" | "") | None -> true
-          | Some _ -> false
-        in
-        let isatty = try Unix.isatty channel with Unix.Unix_error _ -> false in
-        (not dumb) && isatty
-
   let setup_common { verbose; colour } =
-    if uses_ansi colour Unix.stdout then Error.Style.setup_ansi Format.std_formatter;
-    if uses_ansi colour Unix.stderr then Error.Style.setup_ansi Format.err_formatter;
+    let style_renderer = Option.map (fun x -> if x then `Ansi_tty else `None) colour in
+    Fmt_tty.setup_std_outputs ?style_renderer ();
 
     let l =
       match verbose with

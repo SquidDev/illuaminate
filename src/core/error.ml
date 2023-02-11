@@ -1,75 +1,5 @@
 module StringMap = Map.Make (String)
 
-module Style = struct
-  type ansi_color =
-    | Black
-    | Red
-    | Green
-    | Yellow
-    | Blue
-    | Magenta
-    | Cyan
-    | White
-
-  type t =
-    | Unstyled
-    | DullColor of ansi_color
-    | BrightColor of ansi_color
-    | Underlined
-    | Styled of t list
-
-  type Format.stag += Style of t
-
-  let printf style out fmt =
-    Format.pp_open_stag out (Style style);
-    Format.kfprintf (fun x -> Format.pp_close_stag x ()) out fmt
-
-  let setup_ansi out =
-    let prev = Format.pp_get_formatter_stag_functions out () in
-    let stack = ref [ "\027[0m" ] in
-    let get_color = function
-      | Black -> 0
-      | Red -> 1
-      | Green -> 2
-      | Yellow -> 3
-      | Blue -> 4
-      | Magenta -> 5
-      | Cyan -> 6
-      | White -> 7
-    in
-    let rec get_style = function
-      | Unstyled -> "\027[0m"
-      | Underlined -> "\027[0m"
-      | DullColor c -> Printf.sprintf "\027[3%dm" (get_color c)
-      | BrightColor c -> Printf.sprintf "\027[1;3%dm" (get_color c)
-      | Styled c -> List.map get_style c |> String.concat ""
-    in
-    Format.pp_set_mark_tags out true;
-    Format.pp_set_margin out 120;
-    Format.pp_set_formatter_stag_functions out
-      { prev with
-        mark_open_stag =
-          (function
-          | Style s ->
-              let style = get_style s in
-              stack := style :: !stack;
-              style
-          | x -> prev.mark_open_stag x);
-        mark_close_stag =
-          (function
-          | Style _ ->
-              let style =
-                match !stack with
-                | _ :: (x :: _ as xs) ->
-                    stack := xs;
-                    x
-                | _ -> failwith "Popping from an empty stack"
-              in
-              "\027[0m" ^ style
-          | x -> prev.mark_close_stag x)
-      }
-end
-
 type attribute =
   | Default
   | Unused
@@ -125,10 +55,10 @@ let report_detailed t tag span message details =
 let has_problems { errors } = not (CCList.is_empty errors)
 let errors { errors } = errors
 
-let error_ansi = function
-  | Critical | Error -> Style.Red
-  | Warning -> Style.Yellow
-  | Note -> Style.Blue
+let error_ansi : level -> Fmt.color = function
+  | Critical | Error -> `Red
+  | Warning -> `Yellow
+  | Note -> `Blue
 
 let display_line out line { Error.tag; span; message; details } =
   let start_l = Span.start_line span
@@ -137,14 +67,18 @@ let display_line out line { Error.tag; span; message; details } =
   and finish_c = Span.finish_col.get span in
   let line_no = start_l |> string_of_int in
 
-  Style.(printf (BrightColor (error_ansi tag.level)))
-    out "%s:[%d:%d-%d:%d]: %s [%s]@\n" (Span.filename span).name start_l start_c finish_l finish_c
-    message tag.name;
+  let pp_pos out () =
+    Fmt.fmt "%s:[%d:%d-%d:%d]: %s [%s]@\n" out (Span.filename span).name start_l start_c finish_l
+      finish_c message tag.name
+  in
+  Fmt.styled (`Fg (`Hi (error_ansi tag.level))) pp_pos out ();
+
   (match details with
   | None -> ()
   | Some details -> Format.fprintf out "%t@\n" details);
   let fmt no line =
-    Style.(printf (BrightColor Green)) out " %*s" (String.length line_no) no;
+    let pp_line out () = Fmt.fmt " %*s" out (String.length line_no) no in
+    Fmt.styled (`Fg (`Hi `Green)) pp_line out ();
     if line = "" then Format.fprintf out " │@\n" else Format.fprintf out " │ %s@\n" line
   in
   fmt "" "";
