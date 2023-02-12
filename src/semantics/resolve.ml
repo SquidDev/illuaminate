@@ -375,7 +375,7 @@ and resolve_call_args s = function
   | CallTable x -> resolve_expr s (S.Table x)
   | CallString x -> resolve_expr s (S.String x)
 
-let resolve _ { S.program; _ } =
+let compute { S.program; _ } =
   let store =
     { var_defs = SVarTbl.create 32;
       var_usages = SVarTbl.create 32;
@@ -396,7 +396,7 @@ let resolve _ { S.program; _ } =
   in
   resolve_stmts context program; store
 
-let key = IlluaminateData.Programs.key ~name:__MODULE__ resolve
+let key = IlluaminateData.Programs.key ~name:__MODULE__ (fun _ _ program -> compute program)
 let get_definition var { var_defs; _ } = SVarTbl.find var_defs var
 let get_usage var { var_usages; _ } = SVarTbl.find var_usages var
 

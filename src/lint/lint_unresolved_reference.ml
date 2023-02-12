@@ -63,10 +63,12 @@ let check_abstract ~ctx ~span =
 
 let linter =
   make_no_opt ~tags:[ unresolved_tag; local_tag ]
-    ~file:(fun () data report file ->
-      match IlluaminateData.need data E.file file |> E.get_page with
+    ~file:(fun () context report _ ->
+      match IlluaminateData.need context.data E.file context.file |> Option.get |> E.get_page with
       | None -> ()
       | Some m ->
-          let iter = iter_of (check_abstract ~ctx:{ data; report; is_local = m.local }) in
+          let iter =
+            iter_of (check_abstract ~ctx:{ data = context.data; report; is_local = m.local })
+          in
           iter#documented iter#page m)
     ()

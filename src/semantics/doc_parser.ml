@@ -759,18 +759,19 @@ module Data = struct
     }
 
   let program =
-    D.Programs.key ~name:(__MODULE__ ^ ".program") @@ fun _ program ->
+    D.Programs.key ~name:(__MODULE__ ^ ".program") @@ fun _ _ program ->
     { (* Technically a memory leak here! *)
       all_comments = Error program;
       comments = TermTbl.create 32
     }
 
   let file =
-    D.Programs.file_key ~name:(__MODULE__ ^ ".file") @@ fun data -> function
+    D.Programs.file_key ~name:(__MODULE__ ^ ".file") @@ fun data filename contents ->
+    match contents with
     | Markdown { attributes; contents } ->
         let c = Parse.markdown attributes contents in
         { all_comments = Ok [ c ]; comments = TermTbl.create 0 }
-    | Lua p -> D.need data program p
+    | Lua _ -> D.need data program filename |> Option.get
 
   (** Get the comments before and after a specific node. *)
   let comment node { comments; _ } =

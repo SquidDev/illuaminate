@@ -38,7 +38,7 @@ let check_func ~r (func : C.func) =
   List.iter check_block func.blocks
 
 let check_args (context : context) ~r args =
-  let control = IlluaminateData.need context.data C.key context.program in
+  let control = IlluaminateData.need context.data C.key context.file |> Option.get in
   let func = C.get_func args control in
   check_func ~r func
 
@@ -52,7 +52,7 @@ let expr () context r = function
   | _ -> ()
 
 let program () (context : context) r (_ : program) =
-  let control = IlluaminateData.need context.data C.key context.program in
+  let control = IlluaminateData.need context.data C.key context.file |> Option.get in
   check_func ~r (C.get_program control)
 
 let linter = make_no_opt ~tags:[ tag_unreach; tag_loop ] ~expr ~stmt ~program ()

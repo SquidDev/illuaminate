@@ -343,10 +343,10 @@ module Infer = struct
         let docs = infer_stmt state node and rest = infer_stmts state xs in
         CCOption.( <+> ) docs rest
 
-  let extract_module data program =
+  let extract_module data filename program =
     let errs = Error.make () in
-    let comments = D.need data P.program program in
-    let resolve = D.need data R.key program in
+    let comments = D.need data P.program filename |> Option.get in
+    let resolve = D.need data R.key filename |> Option.get in
     let env = ref (simple_documented (Doc_syntax.Table []) (Spanned.program program)) in
     let state =
       { errs;
@@ -418,8 +418,8 @@ module Infer = struct
   let key = D.Programs.key ~name:(__MODULE__ ^ ".Infer") extract_module
 end
 
-let get_unresolved_module data program =
-  match D.need data Infer.key program |> snd with
+let get_unresolved_module data filename _ =
+  match D.need data Infer.key filename |> Option.get |> snd with
   | Named m -> Some m
   | Unnamed { file; body; mod_types; mod_kind; mod_namespace } ->
       Doc_extract_config.guess_module' file data
@@ -436,10 +436,11 @@ let is_pure : _ Omd.inline -> bool = function
   | _ -> false
 
 let unresolved_module_file =
-  D.Programs.file_key ~name:(__MODULE__ ^ ".unresolved") @@ fun data -> function
-  | Lua x -> D.need data unresolved_module x
+  D.Programs.file_key ~name:(__MODULE__ ^ ".unresolved") @@ fun data filename file ->
+  match file with
+  | Lua _ -> D.need data unresolved_module filename |> Option.get
   | Markdown _ as file -> (
-      let comment_ = D.need data Doc_parser.Data.file file in
+      let comment_ = D.need data Doc_parser.Data.file filename |> Option.get in
       match Doc_parser.Data.comments comment_ with
       | [] | _ :: _ :: _ -> None
       | [ comment ] ->

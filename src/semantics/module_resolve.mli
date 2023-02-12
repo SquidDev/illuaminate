@@ -6,6 +6,12 @@ open Doc_syntax
 (** The primary store of resolution information for a program. *)
 type t
 
+(** Compute the map of resolved variables.
+
+    This should only be used for free-standing snippets of code. {!key} should be used when dealing
+    with existing programs. *)
+val compute : data:IlluaminateData.context -> resolved:Resolve.t -> ?doc:Doc_extract.t -> unit -> t
+
 val key : t IlluaminateData.Programs.key
 
 module Reference : sig

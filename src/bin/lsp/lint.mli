@@ -8,7 +8,7 @@ val notes : IlluaminateLint.Driver.Note.any array IlluaminateData.Programs.key
 val diagnostics : Store.t -> Store.document -> Diagnostic.t list
 
 (** Get any code actions for a given range. *)
-val code_actions : Store.t -> Syntax.program -> Range.t -> CodeActionResult.t
+val code_actions : Store.t -> Span.filename -> Syntax.program -> Range.t -> CodeActionResult.t
 
 (** Fix a program given a specific id, or fail. *)
-val fix : Store.t -> Syntax.program -> int -> (TextEdit.t, string) result
+val fix : Store.t -> Span.filename -> int -> (TextEdit.t, string) result

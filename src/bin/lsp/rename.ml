@@ -30,11 +30,13 @@ let find_definition state d =
     definitions
   |> Option.get
 
-let check data position program =
+let check data position filename program =
   match Locate.locate position program with
-  | Var v
-    when Data.get data Resolve.key program |> Resolve.get_var v |> check_renamable |> Result.is_ok
-    -> Some (Syntax.Spanned.var v |> range)
+  | Var v -> (
+    match Data.get data Resolve.key filename with
+    | Some resolved when Resolve.get_var v resolved |> check_renamable |> Result.is_ok ->
+        Some (Syntax.Spanned.var v |> range)
+    | _ -> None)
   | _ -> None
 
 (** Check a predicate holds for all usages of a variable. *)
@@ -81,12 +83,12 @@ let apply_rename var new_name =
   in
   List.fold_left of_definition (List.fold_left of_usage [] var.usages) var.definitions
 
-let rename data position new_name program =
+let rename data position new_name file program =
   if not (Ident.is new_name) then err "%S is not a valid identifier." new_name
   else
     match Locate.locate position program with
     | Var v -> (
-        let resolved = Data.get data Resolve.key program in
+        let resolved = Data.get data Resolve.key file |> Option.get in
         let var = Resolve.get_var v resolved in
         Result.bind (check_renamable var) @@ fun def ->
         (* Lookup our new variable at the original definition point. *)

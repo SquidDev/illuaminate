@@ -9,7 +9,7 @@ let string_len = G.parse "string.len"
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "stdlib:string-len"
 
 let check ~(context : context) ~r ?fix f =
-  let resolve = IlluaminateData.need context.data R.key context.program in
+  let resolve = IlluaminateData.need context.data R.key context.file |> Option.get in
   match G.of_expr resolve f with
   | Some g when g = string_len -> r.r ?fix ~tag "Prefer `#` over string.len"
   | _ -> ()

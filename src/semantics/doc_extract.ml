@@ -43,9 +43,9 @@ let build_resolver data contents =
   let all =
     List.fold_left
       (fun modules file ->
-        D.need data D.Programs.Files.file file
-        |> CCOption.flat_map (D.need data U.unresolved_module_file)
-        |> Option.fold ~none:modules ~some:(add_page modules))
+        match D.need data U.unresolved_module_file file with
+        | None | Some None -> modules
+        | Some (Some x) -> add_page modules x)
       NMap.empty
       (D.need data D.Programs.Files.files ())
   in
@@ -64,9 +64,9 @@ let build_resolver data contents =
   let all = NMap.map (StringMap.map (fun x -> lazy (crunch_pages x))) all in
   Resolve.context all current_scope
 
-let get data program =
-  let state, _ = D.need data U.Infer.key program in
-  let contents = D.need data U.unresolved_module program in
+let for_program data filename =
+  let state, _ = D.need data U.Infer.key filename |> Option.get in
+  let contents = D.need data U.unresolved_module filename |> Option.get in
   let cache, lift = build_resolver data contents in
   let contents = Option.map (Resolve.go_page ~cache lift) contents in
   let vars =
@@ -76,13 +76,12 @@ let get data program =
   in
   { contents; errors = state.errs; comments = state.unused_comments; vars }
 
-let program = D.Programs.key ~name:(__MODULE__ ^ ".program") get
-
 let file =
-  D.Programs.file_key ~name:(__MODULE__ ^ ".file") @@ fun data -> function
-  | Lua p -> D.need data program p
-  | Markdown _ as file ->
-      let contents = D.need data U.unresolved_module_file file in
+  D.Programs.file_key ~name:(__MODULE__ ^ ".file") @@ fun data filename contents ->
+  match contents with
+  | Lua _ -> for_program data filename
+  | Markdown _ ->
+      let contents = D.need data U.unresolved_module_file filename |> Option.get in
       let cache, lift = build_resolver data contents in
       let contents = Option.map (Resolve.go_page ~cache lift) contents in
       { contents;
@@ -95,17 +94,17 @@ let get_page ({ contents; _ } : t) = contents
 let get_var ({ vars; _ } : t) var = VarTbl.find_opt vars var
 
 let all_pages =
-  D.Key.key ~name:(__MODULE__ ^ ".all_pages") @@ fun data () ->
+  D.Key.key ~name:(__MODULE__ ^ ".get_pages") ~key:(module D.Keys.Unit) @@ fun data () ->
   D.need data D.Programs.Files.files ()
   |> List.fold_left
        (fun pages filename ->
-         match D.need data D.Programs.Files.file filename |> Option.map (D.need data file) with
+         match D.need data file filename with
          | None | Some { contents = None; _ } -> pages
          | Some { contents = Some result; _ } -> add_page pages result)
        NMap.empty
   |> NMap.map (StringMap.map crunch_pages)
 
 let public_pages =
-  D.Key.key ~name:(__MODULE__ ^ ".public_pages") @@ fun data () ->
+  D.Key.key ~name:(__MODULE__ ^ ".public_pages") ~key:(module D.Keys.Unit) @@ fun data () ->
   D.need data all_pages ()
   |> NMap.map (fun pages -> StringMap.filter (fun _ modu -> not modu.local) pages)

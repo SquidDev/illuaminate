@@ -12,20 +12,18 @@ let tag_module_kind = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:unknown
 let linter =
   make_no_opt
     ~tags:(tag_module_kind :: Doc.Parser.Tag.all)
-    ~file:(fun () context r file ->
+    ~file:(fun () context r _ ->
       let module_kinds =
         lazy
-          (let context =
-             IlluaminateData.(need context Programs.Context.key (File.span file |> Span.filename))
-           in
+          (let context = IlluaminateData.(need context.data Programs.Context.key context.file) in
            let config = IlluaminateConfig.Schema.get Config.key context.config in
            Namespace.module_ :: Namespace.library
            :: List.map (fun x -> Namespace.Namespace x.Config.id) config.module_kinds
            |> NSet.of_list)
       in
 
-      IlluaminateData.need context D.file file
-      |> D.comments
+      IlluaminateData.need context.data D.file context.file
+      |> Option.get |> D.comments
       |> List.iter @@ fun (x : Doc.Comment.comment) ->
          x.Doc.Comment.errors |> List.iter (fun (tag, span, msg) -> r.r ~span ~tag "%s" msg);
          match x.module_info with

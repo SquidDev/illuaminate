@@ -36,7 +36,7 @@ let unallowed { Opt.allow_toplevel_global } path =
 let stmt opts (context : context) r = function
   | AssignFunction { assignf_name = FVar (Var name as var); _ } when unallowed opts context.path
     -> (
-      let resolve = IlluaminateData.need context.data R.key context.program in
+      let resolve = IlluaminateData.need context.data R.key context.file |> Option.get in
       match R.get_definition var resolve with
       | { kind = Global; _ } ->
           r.r ~span:(Spanned.var var) ~tag "Setting unknown global function %S."
@@ -47,7 +47,7 @@ let stmt opts (context : context) r = function
 let name opts context r name =
   match (context.path, name) with
   | Bind :: Stmt (Assign _) :: path, NVar (Var name as var) when unallowed opts path -> (
-      let resolve = IlluaminateData.need context.data R.key context.program in
+      let resolve = IlluaminateData.need context.data R.key context.file |> Option.get in
       match R.get_definition var resolve with
       | { kind = Global; _ } ->
           r.r ~tag "Setting unknown global variable %S." (Node.contents.get name)

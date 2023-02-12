@@ -43,13 +43,12 @@ type path_item =
 type context =
   { path : path_item list;
     data : IlluaminateData.context;
-    program : Syntax.program
+    file : Span.filename
   }
 
-type ('op, 'term, 'context) full_visitor = 'op -> 'context -> 'term reporter -> 'term -> unit
-type ('op, 'term) visitor = ('op, 'term, context) full_visitor
+type ('op, 'term) visitor = 'op -> context -> 'term reporter -> 'term -> unit
 
-let default_visitor : ('op, 'term, 'context) full_visitor = fun _ _ _ _ -> ()
+let default_visitor : ('op, 'term) visitor = fun _ _ _ _ -> ()
 
 type 'op linter_info =
   { options : 'op IlluaminateConfig.Category.key;
@@ -60,7 +59,7 @@ type 'op linter_info =
     stmt : ('op, Syntax.stmt) visitor;
     name : ('op, Syntax.name) visitor;
     var : ('op, Syntax.var) visitor;
-    file : ('op, File.t, IlluaminateData.context) full_visitor
+    file : ('op, File.t) visitor
   }
 
 type t = Linter : 'a linter_info -> t

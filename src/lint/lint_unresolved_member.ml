@@ -37,9 +37,9 @@ let check skip r data ~table ~idx ~key =
     | None -> r.r ~tag "Unknown field %s in %a" (Node.contents.get key) R.Reference.pp rf)
   | Some _ -> ()
 
-let expr skip { data; program; _ } r = function
+let expr skip { data; file; _ } r = function
   | Ref (NDot { tbl = Ref table; key; _ } as idx) ->
-      let data = IlluaminateData.need data R.key program in
+      let data = IlluaminateData.need data R.key file |> Option.get in
       check skip r data ~table ~idx ~key
   | _ -> ()
 

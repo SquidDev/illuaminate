@@ -241,8 +241,8 @@ module Rename = struct
     end
 end
 
-let rename data program =
-  let rename = IlluaminateData.need data R.key program |> Rename.mk in
+let rename program =
+  let rename = R.compute program |> Rename.mk in
   (new Rename.rename rename)#program program
 
-let minify d = rename d % remove_trivia
+let minify = rename % remove_trivia

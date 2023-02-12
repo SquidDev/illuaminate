@@ -123,7 +123,7 @@ type r =
       'b
   }
 
-let program_worker ~options ~data ~r:({ r } : r) linter program =
+let program_worker ~options ~context ~r:({ r } : r) linter program =
   let open! Syntax in
   let visit (type a) (f : (_, a) Linter.visitor) (kind : a Witness.t) ctx (source : a) =
     f options ctx { r = r ~kind ~source; e = r } source
@@ -306,7 +306,6 @@ let program_worker ~options ~data ~r:({ r } : r) linter program =
     | DotArg a -> token context a
   in
 
-  let context = { program; data; path = [] } in
   visit linter.program Program context program;
   block context program.Syntax.program;
   token context program.eof
@@ -330,10 +329,11 @@ let worker ~store ~data ~tags (Linter linter : t) document =
     else Format.ifprintf Format.std_formatter message
   in
 
+  let context = { data; path = []; file = File.span document |> Span.filename } in
   (match document with
-  | File.Lua x -> program_worker ~options ~data ~r:{ r } linter x
+  | File.Lua x -> program_worker ~options ~context ~r:{ r } linter x
   | _ -> ());
-  linter.file options data { r = r ~kind:File ~source:document; e = r } document;
+  linter.file options context { r = r ~kind:File ~source:document; e = r } document;
   messages
 
 let need_lint ~store ~data ?(tags = always) (Linter l as linter : t) program =

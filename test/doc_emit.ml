@@ -21,12 +21,11 @@ let process ~go ~name contents out =
       D.Programs.FileStore.update files name (Some (Lua parsed));
       let data =
         let open D.Builder in
-        empty
-        |> D.Programs.FileStore.builder files
-        |> oracle D.Programs.Context.key (fun _ _ -> context)
-        |> build
+        build @@ fun b ->
+        D.Programs.FileStore.builder files b;
+        oracle D.Programs.Context.key (fun _ _ -> context) b
       in
-      let docs = D.get data Doc.program parsed in
+      let docs = D.get data Doc.file name |> Option.get in
       Doc.errors docs
       |> List.iter (fun (e : Error.Error.t) ->
              Error.report_detailed errs e.tag e.span e.message e.annotations);

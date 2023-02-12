@@ -21,7 +21,7 @@ let note_to_diagnostic : Driver.Note.any -> Diagnostic.t = function
       diagnostic ~tag ~span message
 
 let notes =
-  D.Programs.key ~name:__MODULE__ @@ fun data prog ->
+  D.Programs.key ~name:__MODULE__ @@ fun data _file prog ->
   let tags, store = D.need data Store.linters (Node.span prog.eof |> Span.filename) in
   let n, notes =
     List.fold_left
@@ -48,9 +48,10 @@ let diagnostics store : Store.document -> Diagnostic.t list = function
       IlluaminateCore.Error.errors e
       |> List.map (fun (e : IlluaminateCore.Error.Error.t) ->
              diagnostic ~span:e.span ~tag:e.tag (Format.asprintf "%a" e.message ()))
-  | { program = Ok prog; _ } ->
-      D.get (Store.data store) notes prog
-      |> Array.to_seq |> Seq.map note_to_diagnostic |> CCList.of_seq_rev
+  | { name; program = Ok _; _ } ->
+      D.get (Store.data store) notes name
+      |> Option.fold ~none:Seq.empty ~some:Array.to_seq
+      |> Seq.map note_to_diagnostic |> CCList.of_seq_rev
 
 let to_code_action ~program (i, (Driver.Note.Note { message; fix; _ } as note)) =
   match fix with
@@ -70,9 +71,9 @@ let to_code_action ~program (i, (Driver.Note.Note { message; fix; _ } as note)) 
       Some (`CodeAction action)
   [@@coverage off]
 
-let code_actions store program range : CodeActionResult.t =
-  D.get (Store.data store) notes program
-  |> Array.to_seqi
+let code_actions store name program range : CodeActionResult.t =
+  D.get (Store.data store) notes name
+  |> Option.fold ~none:Seq.empty ~some:Array.to_seqi
   |> Seq.filter (fun (_, Driver.Note.Note { span; _ }) -> Pos.overlaps range span)
   |> Seq.filter_map (to_code_action ~program)
   |> CCList.of_seq_rev |> Option.some
@@ -88,8 +89,8 @@ let make_edit (type a) (before : a) (witness : a Witness.t) (after : a) : TextEd
   let newText = Format.asprintf "%a" (Witness.emit witness) after in
   { range; newText }
 
-let fix store program id =
-  let notes = D.get (Store.data store) notes program in
+let fix store file id =
+  let notes = D.get (Store.data store) notes file |> Option.value ~default:[||] in
   if id < 0 || id > Array.length notes then Result.Error "Unknown note"
   else
     let (Driver.Note.Note { fix; source; kind; _ }) = notes.(id) in

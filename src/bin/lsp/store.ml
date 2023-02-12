@@ -40,18 +40,24 @@ module Filename = struct
 end
 
 module Workspace = struct
-  type t =
-    { uri : Uri.t;
-      path : Fpath.t option;
-      name : string option
-    }
+  module Impl = struct
+    type t =
+      { uri : Uri.t;
+        path : Fpath.t option;
+        name : string option
+      }
+
+    let pp out { uri; _ } = Uri.pp out uri
+    let equal (l : t) (r : t) = l == r
+    let hash (x : t) = Hashtbl.hash x
+  end
+
+  include Impl
 
   type workspaces =
     { root : t option;
       workspaces : t UriMap.t
     }
-
-  let pp out { uri; _ } = Uri.pp out uri
 
   let workspace_for ~root (workspaces : t UriMap.t) = function
     | { Span.path = None; _ } -> None
@@ -73,7 +79,10 @@ module Workspace = struct
     let eq a b =
       CCOption.equal ( == ) a.root b.root && UriMap.equal ( == ) a.workspaces b.workspaces
     in
-    Data.Key.deferred ~eq ~name:(__MODULE__ ^ ".Workspace.workspaces") ()
+    Data.Key.deferred ~eq
+      ~name:(__MODULE__ ^ ".Workspace.workspaces")
+      ~key:(module Data.Keys.Unit)
+      ()
 
   let config : (t, Config.t) Data.Key.t =
     let open Data in
@@ -90,14 +99,14 @@ module Workspace = struct
           Config.default
     in
     let config_key = FileDigest.oracle ~name:(__MODULE__ ^ ".Workspace.config_file") read_config in
-    Key.key ~name:(__MODULE__ ^ ".Workspace.config") ~pp @@ fun store workspace ->
+    Key.key ~name:(__MODULE__ ^ ".Workspace.config") ~key:(module Impl) @@ fun store workspace ->
     workspace.path
     |> CCOption.flat_map (fun path -> need store config_key Fpath.(path / "illuaminate.sexp"))
     |> Option.value ~default:Config.default
 
   let context : (t, Data.Programs.Context.t) Data.Key.t =
     let open Data in
-    Key.key ~name:(__MODULE__ ^ ".Workspace.context") ~pp @@ fun store workspace ->
+    Key.key ~name:(__MODULE__ ^ ".Workspace.context") ~key:(module Impl) @@ fun store workspace ->
     let config = need store config workspace in
     { Programs.Context.root = workspace.path; config = Config.get_store config }
 
@@ -105,7 +114,7 @@ module Workspace = struct
     let delay = Mtime.Span.of_uint64_ns 60_000_000_000L (* 60s *) in
     let name = __MODULE__ ^ ".Workspace.sources" in
     let open Data in
-    rate_limit ~delay ~name @@ fun store key previous ->
+    rate_limit ~delay ~name ~key:(module Impl) @@ fun store key previous ->
     let config = need store config key in
     let files = ref [] in
     let add f = if Fpath.get_ext f = ".lua" then files := f :: !files in
@@ -122,10 +131,7 @@ module Workspace = struct
 
   let linters : (Span.filename, Error.Tag.filter * IlluaminateConfig.Schema.store) Data.Key.t =
     let open Data in
-    Key.key
-      ~container:(module Container.Strong (Span.Filename))
-      ~pp:Span.Filename.pp
-      ~name:(__MODULE__ ^ ".Workspace.linters")
+    Key.key ~key:(module Span.Filename) ~name:(__MODULE__ ^ ".Workspace.linters")
     @@ fun store name ->
     let { root; workspaces } = need store workspaces () in
     let workspace = workspace_for ~root workspaces name in
@@ -156,9 +162,7 @@ let parsed_file : (Span.filename, parsed_file) Data.Key.t =
       | Open l, Open r -> l == r
       | _, _ -> false
   in
-  Data.Key.deferred ~pp:Span.Filename.pp ~eq
-    ~container:(module Data.Container.Strong (Span.Filename))
-    ~name:(__MODULE__ ^ ".parsed_file") ()
+  Data.Key.deferred ~eq ~key:(module Span.Filename) ~name:(__MODULE__ ^ ".parsed_file") ()
 
 let default_context : Data.Programs.Context.t =
   { root = None; config = Config.get_store Config.default }
@@ -183,52 +187,59 @@ let create () =
   let data =
     let open Data in
     let open Builder in
-    empty
-    |> oracle Workspace.workspaces (fun () _ -> !workspaces)
+    build @@ fun b ->
+    oracle Workspace.workspaces (fun () _ -> !workspaces) b;
     (* In order to extract a file, we try to read our open files, from disk, and then give up after
        that. *)
-    |> oracle parsed_file (fun file previous ->
-           match UriTbl.find_opt files (Filename.to_uri file) with
-           | Some p -> Open p.program
-           | None -> (
-             match file.path with
-             | None -> Unknown
-             | Some path ->
-                 let digest =
-                   match previous with
-                   | Some (OnDisk d) -> Some d
-                   | None | Some (Open _ | Unknown) -> None
-                 in
-                 FileDigest.with_change
-                   ~process:(fun chan -> Lexing.from_channel chan |> IlluaminateParser.program file)
-                   ~path digest
-                 |> Option.fold ~none:Unknown ~some:(fun x -> OnDisk x)))
+    oracle parsed_file
+      (fun file previous ->
+        match UriTbl.find_opt files (Filename.to_uri file) with
+        | Some p -> Open p.program
+        | None -> (
+          match file.path with
+          | None -> Unknown
+          | Some path ->
+              let digest =
+                match previous with
+                | Some (OnDisk d) -> Some d
+                | None | Some (Open _ | Unknown) -> None
+              in
+              FileDigest.with_change
+                ~process:(fun chan -> Lexing.from_channel chan |> IlluaminateParser.program file)
+                ~path digest
+              |> Option.fold ~none:Unknown ~some:(fun x -> OnDisk x)))
+      b;
     (* Then we use the above key to extract the actual program. *)
-    |> key Programs.Files.file (fun store file ->
-           match need store parsed_file file with
-           | OnDisk { value; _ } | Open value -> (
-             match value with
-             | Ok x -> Some (Lua x)
-             | Error _ -> None)
-           | Unknown -> None)
+    key Programs.Files.file
+      (fun store file ->
+        match need store parsed_file file with
+        | OnDisk { value; _ } | Open value -> (
+          match value with
+          | Ok x -> Some (Lua x)
+          | Error _ -> None)
+        | Unknown -> None)
+      b;
     (* The file list is derived from all matching patterns in the config file for each workspace *)
-    |> key Programs.Files.files (fun store () ->
-           let workspaces = need store Workspace.workspaces () in
-           let add workspace all =
-             need store Workspace.sources workspace
-             |> List.fold_left (fun s p -> FilenameSet.add (Filename.of_path p) s) all
-           in
-           let base = UriMap.fold (fun _ -> add) workspaces.workspaces FilenameSet.empty in
-           (match workspaces.root with
-           | None -> base
-           | Some w -> add w base)
-           |> FilenameSet.to_seq |> List.of_seq)
+    key Programs.Files.files
+      (fun store () ->
+        let workspaces = need store Workspace.workspaces () in
+        let add workspace all =
+          need store Workspace.sources workspace
+          |> List.fold_left (fun s p -> FilenameSet.add (Filename.of_path p) s) all
+        in
+        let base = UriMap.fold (fun _ -> add) workspaces.workspaces FilenameSet.empty in
+        (match workspaces.root with
+        | None -> base
+        | Some w -> add w base)
+        |> FilenameSet.to_seq |> List.of_seq)
+      b;
     (* A program's context is just derived from its workspace. *)
-    |> key Programs.Context.key (fun store name ->
-           let { Workspace.root; workspaces } = need store Workspace.workspaces () in
-           Workspace.workspace_for ~root workspaces name
-           |> Option.fold ~none:default_context ~some:(need store Workspace.context))
-    |> build
+    key Programs.Context.key
+      (fun store name ->
+        let { Workspace.root; workspaces } = need store Workspace.workspaces () in
+        Workspace.workspace_for ~root workspaces name
+        |> Option.fold ~none:default_context ~some:(need store Workspace.context))
+      b
   in
   { workspaces; files; data; capabilities = None }
 

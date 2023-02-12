@@ -1,6 +1,5 @@
 open IlluaminateCore
 open IlluaminateMinify
-module D = IlluaminateData
 
 let process ~name contents =
   let lexbuf = Lexing.from_string contents in
@@ -15,8 +14,7 @@ let process ~name contents =
       let updated =
         let buffer = Buffer.create 512 in
         let out = Format.formatter_of_buffer buffer in
-        (D.compute (fun ctx -> minify ctx parsed) D.Builder.(build empty)
-        |> Emit.(with_wrapping out "%a" program));
+        (minify parsed |> Emit.(with_wrapping out "%a" program));
         Buffer.contents buffer
       in
       Format.pp_print_string out updated;

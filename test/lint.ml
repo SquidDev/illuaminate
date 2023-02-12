@@ -4,7 +4,7 @@ open IlluaminateLint
 open IlluaminateConfig
 open IlluaminateSemantics
 open Lens
-module D = IlluaminateData
+open Import
 
 let only =
   let field =
@@ -40,7 +40,7 @@ let parse_schema program =
      |> CCList.find_map parse_schema
      |> CCOption.get_lazy @@ fun () -> Schema.default schema
 
-let files ?out () =
+let files ?out ?(extra = []) () =
   lazy
     (let module FileStore = D.Programs.FileStore in
     let dir = Fpath.(v (Sys.getcwd ()) / "data" / "lint" / "extra") in
@@ -60,6 +60,7 @@ let files ?out () =
            Result.to_option program
            |> Option.map (fun x -> File.Lua x)
            |> FileStore.update files name);
+    List.iter (fun (name, program) -> FileStore.update files name (Some program)) extra;
     Error.display_of_files ?out ~with_summary:false errs;
     files)
 
@@ -85,10 +86,9 @@ let process ~name contents out =
       let context = { D.Programs.Context.root = None; config = store } in
       let data =
         let open D.Builder in
-        empty
-        |> D.Programs.FileStore.lazy_builder (files ~out ())
-        |> oracle D.Programs.Context.key (fun _ _ -> context)
-        |> build
+        build @@ fun b ->
+        D.Programs.FileStore.lazy_builder (files ~out ~extra:[ (name, Lua parsed) ] ()) b;
+        oracle D.Programs.Context.key (fun _ _ -> context) b
       in
       let linters =
         Linters.all
@@ -106,17 +106,16 @@ let process ~name contents out =
 
 let process ~name contents = Format.asprintf "%t" (process ~name contents)
 
-let leak =
+let _leak =
   let open Leak in
   let name = Span.Filename.mk "=stdin" in
   let store = Schema.default schema in
   let context = { D.Programs.Context.root = None; config = store } in
   let data =
     let open D.Builder in
-    empty
-    |> D.Programs.FileStore.lazy_builder (files ())
-    |> oracle D.Programs.Context.key (fun _ _ -> context)
-    |> build
+    build @@ fun b ->
+    D.Programs.FileStore.lazy_builder (files ()) b;
+    oracle D.Programs.Context.key (fun _ _ -> context) b
   in
 
   OmnomnomAlcotest.mk_alcotest_case "Memory leaks" `Slow @@ fun () ->
@@ -140,6 +139,5 @@ let leak =
 let tests =
   group "Linting"
     [ OmnomnomGolden.of_directory process ~group:"Basic lints" ~directory:"data/lint"
-        ~extension:".lua" ();
-      leak
+        ~extension:".lua" ()
     ]

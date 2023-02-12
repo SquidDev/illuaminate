@@ -43,7 +43,7 @@ let lint paths =
   let errs = Error.make () in
   let loader = Loader.create errs in
   let modules, builder = Loader.load_from_many ~loader paths in
-  let data = IlluaminateData.Builder.(empty |> builder |> build) in
+  let data = IlluaminateData.Builder.build builder in
   modules
   |> List.iter (function
        | { Loader.body = None; _ } -> ()
@@ -61,7 +61,7 @@ let fix paths =
   let errs = Error.make () in
   let loader = Loader.create errs in
   let modules, builder = Loader.load_from_many ~loader paths in
-  let data = IlluaminateData.Builder.(empty |> builder |> build) in
+  let data = IlluaminateData.Builder.build builder in
   let modules' =
     modules
     |> List.map (function
@@ -134,7 +134,7 @@ let doc_gen path =
   (CCOption.get_lazy (fun () -> Sys.getcwd () |> Fpath.v) path
   |> Loader.load_from ~loader
   |> Option.iter @@ fun (config, _, builder) ->
-     let data = IlluaminateData.Builder.(empty |> builder |> build) in
+     let data = IlluaminateData.Builder.build builder in
      let pages = IlluaminateData.get data Doc.Extract.public_pages () in
      let { Config.DocOptions.site_properties =
              { site_title; site_image; site_url; embed_head; embed_js; embed_css; source_link };
@@ -206,7 +206,7 @@ let dump_globals ~defined paths =
   let errs = Error.make () in
   let loader = Loader.create errs in
   let modules, builder = Loader.load_from_many ~loader paths in
-  let data = IlluaminateData.Builder.(empty |> builder |> build) in
+  let data = IlluaminateData.Builder.build builder in
   let gather =
     Seq.fold_left (fun (unbound, defined) var ->
         let open IlluaminateSemantics.Resolve in
@@ -224,9 +224,9 @@ let dump_globals ~defined paths =
       (fun (unbound, defined) program ->
         match program with
         | { Loader.body = None | Some (Markdown _); _ } -> (unbound, defined)
-        | { body = Some (Lua parsed); _ } ->
-            IlluaminateData.get data IlluaminateSemantics.Resolve.key parsed
-            |> IlluaminateSemantics.Resolve.globals
+        | { file; body = Some (Lua _); _ } ->
+            IlluaminateData.get data IlluaminateSemantics.Resolve.key file
+            |> Option.get |> IlluaminateSemantics.Resolve.globals
             |> gather (unbound, defined))
       (StringSet.empty, StringSet.empty)
       modules
@@ -261,8 +261,7 @@ let minify file =
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok program ->
       let out = Format.formatter_of_out_channel stdout in
-      D.compute (fun ctx -> M.minify ctx program) D.Builder.(build empty)
-      |> M.Emit.(with_wrapping out "%a" program)
+      M.minify program |> M.Emit.(with_wrapping out "%a" program)
 
 module Args = struct
   include Cmdliner

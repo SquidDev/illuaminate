@@ -97,7 +97,7 @@ let dump_module
 type t = SymbolInformation.t Trie.t
 
 let key =
-  Data.Key.key ~name:__MODULE__ @@ fun data () ->
+  Data.Key.key ~name:__MODULE__ ~key:(module Data.Keys.Unit) @@ fun data () ->
   Data.need data Doc.Extract.all_pages ()
   |> NMap.to_seq
   |> Seq.flat_map (fun (_, x) -> StringMap.to_seq x)

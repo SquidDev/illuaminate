@@ -10,7 +10,7 @@ repos:
 - repo: local
   hooks:
   - id: ocamlformat
-    name: Check Ocaml codestyle
+    name: Check OCaml codestyle
     files: ".*\\.(ml|mli|re|rei)$"
     language: system
     entry: dune build @fmt --root=. --auto-promote

@@ -48,22 +48,29 @@ let render (doc : Dom_html.document Js.t) html : Dom.node Js.t =
   render_to out html;
   (out :> Dom.node Js.t)
 
-let data () =
+let data name file =
   let open IlluaminateData in
-  let open Builder in
   let context = { Programs.Context.root = None; config = store } in
-  empty
-  |> Programs.FileStore.(create () |> builder)
-  |> oracle Programs.Context.key (fun _ _ -> context)
-  |> build
+  let files =
+    let open Programs.FileStore in
+    let store = create () in
+    update store name (Some (Lua file));
+    store
+  in
+  Builder.build @@ fun b ->
+  Programs.FileStore.builder files b;
+  Builder.oracle Programs.Context.key (fun _ _ -> context) b
 
 (** Fix all errors within the program. *)
 let rec fix_all () : unit =
   let lexbuf = input##.value |> Js.to_string |> Lexing.from_string in
-  match IlluaminateParser.program (Span.Filename.mk "=input") lexbuf with
+  let name = Span.Filename.mk "=input" in
+  match IlluaminateParser.program name lexbuf with
   | Error _ -> ()
   | Ok parsed ->
-      let program, _ = Driver.lint_and_fix_all ~store ~data:(data ()) Linters.all (Lua parsed) in
+      let program, _ =
+        Driver.lint_and_fix_all ~store ~data:(data name parsed) Linters.all (Lua parsed)
+      in
       let new_contents = Format.asprintf "%a" File.emit program in
       input##.value := Js.string new_contents;
       lint ()
@@ -76,9 +83,7 @@ and minify () : unit =
       let new_contents =
         Format.asprintf "%t" @@ fun out ->
         let module M = IlluaminateMinify in
-        let module D = IlluaminateData in
-        D.compute (fun ctx -> M.minify ctx parsed) D.Builder.(build empty)
-        |> M.Emit.(with_wrapping out "%a" program)
+        M.minify parsed |> M.Emit.(with_wrapping out "%a" program)
       in
       input##.value := Js.string new_contents;
       lint ()
@@ -95,10 +100,11 @@ and lint () : unit =
   let errs = Error.make () in
   let input = Js.to_string input##.value in
   let lexbuf = Lexing.from_string input in
-  (match IlluaminateParser.program (Span.Filename.mk "=input") lexbuf with
+  let name = Span.Filename.mk "=input" in
+  (match IlluaminateParser.program name lexbuf with
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok parsed ->
-      let data = data () in
+      let data = data name parsed in
       let tags _ = true in
       Linters.all
       |> List.iter @@ fun l ->

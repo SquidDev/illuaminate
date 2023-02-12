@@ -178,7 +178,7 @@ let build_func t entry_block =
   go' None entry entry_block |> ignore;
   func
 
-let analyse _ prog =
+let analyse _ _ prog =
   let rec t =
     { next_func = 0;
       next_block = 0;

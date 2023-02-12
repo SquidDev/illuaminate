@@ -8,6 +8,14 @@ type t
     additional tracking. *)
 type context
 
+module type KEY = sig
+  type t
+
+  include Hashtbl.HashedType with type t := t
+
+  val pp : Format.formatter -> t -> unit
+end
+
 module Key : sig
   type ('k, 'v) t
 
@@ -17,15 +25,10 @@ module Key : sig
   (** A factory for a key, accepting a display name and some provider function ['f]. This accepts
       the following additional options:
 
-      - [container]: A container to hold keys.
+      - [hash]: A container to hold keys.
       - [eq]: A comparison function for values, to determine if two terms are equal. Defaults to the
         {!(==)} *)
-  type ('k, 'v, 'f) factory =
-    name:string ->
-    ?pp:(Format.formatter -> 'k -> unit) ->
-    ?container:(module Contained_tbl.KeyContainer with type t = 'k) ->
-    'f ->
-    ('k, 'v) t
+  type ('k, 'v, 'f) factory = name:string -> key:(module KEY with type t = 'k) -> 'f -> ('k, 'v) t
 
   (** The reason this builtin key was invoked. *)
   type 'a reason =
@@ -41,7 +44,7 @@ module Key : sig
     | RecomputeChange
     | RecomputeSame
 
-  type 'a result =
+  type 'a build_result =
     { value : 'a;
       changed : change
     }
@@ -50,7 +53,7 @@ module Key : sig
       in order to compute a value.
 
       This accepts the key and the reason the builtin is computed. Returns the new value. *)
-  val builtin : ('k, 'v, context -> 'k -> 'v reason -> 'v result) factory
+  val builtin : ('k, 'v, context -> 'k -> 'v reason -> 'v build_result) factory
 
   (** A basic key. This just uses the store in order to compute its value. It does not depend on the
       outside world.*)
@@ -71,24 +74,22 @@ module Builder : sig
   type store := t
   type t
 
-  (** An empty builder. *)
-  val empty : t
-
   (** Register a provider for a deferred key which just queries the store. This causes the deferred
       key to act as a standard key ({!Key.key}).
 
       Throws if the key was not constructed with {!Key.deferred}, or a provider is already
       registered. *)
-  val key : ('k, 'v) Key.t -> (context -> 'k -> 'v) -> t -> t
+  val key : ('k, 'v) Key.t -> (context -> 'k -> 'v) -> t -> unit
 
   (** Register a provider for a deferred key. Throws if the key was not constructed with
       {!Key.deferred}, or a provider is already registered. *)
-  val builtin : ('k, 'v) Key.t -> (context -> 'k -> 'v Key.reason -> 'v Key.result) -> t -> t
+  val builtin :
+    ('k, 'v) Key.t -> (context -> 'k -> 'v Key.reason -> 'v Key.build_result) -> t -> unit
 
-  val oracle : ('k, 'v) Key.t -> ('k -> 'v option -> 'v) -> t -> t
+  val oracle : ('k, 'v) Key.t -> ('k -> 'v option -> 'v) -> t -> unit
 
-  (** Convert a store builder into a fully-fledged store. *)
-  val build : t -> store
+  (** Add a series of oracles to a store builder and create a store from it. *)
+  val build : (t -> unit) -> store
 end
 
 (** Mark this task as depending upon a value, and compute it. *)
@@ -106,4 +107,4 @@ val compute : (context -> 'a) -> t -> 'a
 val refresh : t -> unit
 
 (** Dump the current state of the cache. *)
-val pp_store : all:bool -> Format.formatter -> t -> unit
+val pp_store : Format.formatter -> t -> unit

@@ -40,10 +40,7 @@ end
 type t
 
 (** The key to query the data cache with. *)
-val program : t IlluaminateData.Programs.key
-
-(** The key to query the data cache with. *)
-val file : (File.t, t) IlluaminateData.Key.t
+val file : t IlluaminateData.Programs.key
 
 (** Get any errors which occurred as part of documentation extraction. These errors are guaranteed
     to have a tag in {!Tags.all} *)

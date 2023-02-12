@@ -98,13 +98,14 @@ let do_load_from ~loader ~files ~file_store ~config root =
 
   Config.files add config root
 
-let builder files file_store builder =
-  builder
-  |> IlluaminateData.Builder.oracle IlluaminateData.Programs.Context.key (fun file _ ->
-         match StringMap.find_opt file.Span.id files with
-         | Some { root; config; _ } -> { root = Some root; config = Config.get_store config }
-         | None -> { root = None; config = Config.get_store Config.default })
-  |> FileStore.builder file_store
+let add_rules files file_store builder =
+  IlluaminateData.Builder.oracle IlluaminateData.Programs.Context.key
+    (fun file _ ->
+      match StringMap.find_opt file.Span.id files with
+      | Some { root; config; _ } -> { root = Some root; config = Config.get_store config }
+      | None -> { root = None; config = Config.get_store Config.default })
+    builder;
+  FileStore.builder file_store builder
 
 let keys m = StringMap.to_seq m |> Seq.map snd |> List.of_seq
 
@@ -115,7 +116,7 @@ let load_from ~loader path =
      let files = ref StringMap.empty in
      let file_store = FileStore.create () in
      do_load_from ~loader ~files ~file_store ~config path;
-     (config, keys !files, builder !files file_store)
+     (config, keys !files, add_rules !files file_store)
 
 let load_from_many ~loader paths =
   let files = ref StringMap.empty in
@@ -125,4 +126,4 @@ let load_from_many ~loader paths =
          let path = Fpath.(append loader.relative path |> normalise_p) in
          get_config_for ~loader path
          |> Option.iter (fun config -> do_load_from ~loader ~files ~file_store ~config path));
-  (keys !files, builder !files file_store)
+  (keys !files, add_rules !files file_store)

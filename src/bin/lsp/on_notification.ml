@@ -42,7 +42,7 @@ let worker client store : Client_notification.t -> unit Fiber.t = function
   | Exit
   | CancelRequest _ -> Fiber.return ()
   | Unknown_notification { method_ = "$/illuaminate/dump"; _ } ->
-      Format.asprintf "%a" (D.pp_store ~all:true) (Store.data store) |> Printf.printf "%s\n";
+      Format.asprintf "%a" D.pp_store (Store.data store) |> Printf.printf "%s\n";
       Fiber.return ()
   | Unknown_notification _ -> Fiber.return ()
 

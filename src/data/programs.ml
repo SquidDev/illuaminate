@@ -9,19 +9,20 @@ module Context = struct
   let eq a b = a.root = b.root && a.config == b.config
 
   let key : (Span.filename, t) Core.Key.t =
-    Core.Key.deferred ~pp:Span.Filename.pp
-      ~container:(module Contained_tbl.StrongContainer (Span.Filename))
-      ~eq ~name:(__MODULE__ ^ ".Context") ()
+    Core.Key.deferred ~name:(__MODULE__ ^ ".Context") ~eq ~key:(module Span.Filename) ()
 end
 
 module Files = struct
   let file : (Span.filename, File.t option) Core.Key.t =
-    Core.Key.deferred ~pp:Span.Filename.pp
-      ~container:(module Contained_tbl.StrongContainer (Span.Filename))
-      ~eq:(Option.equal File.( = )) ~name:(__MODULE__ ^ ".Files.file") ()
+    Core.Key.deferred ~name:(__MODULE__ ^ ".Files.file") ~eq:(Option.equal File.( = ))
+      ~key:(module Span.Filename)
+      ()
 
   let files : (unit, Span.filename list) Core.Key.t =
-    Core.Key.deferred ~eq:(CCList.equal Span.Filename.equal) ~name:(__MODULE__ ^ ".Files.files") ()
+    Core.Key.deferred ~name:(__MODULE__ ^ ".Files.files")
+      ~eq:(CCList.equal Span.Filename.equal)
+      ~key:(module Types.Unit)
+      ()
 end
 
 module FileStore = struct
@@ -51,7 +52,8 @@ module FileStore = struct
           store.file_list <- Some files;
           files
     in
-    builder |> Core.Builder.oracle Files.file get_file |> Core.Builder.oracle Files.files get_files
+    Core.Builder.oracle Files.file get_file builder;
+    Core.Builder.oracle Files.files get_files builder
 
   let builder store = lazy_builder (lazy store)
   let create () = { files = Tbl.create 16; file_list = None }
@@ -68,23 +70,20 @@ module FileStore = struct
         store.file_list <- Option.map (fun x -> path :: x) store.file_list
 end
 
-type 'a key = (Syntax.program, 'a) Core.Key.t
+type 'a key = (Span.filename, 'a option) Core.Key.t
 
-let key ~name build =
-  Core.Key.key ~name
-    ~pp:(fun f k -> Syntax.Spanned.program k |> Span.filename |> Span.Filename.pp f)
-    ~container:(Contained_tbl.weak ~eq:( == ) ())
-    build
+let key ~name ?eq build : 'a key =
+  let build data file =
+    match Core.need data Files.file file with
+    | Some (Lua x) -> Some (build data file x)
+    | Some (Markdown _) | None -> None
+  in
+  Core.Key.key ~name ?eq:(Option.map Option.equal eq) ~key:(module Span.Filename) build
 
-let on_program f : File.t option -> 'a option = function
-  | Some (Lua x) -> Some (f x)
-  | Some (Markdown _) | None -> None
-
-let need_for data key file = Core.need data Files.file file |> on_program (Core.need data key)
-let get_for data key file = Core.get data Files.file file |> on_program (Core.get data key)
-
-let file_key ~name build =
-  Core.Key.key ~name
-    ~pp:(fun f k -> File.span k |> Span.filename |> Span.Filename.pp f)
-    ~container:(Contained_tbl.weak ~eq:File.( = ) ())
-    build
+let file_key ~name ?eq build =
+  let build data file =
+    match Core.need data Files.file file with
+    | Some x -> Some (build data file x)
+    | None -> None
+  in
+  Core.Key.key ~name ?eq:(Option.map Option.equal eq) ~key:(module Span.Filename) build

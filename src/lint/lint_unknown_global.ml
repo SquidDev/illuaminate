@@ -70,7 +70,7 @@ let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "var:unknown-global"
 
 let name known ctx r = function
   | NVar v -> (
-    match IlluaminateData.need ctx.data R.key ctx.program |> R.get_var v with
+    match IlluaminateData.need ctx.data R.key ctx.file |> Option.get |> R.get_var v with
     | { definitions = []; kind = Global; name; _ }
       when (not (SSet.mem name known))
            && not (IlluaminateData.need ctx.data Module_resolve.global_modules () |> SSet.mem name)

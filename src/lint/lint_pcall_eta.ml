@@ -80,7 +80,7 @@ let check ~r ~(context : context) = function
               _
             }
       } as c -> (
-      let resolve = IlluaminateData.need context.data R.key context.program in
+      let resolve = IlluaminateData.need context.data R.key context.file |> Option.get in
       match G.of_expr resolve fn with
       | Some g when g = string_len && safe_args call.args ->
           r.e ~fix ~tag ~kind:Call ~source:c

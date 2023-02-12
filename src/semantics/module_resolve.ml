@@ -36,15 +36,13 @@ type t =
   { resolved : Resolve.t;
     modules : value documented StringMap.t;
     libraries : value documented StringMap.t;
-    doc : Doc_extract.t;
+    doc : Doc_extract.t option;
     cache : (Reference.t * value documented) option VarCache.t
   }
 
-let key =
-  let open IlluaminateData in
-  Programs.key ~name:__MODULE__ @@ fun data prog ->
+let compute ~data ~resolved ?doc () =
   let modules ns =
-    need data Doc_extract.all_pages ()
+    IlluaminateData.need data Doc_extract.all_pages ()
     |> NMap.find_opt ns
     |> Option.value ~default:StringMap.empty
     |> StringMap.to_seq
@@ -54,12 +52,20 @@ let key =
          | _ -> None)
     |> StringMap.of_seq
   in
-  { resolved = need data Resolve.key prog;
+  { resolved;
     modules = modules Namespace.module_;
     libraries = modules Namespace.library;
-    doc = need data Doc_extract.program prog;
+    doc;
     cache = VarCache.create 16
   }
+
+let key =
+  let module D = IlluaminateData in
+  D.Programs.key ~name:__MODULE__ @@ fun data filename _ ->
+  compute ~data
+    ~resolved:(D.need data Resolve.key filename |> Option.get)
+    ?doc:(D.need data Doc_extract.file filename)
+    ()
 
 let require = Some (Global.parse "require")
 
@@ -83,7 +89,9 @@ let rec get_var ({ cache; resolved; doc; modules; _ } as store) var :
     | Some _ -> from_doc
     | None ->
         (* If we've found nothing, then attempt to find it in the current program. *)
-        Doc_extract.get_var doc resolved |> Option.map (fun x -> (Var resolved, x))
+        doc
+        |> CCOption.flat_map (fun doc -> Doc_extract.get_var doc resolved)
+        |> Option.map (fun x -> (Var resolved, x))
   in
   match VarCache.find_opt cache var with
   | Some v -> v
@@ -130,4 +138,4 @@ let global_modules =
     |> Seq.map fst
     |> Seq.fold_left (Fun.flip SSet.add) SSet.empty
   in
-  Key.key ~name:(__MODULE__ ^ ".global_modules") ~eq:SSet.equal get
+  Key.key ~name:(__MODULE__ ^ ".global_modules") ~eq:SSet.equal ~key:(module Keys.Unit) get

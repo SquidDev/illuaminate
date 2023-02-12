@@ -5,10 +5,10 @@ let src = Logs.Src.create ~doc:"Loading and storing of local files" __MODULE__
 module Log = (val Logs.src_log src)
 
 let rate_limit (type k v) ~(delay : Mtime.span) :
-    (k, v, context -> k -> v Key.reason -> v Key.result) Key.factory =
- fun ~name ?pp ?container f ->
+    (k, v, context -> k -> v Key.reason -> v Key.build_result) Key.factory =
+ fun ~name ~key f ->
   let compute =
-    Key.builtin ~name:(name ^ ".compute") ?pp ?container @@ fun store key previous ->
+    Key.builtin ~name:(name ^ ".compute") ~key @@ fun store key previous ->
     match previous with
     | Absent ->
         let result = f store key Absent in
@@ -25,7 +25,7 @@ let rate_limit (type k v) ~(delay : Mtime.span) :
           { value = (Mtime_clock.now (), result.value); changed = RecomputeChange }
   in
 
-  Key.key ~name ?pp ?container (fun store k -> need store compute k |> snd)
+  Key.key ~name ~key (fun store k -> need store compute k |> snd)
 
 module FileDigest = struct
   type 'a t =
@@ -77,15 +77,21 @@ module FileDigest = struct
       | new_digest -> read ~new_digest
       | exception Sys_error msg -> error msg)
 
-  let oracle ?delay ?container ?(eq = ( == )) ~name process =
+  let oracle ?delay ?(eq = ( == )) ~name process =
     let compute path previous =
       Option.join previous |> with_change ?delay ~process:(process path) ~path
     in
+    let module Fpath = struct
+      include Fpath
+
+      let hash = Hashtbl.hash
+    end in
     let compute_key =
-      Key.oracle ~pp:Fpath.pp
+      Key.oracle ~name:(name ^ ".compute")
+        ~key:(module Fpath)
         ~eq:(Option.equal (equal ~eq))
-        ?container ~name:(name ^ ".compute") compute
+        compute
     in
-    Key.key ~pp:Fpath.pp ?container ~eq:(Option.equal eq) ~name @@ fun store key ->
+    Key.key ~name ~key:(module Fpath) ~eq:(Option.equal eq) @@ fun store key ->
     need store compute_key key |> Option.map (fun x -> x.value)
 end

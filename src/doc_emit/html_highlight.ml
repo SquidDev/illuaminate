@@ -89,30 +89,35 @@ let do_lua ~options:({ Html_options.data; _ } as options) input =
   let expr = Lexing.from_string input |> IlluaminateParser.repl_exprs file in
   let program = lazy (Lexing.from_string input |> IlluaminateParser.program file) in
 
+  let resolve program =
+    let resolved = IlluaminateSemantics.Resolve.compute program in
+    IlluaminateData.compute (fun data -> M.compute ~data ~resolved ()) data
+  in
+
   match (expr, program) with
   | Ok tree, _ ->
       let data =
-        IlluaminateData.get data M.key
-        @@ { program =
-               [ Return
-                   { return_return =
-                       Node
-                         { leading_trivia = [];
-                           trailing_trivia = [];
-                           contents = Token.Return;
-                           span =
-                             Syntax.SepList1.first.get tree.repl_exprs
-                             |> Syntax.First.expr.get |> Node.span |> Span.start
-                         };
-                     return_vals = Some tree.repl_exprs
-                   }
-               ];
-             eof = tree.repl_eof
-           }
+        resolve
+          { program =
+              [ Return
+                  { return_return =
+                      Node
+                        { leading_trivia = [];
+                          trailing_trivia = [];
+                          contents = Token.Return;
+                          span =
+                            Syntax.SepList1.first.get tree.repl_exprs
+                            |> Syntax.First.expr.get |> Node.span |> Span.start
+                        };
+                    return_vals = Some tree.repl_exprs
+                  }
+              ];
+            eof = tree.repl_eof
+          }
       in
       (emit ~options ~data ~input Emit.repl_exprs tree, Some `Expr)
   | Error _, (lazy (Ok tree)) ->
-      let data = IlluaminateData.get data M.key tree in
+      let data = resolve tree in
       (emit ~options ~data ~input Emit.program tree, Some `Stmt)
   | Error _, (lazy (Error _)) -> (Html.Default.str input, None)
 

@@ -13,8 +13,8 @@ end
 val remove_trivia : Syntax.program -> Syntax.program
 
 (** Rename any variables within the program to a shorter variant. *)
-val rename : IlluaminateData.context -> Syntax.program -> Syntax.program
+val rename : Syntax.program -> Syntax.program
 
 (** Attempts to minify a program as much as possible. This applies [rename] and [remove_trivia] to
     minify as far as possible. *)
-val minify : IlluaminateData.context -> Syntax.program -> Syntax.program
+val minify : Syntax.program -> Syntax.program

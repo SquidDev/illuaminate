@@ -2,30 +2,34 @@ open Alcotest
 open IlluaminateData
 
 module Ref = struct
-  type 'a t =
+  type t =
     { name : string;
-      mutable contents : 'a
+      mutable contents : int
     }
 
+  let equal (x : t) (y : t) = x == y
   let hash { name; _ } = Hashtbl.hash name
   let mk name contents = { name; contents }
-  let pp f out { name; contents } = Format.fprintf out "#%s = %a" name f contents
-  let v (x : _ t) = x.contents
+  let pp out { name; contents } = Format.fprintf out "#%s = %d" name contents
+  let v (x : t) = x.contents
 end
 
-let ref_key =
-  Key.deferred ~name:"Reference" ~pp:(Ref.pp Fmt.int)
-    ~container:(Container.strong ~hash:Ref.hash ~eq:( == ) ())
-    ()
+module RefPair = struct
+  type t = Ref.t * Ref.t
+
+  let equal (a1, b1) (a2, b2) = Ref.equal a1 a2 && Ref.equal b1 b2
+  let hash (a, b) = (Ref.hash a * 31) + Ref.hash b
+  let pp out (a, b) = Format.fprintf out "(%a, %a)" Ref.pp a Ref.pp b
+end
+
+let ref_key = Key.deferred ~name:"Reference" ~key:(module Ref) ()
 
 let add_key =
-  Key.key ~name:"Add"
-    ~pp:Fmt.(pair ~sep:comma (Ref.pp int) (Ref.pp int))
-    (fun s (a, b) -> need s ref_key a + need s ref_key b)
+  Key.key ~name:"Add" ~key:(module RefPair) (fun s (a, b) -> need s ref_key a + need s ref_key b)
 
 let count_key key k =
   let counter = ref 0 in
-  (Key.key ~name:"Count" ~pp:(Fmt.any "") (fun s () -> incr counter; need s key k), counter)
+  (Key.key ~name:"Count" ~key:(module Keys.Unit) (fun s () -> incr counter; need s key k), counter)
 
 let ref_builder = Builder.oracle ref_key (fun x _ -> Ref.v x)
 let test_case t s f = OmnomnomAlcotest.of_alcotest_case (test_case t s f)
@@ -35,7 +39,7 @@ let tests =
     [ ( test_case "Do not rebuild on constant builds" `Quick @@ fun () ->
         let a = Ref.mk "a" 1 and b = Ref.mk "b" 2 in
         let changed_key, changed = count_key add_key (a, b) in
-        let data = Builder.(empty |> ref_builder |> build) in
+        let data = Builder.(build @@ fun b -> ref_builder b) in
 
         (* An initial build should result in 3 and always change. *)
         check int "Computed value" 3 (get data changed_key ());
@@ -50,7 +54,7 @@ let tests =
       ( test_case "Do not rebuild on non-changing builds" `Quick @@ fun () ->
         let a = Ref.mk "a" 1 and b = Ref.mk "b" 2 in
         let changed_key, changed = count_key add_key (a, b) in
-        let data = Builder.(empty |> ref_builder |> build) in
+        let data = Builder.(build @@ fun b -> ref_builder b) in
 
         (* An initial build should result in 3 and always change. *)
         check int "Computed value" 3 (get data changed_key ());
@@ -67,7 +71,7 @@ let tests =
       ( test_case "Rebuild on non-changing builds" `Quick @@ fun () ->
         let a = Ref.mk "a" 1 and b = Ref.mk "b" 2 in
         let changed_key, changed = count_key add_key (a, b) in
-        let data = Builder.(empty |> ref_builder |> build) in
+        let data = Builder.(build @@ fun b -> ref_builder b) in
 
         (* An initial build should result in 3 and always change. *)
         check int "Computed value" 3 (get data changed_key ());

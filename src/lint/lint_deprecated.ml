@@ -13,7 +13,7 @@ let pp_description : Doc.Syntax.description option -> _ = function
 
 let expr () ctx r = function
   | Ref name -> (
-      let resolve = IlluaminateData.need ctx.data Module_resolve.key ctx.program in
+      let resolve = IlluaminateData.need ctx.data Module_resolve.key ctx.file |> Option.get in
       match Module_resolve.get_name resolve name with
       | Some (_, { deprecated = Some { deprecation_message }; _ }) ->
           r.r ~tag ?detail:(pp_description deprecation_message) "Using deprecated member."

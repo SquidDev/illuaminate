@@ -19,6 +19,8 @@ let check_versions r ({ changes; _ } : Doc.Comment.comment) =
 
 let linter =
   make_no_opt ~tags:[ tag_unordered_versions ]
-    ~file:(fun () context r file ->
-      IlluaminateData.need context D.file file |> D.comments |> List.iter (check_versions r))
+    ~file:(fun () context r _ ->
+      IlluaminateData.need context.data D.file context.file
+      |> Option.get |> D.comments
+      |> List.iter (check_versions r))
     ()

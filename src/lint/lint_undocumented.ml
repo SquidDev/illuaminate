@@ -47,8 +47,8 @@ and ty ~r ~span:_ { type_name; type_members; _ } =
 
 let linter =
   make_no_opt ~tags:[ tag; arg_tag; return_tag ]
-    ~file:(fun () context r file ->
-      match IlluaminateData.need context E.file file |> E.get_page with
+    ~file:(fun () context r _ ->
+      match IlluaminateData.need context.data E.file context.file |> Option.get |> E.get_page with
       | None -> ()
       | Some { description; descriptor; definition; _ } ->
           (* Modules are a little odd, as we allow any module with the same name to have
@@ -59,7 +59,7 @@ let linter =
               let module MN = Map.Make (Namespace) in
               let module MS = Map.Make (String) in
               let has_any =
-                IlluaminateData.need context E.all_pages ()
+                IlluaminateData.need context.data E.all_pages ()
                 |> MN.find_opt descriptor.page_ref.namespace
                 |> CCOption.flat_map (MS.find_opt descriptor.page_ref.id)
                 |> CCOption.flat_map (fun (x : _ documented) -> x.description)

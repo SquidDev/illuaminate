@@ -92,6 +92,12 @@ module VarTbl : Hashtbl.S with type key = var
 (** The primary store of resolution information for a program. *)
 type t
 
+(** Compute the map of resolved variables.
+
+    This should only be used for free-standing snippets of code. {!key} should be used when dealing
+    with existing programs. *)
+val compute : Syntax.program -> t
+
 val key : t IlluaminateData.Programs.key
 
 (** Get the definition of a variable.
