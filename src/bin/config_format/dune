@@ -12,7 +12,7 @@
   illuaminate.semantics
   illuaminate.config
   illuaminate.pattern
-  result)
+  unix)
  (instrumentation
   (backend bisect_ppx)))
 

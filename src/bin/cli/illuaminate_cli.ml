@@ -243,7 +243,6 @@ let init_config config force =
   write_file (Fpath.v config) Config.generate
 
 let minify file =
-  let module D = IlluaminateData in
   let module M = IlluaminateMinify in
   let errs = Error.make () in
   let program =

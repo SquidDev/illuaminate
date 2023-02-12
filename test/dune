@@ -28,12 +28,12 @@
   logs
   cmdliner
   yojson
-  result
   alcotest
   fmt
   ppx_yojson_conv_lib
   qcheck-core
-  html)
+  html
+  unix)
  (deps
   (source_tree data))
  (preprocess

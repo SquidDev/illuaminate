@@ -23,9 +23,9 @@
   illuaminate.pattern
   illuaminate.doc_emit
   omd
-  result
   logs
-  logs.fmt)
+  logs.fmt
+  unix)
  (preprocess
   (pps ppx_deriving_yojson))
  (instrumentation

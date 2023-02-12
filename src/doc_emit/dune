@@ -11,7 +11,8 @@
   illuaminate.parser
   fpath
   omd
-  yojson)
+  yojson
+  unix)
  (preprocess
   (pps jsx))
  (instrumentation
