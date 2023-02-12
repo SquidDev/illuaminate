@@ -79,7 +79,7 @@ module SVarTbl = Hashtbl.Make (struct
   type t = S.var
 
   let equal = ( == )
-  let hash (S.Var n) = CCHash.string (n ^. Node.contents)
+  let hash (S.Var n) = Node.span n ^. Span.start_offset
 end)
 
 module TokenTbl = Hashtbl.Make (struct
