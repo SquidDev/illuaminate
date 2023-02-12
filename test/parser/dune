@@ -1,0 +1,24 @@
+(executable
+ (name test)
+ (modules test)
+ (libraries illuaminate.core illuaminate.parser re ppx_deriving.runtime))
+
+; Run ./test/check-markdown.lua against parser_spec
+
+(rule
+ (action
+  (with-stdout-to
+   t_parse_errors.new.md
+   (with-stdin-from
+    %{dep:t_parse_errors.md}
+    (run %{dep:./test.exe})))))
+
+(rule
+ (alias t_parse_errors)
+ (action
+  (diff t_parse_errors.md t_parse_errors.new.md)))
+
+(alias
+ (name runtest)
+ (deps
+  (alias t_parse_errors)))

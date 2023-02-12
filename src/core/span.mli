@@ -86,6 +86,9 @@ val of_pos2 : Lines.t -> Lexing.position -> Lexing.position -> t
 (** Make a source span from a pair of two other spans *)
 val of_span2 : t -> t -> t
 
+(** Construct a new span which points to the first character. *)
+val start : t -> t
+
 (** Construct a new span which points to the last character. *)
 val finish : t -> t
 

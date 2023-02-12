@@ -33,7 +33,7 @@ let tests =
                "Has a parse error"
                [ Diagnostic.create ~range:(range 0 28 0 29) ~code:(`String "parse:syntax-error")
                    ~source:"illuaminate" ~severity:Error
-                   ~message:"Unexpected `)`: Unexpected token after function call" ()
+                   ~message:"Unexpected `)`. Expected a statement." ()
                ];
 
           (* [print "This is a basic file" ] *)

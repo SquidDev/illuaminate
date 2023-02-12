@@ -166,13 +166,10 @@ let table_entry :=
 
 (* Statements *)
 
-let stmts := list(stmt)
+let stmts := ~ = rlist(stmt) ; <List.rev>
 
 let stmt :=
-  | ~ = basic_stmt ; <>
   | ~ = call ; <SCall>
-
-let basic_stmt :=
   | ~ = ";" ; <Semicolon>
   | ~ = BREAK ; <Break>
 
@@ -232,3 +229,7 @@ let sep_list1(separator, X) :=
 let sep_list0(separator, X) :=
   | { None }
   | ~ = sep_list1(separator, X) ; <Some>
+
+let rlist(x) :=
+  | {[]}
+  | xs = rlist(x) ; x = x ; {x :: xs}

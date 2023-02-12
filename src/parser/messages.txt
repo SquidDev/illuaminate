@@ -1,6 +1,6 @@
 program: DO SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 113.
+## Ends in an error in state: 165.
 ##
 ## stmt -> DO stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -11,28 +11,15 @@ program: DO SEMICOLON ELSEIF
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 115, spurious reduction of production list(stmt) ->
-## In state 123, spurious reduction of production list(stmt) -> stmt list(stmt)
-## In state 129, spurious reduction of production stmts -> list(stmt)
+## In state 3, spurious reduction of production stmts -> rlist(stmt)
 ##
 
 Expected `end` to terminate `do` block
 
-program: DO UNTIL
-##
-## Ends in an error in state: 111.
-##
-## stmt -> DO . stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
-##
-## The known suffix of the stack is as follows:
-## DO
-##
-
-Expected statement within `do` block
 
 program: FOR IDENT COMMA IDENT WHILE
 ##
-## Ends in an error in state: 143.
+## Ends in an error in state: 158.
 ##
 ## stmt -> FOR sep_list1(COMMA,var) . IN sep_list1(COMMA,expr) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -43,15 +30,15 @@ program: FOR IDENT COMMA IDENT WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 141, spurious reduction of production sep_list1(COMMA,var) -> var
-## In state 142, spurious reduction of production sep_list1(COMMA,var) -> var COMMA sep_list1(COMMA,var)
+## In state 125, spurious reduction of production sep_list1(COMMA,var) -> var
+## In state 127, spurious reduction of production sep_list1(COMMA,var) -> var COMMA sep_list1(COMMA,var)
 ##
 
 Expected `in` after for loop variables
 
 program: FOR IDENT EQUALS TRUE COMMA TRUE COMMA TRUE WHILE
 ##
-## Ends in an error in state: 108.
+## Ends in an error in state: 153.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT AND ADD ]
@@ -76,7 +63,7 @@ program: FOR IDENT EQUALS TRUE COMMA TRUE COMMA TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `do` after for loop initialisation
@@ -85,7 +72,7 @@ We should have something of the form
 
 program: FOR IDENT EQUALS TRUE COMMA TRUE COMMA WHILE
 ##
-## Ends in an error in state: 107.
+## Ends in an error in state: 152.
 ##
 ## option(__anonymous_1) -> COMMA . expr [ DO ]
 ##
@@ -97,7 +84,7 @@ Expected expression for for loop step
 
 program: FOR IDENT EQUALS TRUE COMMA TRUE DO SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 138.
+## Ends in an error in state: 156.
 ##
 ## stmt -> FOR var EQUALS expr COMMA expr option(__anonymous_1) DO stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -108,28 +95,14 @@ program: FOR IDENT EQUALS TRUE COMMA TRUE DO SEMICOLON ELSEIF
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 115, spurious reduction of production list(stmt) ->
-## In state 123, spurious reduction of production list(stmt) -> stmt list(stmt)
-## In state 129, spurious reduction of production stmts -> list(stmt)
+## In state 3, spurious reduction of production stmts -> rlist(stmt)
 ##
 
-Expected `end` in order to close for loop
-
-program: FOR IDENT EQUALS TRUE COMMA TRUE DO UNTIL
-##
-## Ends in an error in state: 110.
-##
-## stmt -> FOR var EQUALS expr COMMA expr option(__anonymous_1) DO . stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
-##
-## The known suffix of the stack is as follows:
-## FOR var EQUALS expr COMMA expr option(__anonymous_1) DO
-##
-
-Expected `end` in order to close for loop
+Expected `end` to close for loop
 
 program: FOR IDENT EQUALS TRUE COMMA TRUE WHILE
 ##
-## Ends in an error in state: 106.
+## Ends in an error in state: 151.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT COMMA AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT COMMA AND ADD ]
@@ -154,7 +127,7 @@ program: FOR IDENT EQUALS TRUE COMMA TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `do` to finish for loop initialisation.
@@ -164,7 +137,7 @@ We expect something of the form
 
 program: FOR IDENT EQUALS TRUE COMMA WHILE
 ##
-## Ends in an error in state: 105.
+## Ends in an error in state: 150.
 ##
 ## stmt -> FOR var EQUALS expr COMMA . expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -176,7 +149,7 @@ Expected expression for for loop limit
 
 program: FOR IDENT EQUALS TRUE WHILE
 ##
-## Ends in an error in state: 104.
+## Ends in an error in state: 149.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA AND ADD ]
@@ -201,14 +174,14 @@ program: FOR IDENT EQUALS TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 Expected comma after for loop start
 
 program: FOR IDENT EQUALS WHILE
 ##
-## Ends in an error in state: 103.
+## Ends in an error in state: 148.
 ##
 ## stmt -> FOR var EQUALS . expr COMMA expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -222,7 +195,7 @@ You should have something like
 
 program: FOR IDENT IN TRUE DO SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 147.
+## Ends in an error in state: 162.
 ##
 ## stmt -> FOR sep_list1(COMMA,var) IN sep_list1(COMMA,expr) DO stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -233,28 +206,14 @@ program: FOR IDENT IN TRUE DO SEMICOLON ELSEIF
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 115, spurious reduction of production list(stmt) ->
-## In state 123, spurious reduction of production list(stmt) -> stmt list(stmt)
-## In state 129, spurious reduction of production stmts -> list(stmt)
+## In state 3, spurious reduction of production stmts -> rlist(stmt)
 ##
 
 Expected `end` to close for loop.
 
-program: FOR IDENT IN TRUE DO UNTIL
-##
-## Ends in an error in state: 146.
-##
-## stmt -> FOR sep_list1(COMMA,var) IN sep_list1(COMMA,expr) DO . stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
-##
-## The known suffix of the stack is as follows:
-## FOR sep_list1(COMMA,var) IN sep_list1(COMMA,expr) DO
-##
-
-Expected `end` in order to close for loop
-
 program: FOR IDENT IN TRUE WHILE
 ##
-## Ends in an error in state: 145.
+## Ends in an error in state: 160.
 ##
 ## stmt -> FOR sep_list1(COMMA,var) IN sep_list1(COMMA,expr) . DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -265,15 +224,15 @@ program: FOR IDENT IN TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
-## In state 74, spurious reduction of production sep_list1(COMMA,expr) -> expr
+## In state 39, spurious reduction of production expr -> expr_pow
+## In state 78, spurious reduction of production sep_list1(COMMA,expr) -> expr
 ##
 
 Expected `end` after for loop initialiser
 
 program: FOR IDENT IN WHILE
 ##
-## Ends in an error in state: 144.
+## Ends in an error in state: 159.
 ##
 ## stmt -> FOR sep_list1(COMMA,var) IN . sep_list1(COMMA,expr) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -285,7 +244,7 @@ Expected generator expression in for loop
 
 program: FOR IDENT WHILE
 ##
-## Ends in an error in state: 102.
+## Ends in an error in state: 147.
 ##
 ## sep_list1(COMMA,var) -> var . [ IN ]
 ## sep_list1(COMMA,var) -> var . COMMA sep_list1(COMMA,var) [ IN ]
@@ -299,7 +258,7 @@ Expected `=` or `in` after `for` loop variables
 
 program: FOR WHILE
 ##
-## Ends in an error in state: 101.
+## Ends in an error in state: 146.
 ##
 ## stmt -> FOR . var EQUALS expr COMMA expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ## stmt -> FOR . sep_list1(COMMA,var) IN sep_list1(COMMA,expr) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
@@ -312,7 +271,7 @@ Expected loop variabliables within `for` loop
 
 program: FUNCTION IDENT COLON WHILE
 ##
-## Ends in an error in state: 98.
+## Ends in an error in state: 141.
 ##
 ## function_name -> function_name COLON . IDENT [ OPAREN DOT COLON ]
 ##
@@ -324,7 +283,7 @@ Expected method name after `:`.
 
 program: FUNCTION IDENT DOT WHILE
 ##
-## Ends in an error in state: 96.
+## Ends in an error in state: 139.
 ##
 ## function_name -> function_name DOT . IDENT [ OPAREN DOT COLON ]
 ##
@@ -336,7 +295,7 @@ Expected function name after `.`.
 
 program: FUNCTION IDENT OPAREN CPAREN SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 149.
+## Ends in an error in state: 144.
 ##
 ## stmt -> FUNCTION function_name args stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -347,28 +306,14 @@ program: FUNCTION IDENT OPAREN CPAREN SEMICOLON ELSEIF
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 115, spurious reduction of production list(stmt) ->
-## In state 123, spurious reduction of production list(stmt) -> stmt list(stmt)
-## In state 129, spurious reduction of production stmts -> list(stmt)
+## In state 3, spurious reduction of production stmts -> rlist(stmt)
 ##
 
 Expected `end` to terminate function definition.
 
-program: FUNCTION IDENT OPAREN CPAREN UNTIL
-##
-## Ends in an error in state: 100.
-##
-## stmt -> FUNCTION function_name args . stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
-##
-## The known suffix of the stack is as follows:
-## FUNCTION function_name args
-##
-
-Expected statement within function body.
-
 program: FUNCTION IDENT WHILE
 ##
-## Ends in an error in state: 95.
+## Ends in an error in state: 138.
 ##
 ## function_name -> function_name . DOT IDENT [ OPAREN DOT COLON ]
 ## function_name -> function_name . COLON IDENT [ OPAREN DOT COLON ]
@@ -382,7 +327,7 @@ Expected `(` to start this function's argument list.
 
 program: FUNCTION WHILE
 ##
-## Ends in an error in state: 93.
+## Ends in an error in state: 136.
 ##
 ## stmt -> FUNCTION . function_name args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -395,7 +340,7 @@ You cannot have an anonymous functions at the top level!
 
 program: IDENT COLON IDENT WHILE
 ##
-## Ends in an error in state: 80.
+## Ends in an error in state: 84.
 ##
 ## call -> simple_expr COLON IDENT . call_args [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
@@ -407,7 +352,7 @@ Expected argument in self-call.
 
 program: IDENT COLON WHILE
 ##
-## Ends in an error in state: 79.
+## Ends in an error in state: 83.
 ##
 ## call -> simple_expr COLON . IDENT call_args [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
@@ -419,7 +364,7 @@ Expected method name in self-call.
 
 program: IDENT COMMA WHILE
 ##
-## Ends in an error in state: 121.
+## Ends in an error in state: 174.
 ##
 ## sep_list1(COMMA,name) -> name COMMA . sep_list1(COMMA,name) [ EQUALS ]
 ##
@@ -431,7 +376,7 @@ Expected another variable in assignment list.
 
 program: IDENT DOT WHILE
 ##
-## Ends in an error in state: 77.
+## Ends in an error in state: 81.
 ##
 ## name -> simple_expr DOT . IDENT [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQUALS EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
@@ -443,7 +388,7 @@ Expected table key after `.`.
 
 program: IDENT EQUALS WHILE
 ##
-## Ends in an error in state: 118.
+## Ends in an error in state: 171.
 ##
 ## stmt -> sep_list1(COMMA,name) EQUALS . sep_list1(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -455,7 +400,7 @@ Expected expressions on right hand side of an assignment.
 
 program: IDENT OPAREN TRUE BREAK
 ##
-## Ends in an error in state: 72.
+## Ends in an error in state: 76.
 ##
 ## call_args -> OPAREN sep_list0(COMMA,expr) . CPAREN [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
@@ -466,16 +411,16 @@ program: IDENT OPAREN TRUE BREAK
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
-## In state 74, spurious reduction of production sep_list1(COMMA,expr) -> expr
-## In state 71, spurious reduction of production sep_list0(COMMA,expr) -> sep_list1(COMMA,expr)
+## In state 39, spurious reduction of production expr -> expr_pow
+## In state 78, spurious reduction of production sep_list1(COMMA,expr) -> expr
+## In state 75, spurious reduction of production sep_list0(COMMA,expr) -> sep_list1(COMMA,expr)
 ##
 
 Expecting `)` to close opening `(`.
 
 program: IDENT OPAREN WHILE
 ##
-## Ends in an error in state: 70.
+## Ends in an error in state: 74.
 ##
 ## call_args -> OPAREN . sep_list0(COMMA,expr) CPAREN [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
@@ -487,7 +432,7 @@ Expected expression after `(`.
 
 program: IDENT OSQUARE TRUE WHILE
 ##
-## Ends in an error in state: 40.
+## Ends in an error in state: 44.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CSQUARE CONCAT AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CSQUARE CONCAT AND ADD ]
@@ -512,14 +457,14 @@ program: IDENT OSQUARE TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `]` to close table index.
 
 program: IDENT OSQUARE WHILE
 ##
-## Ends in an error in state: 33.
+## Ends in an error in state: 37.
 ##
 ## name -> simple_expr OSQUARE . expr CSQUARE [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQUALS EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
@@ -531,7 +476,7 @@ Expected expression within table index.
 
 program: IDENT STRING TRUE
 ##
-## Ends in an error in state: 130.
+## Ends in an error in state: 188.
 ##
 ## simple_expr -> call . [ STRING OSQUARE OPAREN OBRACE DOT COLON ]
 ## stmt -> call . [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
@@ -544,7 +489,7 @@ Unexpected token after function call
 
 program: IDENT WHILE
 ##
-## Ends in an error in state: 120.
+## Ends in an error in state: 173.
 ##
 ## sep_list1(COMMA,name) -> name . [ EQUALS ]
 ## sep_list1(COMMA,name) -> name . COMMA sep_list1(COMMA,name) [ EQUALS ]
@@ -558,7 +503,7 @@ Unexpected token after variable.
 
 program: IF TRUE THEN BREAK UNTIL
 ##
-## Ends in an error in state: 124.
+## Ends in an error in state: 176.
 ##
 ## stmt -> if_clause(IF) . list(if_clause(ELSEIF)) option(__anonymous_0) END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -569,17 +514,15 @@ program: IF TRUE THEN BREAK UNTIL
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 115, spurious reduction of production list(stmt) ->
-## In state 123, spurious reduction of production list(stmt) -> stmt list(stmt)
-## In state 129, spurious reduction of production stmts -> list(stmt)
-## In state 151, spurious reduction of production if_clause(IF) -> IF expr THEN stmts
+## In state 3, spurious reduction of production stmts -> rlist(stmt)
+## In state 135, spurious reduction of production if_clause(IF) -> IF expr THEN stmts
 ##
 
-Expected `end` to terminate this if block.
+Expected `end` to terminate this `if` block.
 
-program: IF TRUE THEN ELSE SEMICOLON UNTIL
+program: IF TRUE THEN ELSE UNTIL
 ##
-## Ends in an error in state: 134.
+## Ends in an error in state: 184.
 ##
 ## stmt -> if_clause(IF) list(if_clause(ELSEIF)) option(__anonymous_0) . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -590,29 +533,15 @@ program: IF TRUE THEN ELSE SEMICOLON UNTIL
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 115, spurious reduction of production list(stmt) ->
-## In state 123, spurious reduction of production list(stmt) -> stmt list(stmt)
-## In state 129, spurious reduction of production stmts -> list(stmt)
-## In state 133, spurious reduction of production option(__anonymous_0) -> ELSE stmts
-##
-
-Expected `end` to terminate this if block.
-
-program: IF TRUE THEN ELSE UNTIL
-##
-## Ends in an error in state: 132.
-##
-## option(__anonymous_0) -> ELSE . stmts [ END ]
-##
-## The known suffix of the stack is as follows:
-## ELSE
+## In state 3, spurious reduction of production stmts -> rlist(stmt)
+## In state 183, spurious reduction of production option(__anonymous_0) -> ELSE stmts
 ##
 
 Expected statement within `else` body.
 
 program: IF TRUE THEN ELSEIF TRUE THEN BREAK UNTIL
 ##
-## Ends in an error in state: 136.
+## Ends in an error in state: 186.
 ##
 ## list(if_clause(ELSEIF)) -> if_clause(ELSEIF) . list(if_clause(ELSEIF)) [ END ELSE ]
 ##
@@ -623,30 +552,15 @@ program: IF TRUE THEN ELSEIF TRUE THEN BREAK UNTIL
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 115, spurious reduction of production list(stmt) ->
-## In state 123, spurious reduction of production list(stmt) -> stmt list(stmt)
-## In state 129, spurious reduction of production stmts -> list(stmt)
-## In state 128, spurious reduction of production if_clause(ELSEIF) -> ELSEIF expr THEN stmts
+## In state 3, spurious reduction of production stmts -> rlist(stmt)
+## In state 180, spurious reduction of production if_clause(ELSEIF) -> ELSEIF expr THEN stmts
 ##
 
-Expected `end` to terminate this if block.
-
-program: IF TRUE THEN ELSEIF TRUE THEN UNTIL
-##
-## Ends in an error in state: 127.
-##
-## if_clause(ELSEIF) -> ELSEIF expr THEN . stmts [ END ELSEIF ELSE ]
-##
-## The known suffix of the stack is as follows:
-## ELSEIF expr THEN
-##
-
-Expected statement within `elseif` body.
-
+Expected `end` to terminate this `if` block.
 
 program: IF TRUE THEN ELSEIF TRUE WHILE
 ##
-## Ends in an error in state: 126.
+## Ends in an error in state: 178.
 ##
 ## expr -> expr . AND expr [ THEN SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT AND ADD ]
 ## expr -> expr . OR expr [ THEN SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT AND ADD ]
@@ -671,14 +585,14 @@ program: IF TRUE THEN ELSEIF TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `then` within `elseif` condition.
 
 program: IF TRUE THEN ELSEIF WHILE
 ##
-## Ends in an error in state: 125.
+## Ends in an error in state: 177.
 ##
 ## if_clause(ELSEIF) -> ELSEIF . expr THEN stmts [ END ELSEIF ELSE ]
 ##
@@ -688,21 +602,9 @@ program: IF TRUE THEN ELSEIF WHILE
 
 Expected condition after `elseif`.
 
-program: IF TRUE THEN UNTIL
-##
-## Ends in an error in state: 92.
-##
-## if_clause(IF) -> IF expr THEN . stmts [ END ELSEIF ELSE ]
-##
-## The known suffix of the stack is as follows:
-## IF expr THEN
-##
-
-Expected `end` to close `if` block
-
 program: IF TRUE WHILE
 ##
-## Ends in an error in state: 91.
+## Ends in an error in state: 133.
 ##
 ## expr -> expr . AND expr [ THEN SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT AND ADD ]
 ## expr -> expr . OR expr [ THEN SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT AND ADD ]
@@ -727,14 +629,14 @@ program: IF TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `then` after `if` condition.
 
 program: IF WHILE
 ##
-## Ends in an error in state: 90.
+## Ends in an error in state: 132.
 ##
 ## if_clause(IF) -> IF . expr THEN stmts [ END ELSEIF ELSE ]
 ##
@@ -746,7 +648,7 @@ Expected `condition` after `if`
 
 program: LOCAL FUNCTION IDENT OPAREN CPAREN SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 152.
+## Ends in an error in state: 123.
 ##
 ## stmt -> LOCAL FUNCTION var args stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -757,28 +659,14 @@ program: LOCAL FUNCTION IDENT OPAREN CPAREN SEMICOLON ELSEIF
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 115, spurious reduction of production list(stmt) ->
-## In state 123, spurious reduction of production list(stmt) -> stmt list(stmt)
-## In state 129, spurious reduction of production stmts -> list(stmt)
+## In state 3, spurious reduction of production stmts -> rlist(stmt)
 ##
 
 Expected `end` to close function definition.
 
-program: LOCAL FUNCTION IDENT OPAREN CPAREN UNTIL
-##
-## Ends in an error in state: 89.
-##
-## stmt -> LOCAL FUNCTION var args . stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
-##
-## The known suffix of the stack is as follows:
-## LOCAL FUNCTION var args
-##
-
-Expected statement within function definition.
-
 program: LOCAL FUNCTION IDENT WHILE
 ##
-## Ends in an error in state: 88.
+## Ends in an error in state: 121.
 ##
 ## stmt -> LOCAL FUNCTION var . args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -790,7 +678,7 @@ Expected `(` to start this function's argument list.
 
 program: LOCAL FUNCTION WHILE
 ##
-## Ends in an error in state: 87.
+## Ends in an error in state: 120.
 ##
 ## stmt -> LOCAL FUNCTION . var args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -802,7 +690,7 @@ Expected local function name.
 
 program: LOCAL IDENT COMMA WHILE
 ##
-## Ends in an error in state: 140.
+## Ends in an error in state: 126.
 ##
 ## sep_list1(COMMA,var) -> var COMMA . sep_list1(COMMA,var) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IN IF IDENT FUNCTION FOR EQUALS EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -814,7 +702,7 @@ Expected another identifier in function's argument list.
 
 program: LOCAL IDENT EQUALS WHILE
 ##
-## Ends in an error in state: 155.
+## Ends in an error in state: 129.
 ##
 ## option(__anonymous_2) -> EQUALS . sep_list1(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -826,7 +714,7 @@ Expected an expression on the right hand side of a `local` declaration.
 
 program: LOCAL IDENT IN
 ##
-## Ends in an error in state: 154.
+## Ends in an error in state: 128.
 ##
 ## stmt -> LOCAL sep_list1(COMMA,var) . option(__anonymous_2) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -837,14 +725,14 @@ program: LOCAL IDENT IN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 141, spurious reduction of production sep_list1(COMMA,var) -> var
+## In state 125, spurious reduction of production sep_list1(COMMA,var) -> var
 ##
 
 Expected statement or `=` after a `local` declaration
 
 program: LOCAL IDENT TRUE
 ##
-## Ends in an error in state: 141.
+## Ends in an error in state: 125.
 ##
 ## sep_list1(COMMA,var) -> var . [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IN IF IDENT FUNCTION FOR EQUALS EOF END ELSEIF ELSE DO BREAK ]
 ## sep_list1(COMMA,var) -> var . COMMA sep_list1(COMMA,var) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IN IF IDENT FUNCTION FOR EQUALS EOF END ELSEIF ELSE DO BREAK ]
@@ -857,7 +745,7 @@ Unexpected token after identifier.
 
 program: LOCAL WHILE
 ##
-## Ends in an error in state: 86.
+## Ends in an error in state: 119.
 ##
 ## stmt -> LOCAL . sep_list1(COMMA,var) option(__anonymous_2) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ## stmt -> LOCAL . FUNCTION var args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
@@ -870,7 +758,7 @@ Expected identifier after `local`.
 
 program: OPAREN TRUE CPAREN CBRACE
 ##
-## Ends in an error in state: 116.
+## Ends in an error in state: 169.
 ##
 ## call -> simple_expr . call_args [ WHILE UNTIL STRING SEMICOLON RETURN REPEAT OSQUARE OPAREN OBRACE LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DOT DO COLON BREAK ]
 ## call -> simple_expr . COLON IDENT call_args [ WHILE UNTIL STRING SEMICOLON RETURN REPEAT OSQUARE OPAREN OBRACE LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DOT DO COLON BREAK ]
@@ -885,7 +773,7 @@ We've just finished parsing a simple expression.
 
 program: OPAREN TRUE WHILE
 ##
-## Ends in an error in state: 180.
+## Ends in an error in state: 105.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CPAREN CONCAT AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CPAREN CONCAT AND ADD ]
@@ -910,14 +798,14 @@ program: OPAREN TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `)` to close opening parenthesis.
 
 program: OPAREN WHILE
 ##
-## Ends in an error in state: 5.
+## Ends in an error in state: 8.
 ##
 ## simple_expr -> OPAREN . expr CPAREN [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
@@ -929,7 +817,7 @@ Expected expression after `(`.
 
 program: REPEAT SEMICOLON EOF
 ##
-## Ends in an error in state: 158.
+## Ends in an error in state: 116.
 ##
 ## stmt -> REPEAT stmts . UNTIL expr [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -940,28 +828,14 @@ program: REPEAT SEMICOLON EOF
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 115, spurious reduction of production list(stmt) ->
-## In state 123, spurious reduction of production list(stmt) -> stmt list(stmt)
-## In state 129, spurious reduction of production stmts -> list(stmt)
+## In state 3, spurious reduction of production stmts -> rlist(stmt)
 ##
 
-Expected `until` to terminate repeat loop.
-
-program: REPEAT TRUE
-##
-## Ends in an error in state: 85.
-##
-## stmt -> REPEAT . stmts UNTIL expr [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
-##
-## The known suffix of the stack is as follows:
-## REPEAT
-##
-
-Expected `until` to termiante `repeat` block
+Expected `until` to terminate `repeat` loop.
 
 program: REPEAT UNTIL TRUE THEN
 ##
-## Ends in an error in state: 160.
+## Ends in an error in state: 118.
 ##
 ## expr -> expr . AND expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
 ## expr -> expr . OR expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
@@ -986,14 +860,14 @@ program: REPEAT UNTIL TRUE THEN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 This is unexpected after a `repeat` block.
 
 program: REPEAT UNTIL WHILE
 ##
-## Ends in an error in state: 159.
+## Ends in an error in state: 117.
 ##
 ## stmt -> REPEAT stmts UNTIL . expr [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -1005,7 +879,7 @@ Expected expression for `repeat` condition.
 
 program: RETURN FUNCTION OPAREN CPAREN SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 161.
+## Ends in an error in state: 29.
 ##
 ## atom -> FUNCTION args stmts . END [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1016,28 +890,14 @@ program: RETURN FUNCTION OPAREN CPAREN SEMICOLON ELSEIF
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 115, spurious reduction of production list(stmt) ->
-## In state 123, spurious reduction of production list(stmt) -> stmt list(stmt)
-## In state 129, spurious reduction of production stmts -> list(stmt)
+## In state 3, spurious reduction of production stmts -> rlist(stmt)
 ##
 
 Expected `end` to terminate function body.
 
-program: RETURN FUNCTION OPAREN CPAREN UNTIL
-##
-## Ends in an error in state: 24.
-##
-## atom -> FUNCTION args . stmts END [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
-##
-## The known suffix of the stack is as follows:
-## FUNCTION args
-##
-
-Expected `end` to close function expression.
-
 program: RETURN FUNCTION OPAREN IDENT COMMA WHILE
 ##
-## Ends in an error in state: 22.
+## Ends in an error in state: 26.
 ##
 ## sep_list1(COMMA,arg) -> arg COMMA . sep_list1(COMMA,arg) [ CPAREN ]
 ##
@@ -1049,7 +909,7 @@ Expected another function argument within argument list.
 
 program: RETURN FUNCTION OPAREN IDENT WHILE
 ##
-## Ends in an error in state: 21.
+## Ends in an error in state: 25.
 ##
 ## sep_list1(COMMA,arg) -> arg . [ CPAREN ]
 ## sep_list1(COMMA,arg) -> arg . COMMA sep_list1(COMMA,arg) [ CPAREN ]
@@ -1062,7 +922,7 @@ Expected another argument or `)` within argument list.
 
 program: RETURN FUNCTION OPAREN WHILE
 ##
-## Ends in an error in state: 15.
+## Ends in an error in state: 19.
 ##
 ## args -> OPAREN . sep_list0(COMMA,arg) CPAREN [ WHILE SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR END DO BREAK ]
 ##
@@ -1074,7 +934,7 @@ Expected another argument or `)` within argument list.
 
 program: RETURN FUNCTION WHILE
 ##
-## Ends in an error in state: 14.
+## Ends in an error in state: 18.
 ##
 ## atom -> FUNCTION . args stmts END [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1086,7 +946,7 @@ Expected `(` to start function's argument list.
 
 program: RETURN IDENT TRUE
 ##
-## Ends in an error in state: 31.
+## Ends in an error in state: 35.
 ##
 ## atom -> simple_expr . [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ## call -> simple_expr . call_args [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
@@ -1098,11 +958,11 @@ program: RETURN IDENT TRUE
 ## simple_expr
 ##
 
-This is unexpected after a a simple expression.
+This is unexpected after a simple expression.
 
 program: RETURN LEN WHILE
 ##
-## Ends in an error in state: 11.
+## Ends in an error in state: 15.
 ##
 ## expr_pow -> LEN . expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1114,7 +974,7 @@ Expected an expression after `#`.
 
 program: RETURN NOT WHILE
 ##
-## Ends in an error in state: 9.
+## Ends in an error in state: 12.
 ##
 ## expr_pow -> NOT . expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1126,7 +986,7 @@ Expected an expression after `not`
 
 program: RETURN OBRACE IDENT EQUALS TRUE WHILE
 ##
-## Ends in an error in state: 171.
+## Ends in an error in state: 96.
 ##
 ## expr -> expr . AND expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
 ## expr -> expr . OR expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
@@ -1151,14 +1011,14 @@ program: RETURN OBRACE IDENT EQUALS TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `}` to close table.
 
 program: RETURN OBRACE IDENT EQUALS WHILE
 ##
-## Ends in an error in state: 170.
+## Ends in an error in state: 95.
 ##
 ## table_entry -> IDENT EQUALS . expr [ SEMICOLON COMMA CBRACE ]
 ##
@@ -1170,7 +1030,7 @@ Expected expression after `=` in table entry.
 
 program: RETURN OBRACE OSQUARE TRUE CSQUARE EQUALS TRUE WHILE
 ##
-## Ends in an error in state: 168.
+## Ends in an error in state: 93.
 ##
 ## expr -> expr . AND expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
 ## expr -> expr . OR expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
@@ -1195,14 +1055,14 @@ program: RETURN OBRACE OSQUARE TRUE CSQUARE EQUALS TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `,` or `}` after table entry.
 
 program: RETURN OBRACE OSQUARE TRUE CSQUARE EQUALS WHILE
 ##
-## Ends in an error in state: 167.
+## Ends in an error in state: 92.
 ##
 ## table_entry -> OSQUARE expr CSQUARE EQUALS . expr [ SEMICOLON COMMA CBRACE ]
 ##
@@ -1214,7 +1074,7 @@ Expected expression after `=` in table entry.
 
 program: RETURN OBRACE OSQUARE TRUE CSQUARE WHILE
 ##
-## Ends in an error in state: 166.
+## Ends in an error in state: 91.
 ##
 ## table_entry -> OSQUARE expr CSQUARE . EQUALS expr [ SEMICOLON COMMA CBRACE ]
 ##
@@ -1226,7 +1086,7 @@ Expected `=` after table key.
 
 program: RETURN OBRACE OSQUARE TRUE WHILE
 ##
-## Ends in an error in state: 165.
+## Ends in an error in state: 90.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CSQUARE CONCAT AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CSQUARE CONCAT AND ADD ]
@@ -1251,14 +1111,14 @@ program: RETURN OBRACE OSQUARE TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `]` to close `[` in table key.
 
 program: RETURN OBRACE OSQUARE WHILE
 ##
-## Ends in an error in state: 7.
+## Ends in an error in state: 10.
 ##
 ## table_entry -> OSQUARE . expr CSQUARE EQUALS expr [ SEMICOLON COMMA CBRACE ]
 ##
@@ -1270,7 +1130,7 @@ Expected expression after opening table key.
 
 program: RETURN OBRACE TRUE SEMICOLON WHILE
 ##
-## Ends in an error in state: 175.
+## Ends in an error in state: 100.
 ##
 ## table_body -> table_entry table_sep . table_body [ CBRACE ]
 ##
@@ -1282,7 +1142,7 @@ Expected `}` or table entry.
 
 program: RETURN OBRACE TRUE WHILE
 ##
-## Ends in an error in state: 177.
+## Ends in an error in state: 102.
 ##
 ## expr -> expr . AND expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
 ## expr -> expr . OR expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
@@ -1307,14 +1167,14 @@ program: RETURN OBRACE TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 This is unexpected after an expression.
 
 program: RETURN OBRACE WHILE
 ##
-## Ends in an error in state: 6.
+## Ends in an error in state: 9.
 ##
 ## table -> OBRACE . table_body CBRACE [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
@@ -1329,7 +1189,7 @@ Expected some table entry:
 
 program: RETURN SUB WHILE
 ##
-## Ends in an error in state: 3.
+## Ends in an error in state: 6.
 ##
 ## expr_pow -> SUB . expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1341,7 +1201,7 @@ Expected expression after operator
 
 program: RETURN THEN
 ##
-## Ends in an error in state: 26.
+## Ends in an error in state: 113.
 ##
 ## stmt -> RETURN . sep_list0(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -1353,7 +1213,7 @@ Expected an expression or end of block after `return`.
 
 program: RETURN TRUE ADD WHILE
 ##
-## Ends in an error in state: 63.
+## Ends in an error in state: 59.
 ##
 ## expr -> expr ADD . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1365,7 +1225,7 @@ Expected expression after operator
 
 program: RETURN TRUE AND WHILE
 ##
-## Ends in an error in state: 47.
+## Ends in an error in state: 71.
 ##
 ## expr -> expr AND . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1377,7 +1237,7 @@ Expected expression after operator
 
 program: RETURN TRUE COMMA WHILE
 ##
-## Ends in an error in state: 75.
+## Ends in an error in state: 79.
 ##
 ## sep_list1(COMMA,expr) -> expr COMMA . sep_list1(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO CPAREN BREAK ]
 ##
@@ -1390,7 +1250,7 @@ Expected expression after comma
 
 program: RETURN TRUE CONCAT WHILE
 ##
-## Ends in an error in state: 59.
+## Ends in an error in state: 57.
 ##
 ## expr -> expr CONCAT . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1402,7 +1262,7 @@ Expected expression after operator
 
 program: RETURN TRUE DIV WHILE
 ##
-## Ends in an error in state: 67.
+## Ends in an error in state: 51.
 ##
 ## expr -> expr DIV . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1414,7 +1274,7 @@ Expected expression after operator
 
 program: RETURN TRUE EQ WHILE
 ##
-## Ends in an error in state: 57.
+## Ends in an error in state: 69.
 ##
 ## expr -> expr EQ . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1426,7 +1286,7 @@ Expected expression after operator
 
 program: RETURN TRUE GE WHILE
 ##
-## Ends in an error in state: 55.
+## Ends in an error in state: 67.
 ##
 ## expr -> expr GE . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1438,7 +1298,7 @@ Expected expression after operator
 
 program: RETURN TRUE GT WHILE
 ##
-## Ends in an error in state: 53.
+## Ends in an error in state: 65.
 ##
 ## expr -> expr GT . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1450,7 +1310,7 @@ Expected expression after operator
 
 program: RETURN TRUE LE WHILE
 ##
-## Ends in an error in state: 51.
+## Ends in an error in state: 63.
 ##
 ## expr -> expr LE . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1462,7 +1322,7 @@ Expected expression after operator
 
 program: RETURN TRUE LT WHILE
 ##
-## Ends in an error in state: 49.
+## Ends in an error in state: 61.
 ##
 ## expr -> expr LT . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1474,7 +1334,7 @@ Expected expression after operator
 
 program: RETURN TRUE MOD WHILE
 ##
-## Ends in an error in state: 65.
+## Ends in an error in state: 49.
 ##
 ## expr -> expr MOD . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1486,7 +1346,7 @@ Expected expression after operator
 
 program: RETURN TRUE MUL WHILE
 ##
-## Ends in an error in state: 61.
+## Ends in an error in state: 47.
 ##
 ## expr -> expr MUL . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1498,7 +1358,7 @@ Expected expression after operator
 
 program: RETURN TRUE NE WHILE
 ##
-## Ends in an error in state: 45.
+## Ends in an error in state: 55.
 ##
 ## expr -> expr NE . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1510,7 +1370,7 @@ Expected expression after operator
 
 program: RETURN TRUE OR WHILE
 ##
-## Ends in an error in state: 43.
+## Ends in an error in state: 53.
 ##
 ## expr -> expr OR . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1522,7 +1382,7 @@ Expected expression after operator
 
 program: RETURN TRUE POW WHILE
 ##
-## Ends in an error in state: 36.
+## Ends in an error in state: 40.
 ##
 ## expr_pow -> expr_pow POW . expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1534,7 +1394,7 @@ Expected expression after operator
 
 program: RETURN TRUE SUB WHILE
 ##
-## Ends in an error in state: 41.
+## Ends in an error in state: 45.
 ##
 ## expr -> expr SUB . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
@@ -1546,7 +1406,7 @@ Expected expression after operator
 
 program: RETURN TRUE THEN
 ##
-## Ends in an error in state: 74.
+## Ends in an error in state: 78.
 ##
 ## expr -> expr . AND expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
 ## expr -> expr . OR expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
@@ -1572,14 +1432,14 @@ program: RETURN TRUE THEN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 Unexpected symbol after expression.
 
 program: RETURN TRUE TRUE
 ##
-## Ends in an error in state: 35.
+## Ends in an error in state: 39.
 ##
 ## expr -> expr_pow . [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ## expr_pow -> expr_pow . POW expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
@@ -1592,19 +1452,7 @@ Unexpected symbol after expression.
 
 program: SEMICOLON TRUE
 ##
-## Ends in an error in state: 115.
-##
-## list(stmt) -> stmt . list(stmt) [ UNTIL EOF END ELSEIF ELSE ]
-##
-## The known suffix of the stack is as follows:
-## stmt
-##
-
-Expected another statement or end of block.
-
-program: SEMICOLON UNTIL
-##
-## Ends in an error in state: 187.
+## Ends in an error in state: 1.
 ##
 ## program -> stmts . EOF [ # ]
 ##
@@ -1615,28 +1463,14 @@ program: SEMICOLON UNTIL
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 115, spurious reduction of production list(stmt) ->
-## In state 123, spurious reduction of production list(stmt) -> stmt list(stmt)
-## In state 129, spurious reduction of production stmts -> list(stmt)
+## In state 3, spurious reduction of production stmts -> rlist(stmt)
 ##
 
-Expected another statement or end of file.
-
-program: UNTIL
-##
-## Ends in an error in state: 0.
-##
-## program' -> . program [ # ]
-##
-## The known suffix of the stack is as follows:
-##
-##
-
-Expected the end of file.
+Expected another statement or end of block.
 
 program: WHILE TRUE DO SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 185.
+## Ends in an error in state: 110.
 ##
 ## stmt -> WHILE expr DO stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -1647,29 +1481,14 @@ program: WHILE TRUE DO SEMICOLON ELSEIF
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 115, spurious reduction of production list(stmt) ->
-## In state 123, spurious reduction of production list(stmt) -> stmt list(stmt)
-## In state 129, spurious reduction of production stmts -> list(stmt)
+## In state 3, spurious reduction of production stmts -> rlist(stmt)
 ##
 
-Expected `end` to terminate while loop.
-
-
-program: WHILE TRUE DO UNTIL
-##
-## Ends in an error in state: 184.
-##
-## stmt -> WHILE expr DO . stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
-##
-## The known suffix of the stack is as follows:
-## WHILE expr DO
-##
-
-Expected `end` to close `while` loop
+Expected `end` to close while loop.
 
 program: WHILE TRUE WHILE
 ##
-## Ends in an error in state: 183.
+## Ends in an error in state: 108.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT AND ADD ]
@@ -1694,14 +1513,14 @@ program: WHILE TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 35, spurious reduction of production expr -> expr_pow
+## In state 39, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `do` after `while` loop condition.
 
 program: WHILE WHILE
 ##
-## Ends in an error in state: 1.
+## Ends in an error in state: 4.
 ##
 ## stmt -> WHILE . expr DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
 ##
@@ -1713,7 +1532,7 @@ Expected condition for `while` loop
 
 repl_exprs: WHILE
 ##
-## Ends in an error in state: 192.
+## Ends in an error in state: 190.
 ##
 ## repl_exprs' -> . repl_exprs [ # ]
 ##
@@ -1725,7 +1544,7 @@ Expected an expression
 
 repl_exprs: TRUE WHILE
 ##
-## Ends in an error in state: 193.
+## Ends in an error in state: 191.
 ##
 ## repl_exprs -> sep_list1(COMMA,expr) . EOF [ # ]
 ##
@@ -1736,8 +1555,8 @@ repl_exprs: TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 36, spurious reduction of production expr -> expr_pow
-## In state 75, spurious reduction of production sep_list1(COMMA,expr) -> expr
+## In state 39, spurious reduction of production expr -> expr_pow
+## In state 78, spurious reduction of production sep_list1(COMMA,expr) -> expr
 ##
 
 Expected eof after an expression.

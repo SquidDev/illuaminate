@@ -1,0 +1,136 @@
+{
+  let unpack (t, _, _) = t
+  let get_token x : IlluaminateCore.Syntax.token =
+    let Grammar.MenhirInterpreter.Element (st, x, _, _) = x in
+    match Grammar.MenhirInterpreter.incoming_symbol st with
+    | T T_DO -> x
+    | T T_ELSE -> x
+    | T T_ELSEIF -> x
+    | T T_FOR -> x
+    | T T_FUNCTION -> x
+    | T T_IF -> x
+    | T T_LOCAL -> x
+    | T T_WHILE -> x
+    | _ -> assert false
+
+  let is_same_line prev token =
+    match token with
+    | Grammar.EOF _ -> false
+    | _ -> IlluaminateCore.Span.finish_line prev = IlluaminateCore.Span.start_line (Token.get_span token)
+
+  let span_after span =
+    span
+    |> IlluaminateCore.Span.finish_col.over (fun x -> x + 1)
+    |> IlluaminateCore.Span.finish
+
+  let line_end_position prev token =
+    if is_same_line prev token then Token.get_span token else span_after prev
+}
+
+rule error_message token top = parse error
+
+(* Match `expr() =` in tables: probably wanted `[expr()] = ...` *)
+| [^table_entry: expr .]; !
+  partial {
+    match token with
+    | Grammar.EQUALS _ -> Some (Error.Table_key_equals token)
+    | _ -> None
+  }
+
+(* Match `expr() = ` in any other context: probably wanted `expr() == `. *)
+| expr; !
+  partial {
+    match token with
+    | EQUALS _ -> Some (Error.Use_double_equals token)
+    | _ -> None
+  }
+
+(* Unclosed parentheses. *)
+| OPAREN as lp; [. CPAREN]; !
+  { Unclosed_brackets { open_ = unpack lp; token } }
+| OBRACE as lp; [. CBRACE]; !
+  { Unclosed_brackets { open_ = unpack lp; token } }
+| OSQUARE as lp; [. CSQUARE]; !
+  { Unclosed_brackets { open_ = unpack lp; token } }
+
+(* `local function x.f() end` *)
+| ([stmt: LOCAL . FUNCTION] as loc); FUNCTION; var; !
+  partial {
+    match token with
+    | DOT _ -> Some (Local_function_dot { local = unpack loc; token })
+    | _ -> None
+  }
+
+(* A standalone name in a statement context *)
+| sep_list1(COMMA,name); !
+  {
+    if is_same_line top token then
+      Standalone_name token
+    else
+      Standalone_name_call (span_after top)
+  }
+
+(* An `if`/`elseif` statement with a missing `then`. *)
+| (IF | ELSEIF) as start; expr; !
+  { Expected_then {
+      if_ = unpack start;
+      pos = line_end_position top token
+    } }
+
+(* Statements with a missing `end`. This is super nasty! *)
+| (
+    [^FOR .] | [^DO .] | [ELSE .] | [^WHILE .] | [^IF .] | ELSEIF
+  | [^stmt: FUNCTION .] | [^atom: FUNCTION .]
+  ) as start;
+  (
+    (* for ... do *)
+      var; EQUALS; expr; COMMA; expr; DO
+    | var; EQUALS; expr; COMMA; expr; COMMA; expr; DO
+    | sep_list1(COMMA,var); IN; sep_list1(COMMA,expr); DO
+
+    (* do ... | else ... *)
+    |
+
+    (* while expr do ... *)
+    | [^ WHILE expr .]; DO
+
+    (* Functions *)
+    | [^stmt: FUNCTION function_name .]; args
+    | [^atom: FUNCTION args .]
+
+    (* if|elseif expr then *)
+    | [IF expr .]; THEN
+    | [ELSEIF expr .]; THEN
+  );
+  [stmts .]; !
+  { Expected_end { start = IlluaminateCore.Node.span (unpack start); token } }
+
+(* We handle local function specially, to capture both loc and func. *)
+| [^stmt: LOCAL . FUNCTION] as loc; [^stmt: LOCAL FUNCTION .] as func; _; args; [. END]; !
+  {
+    let start = IlluaminateCore.Span.of_span2
+      (unpack loc |> IlluaminateCore.Node.span)
+      (unpack func |> IlluaminateCore.Node.span)
+    in
+    Expected_end { start; token } }
+
+(* Fallback parse error for when we expected a statement. *)
+| [stmts: .]; !
+  partial {
+    match token with
+    | END _ -> Some (Unexpected_end token)
+    | EOF _ -> None
+    | _ -> Some (Expected_statement token)
+  }
+
+(* Fallback parse error for function arguments. *)
+| [. args]; !
+  { Expected_function_args token }
+
+(* Fallback parse error for when we expected an expression. *)
+| ([. expr] | [. expr_pow] | [. sep_list1(COMMA,expr)]); !
+  { Expected_expression token }
+
+(* Fallback parse error for when we expected a variable name. *)
+| ([. var] | [. name] | [. function_name]); !
+  { Expected_var token }

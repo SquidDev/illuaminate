@@ -3,42 +3,46 @@ malformed_example.lua: Cannot parse example [doc:malformed-example]
  21 │ --- Descriptions which don't work
     │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  =input: Unexpected `fenced`: Unexpected token after variable. [parse:syntax-error]
+  =input: Unexpected identifier after name. [parse:syntax-error]
      │
    1 │ Lua fenced code block
-     │     ^^^^^^
-  
+     │     ^
+  Did you mean to assign this or call it as a function?
+
 
 malformed_example.lua: Cannot parse example [doc:malformed-example]
     │
  33 │ --- @usage Single-line usage
     │            ^^^^^^^^^^^^^^^^^
 
-  =input: Unexpected `-`: Unexpected token after variable. [parse:syntax-error]
+  =input: Unexpected `-` after name. [parse:syntax-error]
      │
    1 │ Single-line usage
      │       ^
-  
+  Did you mean to assign this or call it as a function?
+
 
 malformed_example.lua: Cannot parse example [doc:malformed-example]
     │
  34 │ -- @usage Multiline-code block usage
     │           ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  =input: Unexpected `in`: Unexpected token after variable. [parse:syntax-error]
+  =input: Unexpected `in` after name. [parse:syntax-error]
      │
    1 │ Indented in example
-     │          ^^
-  
+     │          ^
+  Did you mean to assign this or call it as a function?
+
 
 malformed_example.lua: Cannot parse example [doc:malformed-example]
     │
  34 │ -- @usage Multiline-code block usage
     │           ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  =input: Unexpected `in`: Unexpected token after variable. [parse:syntax-error]
+  =input: Unexpected `in` after name. [parse:syntax-error]
      │
    1 │ Fenced in example
-     │        ^^
-  
+     │        ^
+  Did you mean to assign this or call it as a function?
+
 No errors and 4 warnings

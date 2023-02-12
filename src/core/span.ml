@@ -58,10 +58,7 @@ module Lines = struct
     | Array _ -> failwith "using: lines has become an array"
     | Map (xs, _) ->
         let current = buf.lex_curr_p in
-        let xs =
-          if current.pos_cnum > current.pos_bol then IntMap.add current.pos_lnum current.pos_cnum xs
-          else xs
-        in
+        let xs = IntMap.add current.pos_lnum current.pos_cnum xs in
 
         let arr = Array.make (fst (IntMap.max_binding xs) + 1) 0 in
         IntMap.iter (fun line pos -> arr.(line) <- pos) xs;
@@ -80,7 +77,7 @@ module Lines = struct
 
   let find_line ~offset = function
     | _ when offset <= 0 -> (0, 0)
-    | { store = Array xs; _ } -> find ~offset (Array.get xs) 0 (Array.length xs - 1)
+    | { store = Array xs; _ } -> find ~offset (Array.get xs) 0 (Array.length xs - 2)
     | { store = Map (xs, _); _ } ->
         find ~offset (Fun.flip IntMap.find xs) 0 (IntMap.max_binding xs |> fst)
 
@@ -197,8 +194,12 @@ let of_pos2 lines (start : Lexing.position) (fin : Lexing.position) =
   }
 
 let of_span2 ({ lines; start; _ } as s) ({ finish; _ } as f) =
-  if s == f then s else { lines; start; finish }
+  if s == f then s
+  else (
+    if start > finish then raise (Invalid_argument "start > finish");
+    { lines; start; finish })
 
+let start s = { s with finish = s.start }
 let finish s = { s with start = s.finish }
 
 type 'a spanned =

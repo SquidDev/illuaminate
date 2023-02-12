@@ -2,13 +2,24 @@
  (name illuaminateParser)
  (public_name illuaminate.parser)
  (synopsis "Provides an interface for parsing Lua code")
- (libraries menhirLib illuaminate.core)
+ (libraries lrgrep.runtime menhirLib illuaminate.core fmt)
  (instrumentation
   (backend bisect_ppx)))
 
 (menhir
  (modules grammar)
- (flags (--table)))
+ (flags :standard --inspection --table --cmly))
+
+(rule
+ (target parse_errors.ml)
+ (action
+  (run
+   %{bin:lrgrep}
+   %{dep:parse_errors.mlyl}
+   -g
+   %{dep:grammar.cmly}
+   -o
+   %{target})))
 
 (rule
  (target "messages.ml")

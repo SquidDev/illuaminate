@@ -110,7 +110,7 @@ rule token l = parse
 
 | eof { Token EoF }
 
-| _ { raise (Error (lexeme_spanned lexbuf (UnexpectedCharacter (Lexing.lexeme lexbuf)))) }
+| _ { raise (Error (lexeme_spanned lexbuf (Unexpected_character (Lexing.lexeme lexbuf)))) }
 
 and string contents value c = parse
 | '\"'              { Buffer.add_char contents '\"';
@@ -147,10 +147,10 @@ and string contents value c = parse
                       Buffer.add_string value x;
                       string contents value c lexbuf }
 
-| eof { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
-| '\r' { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
-| '\n' { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
-| _ { raise (Error (lexeme_spanned lexbuf (UnexpectedCharacter (Lexing.lexeme lexbuf)))) }
+| eof { raise (Error (lexeme_spanned lexbuf Unterminated_string)) }
+| '\r' { raise (Error (lexeme_spanned lexbuf Unterminated_string)) }
+| '\n' { raise (Error (lexeme_spanned lexbuf Unterminated_string)) }
+| _ { raise (Error (lexeme_spanned lexbuf (Unexpected_character (Lexing.lexeme lexbuf)))) }
 
 and long_string buf eqs term l = parse
 | [^']' '\r' '\n']+ as x { Buffer.add_string buf x;              long_string buf eqs term l lexbuf }
@@ -160,7 +160,7 @@ and long_string buf eqs term l = parse
 | ']'                    { Buffer.add_char buf ']';              long_string buf eqs term l lexbuf }
 | '\n'                   { Buffer.add_char buf '\n'; new_line l; long_string buf eqs term l lexbuf }
 | '\r' '\n'              { Buffer.add_string buf "\r\n"; new_line l; long_string buf eqs term l lexbuf }
-| eof                    { raise (Error (lexeme_spanned lexbuf UnterminatedString)) }
+| eof                    { raise (Error (lexeme_spanned lexbuf Unterminated_string)) }
 
 and line_comment = parse
 | [^'\r' '\n']* as x     { Trivial (LineComment x) }

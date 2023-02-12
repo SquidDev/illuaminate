@@ -46,6 +46,7 @@
     fpath
     js_of_ocaml
     logs
+    lrgrep
     menhir
     menhirLib
     (mtime (< 2.0))

@@ -2,76 +2,93 @@ module Span = IlluaminateCore.Span
 open Token
 open Error
 module I = Grammar.MenhirInterpreter
+module PE = Lrgrep_runtime.Interpreter (Parse_errors.Table_error_message) (I)
 module Error = Error
 
 type 'a located =
   { span : Span.t;
-    token : 'a;
-    line : int
+    start : Lexing.position;
+    finish : Lexing.position;
+    token : 'a
   }
 
 let lex_one lines (lexbuf : Lexing.lexbuf) =
   let start = lexbuf.lex_curr_p in
   let token = Lexer.token lines lexbuf in
-  { token; span = Span.of_pos2 lines start lexbuf.lex_curr_p; line = start.pos_lnum }
+  let finish = lexbuf.lex_curr_p in
+  { token; span = Span.of_pos2 lines start lexbuf.lex_curr_p; start; finish }
 
 let lex_leading lines lexbuf =
   let rec go xs =
     match lex_one lines lexbuf with
     | { token = Trivial value; span; _ } -> go ({ Span.value; span } :: xs)
-    | { token = Token token; span; line } -> (List.rev xs, { token; span; line })
+    | { token = Token token; _ } as rest -> (List.rev xs, { rest with token })
   in
   go []
 
 let lex_trailing file lexbuf prev_line =
   let rec go xs =
     match lex_one file lexbuf with
-    | { token = Trivial value; span; line } when line = prev_line -> go ({ Span.value; span } :: xs)
+    | { token = Trivial value; span; start; _ } when start.pos_lnum = prev_line ->
+        go ({ Span.value; span } :: xs)
     | t -> (List.rev xs, t)
   in
   go []
 
 let lex_token file lexbuf (next : lexer_token located) =
-  let leading, { token; span = tok_span; line = tok_line } =
+  let leading, { token; span = tok_span; start; finish } =
     match next with
     | { token = Trivial value; span; _ } ->
         let leading, t = lex_leading file lexbuf in
         ({ Span.value; span } :: leading, t)
-    | { token = Token token; span; line } -> ([], { token; span; line })
+    | { token = Token token; _ } as rest -> ([], { rest with token })
   in
   match token with
   | EoF ->
       (* Just return the current "next" token (we won't inspect it after all, and an EOF token with
          no trailing data. *)
-      (Token.make_token leading [] tok_span token, next)
+      (Token.make_token leading [] tok_span token, start, finish, next)
   | _ ->
-      let trailing, next = lex_trailing file lexbuf tok_line in
-      (Token.make_token leading trailing tok_span token, next)
+      let trailing, next = lex_trailing file lexbuf start.pos_lnum in
+      (Token.make_token leading trailing tok_span token, start, finish, next)
+
+let get_error_message lines token ~pre_env ~post_env =
+  let top =
+    match I.top pre_env with
+    | Some (I.Element (_, _, l, r)) -> Span.of_pos2 lines l r
+    | _ ->
+        let s = { Lexing.dummy_pos with pos_cnum = 0 } in
+        Span.of_pos2 lines s s
+  in
+  match PE.run pre_env |> List.find_map (Parse_errors.execute_error_message token top) with
+  | Some x -> x
+  | None ->
+      let state =
+        match I.top post_env with
+        | None -> 0 (* Should never happen, but... *)
+        | Some (I.Element (s, _, _, _)) -> I.number s
+      in
+      let message = try Messages.message state |> String.trim with Not_found -> "Unknown error" in
+      Unexpected_token { token; message }
 
 let parse start (file : Span.filename) (lexbuf : Lexing.lexbuf) =
   Span.Lines.using file lexbuf @@ fun lines ->
-  let rec go last next checkpoint =
-    match checkpoint with
-    | I.InputNeeded _ ->
-        let tok, next = lex_token lines lexbuf next in
-        I.offer checkpoint (tok, Lexing.dummy_pos, Lexing.dummy_pos) |> go (Some tok) next
-    | I.Shifting _ | I.AboutToReduce _ -> go last next (I.resume checkpoint)
-    | I.HandlingError env -> (
-        let state =
-          match I.top env with
-          | None -> 0 (* Should never happen, but... *)
-          | Some (I.Element (s, _, _, _)) -> I.number s
-        in
-        let error = try Messages.message state |> String.trim with Not_found -> "Unknown error" in
-        match last with
-        | Some t -> Error { Span.span = Token.get_span t; value = UnexpectedToken (t, error) }
-        | None -> assert false)
+  let rec go env token next = function
+    | I.InputNeeded env as checkpoint -> go_input env checkpoint next
+    | (I.Shifting _ | I.AboutToReduce _) as checkpoint -> I.resume checkpoint |> go env token next
+    | I.HandlingError post_env ->
+        let error = get_error_message lines token ~pre_env:env ~post_env in
+        Error { Span.span = Token.get_span token; value = error }
     | I.Accepted x -> Ok x
     | I.Rejected -> assert false
+  and go_input env checkpoint token =
+    let token, start, finish, next = lex_token lines lexbuf token in
+    I.offer checkpoint (token, start, finish) |> go env token next
   in
   try
-    let first = lex_one lines lexbuf in
-    start Lexing.dummy_pos |> go None first
+    match start Lexing.dummy_pos with
+    | I.InputNeeded env as checkpoint -> go_input env checkpoint (lex_one lines lexbuf)
+    | _ -> assert false
   with Lexer.Error (err, start, fin) ->
     Error { Span.span = Span.of_pos2 lines start fin; value = err }
 

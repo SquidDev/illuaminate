@@ -95,7 +95,15 @@ let do_lua ~options:({ Html_options.data; _ } as options) input =
         IlluaminateData.get data M.key
         @@ { program =
                [ Return
-                   { return_return = Lens.(tree.repl_eof |> Node.contents ^= Token.Return);
+                   { return_return =
+                       Node
+                         { leading_trivia = [];
+                           trailing_trivia = [];
+                           contents = Token.Return;
+                           span =
+                             Syntax.SepList1.first.get tree.repl_exprs
+                             |> Syntax.First.expr.get |> Node.span |> Span.start
+                         };
                      return_vals = Some tree.repl_exprs
                    }
                ];

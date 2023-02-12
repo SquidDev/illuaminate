@@ -21,9 +21,11 @@ let mk_span file =
   Lines.using file buf @@ fun l ->
   buf.lex_curr_p <- { buf.lex_curr_p with pos_cnum = 2; pos_lnum = 1 };
   Lines.new_line l;
+  buf.lex_curr_p <- { buf.lex_curr_p with pos_cnum = 3; pos_lnum = 2 };
+  Lines.new_line l;
   let s = { Lexing.pos_bol = 0; pos_lnum = 1; pos_cnum = 0; pos_fname = "" } in
-  let f = { Lexing.pos_bol = 0; pos_lnum = 2; pos_cnum = 2; pos_fname = "" } in
-  of_span2 (of_pos2 l s s) (of_pos2 l f f)
+  let f = { Lexing.pos_bol = 0; pos_lnum = 2; pos_cnum = 3; pos_fname = "" } in
+  of_pos2 l s f
 
 let span = Span.Filename.mk ~path:Fpath.(root / "test.lua") "=in" |> mk_span
 
