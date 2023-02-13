@@ -32,17 +32,13 @@ let to_json names : Yojson.Safe.t =
   |> Seq.map (fun (ident, term) -> (ident, build_term term))
   |> List.of_seq |> assoc
 
-let of_documented ~in_module ~name ~section ?(suffix = Fun.const "") ~source_link ~body names =
+let add_documented ~in_module ~name ~section ?(suffix = Fun.const "") ~source_link ~body names =
   function
   | { local = true; _ } -> names
-  | { description; definition; descriptor; _ } as term -> (
-      let pretty_name =
-        Reference.Internal { in_module; name = section; definition }
-        |> Format.asprintf "%a" Reference.pp_resolved
-      in
+  | { description; descriptor; _ } as term -> (
       let self =
         { name;
-          full_name = pretty_name ^ suffix descriptor;
+          full_name = name ^ suffix descriptor;
           source = Helpers.link ~source_link term;
           summary =
             Option.map
@@ -88,16 +84,20 @@ let of_term ~source_link ~in_module =
           names xs
     | _ -> names
   and go' ~name ~section names =
-    of_documented ~in_module ~name ~section ~suffix:get_suffix ~source_link
+    add_documented ~in_module ~name ~section ~suffix:get_suffix ~source_link
       ~body:(go ~name ~section) names
   in
   go'
 
 let of_type ~source_link ~in_module =
   let mod_name = in_module.Namespace.Ref.id in
-  let member ~type_name names { member_name; member_value; _ } =
-    of_term ~in_module ~source_link
-      ~name:(Printf.sprintf "%s.%s.%s" mod_name type_name member_name)
+  let member ~type_name names { member_name; member_value; member_is_method } =
+    let name =
+      Printf.sprintf "%s.%s%s%s" mod_name type_name
+        (if member_is_method then ":" else ".")
+        member_name
+    in
+    of_term ~in_module ~source_link ~name
       ~section:(Member (type_name, member_name))
       names member_value
   in
@@ -106,7 +106,7 @@ let of_type ~source_link ~in_module =
   in
   fun names x ->
     let name = x.descriptor.type_name in
-    of_documented ~in_module ~source_link ~name:(dot_name mod_name name) ~section:(Type name)
+    add_documented ~in_module ~source_link ~name:(dot_name mod_name name) ~section:(Type name)
       ~body:ty names x
 
 let everything ~source_link =

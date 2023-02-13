@@ -63,7 +63,7 @@
 
   const highlight = (match, field) => {
     const ourMatch = match.matches.find((x) => x.key === field);
-    if (!ourMatch) return match.item[field];
+    if (!ourMatch) return match.item[field] || "";
 
     const { value, indices } = ourMatch;
 

@@ -15,7 +15,7 @@
     "url": "module/fields.html#ty:A"
   },
   "fields.A.a": {
-    "name": "fields.A:a",
+    "name": "fields.A.a",
     "source": "fields.lua[5:4-5:10]",
     "summary": "Field a.",
     "module": "fields",
@@ -23,7 +23,7 @@
     "url": "module/fields.html#ty:A:a"
   },
   "fields.A.b": {
-    "name": "fields.A:b",
+    "name": "fields.A.b",
     "source": "fields.lua[6:4-6:9]",
     "summary": "Field b.",
     "module": "fields",

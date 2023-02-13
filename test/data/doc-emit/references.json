@@ -13,7 +13,7 @@
     "module-kind": "library",
     "url": "library/references.html#ty:MyType"
   },
-  "references.MyType.meth": {
+  "references.MyType:meth": {
     "name": "references.MyType:meth()",
     "source": "references.lua[5:1-5:26]",
     "module": "references",

@@ -15,7 +15,7 @@
     "url": "library/fancy.module.html#ty:T"
   },
   "fancy.module.T.a": {
-    "name": "fancy.module.T:a()",
+    "name": "fancy.module.T.a()",
     "source": "alias.lua[11:1-11:18]",
     "summary": "A type method",
     "module": "fancy.module",
@@ -23,7 +23,7 @@
     "url": "library/fancy.module.html#ty:T:a"
   },
   "fancy.module.T.b": {
-    "name": "fancy.module.T:b()",
+    "name": "fancy.module.T.b()",
     "source": "alias.lua[6:1-6:18]",
     "summary": "A module method",
     "module": "fancy.module",
