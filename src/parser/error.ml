@@ -15,6 +15,14 @@ type t =
       { open_ : IlluaminateCore.Syntax.token;  (** The opening parenthesis. *)
         token : Grammar.token  (** The current token. *)
       }  (** A parenthesised expression was started but not closed. *)
+  | Missing_table_comma of
+      { token : Grammar.token;  (** The current token. *)
+        comma_pos : IlluaminateCore.Span.t  (** The position where we expected the comma. *)
+      }  (** A missing comma between tokens. *)
+  | Trailing_call_comma of
+      { comma : IlluaminateCore.Syntax.token;  (** The [,] token*)
+        token : Grammar.token  (** The closing [)]. *)
+      }  (** A superflous [,] in a function call. *)
   | Local_function_dot of
       { local : IlluaminateCore.Syntax.token;  (** The [local] token *)
         token : Grammar.token  (** The invalid [.] token. *)
@@ -84,6 +92,19 @@ let report errs pos err =
         (fun f -> f "Unexpected %a. Are you missing a closing bracket?" pp_token token)
         [ annotation (IlluaminateCore.Node.span open_) (fun f -> f "Brackets were opened here.");
           annotation (Token.get_span token) (fun f -> f "Unexpected %a here." pp_token token)
+        ]
+  | Missing_table_comma { comma_pos; token } ->
+      report
+        (fun f -> f "Unexpected %a in table." pp_token token)
+        [ Annotation (Token.get_span token, None);
+          annotation comma_pos (fun f -> f "Are you missing a comma here?")
+        ]
+  | Trailing_call_comma { comma; token } ->
+      report
+        (fun f -> f "Unexpected %a in function call." pp_token token)
+        [ Annotation (Token.get_span token, None);
+          annotation (IlluaminateCore.Node.span comma) (fun f ->
+              f "Tip: Try removing this %a." pp_code_s ",")
         ]
   | Local_function_dot { local; token } ->
       report

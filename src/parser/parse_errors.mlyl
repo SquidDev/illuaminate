@@ -45,6 +45,25 @@ rule error_message token top = parse error
     | _ -> None
   }
 
+(* Suggest a missing comma in table entries. *)
+| [^table_body: table_entry .]; !
+  partial {
+    match token with
+    | STRING _ | NUMBER _ | INT _ | MNUMBER _ | TRUE _ | FALSE _ | NIL _
+      -> Some (Missing_table_comma { comma_pos = span_after top; token })
+    | _ -> None
+  }
+
+(* Suggest removing a comma in function calls. *)
+| simple_expr; OPAREN;
+  (expr | COMMA)* ;
+  [^sep_list1(COMMA,expr): expr COMMA . sep_list1(COMMA,expr)] as comma
+  partial {
+    match token with
+    | CPAREN _ -> Some (Trailing_call_comma { comma = unpack comma; token })
+    | _ -> None
+  }
+
 (* Unclosed parentheses. *)
 | OPAREN as lp; [. CPAREN]; !
   { Unclosed_brackets { open_ = unpack lp; token } }

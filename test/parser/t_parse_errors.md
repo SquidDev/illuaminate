@@ -101,6 +101,51 @@ local function f(a
 1 errors and 0 warnings
 ```
 
+## Missing commas in tables
+
+```lua
+return { 1 2 }
+```
+
+```txt
+=input: Unexpected number in table. [parse:syntax-error]
+   │
+ 1 │ return { 1 2 }
+   │            ^
+   │
+ 1 │ return { 1 2 }
+   │           ^ Are you missing a comma here?
+1 errors and 0 warnings
+```
+```lua
+return { 1, 2 3 }
+```
+
+```txt
+=input: Unexpected number in table. [parse:syntax-error]
+   │
+ 1 │ return { 1, 2 3 }
+   │               ^
+   │
+ 1 │ return { 1, 2 3 }
+   │              ^ Are you missing a comma here?
+1 errors and 0 warnings
+```
+```lua
+print({ 1, )
+```
+
+```txt
+=input: Unexpected `)`. Are you missing a closing bracket? [parse:syntax-error]
+   │
+ 1 │ print({ 1, )
+   │       ^ Brackets were opened here.
+   │
+ 1 │ print({ 1, )
+   │            ^ Unexpected `)` here.
+1 errors and 0 warnings
+```
+
 # Statements
 
 ## Local functions with table identifiers
@@ -389,5 +434,39 @@ until true
  4 │   end
    │   ^^^
 Your program contains more `end`s than needed. Check each block (`if`, `for`, `function`, ...) only has one `end`
+1 errors and 0 warnings
+```
+
+# Function calls
+
+## Additional commas
+We suggest the user removes additional trailing commas on function calls:
+
+```lua
+f(2, )
+```
+
+```txt
+=input: Unexpected `)` in function call. [parse:syntax-error]
+   │
+ 1 │ f(2, )
+   │      ^
+   │
+ 1 │ f(2, )
+   │    ^ Tip: Try removing this `,`.
+1 errors and 0 warnings
+```
+```lua
+f(2, 3, )
+```
+
+```txt
+=input: Unexpected `)` in function call. [parse:syntax-error]
+   │
+ 1 │ f(2, 3, )
+   │         ^
+   │
+ 1 │ f(2, 3, )
+   │       ^ Tip: Try removing this `,`.
 1 errors and 0 warnings
 ```
