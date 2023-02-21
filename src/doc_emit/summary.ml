@@ -32,13 +32,12 @@ let to_json names : Yojson.Safe.t =
   |> Seq.map (fun (ident, term) -> (ident, build_term term))
   |> List.of_seq |> assoc
 
-let add_documented ~in_module ~name ~section ?(suffix = Fun.const "") ~source_link ~body names =
-  function
+let add_documented ~in_module ~name ?(full_name = name) ~section ~source_link ~body names = function
   | { local = true; _ } -> names
   | { description; descriptor; _ } as term -> (
       let self =
         { name;
-          full_name = name ^ suffix descriptor;
+          full_name;
           source = Helpers.link ~source_link term;
           summary =
             Option.map
@@ -83,9 +82,14 @@ let of_term ~source_link ~in_module =
             go' ~name:(dot_name name field) ~section:(dot_section section field) names x)
           names xs
     | _ -> names
-  and go' ~name ~section names =
-    add_documented ~in_module ~name ~section ~suffix:get_suffix ~source_link
-      ~body:(go ~name ~section) names
+  and go' ~name ~section names x =
+    let full_name =
+      match (section, in_module) with
+      | Module, { Namespace.Ref.title = Some title; _ } -> title
+      | _ -> name ^ get_suffix x.descriptor
+    in
+    add_documented ~in_module ~name ~full_name ~section ~source_link ~body:(go ~name ~section) names
+      x
   in
   go'
 

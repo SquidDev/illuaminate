@@ -1,0 +1,10 @@
+{
+  "text_page": {
+    "name": "An example module!",
+    "source": "text_page.md[5:1-8:16]",
+    "summary": "This is a small example module.",
+    "module": "text_page",
+    "module-kind": "module",
+    "url": "module/text_page.html"
+  }
+}

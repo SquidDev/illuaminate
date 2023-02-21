@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>An example module!</title>
+    <meta property="og:title" content="An example module!" />
+    <meta property="og:type" content="website" />
+    <meta name="description" content="This is a small example module." />
+    <meta property="og:description" content="This is a small example module." />
+    <meta property="og:site_name" content="My title" />
+    <link rel="stylesheet" href="main.css" type="text/css" />
+  </head>
+  <body>
+    <nav id="nav">
+      <button id="nav-reveal" type="button">&#9776;</button>
+      <h1><a href="./">My title</a></h1>
+      <div class="nav-links"></div>
+    </nav>
+    <div id="main">
+      <div id="search-form" role="form">
+        <input id="search-box" type="text" placeholder="Search..." autocomplete="off" tabindex="0">
+          
+        </input>
+        <div id="search-results"></div>
+      </div>
+      <section id="content">
+        <h1>An example module!</h1>
+        <p>This is a small example module. Its main purpose is testing doc generation for
+Markdown files.</p>
+
+      </section>
+      <footer>Last updated on xxxx-xx-xx</footer>
+    </div>
+    <div id="search-overlay"></div>
+    <script src="main.js" type="text/javascript" defer=""></script>
+  </body>
+</html>

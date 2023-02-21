@@ -5,20 +5,20 @@ module Doc = Doc.Extract
 module D = IlluaminateData
 module NMap = Map.Make (Namespace)
 
-let process ~go ~name contents out =
+let process ~parse ~go ~name contents =
+  Format.asprintf "%t" @@ fun out ->
   let lexbuf = Lexing.from_string contents in
   let name = Span.Filename.mk name in
   let errs = Error.make () in
-  (match IlluaminateParser.program name lexbuf with
-  | Error err -> IlluaminateParser.Error.report errs err.span err.value
-  | Ok parsed ->
+  (match parse ~errs name lexbuf with
+  | Some parsed ->
       let context =
         { D.Programs.Context.root = Sys.getcwd () |> Fpath.v |> Option.some;
           config = Schema.(singleton Doc.Config.key |> default)
         }
       in
       let files = D.Programs.FileStore.create () in
-      D.Programs.FileStore.update files name (Some (Lua parsed));
+      D.Programs.FileStore.update files name (Some parsed);
       let data =
         let open D.Builder in
         build @@ fun b ->
@@ -29,16 +29,37 @@ let process ~go ~name contents out =
       Doc.errors docs
       |> List.iter (fun (e : Error.Error.t) ->
              Error.report_detailed errs e.tag e.span e.message e.annotations);
-      Doc.get_page docs |> Option.iter (fun m -> go out data m));
+      Doc.get_page docs |> Option.iter (fun m -> go out data m)
+  | None -> ());
 
   Error.display_of_string ~out (fun _ -> Some contents) errs
 
-let process ~go ~name contents = Format.asprintf "%t" (process ~go ~name contents)
+let process_lua ~go ~name contents =
+  let parse ~errs name lexbuf =
+    match IlluaminateParser.program name lexbuf with
+    | Error err ->
+        IlluaminateParser.Error.report errs err.span err.value;
+        None
+    | Ok parsed -> Some (IlluaminateCore.File.Lua parsed)
+  in
+  process ~parse ~go ~name contents
+
+let process_md ~go ~name contents =
+  let parse ~errs:_ name lexbuf =
+    let attributes, contents = IlluaminateParserMd.parse name lexbuf in
+    Some (IlluaminateCore.File.Markdown { attributes; contents })
+  in
+  process ~parse ~go ~name contents
 
 let tests ~extension ~group go =
-  OmnomnomGolden.of_directory (process ~go) ~group ~directory:"data/doc-emit"
-    ~rename:(fun x -> Printf.sprintf "%s.%s" x extension)
-    ~extension:".lua" ()
+  Omnomnom.Tests.group group
+    [ OmnomnomGolden.of_directory (process_lua ~go) ~group:"Lua" ~directory:"data/doc-emit"
+        ~rename:(fun x -> Printf.sprintf "%s.%s" x extension)
+        ~extension:".lua" ();
+      OmnomnomGolden.of_directory (process_md ~go) ~group:"Markdown" ~directory:"data/doc-emit"
+        ~rename:(fun x -> Printf.sprintf "%s.%s" x extension)
+        ~extension:".md" ()
+    ]
 
 let source_link : IlluaminateSemantics.Doc.AbstractSyntax.source -> string option = function
   | Span x -> Span.show x |> Option.some
