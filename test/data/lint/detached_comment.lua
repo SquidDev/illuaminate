@@ -1,5 +1,5 @@
 -- config: (lint (only doc:detached-comment))
-
+local x
 --- This is a detached documentation comment
 
 

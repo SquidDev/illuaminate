@@ -372,7 +372,7 @@ module Infer = struct
       match P.comment (First.program.get program) state.comments |> fst |> CCList.last_opt with
       | Some ({ source; _ } as c)
         when Span.start_col.get source = 1
-             && Span.start_line source = 1
+             && Span.start_line source < (First.program.get program |> Node.span |> Span.start_line)
              && CommentCollection.mem state.unused_comments c ->
           CommentCollection.remove state.unused_comments c;
           Some c
