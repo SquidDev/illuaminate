@@ -36,7 +36,13 @@ let notes =
   else
     let out = List.hd notes |> Driver.Notes.to_seq |> CCSeq.head_exn |> Array.make n in
     List.fold_left
-      (fun i xs -> Driver.Notes.to_seq xs |> Seq.fold_left (fun i x -> out.(i) <- x; i + 1) i)
+      (fun i xs ->
+        Driver.Notes.to_seq xs
+        |> Seq.fold_left
+             (fun i x ->
+               out.(i) <- x;
+               i + 1)
+             i)
       0 notes
     |> ignore;
     out

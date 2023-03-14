@@ -123,14 +123,14 @@ module Infer = struct
       if !def.export then state.export <- Some def
     in
     (if not (VarTbl.mem state.vars var) then
-     match var with
-     | { kind = Global; name = "_ENV"; _ } -> VarTbl.add state.vars var state.globals
-     | { kind = Global; _ } -> (
-       match !(state.globals) with
-       | { descriptor = Table fs; _ } as globals ->
-           state.globals := { globals with descriptor = Table (fs @ [ (var.name, def) ]) }
-       | _ -> ())
-     | _ -> ());
+       match var with
+       | { kind = Global; name = "_ENV"; _ } -> VarTbl.add state.vars var state.globals
+       | { kind = Global; _ } -> (
+         match !(state.globals) with
+         | { descriptor = Table fs; _ } as globals ->
+             state.globals := { globals with descriptor = Table (fs @ [ (var.name, def) ]) }
+         | _ -> ())
+       | _ -> ());
     match VarTbl.find_opt state.vars var with
     | None ->
         let def = ref def in
@@ -188,7 +188,7 @@ module Infer = struct
           { ty = Type_syntax.Builtin.string;
             value =
               (if String.length lit_value < 32 then Printf.sprintf "%S" lit_value |> Option.some
-              else None)
+               else None)
           }
         |> simp
     | Number { lit_node; _ } | Int { lit_node; _ } | MalformedNumber lit_node ->
@@ -460,10 +460,20 @@ let unresolved_module_file =
              let d = Value.get_documented ~report:(fun _ _ _ -> ()) comment in
              let title, description =
                match d.description with
-               | Some
-                   { description = Omd.Heading (_, 1, Text (_, title)) :: description;
-                     description_pos
-                   } -> (Some title, Some { description; description_pos })
+               | Some { description; description_pos } ->
+                   let rec extract_title : _ Omd.block list -> _ = function
+                     | [] -> (None, [])
+                     | Heading (_, 1, Text (_, title)) :: description -> (Some title, description)
+                     (* Allow leading HTML comments. The Markdown parser will parse comments
+                        separately, so this is "safe". *)
+                     | (Html_block (_, html) as block) :: description
+                       when String.starts_with ~prefix:"<!--" html ->
+                         let title, description = extract_title description in
+                         (title, block :: description)
+                     | description -> (None, description)
+                   in
+                   let title, description = extract_title description in
+                   (title, Some { description; description_pos })
                | x -> (None, x)
              in
              (* TODO: Warn if the above is a non-module/unknown. *)

@@ -1,5 +1,5 @@
-(** Parses glob-like patterns, in the style of Git's {{:https://git-scm.com/docs/gitignore}
-    gitignore patterns}:
+(** Parses glob-like patterns, in the style of Git's
+    {{:https://git-scm.com/docs/gitignore} gitignore patterns}:
 
     - If there's a directory separator at the beginning or middle of the pattern, it matches files
       relative to the current directory. Otherwise it will match here or on any child directory.

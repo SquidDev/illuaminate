@@ -48,9 +48,13 @@ let get_summary ?(max_length = 120) (desc : _ Omd.doc) : _ Omd.inline =
         let space, x = go space x in
         go_list space (x :: ys) xs
   in
-  match desc with
-  | (Paragraph (_, x) | Heading (_, _, x)) :: _ -> go max_length x |> snd
-  | _ -> Text ([], "")
+  let rec block : _ Omd.block list -> _ = function
+    | (Paragraph (_, x) | Heading (_, _, x)) :: _ -> go max_length x |> snd
+    | Html_block (_, html) :: description when String.starts_with ~prefix:"<!--" html ->
+        block description
+    | _ -> Text ([], "")
+  in
+  block desc
 
 (** Get a link to a node. *)
 let link ~source_link { definition; custom_source; _ } =

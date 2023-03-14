@@ -27,7 +27,7 @@ module Fix = struct
       | Ok (Empty tt) ->
           Ok
             (if is_discard v then Empty tt
-            else Present (SepList1.Mono (trailing.Lens.over (fun t -> t @ tt) v)))
+             else Present (SepList1.Mono (trailing.Lens.over (fun t -> t @ tt) v)))
       | Ok (Present xs) -> Ok (Present (SepList1.Cons1 (v, s, xs)))
       | Error e -> Error e)
 
