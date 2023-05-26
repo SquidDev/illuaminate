@@ -1,8 +1,6 @@
 open IlluaminateCore
 open Lens
 open Span
-open Omnomnom.Tests
-open OmnomnomQCheck
 
 let build lines ~start ~finish =
   let buf = Lexing.from_string "" in
@@ -72,6 +70,6 @@ let quickcheck =
         in
         in_bounds = ok)
   ]
-  |> List.map of_qcheck |> group "Span"
+  |> List.map QCheck_alcotest.to_alcotest
 
-let tests = group "Span" [ quickcheck ]
+let () = Alcotest.run "Span" [ ("Properties", quickcheck) ]

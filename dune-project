@@ -31,6 +31,7 @@
     (junit :with-test)
     (omnomnom :with-test)
     (qcheck-core :with-test)
+    (qcheck-alcotest :with-test)
 
     ; Documentation generation
     (odoc :with-doc)

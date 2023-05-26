@@ -33,16 +33,27 @@
   (source_tree data))
  (preprocess
   (pps ppx_deriving.std))
- (modules :standard \ leak_trace_gc)
+ (modules :standard \ leak_trace_gc config_format data doc_emit_summary span)
  (action
   (run %{test} --base-dir "../" --junit)))
 
-(rule
- (alias quicktest)
- (deps
-  (source_tree data))
- (action
-  (run ./test.exe --base-dir "../" -q)))
+(tests
+ (names config_format data doc_emit_summary span)
+ (modules config_format data doc_emit_summary span)
+ (libraries
+  ; External libs
+  fpath
+  omd
+  ; To test
+  illuaminate.core
+  illuaminate.data
+  illuaminate.semantics
+  illuaminate.doc_emit
+  illuaminateConfigFormat
+  ; Test support
+  alcotest
+  qcheck-core
+  qcheck-alcotest))
 
 (data_only_dirs data)
 

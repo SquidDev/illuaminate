@@ -1,5 +1,4 @@
-open Omnomnom.Tests
-open OmnomnomAlcotest
+open Alcotest
 open IlluaminateCore
 module C = IlluaminateConfigFormat
 
@@ -29,20 +28,20 @@ let mk_span file =
 
 let span = Span.Filename.mk ~path:Fpath.(root / "test.lua") "=in" |> mk_span
 
-let tests =
-  group "Config format"
-    [ group "Documentation source links"
-        [ mk_alcotest_case "Supports a single line" `Quick (fun () ->
+let () =
+  Alcotest.run "Config format"
+    [ ( "Documentation source links",
+        [ test_case "Supports a single line" `Quick (fun () ->
               Alcotest.(check (option string))
                 "Format string is correct"
                 (get_source_link "[ ${path} ${line} ]" span)
                 (Some "[ test.lua 1 ]"));
-          mk_alcotest_case "Supports a line range" `Quick (fun () ->
+          test_case "Supports a line range" `Quick (fun () ->
               Alcotest.(check (option string))
                 "Format string is correct"
                 (get_source_link "[ ${path} ${sline} ${eline} ]" span)
                 (Some "[ test.lua 1 2 ]"));
-          mk_alcotest_case "Supports git commits" `Quick (fun () ->
+          test_case "Supports git commits" `Quick (fun () ->
               let sha = get_source_link "${commit}" span |> Option.get in
               Alcotest.(check int)
                 (Printf.sprintf "SHA is correct length (%s)" sha)
@@ -52,19 +51,21 @@ let tests =
                 (Printf.sprintf "All characters are hex (%s)" sha)
                 (String.to_seq sha |> Seq.filter (fun x -> not (is_hex x)) |> List.of_seq)
                 []);
-          mk_alcotest_case "Path fails for temporary programs" `Quick (fun () ->
+          test_case "Path fails for temporary programs" `Quick (fun () ->
               Alcotest.(check (option string))
                 "Format string is None"
                 (Span.Filename.mk "=in" |> mk_span |> get_source_link "[ ${path} ]")
                 None);
-          mk_alcotest_case "Line works for temporary programs" `Quick (fun () ->
+          test_case "Line works for temporary programs" `Quick (fun () ->
               Alcotest.(check (option string))
                 "Format string is correct"
                 (Span.Filename.mk "=in" |> mk_span |> get_source_link "[ ${line} ]")
                 (Some "[ 1 ]"))
-        ];
-      mk_alcotest_case "Round trips correctly" `Quick (fun () ->
-          (* There's not much we can do right not to correctly assert things. *)
-          let _roundtrip = Format.asprintf "%t" C.generate |> parse in
-          ())
+        ] );
+      ( "Reprinting",
+        [ test_case "Round trips correctly" `Quick (fun () ->
+              (* There's not much we can do right not to correctly assert things. *)
+              let _roundtrip = Format.asprintf "%t" C.generate |> parse in
+              ())
+        ] )
     ]

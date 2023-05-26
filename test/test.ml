@@ -64,14 +64,10 @@ let () =
          Pattern.tests;
          Reprint.tests;
          Minify.tests;
-         Data.tests;
-         Span.tests;
-         Config_format.tests;
          group "Documentation"
            [ Doc_parser.tests;
              Doc_emit.Json_summary.tests;
              Doc_emit.Html_module.tests;
-             Doc_emit.Dump_sexp.tests;
-             Doc_emit_summary.tests
+             Doc_emit.Dump_sexp.tests
            ]
        ]

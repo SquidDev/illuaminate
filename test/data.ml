@@ -32,10 +32,9 @@ let count_key key k =
   (Key.key ~name:"Count" ~key:(module Keys.Unit) (fun s () -> incr counter; need s key k), counter)
 
 let ref_builder = Builder.oracle ref_key (fun x _ -> Ref.v x)
-let test_case t s f = OmnomnomAlcotest.of_alcotest_case (test_case t s f)
 
-let tests =
-  Omnomnom.Tests.group "The data/incremental system"
+let () =
+  let tests =
     [ ( test_case "Do not rebuild on constant builds" `Quick @@ fun () ->
         let a = Ref.mk "a" 1 and b = Ref.mk "b" 2 in
         let changed_key, changed = count_key add_key (a, b) in
@@ -86,3 +85,5 @@ let tests =
 
         () )
     ]
+  in
+  Alcotest.run "The data/incremental system" [ ("Tests", tests) ]
