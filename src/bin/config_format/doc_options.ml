@@ -93,43 +93,38 @@ let term =
         |> Result.map_error (fun (`Msg msg) -> msg)),
       Fpath.to_string )
   in
-  let site_properties_common =
-    let+ site_title =
-      field ~name:"title" ~comment:"A title to display for the site" ~default:None
-        (option ~ty:"string" string)
-    and+ site_image =
-      field ~name:"logo" ~comment:"The path to a logo to display for this site." ~default:None
-        (option ~ty:"path" path)
-    and+ embed_js =
-      field ~name:"scripts"
-        ~comment:
-          "A JavaScript file which should be included in the generated docs. This is appended to \
-           the default scripts."
-        ~default:None (option ~ty:"path" path)
-    and+ embed_css =
-      field ~name:"styles"
-        ~comment:
-          "A JavaScript file which should be included in the generated docs. This is appended to \
-           the default styles."
-        ~default:None (option ~ty:"path" path)
-    and+ source_link =
-      field ~name:"source-link"
-        ~comment:
-          "A link to an website containing hosting code. The URL is a templated string, where \
-           `${foo}` is replaced by the contents of `foo` variable.\n\n\
-           This accepts the following variables:\n\
-          \ - path: The documented source's path, relative to the project root.\n\
-          \ - sline/eline: The start and end line of the variable's definition.\n\
-          \ - commit: The current commit hash, as returned by git rev-parse HEAD."
-        ~default:None
-        (option ~ty:"template" (Template.converter [ "path"; "line"; "sline"; "eline"; "commit" ]))
-    in
-    (site_title, site_image, embed_js, embed_css, source_link)
-  in
-  let+ site_title, site_image, embed_js, embed_css, source_link = site_properties_common
-  and+ site_properties =
+  let+ site_properties =
     group ~name:"site" ~comment:"HTML-specific properties"
-    @@ let+ site_title, site_image, embed_js, embed_css, source_link = site_properties_common
+    @@ let+ site_title =
+         field ~name:"title" ~comment:"A title to display for the site" ~default:None
+           (option ~ty:"string" string)
+       and+ site_image =
+         field ~name:"logo" ~comment:"The path to a logo to display for this site." ~default:None
+           (option ~ty:"path" path)
+       and+ embed_js =
+         field ~name:"scripts"
+           ~comment:
+             "A JavaScript file which should be included in the generated docs. This is appended \
+              to the default scripts."
+           ~default:None (option ~ty:"path" path)
+       and+ embed_css =
+         field ~name:"styles"
+           ~comment:
+             "A JavaScript file which should be included in the generated docs. This is appended \
+              to the default styles."
+           ~default:None (option ~ty:"path" path)
+       and+ source_link =
+         field ~name:"source-link"
+           ~comment:
+             "A link to an website containing hosting code. The URL is a templated string, where \
+              `${foo}` is replaced by the contents of `foo` variable.\n\n\
+              This accepts the following variables:\n\
+             \ - path: The documented source's path, relative to the project root.\n\
+             \ - sline/eline: The start and end line of the variable's definition.\n\
+             \ - commit: The current commit hash, as returned by git rev-parse HEAD."
+           ~default:None
+           (option ~ty:"template"
+              (Template.converter [ "path"; "line"; "sline"; "eline"; "commit" ]))
        and+ site_url =
          field ~name:"url"
            ~comment:"The full URL the site is hosted on (e.g. https://example.com/docs)."
@@ -166,16 +161,7 @@ let term =
   fun root ->
     let ofile = Option.map (Fpath.append root) in
     let site_properties = site_properties root in
-    { site_properties =
-        { site_properties with
-          site_title = check_theme_field "title" site_title site_properties.site_title;
-          site_image = ofile @@ check_theme_field "logo" site_image site_properties.site_image;
-          embed_css = ofile @@ check_theme_field "styles" embed_css site_properties.embed_css;
-          embed_js = ofile @@ check_theme_field "scripts" embed_js site_properties.embed_js;
-          source_link =
-            check_theme_field' "source-link" (make_source_link ~root) source_link
-              site_properties.source_link
-        };
+    { site_properties;
       index = ofile index;
       destination = Fpath.append root destination;
       json_index

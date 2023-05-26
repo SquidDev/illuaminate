@@ -5,14 +5,3 @@
  (name quote)
  (modules quote)
  (libraries containers))
-
-(rule
- (targets syntax.ml)
- (deps ../core/syntax.ml)
- (action
-  (with-stdout-to
-   %{targets}
-   (progn
-    (echo "open Ppxlib\nlet loc = Location.none\nlet tree = [%str ")
-    (cat %{deps})
-    (echo "]")))))
