@@ -20,11 +20,6 @@
   illuaminate.pattern
   illuaminate.doc_emit
   illuaminateConfigFormat
-  illuaminateLsp
-  lsp
-  jsonrpc
-  lsp.fiber
-  lsp.stdune
   logs
   cmdliner
   yojson

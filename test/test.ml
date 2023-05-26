@@ -73,17 +73,5 @@ let () =
              Doc_emit.Html_module.tests;
              Doc_emit.Dump_sexp.tests;
              Doc_emit_summary.tests
-           ];
-         group "Language server"
-           [ Lsp_code_action.tests;
-             Lsp_declaration.tests;
-             Lsp_definition.tests;
-             Lsp_diagnostic.tests;
-             Lsp_highlight.tests;
-             Lsp_locate.tests;
-             Lsp_reference.tests;
-             Lsp_rename.tests;
-             Lsp_workspace_symbol.tests;
-             Lsp_leak.tests
            ]
        ]

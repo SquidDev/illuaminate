@@ -40,8 +40,6 @@ depends: [
   "re"
   "result"
   "yojson"
-  "lsp" {= "1.5.0"}
-  "jsonrpc"
 ]
 build: [
   ["dune" "subst"] {dev}

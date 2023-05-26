@@ -54,8 +54,4 @@
     ppx_yojson_conv_lib
     re
     result
-    yojson
-
-    ;; Language server
-    (lsp (= 1.5.0))
-    jsonrpc))
+    yojson))
