@@ -42,7 +42,7 @@ module Stringlib : sig
   module Literal : sig
     type component =
       | Segment of string  (** A raw string, without any quotes or escape sequences. *)
-      | Escape of string * char
+      | Escape of string * Uchar.t
           (** A string escape, devised of the escape sequence (including ["\\"]) and the actual
               character. *)
       | Malformed of char * Span.t  (** A malformed string escape. *)

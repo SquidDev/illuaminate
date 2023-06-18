@@ -5,7 +5,6 @@
   omnomnom.golden
   omnomnom.junit
   omnomnom.alcotest
-  omnomnom.qcheck
   containers
   illuaminate.core
   illuaminate.config

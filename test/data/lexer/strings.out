@@ -19,4 +19,7 @@
 (Node.Whitespace "\n")
 'a\(b'
 (Node.Whitespace "\n")
+(Node.Whitespace "\n")
+"\u{1F991}"
+(Node.Whitespace "\n")
 end of file

@@ -136,6 +136,10 @@ and string contents value c = parse
                     { Buffer.add_char contents '\\'; Buffer.add_string contents x;
                       Buffer.add_char value (int_of_string x |> char_of_int);
                       string contents value c lexbuf }
+| "\\u{" (hex+ as x) "}"
+  { Buffer.add_string contents "\\u{"; Buffer.add_string contents x; Buffer.add_string contents "}";
+    Buffer.add_utf_8_uchar value ("0x" ^ x |> int_of_string |> Uchar.of_int);
+    string contents value c lexbuf }
 
 | "\\" ([^ '\r' '\n'] as x)
                     { Buffer.add_char contents '\\'; Buffer.add_char contents x;
