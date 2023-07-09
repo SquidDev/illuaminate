@@ -19,14 +19,12 @@ depends: [
   "reason" {build}
   "alcotest" {with-test}
   "fmt" {with-test}
-  "junit" {with-test}
   "omnomnom" {with-test}
   "qcheck-core" {with-test}
   "qcheck-alcotest" {with-test}
   "odoc" {with-doc}
   "bisect_ppx" {with-test & >= "2.5.0"}
   "ocamlformat" {dev}
-  "opam-file-format" {dev & >= "2.1.0"}
   "cmdliner"
   "containers" {>= "3.6.0"}
   "fpath"
@@ -35,11 +33,7 @@ depends: [
   "lrgrep"
   "menhir"
   "menhirLib"
-  "mtime" {< "2.0"}
-  "ppx_deriving_yojson"
-  "ppx_yojson_conv_lib"
   "re"
-  "result"
   "yojson"
 ]
 build: [
@@ -58,6 +52,6 @@ build: [
 ]
 dev-repo: "git+https://github.com/squiddev/illuaminate.git"
 pin-depends: [
-  ["omnomnom.dev" "git+https://github.com/SquidDev/omnomnom.git#bbef94ef0e997b805aed3b2cccab37c328e598c5"]
+  ["omnomnom.dev" "git+https://github.com/SquidDev/omnomnom.git#b14c939500de840f866665918cb3c66f08075962"]
   ["lrgrep.dev" "git+https://github.com/SquidDev/lrgrep.git#bff2ef06e97fd982c99ced7a9757f036ecf1e431"]
 ]

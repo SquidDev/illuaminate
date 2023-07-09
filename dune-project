@@ -28,7 +28,6 @@
     ; Test
     (alcotest :with-test)
     (fmt :with-test)
-    (junit :with-test)
     (omnomnom :with-test)
     (qcheck-core :with-test)
     (qcheck-alcotest :with-test)
@@ -39,7 +38,6 @@
     ; Dev-only dependencies.
     (bisect_ppx (and :with-test (>= 2.5.0)))
     (ocamlformat :dev)
-    (opam-file-format (and :dev (>= 2.1.0)))
 
     ; Core
     cmdliner
@@ -50,9 +48,5 @@
     lrgrep
     menhir
     menhirLib
-    (mtime (< 2.0))
-    ppx_deriving_yojson
-    ppx_yojson_conv_lib
     re
-    result
     yojson))

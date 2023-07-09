@@ -3,7 +3,6 @@
  (libraries
   omnomnom
   omnomnom.golden
-  omnomnom.junit
   omnomnom.alcotest
   containers
   illuaminate.core
@@ -24,7 +23,6 @@
   yojson
   alcotest
   fmt
-  ppx_yojson_conv_lib
   qcheck-core
   html
   unix)
@@ -34,7 +32,7 @@
   (pps ppx_deriving.std))
  (modules :standard \ leak_trace_gc config_format data doc_emit_summary span)
  (action
-  (run %{test} --base-dir "../" --junit)))
+  (run %{test} --base-dir "../")))
 
 (tests
  (names config_format data doc_emit_summary span)

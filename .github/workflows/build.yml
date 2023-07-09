@@ -41,6 +41,9 @@ jobs:
       uses: ocaml/setup-ocaml@v2
       with:
         ocaml-compiler: ${{ matrix.ocaml }}
+        opam-depext: false
+        opam-repositories: |
+          default: https://github.com/ocaml/opam-repository.git
 
     - name: Install dependencies
       run: opam install . --deps-only --with-test

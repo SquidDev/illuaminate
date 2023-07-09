@@ -25,9 +25,8 @@
   omd
   logs
   logs.fmt
+  yojson
   unix)
- (preprocess
-  (pps ppx_deriving_yojson))
  (instrumentation
   (backend bisect_ppx)))
 

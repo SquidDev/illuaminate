@@ -55,7 +55,7 @@ let logging : Omnomnom.Ingredients.reporter =
   end)
 
 let () =
-  Omnomnom.run ~reporters:Omnomnom.Ingredients.[ console_reporter; OmnomnomJUnit.reporter; logging ]
+  Omnomnom.run ~reporters:Omnomnom.Ingredients.[ console_reporter; logging ]
   @@ group "illuaminate"
        [ Parser.tests;
          Lexer.tests;
