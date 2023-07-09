@@ -27,7 +27,6 @@
 
     ; Test
     (alcotest :with-test)
-    (fmt :with-test)
     (omnomnom :with-test)
     (qcheck-core :with-test)
     (qcheck-alcotest :with-test)
@@ -42,6 +41,7 @@
     ; Core
     cmdliner
     (containers (>= 3.6.0))
+    fmt
     fpath
     js_of_ocaml
     logs

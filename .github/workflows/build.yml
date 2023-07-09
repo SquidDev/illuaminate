@@ -3,6 +3,25 @@ name: CI
 on: [ push, pull_request ]
 
 jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Use OCaml
+      uses: ocaml/setup-ocaml@v2
+      with:
+        ocaml-compiler: 4.14.x
+
+    - name: Install dependencies
+      run: opam install . --deps-only --with-test
+
+    - name: Test
+      run: opam exec -- dune runtest
+
   build:
     strategy:
       fail-fast: false
@@ -41,18 +60,9 @@ jobs:
       uses: ocaml/setup-ocaml@v2
       with:
         ocaml-compiler: ${{ matrix.ocaml }}
-        opam-depext: false
-        opam-repositories: |
-          default: https://github.com/ocaml/opam-repository.git
 
     - name: Install dependencies
-      run: opam install . --deps-only --with-test
-
-    - name: Build
-      run: opam exec -- dune build
-
-    - name: Test
-      run: opam exec -- dune runtest
+      run: opam install . --deps-only
 
     - name: Build release
       run: |
