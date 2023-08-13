@@ -63,7 +63,7 @@ module Node = struct
         | TableItem
         | File ),
         _ ) -> false
-    [@@coverage off]
+  [@@coverage off]
 end
 
 let extract (type a) (l : a Witness.t) (Note.Note ({ kind = r; _ } as note)) : a Note.t =
@@ -95,7 +95,7 @@ let extract (type a) (l : a Witness.t) (Note.Note ({ kind = r; _ } as note)) : a
       | TableItem
       | File ),
       _ ) -> failwith "Witness mismatch!"
-  [@@coverage off]
+[@@coverage off]
 
 module Notes = struct
   module Tbl = Hashtbl.Make (Node)

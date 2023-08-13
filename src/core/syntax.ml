@@ -382,7 +382,7 @@ and name =
         open_k : token;  (** [\[] *)
         key : expr;  (** [x] (The table key) *)
         close_k : token  (** [\]] *)
-      }  (** [\[ t\[x\] \]] - Index a table with an expression key. *)
+      }  (** [[ t[x] ]] - Index a table with an expression key. *)
 
 (** A literal value. *)
 and 'a literal =
@@ -420,7 +420,7 @@ and table_item =
         close_k : token;  (** [\]] *)
         eq : token;  (** [=] *)
         value : expr  (** 1 *)
-      }  (** [\[ \[x\] = 1 \]] *)
+      }  (** [[ [x] = 1 ]] *)
 
 (** [#x] *)
 and unop_expr =

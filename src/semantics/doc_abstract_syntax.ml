@@ -89,18 +89,17 @@ module type S = sig
 
   type changes = change list
 
-  class abstract_iter :
-    object
-      method reference : reference -> unit
-      method description : description -> unit
-      method type_ : Type.t -> unit
-      method see : see -> unit
-      method deprecation : deprecation -> unit
-      method example : example -> unit
-      method arg : arg -> unit
-      method return : return -> unit
-      method change : change -> unit
-    end
+  class abstract_iter : object
+    method reference : reference -> unit
+    method description : description -> unit
+    method type_ : Type.t -> unit
+    method see : see -> unit
+    method deprecation : deprecation -> unit
+    method example : example -> unit
+    method arg : arg -> unit
+    method return : return -> unit
+    method change : change -> unit
+  end
 end
 
 module Make (X : sig

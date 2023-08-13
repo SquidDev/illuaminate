@@ -3,7 +3,7 @@ open Doc.AbstractSyntax
 open Doc.Syntax
 
 (** Try to extract a summary from a markdown document. This will take the first sentence or line of
-    the document, or at most [\[max_length\]] characters. *)
+    the document, or at most [[max_length]] characters. *)
 let get_summary ?(max_length = 120) (desc : _ Omd.doc) : _ Omd.inline =
   let open Omd in
   let rec go space : (attributes, 'r) inline -> int * (attributes, 'r) inline = function

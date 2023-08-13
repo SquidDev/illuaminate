@@ -110,21 +110,20 @@ module type S = sig
   type changes = change list
 
   (** A base class for visitors over the document syntax tree. *)
-  class abstract_iter :
-    object
-      method reference : reference -> unit
-      method description : description -> unit
+  class abstract_iter : object
+    method reference : reference -> unit
+    method description : description -> unit
 
-      (** Visit a type. Note, by default this does not visit any references within this type. *)
-      method type_ : Type.t -> unit
+    (** Visit a type. Note, by default this does not visit any references within this type. *)
+    method type_ : Type.t -> unit
 
-      method see : see -> unit
-      method deprecation : deprecation -> unit
-      method example : example -> unit
-      method arg : arg -> unit
-      method return : return -> unit
-      method change : change -> unit
-    end
+    method see : see -> unit
+    method deprecation : deprecation -> unit
+    method example : example -> unit
+    method arg : arg -> unit
+    method return : return -> unit
+    method change : change -> unit
+  end
 end
 
 module Make (X : sig

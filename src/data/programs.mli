@@ -6,7 +6,7 @@ open IlluaminateCore
 module Context : sig
   type t =
     { root : Fpath.t option;
-          (** The root directory for this project. Namely, where the root [\[illuaminate.sexp\]]
+          (** The root directory for this project. Namely, where the root [[illuaminate.sexp]]
               config is located. This may be empty, if the file doesn't correspond to a location on
               disk. *)
       config : IlluaminateConfig.Schema.store  (** Configuration options for this file. *)

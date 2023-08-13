@@ -19,7 +19,7 @@ let lookup_type = function
       Undocumented (* Could do 2.2, but seems a little dubious *)
   | "any" -> Undocumented
   | _ -> Unknown
-  [@@coverage off]
+[@@coverage off]
 
 let lookup_name = function
   | "coroutine" -> InManual "5.2"
@@ -171,4 +171,4 @@ let lookup_name = function
       (* As with types, could do 2.5, but somewhat dubious. *)
       Undocumented
   | x -> lookup_type x
-  [@@coverage off]
+[@@coverage off]

@@ -21,7 +21,7 @@ module DocOptions : sig
   type t =
     { site_properties : site_properties;  (** Properties about the site itself. *)
       index : Fpath.t option;
-          (** A path to a [\[.html\]] or [\[.md\]] file to use on the index page. *)
+          (** A path to a [[.html]] or [[.md]] file to use on the index page. *)
       destination : Fpath.t;  (** Destination folder to write to. *)
       json_index : bool
           (** Whether a JSON file containing an index of all definitions should be emitted. *)

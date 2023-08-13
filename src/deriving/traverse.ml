@@ -55,25 +55,24 @@ let tuple ~loc es = pexp_tuple ~loc es
 let abstract ~loc patt expr = pexp_fun ~loc Nolabel None patt expr
 
 module Backends = struct
-  class type what =
-    object
-      (** The name of this transformer. *)
-      method name : string
+  class type what = object
+    (** The name of this transformer. *)
+    method name : string
 
-      (** Generate a higher-ordered application *)
-      method higher_apply : loc:Location.t -> expression -> expression list -> expression
+    (** Generate a higher-ordered application *)
+    method higher_apply : loc:Location.t -> expression -> expression list -> expression
 
-      (** The type of a method/function on this object. *)
-      method typ : loc:Location.t -> core_type -> core_type
+    (** The type of a method/function on this object. *)
+    method typ : loc:Location.t -> core_type -> core_type
 
-      (** The type of a method on this object. *)
-      method higher_typ : loc:Location.t -> core_type -> core_type
+    (** The type of a method on this object. *)
+    method higher_typ : loc:Location.t -> core_type -> core_type
 
-      method any : loc:Location.t -> expression
+    method any : loc:Location.t -> expression
 
-      method combine :
-        loc:Location.t -> (string loc * expression) list -> reconstruct:expression -> expression
-    end
+    method combine :
+      loc:Location.t -> (string loc * expression) list -> reconstruct:expression -> expression
+  end
 
   let iterator : what =
     object
