@@ -3,8 +3,6 @@
  (modules test)
  (libraries illuaminate.core illuaminate.parser re ppx_deriving.runtime))
 
-; Run ./test/check-markdown.lua against parser_spec
-
 (rule
  (action
   (with-stdout-to

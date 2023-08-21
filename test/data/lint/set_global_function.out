@@ -1,5 +1,0 @@
-set_global_function.lua: Setting unknown global function "f". [var:set-global]
-   │
- 2 │ function f() end
-   │          ^
-No errors and 1 warnings

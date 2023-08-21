@@ -1,5 +1,0 @@
-unknown_global_custom.lua: Using unknown global "getfenv" [var:unknown-global]
-   │
- 7 │ print(getfenv)
-   │       ^^^^^^^
-No errors and 1 warnings

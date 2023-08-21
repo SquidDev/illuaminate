@@ -1,0 +1,37 @@
+(executable
+ (name main)
+ (libraries
+  containers
+  diff
+  fpath
+  illuaminate.config
+  illuaminate.core
+  illuaminate.data
+  illuaminate.lint
+  illuaminate.parser
+  illuaminate.semantics
+  re
+  ppx_deriving.runtime))
+
+(rule
+ (deps
+  (:markdown
+   (glob_files t_*.md)))
+ (action
+  (with-stdout-to
+   rules.new.inc
+   (with-stdin-from
+    %{dep:rules.inc}
+    (run %{dep:./main.exe} rules %{markdown})))))
+
+(rule
+ (alias rules)
+ (action
+  (diff rules.inc rules.new.inc)))
+
+(alias
+ (name runtest)
+ (deps
+  (alias rules)))
+
+(include rules.inc)

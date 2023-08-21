@@ -1,5 +1,0 @@
-unresolved_member_dynamic.lua: Unknown field unknown in b_module [var:unresolved-member]
-   │
- 5 │ print(b_module.unknown)
-   │       ^^^^^^^^^^^^^^^^
-No errors and 1 warnings

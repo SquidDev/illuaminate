@@ -126,8 +126,8 @@ module Lines = struct
       | { store = Array xs; _ } -> xs.(Array.length xs - 1)
       | { store = Map (xs, _); _ } -> IntMap.max_binding xs |> snd
     in
-    if offset < 0 || offset >= max then
-      Printf.sprintf "offset %d invalid: 0 <= offset < %d" offset max |> invalid_arg;
+    if offset < 0 || offset > max then
+      Printf.sprintf "offset %d invalid: 0 <= offset <= %d" offset max |> invalid_arg;
     offset
 end
 

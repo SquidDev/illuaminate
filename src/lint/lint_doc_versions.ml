@@ -14,6 +14,7 @@ let check_versions r ({ changes; _ } : Doc.Comment.comment) =
     match List.find_opt (fun { Doc.Comment.change_kind; _ } -> change_kind = Added) changes with
     | None -> ()
     | Some { change_span; change_version; _ } ->
+        (* TODO: We should have a fixer for this. *)
         r.r ~span:change_span ~tag:tag_unordered_versions
           "@since tag for version %S must be the first changelog entry." change_version)
 

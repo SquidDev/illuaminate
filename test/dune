@@ -1,3 +1,8 @@
+(library
+ (name diff)
+ (libraries fmt)
+ (modules diff))
+
 (test
  (name test)
  (libraries
@@ -30,7 +35,15 @@
   (source_tree data))
  (preprocess
   (pps ppx_deriving.std))
- (modules :standard \ leak_trace_gc config_format data doc_emit_summary span)
+ (modules
+  :standard
+  \
+  leak_trace_gc
+  config_format
+  data
+  doc_emit_summary
+  span
+  diff)
  (action
   (run %{test} --base-dir "../")))
 

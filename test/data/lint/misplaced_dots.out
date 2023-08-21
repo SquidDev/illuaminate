@@ -1,5 +1,0 @@
-misplaced_dots.lua: Varargs can only appear as the last argument to a function. [syntax:misplaced-dots]
-   │
- 3 │ local function f(..., x) end
-   │                  ^^^
-1 errors and 0 warnings

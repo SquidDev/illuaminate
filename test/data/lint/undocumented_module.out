@@ -1,5 +1,0 @@
-undocumented_module.lua: Module is missing documentation [doc:undocumented]
-   │
- 3 │ return 0
-   │        ^
-No errors and 1 warnings
