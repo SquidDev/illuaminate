@@ -1,4 +1,0 @@
-(executable
- (name main)
- (public_name omd)
- (libraries omd dune-build-info))

@@ -1,9 +1,0 @@
-version = 0.21.0
-exp-grouping = preserve
-break-fun-sig = fit-or-vertical
-break-fun-decl = fit-or-vertical
-wrap-fun-args = false
-dock-collection-brackets = false
-break-separators = before
-break-infix = fit-or-vertical
-type-decl = sparse
