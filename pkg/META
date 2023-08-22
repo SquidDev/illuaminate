@@ -1,0 +1,7 @@
+description = "CommonMark parser and renderer for OCaml"
+version = "%%VERSION_NUM%%"
+requires = ""
+archive(byte) = "cmarkit.cma"
+archive(native) = "cmarkit.cmxa"
+plugin(byte) = "cmarkit.cma"
+plugin(native) = "cmarkit.cmxs"
