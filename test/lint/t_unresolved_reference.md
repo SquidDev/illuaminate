@@ -27,9 +27,9 @@ return {
 
 ```txt
 in.lua: Unknown reference "UnknownDescription". [doc:unresolved-reference]
-   │
- 9 │   --- A small test
-   │       ^^^^^^^^^^^^
+    │
+ 11 │   -- See a @{UnknownDescription}
+    │              ^^^^^^^^^^^^^^^^^^
 
 in.lua: Unknown reference "UnknownSee". [doc:unresolved-reference]
     │
@@ -39,7 +39,7 @@ in.lua: Unknown reference "UnknownSee". [doc:unresolved-reference]
 in.lua: Unknown reference "UnknownExample". [doc:unresolved-reference]
     │
  17 │   -- @usage See @{UnknownExample}
-    │             ^^^^^^^^^^^^^^^^^^^^^
+    │                   ^^^^^^^^^^^^^^
 
 in.lua: Unknown type "UnknownRetType". [doc:unresolved-reference]
     │

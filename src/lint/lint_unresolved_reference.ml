@@ -57,8 +57,15 @@ let check_abstract ~ctx ~span =
       Option.iter {<span>}#description see_description
 
     method! description { description; description_pos } =
-      let span = Option.value ~default:span description_pos in
-      Doc.AbstractSyntax.Omd'.iter (check ~ctx ~span ~kind:"reference") description
+      Doc.Syntax.Markdown.iter_references
+        (fun label refr ->
+          let span =
+            Cmarkit.Label.meta label
+            |> Doc.AbstractSyntax.Comment_lines.span_of_meta description_pos
+            |> CCOption.get_lazy (fun () -> Doc.AbstractSyntax.Comment_lines.span description_pos)
+          in
+          check ~ctx ~span ~kind:"reference" refr)
+        description
   end
 
 let linter =

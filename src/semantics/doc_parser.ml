@@ -2,13 +2,13 @@ open IlluaminateCore
 open Doc_comment
 module IntMap = Map.Make (Int)
 
-(* Drop the [!] from references to make them a little more readable. *)
+(* Drop the and [foo!] from references. *)
 let trim_reference x =
   match String.index_opt x '!' with
   | None -> x
   | Some i -> CCString.drop (i + 1) x
 
-module Markdown = struct
+module Markdown_parser = struct
   let is_space = function
     | ' ' | '\012' | '\n' | '\r' | '\t' -> true
     | _ -> false
@@ -16,48 +16,76 @@ module Markdown = struct
   (** Version of trim which removes leading spaces until the first line, and then all remaining line
       breaks. All trailing spaces are removed. This ensures we're compatible with markdown. *)
   let md_trim s =
-    let open String in
-    let len = length s in
+    let len = String.length s in
 
     let i =
-      let rec drop_left first_line i =
+      let rec ldrop first_line i =
         if i >= len then i
         else
-          match unsafe_get s i with
-          | '\n' -> drop_left false (i + 1)
-          | ' ' when first_line -> drop_left true (i + 1)
+          match String.unsafe_get s i with
+          | '\n' -> ldrop false (i + 1)
+          | ' ' when first_line -> ldrop true (i + 1)
           | _ -> i
       in
-      drop_left true 0
+      ldrop true 0
     in
     let j =
-      let rec drop j = if j > i && is_space (unsafe_get s j) then drop (j - 1) else j in
-      drop (len - 1)
+      let rec rdrop j = if j > i && is_space (String.unsafe_get s j) then rdrop (j - 1) else j in
+      rdrop (len - 1)
     in
-    if i = 0 && j = len - 1 then s else if i >= j then "" else sub s i (j - i + 1)
+    if i = 0 && j = len - 1 then `No_change else if i >= j then `Empty else `Trim (i, j - i + 1)
+
+  let add_label_meta key value label =
+    Cmarkit.Label.with_meta (Cmarkit.Label.meta label |> Cmarkit.Meta.add key value) label
+
+  let add_reference refr label =
+    add_label_meta Doc_comment.Markdown.reference (Reference refr) label
+
+  let add_admonition = add_label_meta Doc_abstract_syntax.Cmarkit_meta.admonition_level
+
+  let resolver : Cmarkit.Label.resolver = function
+    | `Ref (`Link, label, None) ->
+        let key = Cmarkit.Label.key label in
+        let len = String.length key in
+        if len > 2 && key.[0] = '`' && key.[len - 1] = '`' then
+          Some (add_reference (String.sub key 1 (len - 2)) label)
+        else if len >= 1 && key.[0] = '!' then
+          match key with
+          | "!note" -> Some (add_admonition Note label)
+          | "!info" -> Some (add_admonition Info label)
+          | "!tip" -> Some (add_admonition Tip label)
+          | "!warning" -> Some (add_admonition Warning label)
+          | "!caution" -> Some (add_admonition Caution label)
+          | _ -> None
+        else None
+    | x -> Cmarkit.Label.default_resolver x
 
   (** Parse a markdown string into a description. *)
-  let parse x = x |> md_trim |> Omd.of_string
+  let parse x = Cmarkit.Doc.of_string ~resolver ~strict:false ~locs:true x
 
   (** Default empty code blocks to Lua. *)
-  let rec fix_lang : _ Omd.block -> _ Omd.block = function
-    | Code_block (attr, "", code) -> Code_block (attr, "lua", code)
-    | ( Paragraph _
-      | Heading _
-      | Thematic_break _
-      | Definition_list _
-      | Html_block _
-      | Code_block _
-      | Table _ ) as block -> block
-    | List (attr, ty, sp, bl) -> List (attr, ty, sp, List.map (List.map fix_lang) bl)
-    | Blockquote (attr, xs) -> Blockquote (attr, List.map fix_lang xs)
-    | Admonition (attr, kind, title, xs) -> Admonition (attr, kind, title, List.map fix_lang xs)
+  let fix_lang : Cmarkit.Mapper.t =
+    let block : Cmarkit.Block.t Cmarkit.Mapper.mapper =
+     fun _ b ->
+      match b with
+      | Cmarkit.Block.Code_block (c, node) -> (
+          let module Cb = Cmarkit.Block.Code_block in
+          match Cb.info_string c with
+          | Some ("", _) | None ->
+              let c =
+                Cb.make ~layout:(Cb.layout c) ~info_string:("lua", Cmarkit.Meta.none) (Cb.code c)
+              in
+              Cmarkit.Mapper.ret (Cmarkit.Block.Code_block (c, node))
+          | Some _ -> Cmarkit.Mapper.default)
+      | _ -> Cmarkit.Mapper.default
+    in
+    Cmarkit.Mapper.make ~block ()
 end
 
 let parse_description ?(default_lua = false) x =
-  let doc = Markdown.parse x in
-  let doc = if default_lua then List.map Markdown.fix_lang doc else doc in
-  Omd_transform.Map.doc (fun x -> (Some (trim_reference x), Reference x)) doc
+  let doc = Markdown_parser.parse x in
+  let doc = if default_lua then Cmarkit.Mapper.map_doc Markdown_parser.fix_lang doc else doc in
+  Markdown.Markdown doc
 
 module Tag = struct
   let malformed_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:malformed-tag"
@@ -128,6 +156,13 @@ module Lex = struct
 
   let to_span ({ contents; _ } as lbuf : string ranged) = mk_span' lbuf 0 (String.length contents)
 
+  let to_comment_lines { offset; mapping; _ } =
+    let mapping =
+      if offset = 0 then mapping
+      else IntMap.fold (fun k v xs -> IntMap.add (k - offset) v xs) mapping IntMap.empty
+    in
+    Doc_abstract_syntax.Comment_lines.__make mapping
+
   let to_spanned ({ contents; _ } as lbuf : string ranged) : string Span.spanned =
     { value = contents; span = to_span lbuf }
 
@@ -157,12 +192,22 @@ module Lex = struct
             { offset = offset + len; mapping; contents = CCString.drop len contents } )
 
   let description ?default_lua (ranged : string ranged) =
+    let ranged =
+      match Markdown_parser.md_trim ranged.contents with
+      | `No_change -> ranged
+      | `Empty -> { ranged with contents = "" }
+      | `Trim (offset, len) ->
+          { ranged with
+            offset = ranged.offset + offset;
+            contents = String.sub ranged.contents offset len
+          }
+    in
     { description = parse_description ?default_lua ranged.contents;
-      description_pos = Some (to_span ranged)
+      description_pos = to_comment_lines ranged (* FIXME: This is all wrong! *)
     }
 
   let description' ?default_lua (ranged : string ranged) =
-    if CCString.for_all Markdown.is_space ranged.contents then None
+    if CCString.for_all Markdown_parser.is_space ranged.contents then None
     else Some (description ?default_lua ranged)
 end
 

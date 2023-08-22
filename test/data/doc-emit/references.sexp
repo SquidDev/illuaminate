@@ -6,7 +6,7 @@
       (see (ref unknown) (label unknown) (span references.lua[10:12-10:18]))))
     (unknown_2
      ((description
-       "<p>See unknown:unknown} and unknown:custom label}.</p>\n")
+       "<p>See [<code>unknown</code>][unknown] and [custom label][unknown].</p>\n")
       (body (args))))
     (term_1
      ((body (args))
@@ -16,7 +16,7 @@
        (label my_term) (span references.lua[16:12-16:18]))))
     (term_2
      ((description
-       "<p>See ((in-module library!references) (name v:my_term)):my_term}, ((in-module library!references) (name v:my_term)):references.my_term} and ((in-module library!references) (name v:my_term)):custom label}.</p>\n")
+       "<p>See [<code>my_term</code>][((in-module library!references) (name v:my_term))], [<code>references.my_term</code>][((in-module library!references) (name v:my_term))] and [custom label][((in-module library!references) (name v:my_term))].</p>\n")
       (body (args))))
     (type_1
      ((body (args))
@@ -28,17 +28,17 @@
        (label my_term) (span references.lua[23:12-23:18]))))
     (type_2
      ((description
-       "<p>See ((in-module library!references) (name ty:MyType)):MyType} and ((in-module library!references) (name ty:MyType)):references.MyType}</p>\n")
+       "<p>See [<code>MyType</code>][((in-module library!references) (name ty:MyType))] and [<code>references.MyType</code>][((in-module library!references) (name ty:MyType))]</p>\n")
       (body (args))))
     (type_3
      ((description
-       "<p>See ((in-module library!references) (name ty:MyType)):MyType}, ((in-module library!references) (name ty:MyType)):references.MyType} and ((in-module library!references) (name ty:MyType)):references.MyType}</p>\n")
+       "<p>See [<code>MyType</code>][((in-module library!references) (name ty:MyType))], [<code>references.MyType</code>][((in-module library!references) (name ty:MyType))] and [<code>references.MyType</code>][((in-module library!references) (name ty:MyType))]</p>\n")
       (body
        (returns
         (return (type ((in-module library!references) (name ty:MyType))))))))
     (method_1
      ((description
-       "<p>See ((in-module library!references) (name ty:MyType:meth)):MyType:meth} and ((in-module library!references) (name ty:MyType:meth)):MyType.meth}</p>\n")
+       "<p>See [<code>MyType:meth</code>][((in-module library!references) (name ty:MyType:meth))] and [<code>MyType.meth</code>][((in-module library!references) (name ty:MyType:meth))]</p>\n")
       (body (args))))
     (builtin_1
      ((body (args))
@@ -55,10 +55,11 @@
        (label string.match) (span references.lua[38:12-38:23]))))
     (builtin_2
      ((description
-       "<p>((name string.match)\n (url https://www.lua.org/manual/5.1/manual.html#pdf-string.match)):string.match}, ((name string) (url https://www.lua.org/manual/5.1/manual.html#5.4)):string} and ((name number)):number}</p>\n")
+       "<p>[<code>string.match</code>][((name string.match) (url https://www.lua.org/manual/5.1/manual.html#pdf-string.match))], [<code>string</code>][((name string) (url https://www.lua.org/manual/5.1/manual.html#5.4))] and [<code>number</code>][((name number))]</p>\n")
       (body (args))))
     (module_1
-     ((description "<p>((in-module library!references)):references}</p>\n")
+     ((description
+       "<p>[<code>references</code>][((in-module library!references))]</p>\n")
       (body (args))))))
   (type
    (body (name MyType)

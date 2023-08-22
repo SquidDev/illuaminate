@@ -19,9 +19,35 @@ type change_kind =
   | Added
   | Changed
 
-module Omd' = struct
-  let iter = Omd_transform.Iter.doc
-  let iter_code_blocks f = List.iter (Omd_transform.Iter.code_blocks f)
+module Cmarkit_meta = struct
+  let admonition_level : Cmarkit.Block.Admonition.level Cmarkit.Meta.key = Cmarkit.Meta.key ()
+end
+
+module Comment_lines = struct
+  module IntMap = Map.Make (Int)
+
+  type t = Span.t IntMap.t
+
+  let __make x = x
+
+  let span mapping =
+    Span.of_span2 (IntMap.min_binding mapping |> snd) (IntMap.max_binding mapping |> snd)
+
+  let span_of_range mapping start finish =
+    let start_pos, start_span = IntMap.find_last (fun x -> x <= start) mapping
+    and finish_pos, finish_span = IntMap.find_last (fun x -> x <= finish) mapping in
+    let open Lens in
+    start_span
+    |> Span.start_offset ^= ((start_span ^. Span.start_offset) + start - start_pos)
+    |> Span.finish_offset ^= ((finish_span ^. Span.start_offset) + finish - finish_pos)
+
+  let span_of_textloc mapping loc =
+    if Cmarkit.Textloc.is_none loc then None
+    else
+      Some (span_of_range mapping (Cmarkit.Textloc.first_byte loc) (Cmarkit.Textloc.last_byte loc))
+
+  let span_of_meta mapping meta = span_of_textloc mapping (Cmarkit.Meta.textloc meta)
+  let span_of_node mapping (_, meta) = span_of_meta mapping meta
 end
 
 module type S = sig
@@ -29,9 +55,18 @@ module type S = sig
 
   module Type : Type_syntax.S with type reference = reference
 
+  module Markdown : sig
+    type t = Markdown of Cmarkit.Doc.t [@@unboxed]
+
+    val reference : reference Cmarkit.Meta.key
+    val doc : t -> Cmarkit.Doc.t
+    val as_single_paragraph : t -> Cmarkit.Inline.t option
+    val iter_references : (Cmarkit.Label.t -> reference -> unit) -> t -> unit
+  end
+
   type description =
-    { description : reference Omd.doc;
-      description_pos : Span.t option
+    { description : Markdown.t;
+      description_pos : Comment_lines.t
     }
 
   type nonrec module_kind = module_kind =
@@ -111,9 +146,33 @@ end) : S with type reference = X.reference and module Type = X.Type = struct
 
   module Type = X.Type
 
+  module Markdown = struct
+    type t = Markdown of Cmarkit.Doc.t [@@unboxed]
+
+    let reference : reference Cmarkit.Meta.key = Cmarkit.Meta.key ()
+    let doc (Markdown x) = x
+    let as_single_paragraph (Markdown x) = Cmarkit_ext.as_single_paragraph x
+    let label_reference l = Cmarkit.Label.meta l |> Cmarkit.Meta.find reference
+
+    let iter_references f (Markdown doc) =
+      let inline _ () = function
+        | Cmarkit.Inline.Link (link, _) ->
+            (match Cmarkit.Inline.Link.referenced_label link with
+            | Some label -> (
+              match label_reference label with
+              | Some ref -> f label ref
+              | None -> ())
+            | None -> ());
+            `Default
+        | _ -> `Default
+      in
+      let folder = Cmarkit.Folder.make ~inline () in
+      Cmarkit.Folder.fold_doc folder () doc
+  end
+
   type description =
-    { description : reference Omd.doc;
-      description_pos : Span.t option
+    { description : Markdown.t;
+      description_pos : Comment_lines.t
     }
 
   type nonrec module_kind = module_kind =
@@ -207,8 +266,42 @@ module Lift (L : S) (R : S) = struct
       type_ref : L.reference -> R.reference
     }
 
+  let markdown x (L.Markdown.Markdown doc) =
+    let module Link = Cmarkit.Inline.Link in
+    let inline _ = function
+      | Cmarkit.Inline.Link (link, node) -> (
+        match Link.reference link with
+        | `Inline _ -> Cmarkit.Mapper.default
+        | `Ref (layout, target, def) -> (
+            let meta = Cmarkit.Label.meta def in
+            match Cmarkit.Meta.find L.Markdown.reference meta with
+            | Some r ->
+                (* Remap the reference and update the backing definition map. *)
+                let name, r = x.any_ref r in
+                (* If we've got a custom name for this reference, use that as the link text (if none
+                   is already present). *)
+                let layout, inline =
+                  match (name, layout) with
+                  | Some name, (`Collapsed | `Shortcut) ->
+                      (`Full, Cmarkit.Inline.Text (name, Cmarkit.Meta.none))
+                  | _ -> (layout, Link.text link)
+                in
+                (* Then recreate the link. *)
+                let meta =
+                  Cmarkit.Meta.remove L.Markdown.reference meta
+                  |> Cmarkit.Meta.add R.Markdown.reference r
+                in
+                let def = Cmarkit.Label.with_meta meta def in
+                let link = Link.make inline (`Ref (layout, target, def)) in
+                Cmarkit.Mapper.ret (Cmarkit.Inline.Link (link, node))
+            | _ -> Cmarkit.Mapper.default))
+      | _ -> Cmarkit.Mapper.default
+    in
+    let mapper = Cmarkit.Mapper.make ~inline () in
+    R.Markdown.Markdown (Cmarkit.Mapper.map_doc mapper doc)
+
   let description x { L.description; description_pos } =
-    { R.description = Omd_transform.Map.doc x.any_ref description; description_pos }
+    { R.description = markdown x description; description_pos }
 
   let example lift : L.example -> R.example = function
     | RawExample e -> RawExample e

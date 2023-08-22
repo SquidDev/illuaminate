@@ -39,11 +39,32 @@ struct
 
   let reference = X.sexp
 
+  let ref_link c l =
+    let open Cmarkit in
+    let module C = Cmarkit_renderer.Context in
+    let label =
+      Inline.Link.referenced_label l
+      |> CCOption.flat_map (fun l -> Label.meta l |> Meta.find Markdown.reference)
+    in
+    match label with
+    | None -> false
+    | Some target ->
+        C.string c "[";
+        C.inline c (Inline.Link.text l);
+        Cmarkit_ext.cprintf c "][%a]" pp (reference target);
+        true
+
+  let renderer () =
+    let inline c = function
+      | Cmarkit.Inline.Link (l, _) -> ref_link c l
+      | _ -> false (* let the default HTML renderer handle that *)
+    in
+    Cmarkit_renderer.compose
+      (Cmarkit_html.renderer ~safe:false ())
+      (Cmarkit_renderer.make ~inline ())
+
   let description (d : description) =
-    Omd.to_html
-      ~ref:(fun r (`Raw l | `Desc l) -> Format.asprintf "@{%a:%s}" pp (reference r) l)
-      d.description
-    |> atom'
+    Markdown.doc d.description |> Cmarkit_renderer.doc_to_string (renderer ()) |> atom'
 
   let rec type_ = function
     | Type.NilTy -> atom' "nil"

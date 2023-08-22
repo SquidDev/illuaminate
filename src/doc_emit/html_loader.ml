@@ -9,9 +9,15 @@ let load_file ~options path =
     | ".html" | ".htm" -> raw contents |> Result.ok
     | ".md" | ".markdown" ->
         let module R = IlluaminateSemantics.Reference in
+        let module D = IlluaminateSemantics.Doc in
+        let module Lift = D.AbstractSyntax.Lift (D.Comment) (D.Syntax) in
+        let lifter =
+          { Lift.any_ref = (fun (Reference r) -> (None, R.Unknown r));
+            type_ref = (fun (Reference r) -> R.Unknown r)
+          }
+        in
         IlluaminateSemantics.Doc.Parser.parse_description contents
-        |> IlluaminateSemantics__Omd_transform.Map.doc (fun (R.Reference r) -> (None, R.Unknown r))
-        |> Html_md.md ~options |> Result.ok
+        |> Lift.markdown lifter |> Html_md.md ~options |> Result.ok
     | ".txt" | "" -> create_node ~tag:"pre" ~children:[ str contents ] () |> Result.ok
     | ext ->
         Format.asprintf "Cannot handle documentation index '%a' (unknown file extension %S)\n%!"

@@ -17,7 +17,7 @@
   illuaminate.parser_md
   illuaminate.lint
   illuaminate.minify
-  omd
+  cmarkit
   fpath
   illuaminate.semantics
   illuaminate.pattern
@@ -53,7 +53,7 @@
  (libraries
   ; External libs
   fpath
-  omd
+  cmarkit
   ; To test
   illuaminate.core
   illuaminate.data

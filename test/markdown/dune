@@ -1,0 +1,22 @@
+(executable
+ (name test)
+ (modules test)
+ (libraries cmarkit re))
+
+(rule
+ (action
+  (with-stdout-to
+   t_cmarkit_extensions.new.md
+   (with-stdin-from
+    %{dep:t_cmarkit_extensions.md}
+    (run %{dep:./test.exe})))))
+
+(rule
+ (alias t_cmarkit_extensions)
+ (action
+  (diff t_cmarkit_extensions.md t_cmarkit_extensions.new.md)))
+
+(alias
+ (name runtest)
+ (deps
+  (alias t_cmarkit_extensions)))

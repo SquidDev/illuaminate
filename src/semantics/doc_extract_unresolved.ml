@@ -3,14 +3,11 @@ module StringMap = Map.Make (String)
 open Syntax
 open! Doc_syntax
 open Doc_extract_helpers
-
-open struct
-  module R = Resolve
-  module C = Doc_comment
-  module P = Doc_parser.Data
-  module VarTbl = R.VarTbl
-  module D = IlluaminateData
-end
+module R = Resolve
+module C = Doc_comment
+module P = Doc_parser.Data
+module VarTbl = R.VarTbl
+module D = IlluaminateData
 
 module CommentCollection = Hashtbl.Make (struct
   type t = C.comment
@@ -429,11 +426,48 @@ let get_unresolved_module data filename _ =
              mk_page ~mod_name ~mod_namespace ~mod_types ~mod_kind ~mod_contents:body.descriptor
          }
 
-let unresolved_module = D.Programs.key ~name:(__MODULE__ ^ ".unresolved") get_unresolved_module
+let flatten block =
+  let rec go acc block =
+    match block with
+    | Cmarkit.Block.Blocks (xs, _) -> List.fold_left go acc xs
+    | _ -> block :: acc
+  in
+  go [] block |> List.rev
 
-let is_pure : _ Omd.inline -> bool = function
-  | Text _ -> true
-  | _ -> false
+let extract_title : description option -> string option * description option = function
+  | Some { description = Markdown description; description_pos } ->
+      let rec extract_title : Cmarkit.Block.t list -> _ = function
+        | Cmarkit.Block.Heading (heading, _) :: blocks when Cmarkit.Block.Heading.level heading = 1
+          ->
+            let title = Cmarkit.Block.Heading.inline heading |> Cmarkit_ext.inline_text in
+            (Some title, blocks)
+        (* Allow leading HTML comments. The Markdown parser will parse comments separately, so this
+           is "safe". *)
+        | (Cmarkit.Block.Html_block (html, _) as block) :: blocks
+          when (* List.hd html |> Cmarkit.Block_line.to_string |> print_endline; *)
+               List.hd html |> Cmarkit.Block_line.to_string |> String.starts_with ~prefix:"<!--" ->
+            let title, blocks = extract_title blocks in
+            (title, block :: blocks)
+        | ((Cmarkit.Block.Link_reference_definition _ | Cmarkit.Block.Blank_line _) as block)
+          :: blocks ->
+            let title, blocks = extract_title blocks in
+            (title, block :: blocks)
+        | blocks -> (None, blocks)
+      in
+
+      let title, body = Cmarkit.Doc.block description |> flatten |> extract_title in
+      let body =
+        match body with
+        | [ x ] -> x
+        | _ -> Cmarkit.Block.Blocks (body, Cmarkit.Meta.none)
+      in
+      let description =
+        Cmarkit.Doc.make ~nl:(Cmarkit.Doc.nl description) ~defs:(Cmarkit.Doc.defs description) body
+      in
+      (title, Some { description = Markdown description; description_pos })
+  | x -> (None, x)
+
+let unresolved_module = D.Programs.key ~name:(__MODULE__ ^ ".unresolved") get_unresolved_module
 
 let unresolved_module_file =
   D.Programs.file_key ~name:(__MODULE__ ^ ".unresolved") @@ fun data filename file ->
@@ -458,24 +492,7 @@ let unresolved_module_file =
           id
           |> Option.map @@ fun id ->
              let d = Value.get_documented ~report:(fun _ _ _ -> ()) comment in
-             let title, description =
-               match d.description with
-               | Some { description; description_pos } ->
-                   let rec extract_title : _ Omd.block list -> _ = function
-                     | [] -> (None, [])
-                     | Heading (_, 1, Text (_, title)) :: description -> (Some title, description)
-                     (* Allow leading HTML comments. The Markdown parser will parse comments
-                        separately, so this is "safe". *)
-                     | (Html_block (_, html) as block) :: description
-                       when String.starts_with ~prefix:"<!--" html ->
-                         let title, description = extract_title description in
-                         (title, block :: description)
-                     | description -> (None, description)
-                   in
-                   let title, description = extract_title description in
-                   (title, Some { description; description_pos })
-               | x -> (None, x)
-             in
+             let title, description = extract_title d.description in
              (* TODO: Warn if the above is a non-module/unknown. *)
              (* I don't even know what this code is meant to be doing! Maybe worth some comments! *)
              { d with

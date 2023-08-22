@@ -24,24 +24,67 @@ type source =
   | Span of Span.t
   | Position of position
 
-module Omd' : sig
-  val iter : ('a -> unit) -> 'a Omd.doc -> unit
-  val iter_code_blocks : (Omd.attributes -> string -> string -> unit) -> 'a Omd.doc -> unit
-end
-
 (** The kind of change in a changelog. *)
 type change_kind =
   | Added  (** This feature was introduced in a specific version. *)
   | Changed  (** This feature was changed in a specific version. *)
+
+(** Meta keys for various Cmarkit extensions. *)
+module Cmarkit_meta : sig
+  (** Admonition level for GitHub-style admonition labels (e.g. [[!WARNING]]) *)
+  val admonition_level : Cmarkit.Block.Admonition.level Cmarkit.Meta.key
+end
+
+(** Converts positions in a markdown fragment to those in a Lua source file. *)
+module Comment_lines : sig
+  type t
+
+  (** Internal function to construct this map. DO NOT USE *)
+  val __make : Span.t Map.Make(Int).t -> t
+
+  (** The total range of this markdown fragment. *)
+  val span : t -> Span.t
+
+  (** Create a span from two text locations. *)
+  val span_of_range : t -> Cmarkit.Textloc.byte_pos -> Cmarkit.Textloc.byte_pos -> Span.t
+
+  (** Create a span from a text location. Returns {!None} if the location is
+      {!Cmarkit.Textloc.is_none is none}. *)
+  val span_of_textloc : t -> Cmarkit.Textloc.t -> Span.t option
+
+  (** Create a span from a meta's text location. Returns {!None} if the location is
+      {!Cmarkit.Textloc.is_none is none}. *)
+  val span_of_meta : t -> Cmarkit.Meta.t -> Span.t option
+
+  (** Create a span from a node's location. Returns {!None} if the location is
+      {!Cmarkit.Textloc.is_none is none}. *)
+  val span_of_node : t -> 'a Cmarkit.node -> Span.t option
+end
 
 module type S = sig
   type reference
 
   module Type : Type_syntax.S with type reference = reference
 
+  module Markdown : sig
+    type t = Markdown of Cmarkit.Doc.t [@@unboxed]
+
+    (** Meta key for labels containing a reference to a valid identifier. *)
+    val reference : reference Cmarkit.Meta.key
+
+    (** Extract the underlying document from this Markdown fragment *)
+    val doc : t -> Cmarkit.Doc.t
+
+    (** Attempt to convert this fragment into a single paragraph. *)
+    val as_single_paragraph : t -> Cmarkit.Inline.t option
+
+    (** Iterate over references in this fragment. *)
+    val iter_references : (Cmarkit.Label.t -> reference -> unit) -> t -> unit
+  end
+
   type description =
-    { description : reference Omd.doc;
-      description_pos : Span.t option
+    { description : Markdown.t;
+      description_pos : Comment_lines.t
     }
 
   type nonrec module_kind = module_kind =
@@ -140,6 +183,7 @@ module Lift (L : S) (R : S) : sig
       type_ref : L.reference -> R.reference  (** Lift references specialised for types. *)
     }
 
+  val markdown : t -> L.Markdown.t -> R.Markdown.t
   val description : t -> L.description -> R.description
   val see : t -> L.see -> R.see
   val deprecation : t -> L.deprecation -> R.deprecation

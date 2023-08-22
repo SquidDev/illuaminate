@@ -22,7 +22,6 @@
   illuaminate.minify
   illuaminate.pattern
   illuaminate.doc_emit
-  omd
   logs
   logs.fmt
   yojson

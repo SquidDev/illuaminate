@@ -252,21 +252,12 @@ let emit_page =
          ]
        },
   ];
-  let description =
-    switch (self.description) {
-    | None => None
-    | Some(x) =>
-      Helpers.get_summary(x.description)
-      |> Omd.to_plain_text
-      |> CCString.trim
-      |> Option.some
-    };
   template(
     ~options,
     ~pages,
     ~current=Some(m),
     ~title=Namespace.Ref.display_name(page_ref),
-    ~description?,
+    ~description=?Option.map(Helpers.get_summary_as_text, self.description),
     content,
   );
 };

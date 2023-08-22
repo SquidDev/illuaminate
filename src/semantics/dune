@@ -10,7 +10,7 @@
   illuaminate.pattern
   fpath
   menhirLib
-  omd
+  cmarkit
   re
   logs)
  (instrumentation

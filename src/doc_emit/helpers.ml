@@ -1,17 +1,21 @@
 open IlluaminateSemantics
+open Doc
 open Doc.AbstractSyntax
 open Doc.Syntax
 
 (** Try to extract a summary from a markdown document. This will take the first sentence or line of
     the document, or at most [[max_length]] characters. *)
-let get_summary ?(max_length = 120) (desc : _ Omd.doc) : _ Omd.inline =
-  let open Omd in
-  let rec go space : (attributes, 'r) inline -> int * (attributes, 'r) inline = function
-    | _ when space <= 0 -> (0, Text ([], ""))
-    | Concat (a, xs) ->
+let get_summary ?(max_length = 120) (Syntax.Markdown.Markdown desc) : Cmarkit.Inline.t =
+  let module I = Cmarkit.Inline in
+  let module B = Cmarkit.Block in
+  let single_space = I.Text (" ", Cmarkit.Meta.none) in
+  let empty = I.Text ("", Cmarkit.Meta.none) in
+  let rec go space : I.t -> int * I.t = function
+    | _ when space <= 0 -> (0, I.empty)
+    | I.Inlines (xs, a) ->
         let space, xs = go_list space [] xs in
-        (space, Concat (a, xs))
-    | Text (a, t) -> (
+        (space, I.Inlines (xs, a))
+    | I.Text (t, a) -> (
         let sentence_end =
           [ '.'; '!'; '?' ]
           |> List.map (String.index_opt t)
@@ -24,20 +28,27 @@ let get_summary ?(max_length = 120) (desc : _ Omd.doc) : _ Omd.inline =
                None
         in
         match sentence_end with
-        | Some i -> (0, Text (a, CCString.take (i + 1) t))
-        | None when String.length t >= space -> (0, Text (a, CCString.take space t ^ "..."))
-        | None -> (space - String.length t, Text (a, t)))
+        | Some i -> (0, I.Text (CCString.take (i + 1) t, a))
+        | None when String.length t >= space -> (0, I.Text (CCString.take space t ^ "...", a))
+        | None -> (space - String.length t, I.Text (t, a)))
     (* Basic formatting blocks *)
-    | Emph (a, body) -> on_child (fun x -> Emph (a, x)) space body
-    | Strong (a, body) -> on_child (fun x -> Strong (a, x)) space body
-    | Link (a, ({ label; _ } as link)) ->
-        on_child (fun label -> Link (a, { link with label })) space label
-    | Ref_raw (_, text) as r -> (space - String.length text, r)
-    | Ref_desc (ref, text) -> on_child (fun text -> Ref_desc (ref, text)) space text
-    | Code (_, body) as c -> (space - String.length body, c)
-    | Colour c -> (space - String.length c, Colour c)
-    | Soft_break _ | Hard_break _ -> (space - 1, Text ([], " "))
-    | Image _ | Html _ -> (space, Text ([], ""))
+    | I.Emphasis (em, a) ->
+        on_child
+          (fun body -> I.Emphasis (I.Emphasis.make ~delim:(I.Emphasis.delim em) body, a))
+          space (I.Emphasis.inline em)
+    | I.Strong_emphasis (em, a) ->
+        on_child
+          (fun body -> I.Strong_emphasis (I.Emphasis.make ~delim:(I.Emphasis.delim em) body, a))
+          space (I.Emphasis.inline em)
+    | I.Link (link, a) ->
+        on_child
+          (fun body -> I.Link (I.Link.make body (I.Link.reference link), a))
+          space (I.Link.text link)
+    | I.Code_span (code, _) as inline -> (space - String.length (I.Code_span.code code), inline)
+    | I.Ext_colour (code, _) as inline -> (space - String.length code, inline)
+    | I.Break _ -> (space - 1, single_space)
+    | I.Image _ -> (space, empty)
+    | _ -> failwith ("Inline not yet handled " ^ Cmarkit_commonmark.of_doc desc)
   and on_child factory space node =
     let space, node = go space node in
     (space, factory node)
@@ -48,13 +59,20 @@ let get_summary ?(max_length = 120) (desc : _ Omd.doc) : _ Omd.inline =
         let space, x = go space x in
         go_list space (x :: ys) xs
   in
-  let rec block : _ Omd.block list -> _ = function
-    | (Paragraph (_, x) | Heading (_, _, x)) :: _ -> go max_length x |> snd
-    | Html_block (_, html) :: description when String.starts_with ~prefix:"<!--" html ->
-        block description
-    | _ -> Text ([], "")
+  let rec block = function
+    | B.Paragraph (x, _) -> B.Paragraph.inline x |> go max_length |> snd |> Option.some
+    | B.Heading (x, _) -> B.Heading.inline x |> go max_length |> snd |> Option.some
+    | B.Blocks (xs, _) -> List.find_map block xs
+    | B.Html_block (start :: [], _)
+      when String.starts_with ~prefix:"<!--" (Cmarkit.Block_line.to_string start) -> None
+    | Cmarkit.Block.Link_reference_definition _ | Cmarkit.Block.Blank_line _ -> None
+    | _ -> Some empty
   in
-  block desc
+  Cmarkit.Doc.block desc |> block |> Option.value ~default:empty
+
+(** Get a summary as plain text. *)
+let get_summary_as_text ?max_length (desc : description) =
+  get_summary ?max_length desc.description |> Cmarkit_ext.inline_text |> String.trim
 
 (** Get a link to a node. *)
 let link ~source_link { definition; custom_source; _ } =

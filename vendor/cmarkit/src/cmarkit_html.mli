@@ -115,6 +115,17 @@ val buffer_add_pct_encoded_string : Buffer.t -> string -> unit
 (** [buffer_add_pct_encoded_string b s] is {!pct_encoded_string} but
     appends to a buffer value. *)
 
+(** {1 Illuaminate extensions}
+
+    Only useful if you extend the renderer. *)
+
+val admonition : Cmarkit_renderer.context
+    -> level:Cmarkit.Block.Admonition.level
+    -> ?label:Cmarkit.Inline.t
+    -> Cmarkit.Block.t
+    -> unit
+    (* [admonition c ~level ?label block] renders an {!Cmarkit.Block.Admonition.t} element *)
+
 (** {1:integration HTML integration notes}
 
     {2:code_blocks Code blocks}

@@ -3,14 +3,14 @@
  (public_name illuaminate.lint)
  (synopsis "Basic linting for Illuaminate.")
  (libraries
+  cmarkit
   containers
-  illuaminate.core
-  illuaminate.config
-  illuaminate.data
-  illuaminate.semantics
-  illuaminate.parser
   fmt
-  ppx_deriving.runtime
-  omd)
+  illuaminate.config
+  illuaminate.core
+  illuaminate.data
+  illuaminate.parser
+  illuaminate.semantics
+  ppx_deriving.runtime)
  (instrumentation
   (backend bisect_ppx)))

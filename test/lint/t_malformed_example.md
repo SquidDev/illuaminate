@@ -22,15 +22,9 @@ function description_fail() end
 ```txt
 in.lua: Cannot parse example [doc:malformed-example]
    │
- 5 │ --- ```lua
-   │     ^^^^^^
-
-  =input: Unexpected identifier after name. [parse:syntax-error]
-     │
-   1 │ Lua fenced code block
-     │     ^
-  Did you mean to assign this or call it as a function?
-
+ 6 │ -- Lua fenced code block
+   │        ^^^^^^
+Unexpected identifier: Expected eof after an expression.
 ```
 
 # `@usage comments`
@@ -56,38 +50,20 @@ function usage() end
 in.lua: Cannot parse example [doc:malformed-example]
    │
  5 │ --- @usage Single-line usage
-   │            ^^^^^^^^^^^^^^^^^
-
-  =input: Unexpected `-` after name. [parse:syntax-error]
-     │
-   1 │ Single-line usage
-     │       ^
-  Did you mean to assign this or call it as a function?
-
+   │                        ^^^^^
+Unexpected identifier: Expected eof after an expression.
 
 in.lua: Cannot parse example [doc:malformed-example]
    │
- 6 │ -- @usage Multiline-code block usage
-   │           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-  =input: Unexpected `in` after name. [parse:syntax-error]
-     │
-   1 │ Indented in example
-     │          ^
-  Did you mean to assign this or call it as a function?
-
+ 8 │ -- Fenced in example
+   │           ^^
+Unexpected `in`: This is unexpected after a simple expression.
 
 in.lua: Cannot parse example [doc:malformed-example]
-   │
- 6 │ -- @usage Multiline-code block usage
-   │           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-  =input: Unexpected `in` after name. [parse:syntax-error]
-     │
-   1 │ Fenced in example
-     │        ^
-  Did you mean to assign this or call it as a function?
-
+    │
+ 11 │ --     Indented in example
+    │                 ^^
+Unexpected `in`: This is unexpected after a simple expression.
 ```
 
 # Valid examples have no errors

@@ -6,9 +6,10 @@ open Syntax
 let tag = Error.Tag.make ~attr:[ Deprecated; Default ] ~level:Warning "var:deprecated"
 
 let pp_description : Doc.Syntax.description option -> _ = function
-  | Some { description = Omd.Paragraph (_, x) :: _; _ } ->
-      let desc = Omd.to_plain_text x |> String.trim in
-      Some (fun out -> Format.pp_print_string out desc)
+  | Some { description = doc; _ } -> (
+    match Doc.Syntax.Markdown.as_single_paragraph doc with
+    | Some x -> Some (fun out -> Format.pp_print_string out (Cmarkit_ext.inline_text x))
+    | _ -> None)
   | _ -> None
 
 let expr () ctx r = function

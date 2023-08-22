@@ -29,10 +29,10 @@ let opt_ty = ty =>
   };
 
 let show_reference = (~options, x, label) => {
-  let (link, class_) = Html_basic.reference_attrs(~options, x, `Code);
-  switch (link) {
-  | Some(href) => <a href class_> label </a>
-  | None => <span class_> label </span>
+  switch (Html_basic.reference_link(~options, x)) {
+  | Some(href) => <a href class_="reference"> <code> label </code> </a>
+  | None =>
+    <span class_="reference reference-unresolved"> <code> label </code> </span>
   };
 };
 

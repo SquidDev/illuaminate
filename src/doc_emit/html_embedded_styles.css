@@ -93,7 +93,7 @@ body {
                "Droid Sans", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
-code, pre, kbd, .parameter, .type, .definition-name, .reference-code {
+code, pre, kbd, .parameter, .type, .definition-name {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
 
@@ -101,6 +101,11 @@ code, pre, kbd, .parameter, .type, .definition-name, .reference-code {
 code {
   color: var(--code-colour);
   background-color: var(--background-2);
+}
+
+.reference > code {
+  color: inherit;
+  background-color: inherit;
 }
 
 p, .admonition {

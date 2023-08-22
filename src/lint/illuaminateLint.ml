@@ -14,6 +14,7 @@ module Linters = struct
   module Empty_block = Lint_empty_block
   module For_num = Lint_for_num
   module Invalid_break = Lint_invalid_break
+  module Legacy_markdown = Lint_legacy_markdown
   module Malformed_example = Lint_malformed_example
   module Malformed_number = Lint_malformed_number
   module Method_name = Lint_method_name
@@ -58,6 +59,7 @@ module Linters = struct
       Empty_block.linter;
       For_num.linter;
       Invalid_break.linter;
+      Legacy_markdown.linter;
       Method_name.linter;
       Misplaced_dots.linter;
       Parens.linter;

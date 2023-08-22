@@ -258,6 +258,13 @@ let math_span c ms =
    tex_lines c tex;
    C.string c (if Inline.Math_span.display ms then "\\]" else "\\)"))
 
+let colour c colour =
+  C.string c {|<span class="color-ref" style="background-color: |};
+  C.string c colour;
+  C.string c {|"></span><span class="color">|};
+  C.string c colour;
+  C.string c "</span>"
+
 let inline c = function
 | Inline.Autolink (a, _) -> autolink c a; true
 | Inline.Break (b, _) -> break c b; true
@@ -271,6 +278,7 @@ let inline c = function
 | Inline.Text (t, _) -> html_escaped_string c t; true
 | Inline.Ext_strikethrough (s, _) -> strikethrough c s; true
 | Inline.Ext_math_span (ms, _) -> math_span c ms; true
+| Inline.Ext_colour (s, _) -> colour c s; true
 | _ -> comment c "<!-- Unknown Cmarkit inline -->"; true
 
 (* Block rendering *)
@@ -427,6 +435,24 @@ let table c t =
   rows c (Block.Table.col_count t) ~align:[] (Block.Table.rows t);
   C.string c "</table></div>"
 
+let admonition c ~level ?label body =
+  let level_str = Block.Admonition.level_name level in
+  C.string c {|<div class="admonition admonition-|};
+  C.string c level_str;
+  C.string c {|">|};
+  C.string c {|<h5 class="admonition-heading">|};
+  (let write_icon c str = C.string c {|<span aria-hidden="true">|}; C.string c str; C.string c{|</span> |} in
+   match level with
+   | Info | Note -> write_icon c "🛈"
+   | Caution -> write_icon c "⚠"
+   | _ -> ());
+  (match label with
+   | None -> C.string c level_str
+   | Some i -> C.inline c i);
+  C.string c "</h5>";
+  C.block c body;
+  C.string c "</div>"
+
 let block c = function
 | Block.Block_quote (bq, _) -> block_quote c bq; true
 | Block.Blocks (bs, _) -> List.iter (C.block c) bs; true
@@ -438,6 +464,12 @@ let block c = function
 | Block.Thematic_break (_, _) -> thematic_break c; true
 | Block.Ext_math_block (cb, _) -> math_block c cb; true
 | Block.Ext_table (t, _) -> table c t; true
+| Block.Ext_admonition (ad, _) ->
+  admonition c
+    ~level:(Block.Admonition.level ad |> fst)
+    ?label:(Block.Admonition.label ad)
+    (Block.Admonition.body ad);
+  true
 | Block.Blank_line _
 | Block.Link_reference_definition _
 | Block.Ext_footnote_definition _ -> true

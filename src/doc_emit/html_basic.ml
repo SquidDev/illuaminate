@@ -1,27 +1,13 @@
 open IlluaminateSemantics
 open Html_options
 
-(** Return the URL and class of a reference. *)
-let reference_attrs ~options:{ resolve; _ } (reference : Reference.resolved) style =
-  let link =
-    match reference with
-    | Internal { in_module; name; _ } ->
-        Helpers.reference_link in_module name |> resolve |> Option.some
-    | External { url = Some url; _ } -> Some url
-    | External { url = None; _ } -> None
-    | Unknown _ -> None
-  in
-  let classes =
-    match style with
-    | `Text -> "reference reference-text"
-    | `Code -> "reference reference-code"
-  in
-  let classes =
-    match reference with
-    | Unknown _ -> classes ^ " reference-unresolved"
-    | _ -> classes
-  in
-  (link, classes)
+(** Get the link this reference points to. *)
+let reference_link ~options:{ resolve; _ } : Reference.resolved -> string option = function
+  | Internal { in_module; name; _ } ->
+      Helpers.reference_link in_module name |> resolve |> Option.some
+  | External { url = Some url; _ } -> Some url
+  | External { url = None; _ } -> None
+  | Unknown _ -> None
 
 let show_list ?(tag = "h3") ?(expandable = false) ?(expand = true) title = function
   | [] -> Html.Default.nil

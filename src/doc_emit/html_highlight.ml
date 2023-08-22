@@ -13,9 +13,7 @@ let grammar_class = function
   | Comment -> "comment"
 
 let transform_ref ~options ((r : M.Reference.t), t) =
-  (* TODO: We really need to rethink a) how module_resolve does references and b) how on earth we
-     generate anchors for values. *)
-  let refr r = Html_basic.reference_attrs ~options r `Code |> fst |> Option.map (fun x -> (x, t)) in
+  let refr r = Html_basic.reference_link ~options r |> Option.map (fun x -> (x, t)) in
   match r with
   | Reference (Internal _ as r) -> refr r
   | Dot (Reference (Internal ({ name = Module; _ } as r)), n) ->
@@ -43,9 +41,9 @@ let emit ~options ~data ~input visit tree =
           let attrs =
             match node.description with
             | None -> attrs
-            | Some { description; _ } ->
+            | Some description ->
                 let desc =
-                  Helpers.get_summary description |> Omd.to_plain_text
+                  Helpers.get_summary_as_text description
                   |> CCString.replace ~sub:"\n" ~by:" "
                   |> String.trim
                 in

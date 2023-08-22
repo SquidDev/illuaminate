@@ -752,7 +752,7 @@ module Inline : sig
     (** The type for {{:https://spec.commonmark.org/0.30/#links}links}
         and {{:https://spec.commonmark.org/0.30/#images}images}.  *)
 
-    val make : inline -> reference -> t
+    val make : ?legacy:bool -> inline -> reference -> t
     (** [make i ref] is a link for text [i] and link reference [ref].
 
         If you plan to render to CommonMark and this is not an inline
@@ -772,6 +772,10 @@ module Inline : sig
     (** [referenced_label l] is the label referenced by the label of [l].
         This is the second label of [`Ref _] or [None] on inline
         references.*)
+
+    val is_legacy_ref : t -> bool
+    (** [is_legacy_ref l] returns true if this uses the "legacy" reference
+        syntax (i.e. [@{foo}]). *)
 
     val reference_definition : Label.defs -> t -> Label.def option
     (** [reference_definition defs l] is the definition of [l]'s
@@ -875,6 +879,7 @@ module Inline : sig
   type t +=
   | Ext_strikethrough of Strikethrough.t node
   | Ext_math_span of Math_span.t node (** *)
+  | Ext_colour of string node (** An RGB colour. *)
   (** The supported inline extensions. These inlines are only parsed when
       {!Doc.of_string} is called with [strict:false]. *)
 
@@ -1291,11 +1296,33 @@ module Block : sig
     (** A label definition for footnotes. *)
   end
 
+  module Admonition : sig
+    type block := t
+
+    type level =
+    | Note
+    | Info
+    | Tip
+    | Caution
+    | Warning
+
+    val level_name : level -> string
+
+    type t
+
+    val make : level:level node -> ?label:Inline.t -> block -> t
+
+    val level : t -> level node
+    val label : t -> Inline.t option
+    val body : t -> block
+  end
+
   type t +=
   | Ext_math_block of Code_block.t node
     (** {{!Cmarkit.ext_math_display}display math}*)
   | Ext_table of Table.t node (** *)
   | Ext_footnote_definition of Footnote.t node (** *)
+  | Ext_admonition of Admonition.t node (** An admonition/alert. *)
   (** The supported block extensions. These blocks are only parsed when
       {!Doc.of_string} is called with [strict:false]. *)
 

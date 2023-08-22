@@ -269,9 +269,9 @@ module Inline = struct
     [ `Inline of Link_definition.t node
     | `Ref of reference_layout * Label.t * Label.t ]
 
-    type t = { text : inline; reference : reference; }
+    type t = { text : inline; reference : reference; legacy : bool; }
 
-    let make text reference = { text; reference }
+    let make ?(legacy = false) text reference = { text; reference; legacy }
     let text l = l.text
     let reference l = l.reference
     let referenced_label l = match l.reference with
@@ -280,6 +280,8 @@ module Inline = struct
     let reference_definition defs l = match l.reference with
     | `Inline ld -> Some (Link_definition.Def ld)
     | `Ref (_, _, def) -> Label.Map.find_opt (Label.key def) defs
+
+    let is_legacy_ref l = l.legacy
 
     let is_unsafe l =
       let allowed_data_url l =
@@ -345,6 +347,7 @@ module Inline = struct
   type t +=
   | Ext_strikethrough of Strikethrough.t node
   | Ext_math_span of Math_span.t node
+  | Ext_colour of string node
 
   (* Functions on inlines *)
 
@@ -357,6 +360,7 @@ module Inline = struct
   | Image (_, m) | Inlines (_, m) | Link (_, m) | Raw_html (_, m)
   | Strong_emphasis (_, m)  | Text (_, m) -> m
   | Ext_strikethrough (_, m) -> m | Ext_math_span (_, m) -> m
+  | Ext_colour (_, m) -> m
   | i -> ext i
 
   let rec normalize ?(ext = ext_none) = function
@@ -386,6 +390,7 @@ module Inline = struct
       let is = loop [normalize ~ext i] is in
       (match is with [i] -> i | _ -> Inlines (is, m))
   | Ext_strikethrough (i, m) -> Ext_strikethrough (normalize ~ext i, m)
+  | Ext_colour _ as i -> i
   | i -> ext i
 
   let ext_none ~break_on_soft = ext_none
@@ -417,6 +422,7 @@ module Inline = struct
         loop ~break_on_soft acc (i :: is)
     | Ext_math_span (m, _) :: is ->
         loop ~break_on_soft (push (Math_span.tex m) acc) is
+    | Ext_colour (t, _) :: is -> loop ~break_on_soft (push t acc) is
     | i :: is ->
         loop ~break_on_soft acc (ext ~break_on_soft i :: is)
     | [] ->
@@ -733,10 +739,38 @@ module Block = struct
       Def ({ indent = 0; label; defined_label; block = empty}, Meta.none)
   end
 
+  module Admonition = struct
+    type level = Cmarkit_base.admonition_level =
+      | Note
+      | Info
+      | Tip
+      | Caution
+      | Warning
+
+    let level_name = function
+      | Note -> "note"
+      | Info -> "info"
+      | Tip -> "tip"
+      | Caution -> "caution"
+      | Warning -> "warning"
+
+    type nonrec t = {
+      level : level node;
+      label : Inline.t option;
+      contents : t;
+    }
+
+    let  make ~level ?label contents = { level; label; contents }
+    let level x = x.level
+    let label x = x.label
+    let body x = x.contents
+  end
+
   type t +=
   | Ext_math_block of Code_block.t node
   | Ext_table of Table.t node
   | Ext_footnote_definition of Footnote.t node
+  | Ext_admonition of Admonition.t node
 
   (* Functions on blocks *)
 
@@ -749,6 +783,7 @@ module Block = struct
   | List (_, m) | Paragraph (_, m) | Thematic_break (_, m)
   | Ext_math_block (_, m) | Ext_table (_, m)
   | Ext_footnote_definition (_, m) -> m
+  | Ext_admonition (_, m) -> m
   | b -> ext b
 
   let rec normalize ?(ext = ext_none) = function
@@ -775,6 +810,9 @@ module Block = struct
   | Ext_footnote_definition (fn, m) ->
       let fn = { fn with block = normalize ~ext fn.block } in
       Ext_footnote_definition (fn, m)
+  | Ext_admonition (am, m) ->
+    let am = { am with contents = normalize ~ext am.contents } in
+    Ext_admonition (am, m)
   | b -> ext b
 
   let rec defs
@@ -800,6 +838,7 @@ module Block = struct
         | Some def -> Label.Map.add (Label.key def) (Footnote.Def fn) init
         in
         defs ~ext ~init (Footnote.block (fst fn))
+    | Ext_admonition (am, _) -> defs ~ext ~init am.contents
     | b -> ext init b
 end
 
@@ -1054,6 +1093,8 @@ module Inline_struct = struct
   | Right_paren of { start : byte_pos } (* Only used for closer index *)
   | Strikethrough_marks of strikethrough_marks
   | Math_span_marks of math_span_marks
+  | Reference_open of { start : byte_pos }
+  | Colour of { start : byte_pos; len : int }
 
   let token_start = function
   | Autolink_or_html_start { start } | Backticks { start }
@@ -1062,6 +1103,7 @@ module Inline_struct = struct
   | Right_paren { start } -> start
   | Strikethrough_marks { start } -> start
   | Math_span_marks { start } -> start
+  | Reference_open { start } | Colour { start; _ } -> start
 
   let has_backticks ~count ~after cidx =
     Closer_index.closer_exists (Closer.Backticks count) ~after cidx
@@ -1218,6 +1260,25 @@ module Inline_struct = struct
     if not may_open && not may_close then acc, next else
     Math_span_marks { start; count; may_open; may_close } :: acc, next
 
+  let rec try_find_colour s ~last ~start =
+    if start > last then start - 1 else
+    let c = s.[start] in
+    if (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')  || (c >= 'A' && c <= 'F') then
+      try_find_colour s ~last ~start:(start + 1)
+    else start - 1
+
+  let try_add_colour acc s line ~start =
+      let run_last = try_find_colour s ~last:line.last ~start:(start + 1) in
+      let len = run_last - start in
+      match len with
+      | 3 | 6 -> Colour { start; len = len + 1 } :: acc, run_last + 1
+      | _ -> acc, start + 1
+
+  let try_add_reference_open_token acc s line ~start =
+    let next = start + 1 in
+    if next > line.last || s.[next] <> '{' then acc, next else
+    Reference_open { start } :: acc, next + 1
+
   let tokenize ~exts s lines =
     (* For inlines this is where we conditionalize for extensions. All code
        paths after that no longer check for p.exts: there just won't be
@@ -1240,8 +1301,10 @@ module Inline_struct = struct
       | '!' -> try_add_image_link_start_token acc s line ~start:k
       | '<' -> Autolink_or_html_start { start = k } :: acc, k + 1
       | ')' -> Right_paren { start = k } :: acc, k + 1
+      | '@' when exts -> try_add_reference_open_token acc s line ~start:k
       | '~' when exts -> try_add_strikethrough_marks_token acc s line ~start:k
       | '$' when exts -> try_add_math_span_marks_token acc s line ~start:k
+      | '#' when exts -> try_add_colour acc s line ~start:k
       | _ -> acc, k + 1
       in
       loop ~exts s lines line ~prev_bslash:false acc next
@@ -1410,6 +1473,46 @@ module Inline_struct = struct
     let text = tight_block_lines p ~rev_spans in
     { Label.meta; key; text }
 
+  let make_colour p line ~start ~len =
+    let col, meta = clean_raw_span p { line_pos = line.line_pos; first = start; last = start + len - 1 } in
+    let inline = Inline.Ext_colour (col, meta) in
+    Inline { start; inline; endline = line; next = start + len }
+
+  let trim_reference s =
+    match String.index_opt s '!' with
+    | None -> s
+    | Some i -> String.sub s (i + 1) (String.length s - i - 1)
+
+  let rec basic_inlines = function
+    | [] -> []
+    | [(_, (t, m))] -> [Inline.Text (t, m)]
+    | (_, (t, m)) :: ((_ :: m') as xs) ->
+        Inline.Text (t, m) :: Inline.Break (Inline.Break.make `Soft, Meta.none) :: basic_inlines xs
+
+  let try_reference p toks line ~start =
+    match Match.reference ~next_line p.i toks ~line ~start:(start + 2) with
+    | None -> None
+    | Some (toks, last_line, reference, label, last) ->
+        let first = start and first_line = line in
+        let toks = drop_until ~start:(last + 1) toks in
+        let reference, reference_meta = clean_raw_span p reference in
+        let key = "`" ^ reference ^ "`" in
+        let ref_label = Label.make ~meta:reference_meta ~key [("", (key, reference_meta))] in
+        let ref_target = p.resolver (`Ref (`Link, ref_label, None)) |> Option.value ~default:ref_label in
+        let t = match label with
+        | None ->
+          let label = Inline.Code_span.make ~backtick_count:1 [("", (trim_reference reference, reference_meta))] in
+          Inline.Link.make ~legacy:true (Inline.Code_span (label, reference_meta)) (`Ref (`Shortcut, ref_label, ref_target))
+        | Some spans ->
+          let label = tight_block_lines p ~rev_spans:spans |> basic_inlines in
+          let label = inlines_inline p ~first:start ~last ~first_line:line ~last_line label in
+          Inline.Link.make ~legacy:true label (`Ref (`Full, ref_label, ref_target))
+        in
+
+        let meta = meta p (textloc_of_lines p ~first:start ~last ~first_line:line ~last_line) in
+        let inline = Inline.Link (t, meta) in
+        Some (toks, last_line, Inline { start = first; inline; endline = last_line; next = last + 1 })
+
   let try_full_reflink_remainder p toks line ~image ~start (* is label's [ *) =
     (* https://spec.commonmark.org/current/#full-reference-link *)
     match Match.link_label p.buf ~next_line p.i toks ~line ~start with
@@ -1520,6 +1623,13 @@ module Inline_struct = struct
         | None -> loop toks line nest acc
         | Some (toks, line, t) -> loop toks line nest (t :: acc)
         end
+    | Colour { start; len } :: toks ->
+        loop toks line nest (make_colour p line ~start ~len :: acc)
+    | Reference_open { start } :: toks ->
+        begin match try_reference p toks line ~start with
+        | None -> loop toks line nest acc
+        | Some (toks, line, t) -> loop toks line nest (t :: acc)
+        end
     | Right_brack _ as t :: toks -> loop toks line (nest - 1) (t :: acc)
     | Link_start _  as t :: toks -> loop toks line (nest + 1) (t :: acc)
     | Newline { newline; _ } as t :: toks -> loop toks newline nest (t :: acc)
@@ -1562,7 +1672,7 @@ module Inline_struct = struct
           let first_line = start_line and last_line = line in
           inlines_inline p text ~first ~last:text_last ~first_line ~last_line
         in
-        let link = { Inline.Link.text; reference } in
+        let link = { Inline.Link.text; reference; legacy = false } in
         let first_line = start_line and last_line = endline in
         let t = link_token p ~image ~first ~last ~first_line ~last_line link in
         let had_link = not image && not p.nested_links in
@@ -1618,6 +1728,13 @@ module Inline_struct = struct
         | None -> loop p toks line ~had_link acc
         | Some (toks, line, t, had_link) ->
             loop p toks line ~had_link (t :: acc)
+        end
+    | Colour { start; len } :: toks ->
+      loop p toks line ~had_link (make_colour p line ~start ~len :: acc)
+    | Reference_open { start } :: toks ->
+        begin match try_reference p toks line ~start with
+        | None -> loop p toks line ~had_link acc
+        | Some (toks, line, t) -> loop p toks line ~had_link (t :: acc)
         end
     | Right_brack start :: toks -> loop p toks line ~had_link acc
     | Newline { newline = l } as t :: toks -> loop p toks l ~had_link (t :: acc)
@@ -2057,6 +2174,7 @@ module Block_struct = struct
   | Thematic_break of Layout.indent * line_span (* including trailing blanks *)
   | Ext_table of Layout.indent * (line_span * line_span (* trail blanks *)) list
   | Ext_footnote of Layout.indent * (Label.t * Label.t option) * t list
+  | Ext_admonition of admonition
 
   and list_item =
    { before_marker : Layout.indent;
@@ -2072,6 +2190,14 @@ module Block_struct = struct
       item_min_indent : int; (* last item minimal indent *)
       list_type : Block.List'.type';
       items : list_item list; }
+
+  and admonition =
+    { indent : Layout.indent;
+      opening_fence : line_span;
+      admonition : Block.Admonition.level node;
+      label : line_span option;
+      blocks : t list;
+      closing_fence : line_span option; }
 
   let block_is_blank_line = function Blank_line _ -> true | _ -> false
 
@@ -2146,6 +2272,16 @@ module Block_struct = struct
   let table p ~indent ~last =
     let row = table_row p ~first:p.current_char ~last in
     Ext_table (indent, [row])
+
+  let admonition p ~indent ~ad_start ~ad_end ~ad label =
+    Ext_admonition {
+      opening_fence = current_line_span p ~first:(ad_start - 3) ~last:ad_end;
+      indent;
+      admonition = (ad, meta p (textloc_of_span p (current_line_span p ~first:ad_start ~last:ad_end)));
+      blocks = [];
+      label = Option.map (fun (first, last) -> current_line_span p ~first ~last) label;
+      closing_fence = None;
+    }
 
   (* Link reference definition parsing
 
@@ -2266,6 +2402,7 @@ module Block_struct = struct
   | Paragraph par :: bs -> close_paragraph p par bs
   | List l :: bs -> close_list p l bs
   | Ext_footnote (i, l, blocks) :: bs -> close_footnote p i l blocks bs
+  | Ext_admonition ad :: bs -> close_admonition p ad bs
   | bs -> bs
 
   and close_list p l bs =
@@ -2295,6 +2432,10 @@ module Block_struct = struct
     in
     List.rev_append blanks (Ext_footnote (indent, label, blocks) :: bs)
 
+  and close_admonition p ad bs =
+    let blocks = close_last_block p ad.blocks in
+    Ext_admonition { ad with blocks = blocks } :: bs
+
   let close_last_list_item p l =
     let item = List.hd l.items in
     let item = { item with blocks = close_last_block p item.blocks } in
@@ -2319,6 +2460,7 @@ module Block_struct = struct
   | Code_block (`Fenced f) :: bs -> end_doc_close_fenced_code_block p f bs
   | Html_block html :: bs -> end_doc_close_html p html bs
   | Ext_footnote (i, l, blocks) :: bs -> close_footnote p i l blocks bs
+  | Ext_admonition ad :: bs -> close_admonition p ad bs
   | (Thematic_break _ | Heading _ | Blank_line _ | Linkref_def _
     | Ext_table _ ) :: _ | [] as bs -> bs
 
@@ -2370,6 +2512,9 @@ module Block_struct = struct
           let r = Match.fenced_code_block_start p.i ~last ~start in
           if r <> Nomatch then r else
           Paragraph_line
+      | ':' ->
+          let r = Match.admonition p.i ~last ~start in
+          if r <> Nomatch then r else Paragraph_line
       | '<' ->
           let r = Match.html_block_start p.i ~last ~start in
           if r <> Nomatch then r else
@@ -2411,10 +2556,12 @@ module Block_struct = struct
   | Fenced_code_block_line (fence_first, fence_last, info) ->
       fenced_code_block p ~indent ~fence_first ~fence_last ~info :: bs
   | Html_block_line end_cond -> html_block p ~end_cond ~indent_start :: bs
-  | Paragraph_line -> paragraph p ~start:indent_start :: bs
+  | Paragraph_line | Ext_admonition_close _ -> paragraph p ~start:indent_start :: bs
   | Ext_table_row last -> table p ~indent ~last :: bs
   | Ext_footnote_label (rev_spans, last, key) ->
       footnote p ~indent ~last rev_spans key :: bs
+  | Ext_admonition_line (ad_start, ad_end, ad, label) ->
+      admonition p ~indent ~ad_start ~ad_end ~ad label :: bs
   | Setext_underline_line _ | Nomatch ->
       (* This function should be called with a line type that comes out
          of match_line_type ~no_setext:true *)
@@ -2480,6 +2627,7 @@ module Block_struct = struct
     | Html_block_line `End_blank_7
     | Indented_code_block_line
     | Ext_table_row _ | Ext_footnote_label _
+    | Ext_admonition_line _ | Ext_admonition_close _
     | Paragraph_line ->
         add_paragraph_line p ~indent_start par bs
     | List_marker_line m when not (list_marker_can_interrupt_paragraph p m) ->
@@ -2658,6 +2806,16 @@ module Block_struct = struct
         let bs = close_list p list bs in
         add_open_blocks_with_line_class p ~indent ~indent_start bs ltype
 
+  and try_add_to_admonition p ad bs =
+    if Option.is_some ad.closing_fence then add_open_blocks p (Ext_admonition ad :: bs) else
+    let indent_start = p.current_char and indent = current_indent p in
+    match match_line_type ~indent ~no_setext:true p with
+    | Ext_admonition_close (first, last) ->
+      let close = current_line_span p ~first ~last in
+      Ext_admonition { ad with closing_fence = Some close } :: bs
+    | ltype ->
+        Ext_admonition { ad with blocks = add_line p ad.blocks } :: bs
+
   and add_line p = function
   | Paragraph par :: bs -> try_add_to_paragraph p par bs
   | ((Thematic_break _ | Heading _ | Blank_line _ | Linkref_def _) :: _)
@@ -2669,6 +2827,7 @@ module Block_struct = struct
   | Html_block html :: bs -> try_add_to_html_block p html bs
   | Ext_table (ind, rows) :: bs -> try_add_to_table p ind rows bs
   | Ext_footnote (i, l, blocks) :: bs -> try_add_to_footnote p i l blocks bs
+  | Ext_admonition ad :: bs -> try_add_to_admonition p ad bs
 
   (* Parsing *)
 
@@ -2936,6 +3095,27 @@ and block_struct_to_list p list =
   let meta = meta_of_metas p ~first:(snd (List.hd items)) ~last:(snd last) in
   Block.List ({ type' = list.Block_struct.list_type; tight; items }, meta)
 
+and block_struct_to_admonition p (ad : Block_struct.admonition) =
+  let blocks = match ad.blocks with
+    | [] -> Block.empty
+    | [x] -> block_struct_to_block p x
+    | x :: xs ->
+      let last = block_struct_to_block p x in
+      let blocks = List.fold_left (fun acc b -> block_struct_to_block p b :: acc) [last] xs in
+      Block.Blocks (blocks, meta_of_metas p ~first:(Block.meta (List.hd blocks)) ~last:(Block.meta last))
+  in
+  let label = Option.map (fun x -> Inline_struct.parse p [x] |> snd) ad.label in
+  let block = Block.Admonition.make ~level:ad.admonition ?label blocks in
+  let textloc =
+    let first = textloc_of_span p ad.opening_fence in
+    let last = match ad.closing_fence with
+      | Some close -> textloc_of_span p close
+      | None -> Block.meta blocks |> Meta.textloc
+    in
+    Textloc.span first last
+  in
+  Block.Ext_admonition (block, meta p textloc)
+
 and block_struct_to_block p = function
 | Block_struct.Block_quote (ind, bs) -> block_struct_to_block_quote p ind bs
 | Block_struct.List list -> block_struct_to_list p list
@@ -2949,6 +3129,7 @@ and block_struct_to_block p = function
 | Block_struct.Ext_table (i, rows) -> block_struct_to_table p i rows
 | Block_struct.Ext_footnote (i, labels, bs) ->
     block_struct_to_footnote_definition p i labels bs
+| Block_struct.Ext_admonition ad -> block_struct_to_admonition p ad
 
 let block_struct_to_doc p (doc, meta) =
   match List.rev_map (block_struct_to_block p) doc with
@@ -3038,6 +3219,7 @@ module Mapper = struct
       | Ext_strikethrough (s, meta) ->
           let* inline = map_inline m s in
           Some (Ext_strikethrough (inline, meta))
+      | Ext_colour _ as i -> Some i
       | ext -> m.inline_ext_default m ext
 
   let rec map_block m b = match m.block m b with
@@ -3090,6 +3272,13 @@ module Mapper = struct
           | None -> (* Can be empty *) Blocks ([], Meta.none) | Some b -> b
           in
           Some (Ext_footnote_definition ({ fn with block}, meta))
+      | Ext_admonition (ad, meta) ->
+          let label = Option.bind ad.label (map_inline m) in
+          let contents = match map_block m ad.contents with
+          | None -> Blocks ([], Meta.none) | Some b -> b
+          in
+          Some (Ext_admonition ({ level = ad.level; label; contents }, meta))
+
       | ext -> m.block_ext_default m ext
 
   let map_doc m d =
@@ -3146,6 +3335,7 @@ module Folder = struct
       | Strong_emphasis ({ inline }, _) -> fold_inline f acc inline
       | Inlines (is, _) -> List.fold_left (fold_inline f) acc is
       | Ext_strikethrough (inline, _) -> fold_inline f acc inline
+      | Ext_colour _ -> acc
   | ext -> f.inline_ext_default f acc ext
 
   let rec fold_block f acc b = match f.block f acc b with
@@ -3172,6 +3362,10 @@ module Folder = struct
           in
           List.fold_left fold_row acc t.Table.rows
       | Ext_footnote_definition (fn, _) -> fold_block f acc fn.block
+      | Ext_admonition (ad, _) ->
+        let acc = match ad.label with | None -> acc | Some i -> fold_inline f acc i in
+        fold_block f acc ad.contents
+
       | ext -> f.block_ext_default f acc ext
 
   let fold_doc f acc d = fold_block f acc (Doc.block d)

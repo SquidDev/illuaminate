@@ -1,0 +1,10 @@
+(library
+ (name cmarkit)
+ (public_name cmarkit)
+ (wrapped false)
+ (private_modules
+  cmarkit_base
+  cmarkit_data_html
+  cmarkit_data_uchar
+  cmarkit_data
+  cmarkit_data))

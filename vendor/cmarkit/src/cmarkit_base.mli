@@ -262,6 +262,9 @@ val raw_html :
     that make up the raw HTML in reverse order and [last_byte] the
     last byte included in it (guaranteed to be on [last_line]). *)
 
+val reference : next_line:'a next_line -> string -> 'a -> line:line_span -> start:byte_pos ->
+    ('a * line_span * line_span * rev_spans option * last) option
+
 (** {1:link Links} *)
 
 val link_destination :
@@ -298,6 +301,13 @@ type html_block_end_cond =
   [ `End_str of string | `End_cond_1 | `End_blank | `End_blank_7 ]
 (** The type for HTML block end conditions. *)
 
+type admonition_level =
+  | Note
+  | Info
+  | Tip
+  | Caution
+  | Warning
+
 type line_type =
 | Atx_heading_line of heading_level * byte_pos (* after # *) * first * last
 | Blank_line
@@ -311,6 +321,8 @@ type line_type =
 | Thematic_break_line of last
 | Ext_table_row of last
 | Ext_footnote_label of rev_spans * last * string
+| Ext_admonition_line of first * last * admonition_level * (first * last) option
+| Ext_admonition_close of first * last
 | Nomatch (* built-in [None] to avoid option allocs *)
 
 val thematic_break : string -> last:byte_pos -> start:byte_pos -> line_type
@@ -342,6 +354,9 @@ val fenced_code_block_continue :
     whether the fence code continues or closes in the the range
     \[[start];[last]\] given the opening [open] which indicates the
     indent, fence char and number of fence chars. *)
+
+val admonition :
+    string -> last:byte_pos -> start:byte_pos -> line_type
 
 val html_block_start :
   string -> last:byte_pos -> start:byte_pos -> line_type

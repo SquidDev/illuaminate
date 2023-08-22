@@ -899,6 +899,33 @@ let raw_html ~next_line s lines ~line ~start =
       end
   | c -> open_tag ~next_line s lines ~line ~start
 
+let reference ~next_line s lines ~line ~start  =
+  let rec label ~refr ~next_line s lines line start acc k : ('a * line_span * line_span * rev_spans option * last) option =
+    if k > line.last then
+      match next_line lines with
+      | None -> None
+      | Some (lines, newline) ->
+        let acc = push_span ~line start line.last acc in
+        let start = first_non_blank_in_span s newline in
+        label ~refr ~next_line s lines newline start acc k
+    else match s.[k] with
+    | '}' ->
+      let acc = push_span ~line start (k - 1) acc in
+      Some (lines, line, refr, Some acc, k)
+    | c -> label ~refr ~next_line s lines line start acc (k + 1)
+  in
+  let rec refr ~next_line s lines line start k : ('a * line_span * line_span * rev_spans option * last) option =
+    if k > line.last then None else match s.[k] with
+    | '}' ->
+      let refr = { line with first = start; last = k - 1 } in
+      Some (lines, line, refr, None, k)
+    | '|' ->
+      let refr = { line with first = start; last = k - 1 } in
+      label ~refr ~next_line s lines line (k + 1) [] (k + 1)
+    | c -> refr ~next_line s lines line start (k + 1)
+  in
+  refr ~next_line s lines line start (start + 1)
+
 (* Links *)
 
 let link_destination s ~last ~start =
@@ -1019,6 +1046,13 @@ let link_label b ~next_line s lines ~line ~start =
 type html_block_end_cond =
   [ `End_str of string | `End_cond_1 | `End_blank | `End_blank_7 ]
 
+type admonition_level =
+  | Note
+  | Info
+  | Tip
+  | Caution
+  | Warning
+
 type line_type =
 | Atx_heading_line of heading_level * byte_pos * first * last
 | Blank_line
@@ -1032,6 +1066,8 @@ type line_type =
 | Thematic_break_line of last
 | Ext_table_row of last
 | Ext_footnote_label of rev_spans * last * string
+| Ext_admonition_line of first * last * admonition_level * (first * last) option
+| Ext_admonition_close of first * last
 | Nomatch
 
 let thematic_break s ~last ~start =
@@ -1154,6 +1190,27 @@ let fenced_code_block_continue ~fence:(fc, fcount) s ~last ~start =
     try fence s last k (k + 1) with Exit -> `Code
   in
   if start > last then `Code else loop s start last start
+
+let rec all_non_blank s ~last start =
+  if start > last then start - 1 else match s.[start] with
+  | ' ' | '\t' -> start - 1
+  | _ -> all_non_blank s ~last (start + 1)
+
+let admonition s ~last ~start =
+  if start + 2 > last || s.[start] <> ':' || s.[start + 1] <> ':' || s.[start + 2] <> ':' then Nomatch else
+  if start + 2 = last then Ext_admonition_close (start, last) else (* Parse a closing ::: *)
+
+  let mid = start + 3 in
+  let end_word = all_non_blank s ~last mid in
+  let next = end_word + 1 in
+  let next = if next > last then None else Some (next, last) in
+  match String.sub s mid (end_word - mid + 1) with
+  | "note" -> Ext_admonition_line (mid, end_word, Note, next)
+  | "info" -> Ext_admonition_line (mid, end_word, Info, next)
+  | "tip" -> Ext_admonition_line (mid, end_word, Tip, next)
+  | "caution" -> Ext_admonition_line (mid, end_word, Caution, next)
+  | "warning" -> Ext_admonition_line (mid, end_word, Warning, next)
+  | _ -> Nomatch
 
 let html_start_cond_1_set =
   String_set.of_list ["pre"; "script"; "style"; "textarea"]

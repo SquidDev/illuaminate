@@ -39,11 +39,7 @@ let add_documented ~in_module ~name ?(full_name = name) ~section ~source_link ~b
         { name;
           full_name;
           source = Helpers.link ~source_link term;
-          summary =
-            Option.map
-              (fun (d : description) ->
-                Helpers.get_summary d.description |> Omd.to_plain_text |> String.trim)
-              description;
+          summary = Option.map Helpers.get_summary_as_text description;
           in_module;
           name_of = section
         }

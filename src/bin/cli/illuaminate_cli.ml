@@ -98,6 +98,9 @@ let mkdirs =
 let doc_gen path =
   let open IlluaminateSemantics in
   let module E = IlluaminateDocEmit in
+  let path = CCOption.get_lazy (fun () -> Sys.getcwd () |> Fpath.v) path in
+  let root = if Sys.is_directory (Fpath.to_string path) then path else Fpath.parent path in
+  let to_abs path = Fpath.(to_string (root // path)) in
   let open struct
     let emit_doc node out =
       let fmt = Format.formatter_of_out_channel out in
@@ -109,7 +112,7 @@ let doc_gen path =
       else
         let our_logo = Fpath.(base logo |> to_string) in
         CCIO.(
-          with_in (Fpath.to_string logo) @@ fun i ->
+          with_in (to_abs logo) @@ fun i ->
           with_out Fpath.(destination / our_logo |> to_string) @@ fun o -> copy_into i o);
         our_logo
 
@@ -122,7 +125,7 @@ let doc_gen path =
       ( CCIO.with_out output @@ fun out ->
         output_string out contents;
         Option.iter
-          (fun extra -> CCIO.with_in (Fpath.to_string extra) @@ fun i -> CCIO.copy_into i out)
+          (fun extra -> CCIO.with_in (to_abs extra) @@ fun i -> CCIO.copy_into i out)
           extra );
       (* Append an 8 byte cachebuster. There's no reason to only make it 8 bytes, but it doesn't
          need to be a full hash either. *)
@@ -131,8 +134,8 @@ let doc_gen path =
   end in
   let errs = Error.make () in
   let loader = Loader.create errs in
-  (CCOption.get_lazy (fun () -> Sys.getcwd () |> Fpath.v) path
-  |> Loader.load_from ~loader
+
+  (Loader.load_from ~loader path
   |> Option.iter @@ fun (config, _, builder) ->
      let data = IlluaminateData.Builder.build builder in
      let pages = IlluaminateData.get data Doc.Extract.public_pages () in

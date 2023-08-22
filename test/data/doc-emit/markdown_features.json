@@ -1,0 +1,17 @@
+{
+  "x": {
+    "name": "x",
+    "source": "markdown_features.lua[37:8-37:25]",
+    "summary": "This is a simple module which contains a function",
+    "module": "x",
+    "module-kind": "library",
+    "url": "library/x.html"
+  },
+  "x.some_value": {
+    "name": "x.some_value = 0",
+    "source": "markdown_features.lua[37:23-37:23]",
+    "module": "x",
+    "module-kind": "library",
+    "url": "library/x.html#v:some_value"
+  }
+}
