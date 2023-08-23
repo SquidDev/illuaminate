@@ -28,11 +28,11 @@
   --tip-colour: #00421c;
   --tip-background: #8df3b8;
 
-  --caution-colour: #664d03;
-  --caution-background: #fff3cd;
+  --warning-colour: #664d03;
+  --warning-background: #fff3cd;
 
-  --warning-colour: #3a0000;
-  --warning-background: #ffb4b4;
+  --danger-colour: #3a0000;
+  --danger-background: #ffb4b4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -59,11 +59,11 @@
     --tip-colour: #68f5a2;
     --tip-background: #033518;
 
-    --caution-colour: #e4c04c;
-    --caution-background: #4d3900;
+    --warning-colour: #e4c04c;
+    --warning-background: #4d3900;
 
-    --warning-colour: #fa9494;
-    --warning-background: #570000;
+    --danger-colour: #fa9494;
+    --danger-background: #570000;
   }
 }
 
@@ -159,10 +159,10 @@ ol ol { margin-top: 0px; }
 ul ol { margin-top: 0px; }
 
 /* Make the target distinct; helps when we're navigating to a function */
-a:target + * { background-color: var(--highlight-header-colour); }
+h1:target, h2:target, h3:target, h4:target, h5:target, h6:target, a:target + * { background-color: var(--highlight-header-colour); }
 
 /* Allow linking to any subsection */
-a[name]::before { content: "§"; }
+a[name]::before, a.anchor::before { content: "§"; }
 
 /* Layout */
 nav {
@@ -450,14 +450,14 @@ kbd {
   --admonition-colour: var(--tip-colour);
 }
 
-.admonition-caution {
-  --admonition-background: var(--caution-background);
-  --admonition-colour: var(--caution-colour);
-}
-
 .admonition-warning {
   --admonition-background: var(--warning-background);
   --admonition-colour: var(--warning-colour);
+}
+
+.admonition-danger {
+  --admonition-background: var(--danger-background);
+  --admonition-colour: var(--danger-colour);
 }
 
 #search-form {
@@ -522,8 +522,8 @@ a.search-result:hover, a.search-result:focus {
 .search-error {
   padding: 0.5em;
 
-  color: var(--warning-colour);
-  background: var(--warning-background);
+  color: var(--danger-colour);
+  background: var(--danger-background);
 }
 
 

@@ -1050,8 +1050,8 @@ type admonition_level =
   | Note
   | Info
   | Tip
-  | Caution
   | Warning
+  | Danger
 
 type line_type =
 | Atx_heading_line of heading_level * byte_pos * first * last
@@ -1208,8 +1208,9 @@ let admonition s ~last ~start =
   | "note" -> Ext_admonition_line (mid, end_word, Note, next)
   | "info" -> Ext_admonition_line (mid, end_word, Info, next)
   | "tip" -> Ext_admonition_line (mid, end_word, Tip, next)
-  | "caution" -> Ext_admonition_line (mid, end_word, Caution, next)
-  | "warning" -> Ext_admonition_line (mid, end_word, Warning, next)
+  (* Confusing choice of names here, I know. *)
+  | "caution" -> Ext_admonition_line (mid, end_word, Warning, next)
+  | "danger" | "warning" -> Ext_admonition_line (mid, end_word, Danger, next)
   | _ -> Nomatch
 
 let html_start_cond_1_set =

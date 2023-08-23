@@ -104,7 +104,7 @@ These are wrapped by exactly three colons, with another block nested inside.
 Some content
 :::
 .
-<div class="admonition admonition-warning"><h5 class="admonition-heading">warning</h5><p>Some content</p>
+<div class="admonition admonition-danger"><h5 class="admonition-heading">danger</h5><p>Some content</p>
 </div>
 ````````````````````````````````
 
@@ -118,7 +118,7 @@ For instance, *we can have emphasis*
  - And lists
 :::
 .
-<div class="admonition admonition-warning"><h5 class="admonition-heading">warning</h5><p>For instance, <em>we can have emphasis</em></p>
+<div class="admonition admonition-danger"><h5 class="admonition-heading">danger</h5><p>For instance, <em>we can have emphasis</em></p>
 <ul>
 <li>Multiple paragraphs</li>
 <li>And lists</li>
@@ -137,11 +137,11 @@ Like any other block, these are closed automatically when their context is termi
  - another list item
 .
 <blockquote>
-<div class="admonition admonition-warning"><h5 class="admonition-heading">warning</h5><p>Closed by our blockquote</p>
+<div class="admonition admonition-danger"><h5 class="admonition-heading">danger</h5><p>Closed by our blockquote</p>
 </div></blockquote>
 <ul>
 <li>
-<div class="admonition admonition-warning"><h5 class="admonition-heading">warning</h5><p>And by</p>
+<div class="admonition admonition-danger"><h5 class="admonition-heading">danger</h5><p>And by</p>
 </div></li>
 <li>another list item</li>
 </ul>
@@ -156,7 +156,7 @@ This does mean that ::: needs to be demoted to a normal string.
 :::
 .
 <blockquote>
-<div class="admonition admonition-warning"><h5 class="admonition-heading">warning</h5><p>Closed by our blockquote</p>
+<div class="admonition admonition-danger"><h5 class="admonition-heading">danger</h5><p>Closed by our blockquote</p>
 </div></blockquote>
 <p>:::</p>
 ````````````````````````````````
@@ -168,6 +168,6 @@ We also allow custom titles.
 Some content
 :::
 .
-<div class="admonition admonition-warning"><h5 class="admonition-heading"><em>Custom title!</em></h5><p>Some content</p>
+<div class="admonition admonition-danger"><h5 class="admonition-heading"><em>Custom title!</em></h5><p>Some content</p>
 </div>
 ````````````````````````````````

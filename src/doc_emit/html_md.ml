@@ -5,6 +5,36 @@ module A = IlluaminateSemantics.Doc.AbstractSyntax
 module C = Cmarkit_renderer.Context
 module H = Cmarkit_html
 
+(** Parse a Markdown Extra-style attribute string. The leading/trailing braces should have already
+    been stripped. *)
+let parse_attributes s =
+  List.fold_left
+    (fun (classes, extra) s ->
+      if String.length s = 0 then (classes, extra)
+      else
+        match s.[0] with
+        | '.' -> (CCString.drop 1 s :: classes, extra)
+        | '#' -> (classes, ("id", Some (CCString.drop 1 s)) :: extra)
+        | _ -> (
+          match String.index_opt s '=' with
+          | None -> (classes, (s, None) :: extra)
+          | Some i -> (classes, (CCString.take i s, Some (CCString.drop (i + 1) s)) :: extra)))
+    ([], []) (String.split_on_char ' ' s)
+
+(** Merge the classes into the main attributes, from a {! parse_attributes parsed attribute string}. *)
+let merge_classes ~classes ~attrs =
+  match classes with
+  | [] -> attrs
+  | _ -> ("class", Some (String.concat " " classes)) :: attrs
+
+let emit_attr c (k, v) =
+  C.string c k;
+  match v with
+  | None -> ()
+  | Some v -> C.string c {|="|}; H.html_escaped_string c v; C.string c {|"|}
+
+let emit_attributes c attrs = List.iter (fun x -> C.string c " "; emit_attr c x) attrs
+
 let emit_reference_link ~options c ~target l =
   match Html_basic.reference_link ~options target with
   | None ->
@@ -50,29 +80,13 @@ let emit_code_block ~options c block =
   let classes, attrs =
     let l = String.length extra in
     if l > 2 && extra.[0] = '{' && extra.[l - 1] == '}' then
-      let attr_str = String.sub extra 1 (l - 2) |> String.split_on_char ' ' in
-      List.fold_left
-        (fun (classes, extra) s ->
-          if String.length s = 0 then (classes, extra)
-          else
-            match s.[0] with
-            | '.' -> (CCString.drop 1 s :: classes, extra)
-            | '#' -> (classes, ("id", Some (CCString.drop 1 s)) :: extra)
-            | _ -> (
-              match String.index_opt s '=' with
-              | None -> (classes, (s, None) :: extra)
-              | Some i -> (classes, (CCString.take i s, Some (CCString.drop (i + 1) s)) :: extra)))
-        ([], []) attr_str
+      String.sub extra 1 (l - 2) |> parse_attributes
     else ([], [])
   in
 
   match language with
   | "lua" ->
-      let attrs =
-        match classes with
-        | [] -> attrs
-        | _ -> ("classes", Some (String.concat " " classes)) :: attrs
-      in
+      let attrs = merge_classes ~classes ~attrs in
       Cmarkit_ext.cprintf c "%a" Html.Default.emit (Html_highlight.lua_block ~attrs ~options code)
   | _ ->
       C.string c {|<pre|};
@@ -87,7 +101,8 @@ let emit_code_block ~options c block =
           C.string c {| class="highlight language-|};
           C.string c language;
           List.iter (fun s -> C.string c " "; C.string c s) classes;
-          C.string c {|"|});
+          C.string c {|"|};
+          emit_attributes c attrs);
       C.string c {|>|};
       Cmarkit_html.html_escaped_string c code;
       C.string c {|</pre>|}

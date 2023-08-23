@@ -31,7 +31,7 @@ type change_kind =
 
 (** Meta keys for various Cmarkit extensions. *)
 module Cmarkit_meta : sig
-  (** Admonition level for GitHub-style admonition labels (e.g. [[!WARNING]]) *)
+  (** Admonition level for GitHub-style admonition labels (e.g. [[DANGER]]) *)
   val admonition_level : Cmarkit.Block.Admonition.level Cmarkit.Meta.key
 end
 

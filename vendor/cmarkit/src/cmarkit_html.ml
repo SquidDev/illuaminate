@@ -444,7 +444,7 @@ let admonition c ~level ?label body =
   (let write_icon c str = C.string c {|<span aria-hidden="true">|}; C.string c str; C.string c{|</span> |} in
    match level with
    | Info | Note -> write_icon c "🛈"
-   | Caution -> write_icon c "⚠"
+   | Warning -> write_icon c "⚠"
    | _ -> ());
   (match label with
    | None -> C.string c level_str

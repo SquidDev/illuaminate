@@ -1303,8 +1303,8 @@ module Block : sig
     | Note
     | Info
     | Tip
-    | Caution
     | Warning
+    | Danger
 
     val level_name : level -> string
 

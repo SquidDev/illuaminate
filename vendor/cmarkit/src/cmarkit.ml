@@ -744,15 +744,15 @@ module Block = struct
       | Note
       | Info
       | Tip
-      | Caution
       | Warning
+      | Danger
 
     let level_name = function
       | Note -> "note"
       | Info -> "info"
       | Tip -> "tip"
-      | Caution -> "caution"
       | Warning -> "warning"
+      | Danger -> "danger"
 
     type nonrec t = {
       level : level node;

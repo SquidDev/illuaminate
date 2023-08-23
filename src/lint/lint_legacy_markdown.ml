@@ -11,7 +11,9 @@ let description (r : _ reporter) ({ description; description_pos } : C.descripti
   let module Cl = IlluaminateSemantics.Doc.AbstractSyntax.Comment_lines in
   let doc = C.Markdown.doc description in
   let pp_admonition out a =
-    let level = Block.Admonition.level a |> fst |> Block.Admonition.level_name in
+    let level =
+      Block.Admonition.level a |> fst |> Block.Admonition.level_name |> String.uppercase_ascii
+    in
     match Block.Admonition.label a with
     | None -> Format.fprintf out "[!%s]" level
     | Some l ->
@@ -37,14 +39,15 @@ let description (r : _ reporter) ({ description; description_pos } : C.descripti
   in
   let block _ () = function
     | Block.Ext_admonition (a, meta) ->
-        Format.printf "Admonition => %a\n@?" Cmarkit.Textloc.pp_dump (Cmarkit.Meta.textloc meta);
         let span =
           Cl.span_of_meta description_pos meta
           |> CCOption.get_lazy (fun () -> Cl.span description_pos)
         in
-        r.r ~span ~tag:ldoc_reference
+        r.r ~span ~tag:docu_admonition
           ~detail:(fun out ->
-            Format.fprintf out "Replace with a blockquote:@\n> %a\n> ..." pp_admonition a)
+            Format.fprintf out "Replace with a blockquote:@\n";
+            Fmt.(styled (`Fg `Yellow) (styled `Bold (fun o -> fmt "> %a\n> ..." o pp_admonition)))
+              out a)
           "Use of Docusaurus admonition.";
         Folder.default
     | _ -> Folder.default

@@ -305,8 +305,8 @@ type admonition_level =
   | Note
   | Info
   | Tip
-  | Caution
   | Warning
+  | Danger
 
 type line_type =
 | Atx_heading_line of heading_level * byte_pos (* after # *) * first * last

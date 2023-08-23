@@ -55,7 +55,7 @@ module Markdown_parser = struct
           | "!info" -> Some (add_admonition Info label)
           | "!tip" -> Some (add_admonition Tip label)
           | "!warning" -> Some (add_admonition Warning label)
-          | "!caution" -> Some (add_admonition Caution label)
+          | "!danger" -> Some (add_admonition Danger label)
           | _ -> None
         else None
     | x -> Cmarkit.Label.default_resolver x
@@ -63,28 +63,69 @@ module Markdown_parser = struct
   (** Parse a markdown string into a description. *)
   let parse x = Cmarkit.Doc.of_string ~resolver ~strict:false ~locs:true x
 
+  let id_pat =
+    let open Re in
+    seq [ str "{#"; group (rep1 (alt [ wordc; char '-'; char '.'; char ':' ])); str "}"; eos ]
+    |> compile
+
   (** Default empty code blocks to Lua. *)
-  let fix_lang : Cmarkit.Mapper.t =
-    let block : Cmarkit.Block.t Cmarkit.Mapper.mapper =
-     fun _ b ->
-      match b with
-      | Cmarkit.Block.Code_block (c, node) -> (
+  let postprocess ~default_lua doc =
+    (* Parse out a trailing Markdown extra ID ({#foo}), returning the ID and the trimmed inline.
+       Note we don't support the wider range of attribute syntax (e.g. {.foo}, {x=y}) *)
+    let rec get_id = function
+      | Cmarkit.Inline.Text (t, m) as n
+        when let length = String.length t in
+             length > 3 && t.[length - 1] == '}' -> (
+        match Re.exec_opt id_pat t with
+        | None -> (None, n)
+        | Some group ->
+            let start = Re.Group.start group 0 in
+            let id = Re.Group.get group 1 in
+            (* Trim extra trailing whitespace. *)
+            let rec rtrim i = if i >= 0 && t.[i] = ' ' then rtrim (i - 1) else i + 1 in
+            let t = String.sub t 0 (rtrim (start - 1)) in
+            (Some id, Cmarkit.Inline.Text (t, m)))
+      | Cmarkit.Inline.Inlines (xs, n) ->
+          let id, xs = get_id_list xs in
+          (id, Cmarkit.Inline.Inlines (xs, n))
+      | n -> (None, n)
+    and get_id_list = function
+      | [] -> (None, [])
+      | [ x ] ->
+          let id, x = get_id x in
+          (id, [ x ])
+      | x :: xs ->
+          let id, xs = get_id_list xs in
+          (id, x :: xs)
+    in
+
+    let block _ = function
+      (* Add IDs to our headers. *)
+      | Cmarkit.Block.Heading (h, meta) when Option.is_none (Cmarkit.Block.Heading.id h) -> (
+          let module H = Cmarkit.Block.Heading in
+          let id, inline = Cmarkit.Block.Heading.inline h |> get_id in
+          match id with
+          | None -> Cmarkit.Mapper.default
+          | Some id ->
+              let h = H.make ~id:(`Id id) ~layout:(H.layout h) ~level:(H.level h) inline in
+              Cmarkit.Mapper.ret (Cmarkit.Block.Heading (h, meta)))
+      (* Default indented code blocks to Lua if no language is given. *)
+      | Cmarkit.Block.Code_block (c, meta) when default_lua -> (
           let module Cb = Cmarkit.Block.Code_block in
-          match Cb.info_string c with
-          | Some ("", _) | None ->
+          match Cb.layout c with
+          | `Indented ->
               let c =
-                Cb.make ~layout:(Cb.layout c) ~info_string:("lua", Cmarkit.Meta.none) (Cb.code c)
+                Cb.make ~layout:`Indented ~info_string:("lua", Cmarkit.Meta.none) (Cb.code c)
               in
-              Cmarkit.Mapper.ret (Cmarkit.Block.Code_block (c, node))
-          | Some _ -> Cmarkit.Mapper.default)
+              Cmarkit.Mapper.ret (Cmarkit.Block.Code_block (c, meta))
+          | `Fenced _ -> Cmarkit.Mapper.default)
       | _ -> Cmarkit.Mapper.default
     in
-    Cmarkit.Mapper.make ~block ()
+    Cmarkit.Mapper.map_doc (Cmarkit.Mapper.make ~block ()) doc
 end
 
 let parse_description ?(default_lua = false) x =
-  let doc = Markdown_parser.parse x in
-  let doc = if default_lua then Cmarkit.Mapper.map_doc Markdown_parser.fix_lang doc else doc in
+  let doc = Markdown_parser.parse x |> Markdown_parser.postprocess ~default_lua in
   Markdown.Markdown doc
 
 module Tag = struct

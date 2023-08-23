@@ -10,8 +10,10 @@ let get_summary ?(max_length = 120) (Syntax.Markdown.Markdown desc) : Cmarkit.In
   let module B = Cmarkit.Block in
   let single_space = I.Text (" ", Cmarkit.Meta.none) in
   let empty = I.Text ("", Cmarkit.Meta.none) in
+  let layout_len l = List.fold_left (fun i (_, (x, _)) -> i + String.length x) 0 l in
   let rec go space : I.t -> int * I.t = function
     | _ when space <= 0 -> (0, I.empty)
+    (* Primitives *)
     | I.Inlines (xs, a) ->
         let space, xs = go_list space [] xs in
         (space, I.Inlines (xs, a))
@@ -31,7 +33,7 @@ let get_summary ?(max_length = 120) (Syntax.Markdown.Markdown desc) : Cmarkit.In
         | Some i -> (0, I.Text (CCString.take (i + 1) t, a))
         | None when String.length t >= space -> (0, I.Text (CCString.take space t ^ "...", a))
         | None -> (space - String.length t, I.Text (t, a)))
-    (* Basic formatting blocks *)
+    (* Nested formatting elements. *)
     | I.Emphasis (em, a) ->
         on_child
           (fun body -> I.Emphasis (I.Emphasis.make ~delim:(I.Emphasis.delim em) body, a))
@@ -40,15 +42,24 @@ let get_summary ?(max_length = 120) (Syntax.Markdown.Markdown desc) : Cmarkit.In
         on_child
           (fun body -> I.Strong_emphasis (I.Emphasis.make ~delim:(I.Emphasis.delim em) body, a))
           space (I.Emphasis.inline em)
+    | I.Ext_strikethrough (em, a) ->
+        on_child
+          (fun body -> I.Ext_strikethrough (I.Strikethrough.make body, a))
+          space (I.Strikethrough.inline em)
     | I.Link (link, a) ->
         on_child
           (fun body -> I.Link (I.Link.make body (I.Link.reference link), a))
           space (I.Link.text link)
-    | I.Code_span (code, _) as inline -> (space - String.length (I.Code_span.code code), inline)
-    | I.Ext_colour (code, _) as inline -> (space - String.length code, inline)
+    (* Non-interruptable elements. *)
+    | I.Autolink (l, _) as inline -> (space - String.length (I.Autolink.link l |> fst), inline)
+    | I.Code_span (c, _) as inline -> (space - layout_len (I.Code_span.code_layout c), inline)
+    | I.Raw_html (h, _) as inline -> (space - layout_len h, inline)
+    | I.Ext_colour (c, _) as inline -> (space - String.length c, inline)
+    | I.Ext_math_span (m, _) as inline -> (space - layout_len (I.Math_span.tex_layout m), inline)
+    (* Weird elements. *)
     | I.Break _ -> (space - 1, single_space)
     | I.Image _ -> (space, empty)
-    | _ -> failwith ("Inline not yet handled " ^ Cmarkit_commonmark.of_doc desc)
+    | _ -> failwith "Unknown inline type"
   and on_child factory space node =
     let space, node = go space node in
     (space, factory node)
@@ -63,7 +74,7 @@ let get_summary ?(max_length = 120) (Syntax.Markdown.Markdown desc) : Cmarkit.In
     | B.Paragraph (x, _) -> B.Paragraph.inline x |> go max_length |> snd |> Option.some
     | B.Heading (x, _) -> B.Heading.inline x |> go max_length |> snd |> Option.some
     | B.Blocks (xs, _) -> List.find_map block xs
-    | B.Html_block (start :: [], _)
+    | B.Html_block (start :: _, _)
       when String.starts_with ~prefix:"<!--" (Cmarkit.Block_line.to_string start) -> None
     | Cmarkit.Block.Link_reference_definition _ | Cmarkit.Block.Blank_line _ -> None
     | _ -> Some empty

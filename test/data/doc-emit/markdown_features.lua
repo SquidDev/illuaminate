@@ -31,6 +31,19 @@ Some warning
 # Colours
 #fff #fda087
 
+# Attributes on code blocks
+
+```lua {#some-id data-x=x}
+print("Hello")
+```
+
+```python {#some-id data-x=x}
+print("Hello")
+```
+
+# Attributes on headers
+## Some header    {#foo}
+
 @module x
 ]]
 

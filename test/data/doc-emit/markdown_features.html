@@ -43,13 +43,16 @@ label</a>. <a href="library/x.html#v:some_value" class="reference">a multiline
 label</a></p>
 <h1>Admonitions</h1>
 <h2>Old syntax</h2>
-<div class="admonition admonition-warning"><h5 class="admonition-heading">warning</h5><p>Some warning</p>
-</div><div class="admonition admonition-warning"><h5 class="admonition-heading">With a label</h5><p>Some warning</p>
+<div class="admonition admonition-danger"><h5 class="admonition-heading">danger</h5><p>Some warning</p>
+</div><div class="admonition admonition-danger"><h5 class="admonition-heading">With a label</h5><p>Some warning</p>
 </div><h2>New syntax</h2>
-<div class="admonition admonition-warning"><h5 class="admonition-heading">warning</h5><p>Critical content demanding immediate user attention due to potential risks.</p>
-</div><div class="admonition admonition-warning"><h5 class="admonition-heading">With a label</h5><p>Critical content demanding immediate user attention due to potential risks.</p>
+<div class="admonition admonition-warning"><h5 class="admonition-heading"><span aria-hidden="true">⚠</span> warning</h5><p>Critical content demanding immediate user attention due to potential risks.</p>
+</div><div class="admonition admonition-warning"><h5 class="admonition-heading"><span aria-hidden="true">⚠</span> With a label</h5><p>Critical content demanding immediate user attention due to potential risks.</p>
 </div><h1>Colours</h1>
 <p><span class="color-ref" style="background-color: #fff"></span><span class="color">#fff</span> <span class="color-ref" style="background-color: #fda087"></span><span class="color">#fda087</span></p>
+<h1>Attributes on code blocks</h1>
+<pre class="highlight" data-lua-kind="expr" data-x="x" id="some-id"><span class="ident">print</span><span class="symbol">(</span><span class="string">"Hello"</span><span class="symbol">)</span><span class="symbol"></span></pre><pre class="highlight language-python" data-x="x" id="some-id">print(&quot;Hello&quot;)</pre><h1>Attributes on headers</h1>
+<h2 id="foo"><a class="anchor" aria-hidden="true" href="#foo"></a>Some header</h2>
 
         <table class="definition-list">
           <tr>
@@ -63,7 +66,7 @@ label</a></p>
           <dt>
             <a name="v:some_value" href="#v:some_value"></a>
             <span class="definition-name">some_value = 0</span>
-            <a href="markdown_features.lua[37:23-37:23]" class="source-link">
+            <a href="markdown_features.lua[50:23-50:23]" class="source-link">
               Source
             </a>
           </dt>

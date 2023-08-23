@@ -44,21 +44,19 @@ Some body
 ```
 
 ```txt
-Admonition => file:- bytes:0-29 lines:1-3 lines-bytes:0-27]
-Admonition => file:- bytes:0-23 lines:1-3 lines-bytes:0-21]
-in.lua: Use of Docusaurus admonition. [doc:ldoc-reference]
+in.lua: Use of Docusaurus admonition. [doc:docusaurus-admonition]
    │
  3 │ --- :::warning
    │     ^^^^^^^^^^
 Replace with a blockquote:
-> [!warning]
+> [!DANGER]
 > ...
 
-in.lua: Use of Docusaurus admonition. [doc:ldoc-reference]
+in.lua: Use of Docusaurus admonition. [doc:docusaurus-admonition]
    │
  8 │ :::warning Oh no
    │ ^^^^^^^^^^^^^^^^
 Replace with a blockquote:
-> [Oh no][!warning]
+> [Oh no][!DANGER]
 > ...
 ```
