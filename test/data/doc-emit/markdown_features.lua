@@ -7,6 +7,8 @@ With label @{some_value|label} [label][`some_value`]
 
 External modules: @{package.path|module path} [module path][`package.path`]
 
+Sectioned-labels: @{module!package.path}, [`module!package.path`]
+
 Across multiple lines: @{some_value|a multiline
 label}. [a multiline
 label][`some_value`]

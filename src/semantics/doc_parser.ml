@@ -100,6 +100,27 @@ module Markdown_parser = struct
           (id, x :: xs)
     in
 
+    let inline _ = function
+      (* Rewrite [`foo!bar`] nodes to be [`bar`] *)
+      | Cmarkit.Inline.Link (l, lm) -> (
+          let module L = Cmarkit.Inline.Link in
+          let module C = Cmarkit.Inline.Code_span in
+          match L.reference l with
+          | `Ref ((`Collapsed | `Shortcut), _, target) as reference
+            when Cmarkit.Label.meta target |> Cmarkit.Meta.mem Doc_comment.Markdown.reference
+                 && String.contains (Cmarkit.Label.key target) '!' ->
+              let text =
+                match L.text l with
+                | Cmarkit.Inline.Code_span (code, cm) ->
+                    Cmarkit.Inline.Code_span (C.code code |> trim_reference |> C.of_string, cm)
+                | _ -> failwith "Shortcut reference must have a code span"
+              in
+              Cmarkit.Inline.Link (L.make ~legacy:(L.is_legacy_ref l) text reference, lm)
+              |> Cmarkit.Mapper.ret
+          | _ -> Cmarkit.Mapper.default)
+      | _ -> Cmarkit.Mapper.default
+    in
+
     let block _ = function
       (* Add IDs to our headers. *)
       | Cmarkit.Block.Heading (h, meta) when Option.is_none (Cmarkit.Block.Heading.id h) -> (
@@ -122,7 +143,7 @@ module Markdown_parser = struct
           | `Fenced _ -> Cmarkit.Mapper.default)
       | _ -> Cmarkit.Mapper.default
     in
-    Cmarkit.Mapper.map_doc (Cmarkit.Mapper.make ~block ()) doc
+    Cmarkit.Mapper.map_doc (Cmarkit.Mapper.make ~inline ~block ()) doc
 end
 
 let parse_description ?(default_lua = false) x =
