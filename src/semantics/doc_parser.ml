@@ -45,17 +45,18 @@ module Markdown_parser = struct
 
   let resolver : Cmarkit.Label.resolver = function
     | `Ref (`Link, label, None) ->
-        let key = Cmarkit.Label.key label in
+        (* We use [text_to_string] here, as we need to be case sensitive. *)
+        let key = Cmarkit.Label.text_to_string label in
         let len = String.length key in
         if len > 2 && key.[0] = '`' && key.[len - 1] = '`' then
           Some (add_reference (String.sub key 1 (len - 2)) label)
         else if len >= 1 && key.[0] = '!' then
           match key with
-          | "!note" -> Some (add_admonition Note label)
-          | "!info" -> Some (add_admonition Info label)
-          | "!tip" -> Some (add_admonition Tip label)
-          | "!warning" -> Some (add_admonition Warning label)
-          | "!danger" -> Some (add_admonition Danger label)
+          | "!NOTE" -> Some (add_admonition Note label)
+          | "!INFO" -> Some (add_admonition Info label)
+          | "!TIP" -> Some (add_admonition Tip label)
+          | "!WARNING" -> Some (add_admonition Warning label)
+          | "!DANGER" -> Some (add_admonition Danger label)
           | _ -> None
         else None
     | x -> Cmarkit.Label.default_resolver x
