@@ -48,7 +48,7 @@ let make_footnote_ref_ids c label fn =
   | Some (text, id, refc, _) -> incr refc; (text, id, footnote_ref_id id !refc)
   | None ->
       st.footnote_count <- st.footnote_count + 1;
-      let text = String.concat "" ["["; Int.to_string st.footnote_count;"]"] in
+      let text = Int.to_string st.footnote_count in
       let id = footnote_id label in
       st.footnotes <- Label.Map.add label (text, id, ref 1, fn) st.footnotes;
       text, id, footnote_ref_id id 1
@@ -497,7 +497,14 @@ let footnotes c fns =
   let fns = List.sort Stdlib.compare fns in
   let footnote c (_, id, refc, fn) =
     C.string c "<li id=\""; html_escaped_string c id; C.string c "\">\n";
-    C.block c (Block.Footnote.block fn);
+    let paragraph = match Block.Footnote.block fn with
+      | Block.Paragraph (p, _) ->
+          C.string c "<p>";
+          C.inline c (Block.Paragraph.inline p);
+          C.string c " ";
+          true
+      | contents -> C.block c contents; false
+    in
     C.string c "<span>";
     for r = 1 to !refc do
       C.string c "<a href=\"#"; pct_encoded_string c (footnote_ref_id id r);
@@ -507,6 +514,7 @@ let footnotes c fns =
       C.string c "</a>"
     done;
     C.string c "</span>";
+    if paragraph then C.string c "</p>";
     C.string c "</li>"
   in
   C.string c "<section role=\"doc-endnotes\"><ol>\n";
