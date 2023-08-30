@@ -129,8 +129,10 @@
     }
 
     if (!loadingIndex) {
+      const indexTag = document.querySelector("meta[name=\"illuaminate:index\"]");
+
       loadingIndex = true;
-      fetch("/index.json")
+      fetch(indexTag === null ? "index.json" : indexTag.content)
         .then((r) => r.json())
         .then((json) => {
           const entries = [];

@@ -123,6 +123,7 @@ let template =
        | None => nil
        | Some(title) => <meta property="og:site_name" content=title />
        }}
+      <meta name="illuaminate:index" content={resolve("index.json")} />
       <link
         rel="stylesheet"
         href={resolve(options.site_css)}
