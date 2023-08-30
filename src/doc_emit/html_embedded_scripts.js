@@ -36,7 +36,7 @@
   });
 
   let loadingIndex = false;
-  let index;
+  let index, rootPath;
 
   const setError = (contents) => {
     searchResults.innerHTML = "";
@@ -93,10 +93,10 @@
       for (const result of results) {
         const link = document.createElement("a");
         link.classList.add("search-result");
-        link.href = `/${result.item.url}`;
+        link.href = `${rootPath}${result.item.url}`;
 
         link.appendChild(createElem("h3", [], highlight(result, "name")));
-        link.appendChild(createElem("span", ["search-page"], `/${result.item.url}`));
+        link.appendChild(createElem("span", ["search-page"], `${result.item.url}`));
         link.appendChild(createElem("p", ["search-summary"], highlight(result, "summary")));
 
         const elem = document.createElement("li");
@@ -130,9 +130,13 @@
 
     if (!loadingIndex) {
       const indexTag = document.querySelector("meta[name=\"illuaminate:index\"]");
+      const indexPath = indexTag === null ? "index.json" : indexTag.content;
+      // Strip out the index.json from the path, so we've got a path to the
+      // doc root.
+      rootPath = indexPath.replace(/[^\/]+$/, "")
 
       loadingIndex = true;
-      fetch(indexTag === null ? "index.json" : indexTag.content)
+      fetch(indexPath)
         .then((r) => r.json())
         .then((json) => {
           const entries = [];
