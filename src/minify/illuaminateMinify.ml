@@ -78,6 +78,7 @@ let token_ident : Token.t -> token_kind = function
   | False
   | For
   | Function
+  | Goto
   | Ident _
   | If
   | In
@@ -100,6 +101,7 @@ let token_ident : Token.t -> token_kind = function
   | Div
   | Dot
   | Dots
+  | Double_colon
   | EoF
   | Eq
   | Equals

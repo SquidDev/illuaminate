@@ -158,6 +158,14 @@ module Make (E : Emitter) : S with type t := E.t = struct
     token ~kind:Keyword out clause_then;
     block out clause_body
 
+  and goto_stmt out { goto_goto; goto_label } =
+    token ~kind:Keyword out goto_goto; idnt out goto_label
+
+  and label_stmt out { label_start; label_name; label_finish } =
+    token ~kind:Symbol out label_start;
+    idnt out label_name;
+    token ~kind:Symbol out label_finish
+
   and stmt out = function
     | Do a -> do_stmt out a
     | Assign a -> assign_stmt out a
@@ -173,6 +181,8 @@ module Make (E : Emitter) : S with type t := E.t = struct
     | Break a -> token ~kind:Keyword out a
     | SCall a -> call out a
     | Semicolon a -> token ~kind:Symbol out a
+    | Goto a -> goto_stmt out a
+    | Label a -> label_stmt out a
 
   and block out x = List.iter (stmt out) x
 

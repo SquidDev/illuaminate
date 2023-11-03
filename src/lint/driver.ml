@@ -218,6 +218,9 @@ let program_worker ~options ~context ~r:({ r } : r) linter program =
     expr context clause_test;
     token context clause_then;
     block context clause_body
+  and goto context { goto_goto; goto_label = _ } = token context goto_goto
+  and label context { label_start; label_name = _; label_finish } =
+    token context label_start; token context label_finish
   and stmt context stmt =
     visit linter.stmt Stmt context stmt;
     let context = Stmt stmt |: context in
@@ -236,6 +239,8 @@ let program_worker ~options ~context ~r:({ r } : r) linter program =
     | Break a -> token context a
     | SCall a -> call context a
     | Semicolon a -> token context a
+    | Goto a -> goto context a
+    | Label a -> label context a
   and block context x = List.iter (stmt (Block x |: context)) x
   and var = visit linter.var Var
   and name context name =

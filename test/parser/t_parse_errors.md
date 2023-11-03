@@ -437,6 +437,52 @@ Your program contains more `end`s than needed. Check each block (`if`, `for`, `f
 1 errors and 0 warnings
 ```
 
+## `goto` and labels
+We `goto` the same as normal identifiers.
+
+```lua
+goto 2
+```
+
+```txt
+=input: Unexpected number after name. [parse:syntax-error]
+   │
+ 1 │ goto 2
+   │      ^
+Did you mean to assign this or call it as a function?
+1 errors and 0 warnings
+```
+
+Labels have a basic closing check:
+```lua
+::foo
+```
+
+```txt
+=input: Unexpected end of file. [parse:syntax-error]
+   │
+ 1 │ ::foo
+   │ ^^ Label was started here.
+   │
+ 1 │ ::foo
+   │      ^ Tip: Try adding `::` here.
+1 errors and 0 warnings
+```
+
+But we do nothing fancy for just a `::`
+
+```lua
+::
+```
+
+```txt
+=input: Unexpected end of file: Expected a label after `::`. [parse:syntax-error]
+   │
+ 1 │ ::
+   │   ^
+1 errors and 0 warnings
+```
+
 # Function calls
 
 ## Additional commas

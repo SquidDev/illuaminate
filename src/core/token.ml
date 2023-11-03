@@ -14,6 +14,7 @@ type t =
   | Do
   | Dot
   | Dots
+  | Double_colon
   | Else
   | ElseIf
   | End
@@ -24,6 +25,7 @@ type t =
   | For
   | Function
   | Ge
+  | Goto
   | Gt
   | Ident of string
   | If
@@ -73,6 +75,7 @@ let show = function
   | Do -> "do"
   | Dot -> "."
   | Dots -> "..."
+  | Double_colon -> "::"
   | Else -> "else"
   | ElseIf -> "elseif"
   | End -> "end"
@@ -83,6 +86,7 @@ let show = function
   | For -> "for"
   | Function -> "function"
   | Ge -> ">="
+  | Goto -> "goto"
   | Gt -> ">"
   | Ident x -> x
   | If -> "if"

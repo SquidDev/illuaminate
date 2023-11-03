@@ -39,6 +39,8 @@ let make_token leading_trivia trailing_trivia span =
   | False -> FALSE (mk Token.False)
   | For -> FOR (mk For)
   | Function -> FUNCTION (mk Function)
+  | Goto -> GOTO (mk Token.Goto)
+  | Double_colon -> DOUBLE_COLON (mk Double_colon)
   | Ge -> GE (mk OpGe)
   | Gt -> GT (mk OpGt)
   | If -> IF (mk Token.If)
@@ -85,6 +87,7 @@ let get_token = function
   | DO _ -> Do
   | DOT _ -> Dot
   | DOTS _ -> Dots
+  | DOUBLE_COLON _ -> Double_colon
   | ELSE _ -> Else
   | ELSEIF _ -> ElseIf
   | END _ -> End
@@ -95,6 +98,7 @@ let get_token = function
   | FOR _ -> For
   | FUNCTION _ -> Function
   | GE _ -> Ge
+  | GOTO _ -> Goto
   | GT _ -> Gt
   | IF _ -> If
   | IN _ -> In
@@ -157,6 +161,7 @@ let get_span =
   | DO x
   | DOT x
   | DOTS x
+  | DOUBLE_COLON x
   | ELSE x
   | ELSEIF x
   | END x
@@ -165,6 +170,7 @@ let get_span =
   | FALSE x
   | FOR x
   | FUNCTION x
+  | GOTO x
   | IF x
   | IN x
   | LOCAL x

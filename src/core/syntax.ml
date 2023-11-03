@@ -349,6 +349,19 @@ and if_clause =
     clause_body : block  (** [print("Hello")] (The clause's body) *)
   }
 
+(** [goto x] - A [goto] statement*)
+and goto_stmt =
+  { goto_goto : token;  (** [goto] *)
+    goto_label : string Node.t  (** [x] (The label's name) *)
+  }
+
+(** [goto x] - A [goto] statement*)
+and label_stmt =
+  { label_start : token;  (** [::] *)
+    label_name : string Node.t;  (** [x] (The label's name) *)
+    label_finish : token  (** [::] *)
+  }
+
 and stmt =
   | Do of do_stmt
   | Assign of assign_stmt
@@ -363,6 +376,8 @@ and stmt =
   | If of if_stmt
   | Break of token
   | SCall of call
+  | Goto of goto_stmt
+  | Label of label_stmt
   | Semicolon of token
 
 and block = stmt list
@@ -564,6 +579,8 @@ module First = struct
   let return_stmt = Return_stmt.return_return
   let if_clause = If_clause.clause_if
   let if_stmt = If_stmt.if_if -| if_clause
+  let goto_stmt = Goto_stmt.goto_goto
+  let label_stmt = Label_stmt.label_start
 
   let ident =
     let get x = Token.Ident x
@@ -663,6 +680,8 @@ module First = struct
       | Break x -> x
       | SCall x -> call.get x
       | Semicolon x -> x
+      | Goto x -> goto_stmt.get x
+      | Label x -> label_stmt.get x
     and over f = function
       | Do x -> Do (do_stmt.over f x)
       | Assign x -> Assign (assign_stmt.over f x)
@@ -678,6 +697,8 @@ module First = struct
       | Break x -> Break x
       | SCall x -> SCall (call.over f x)
       | Semicolon x -> Semicolon x
+      | Goto x -> Goto (goto_stmt.over f x)
+      | Label x -> Label (label_stmt.over f x)
     in
     { get; over }
 
@@ -796,6 +817,8 @@ module Last = struct
   let if_stmt = If_stmt.if_end
   let var = First.var
   let arg = First.arg
+  let goto_stmt = Goto_stmt.goto_label -| First.ident
+  let label_stmt = Label_stmt.label_finish
 
   let name =
     let get = function
@@ -948,6 +971,8 @@ module Last = struct
       | Break x -> x
       | SCall x -> call.get x
       | Semicolon x -> x
+      | Goto x -> goto_stmt.get x
+      | Label x -> label_stmt.get x
     and over f = function
       | Do x -> Do (do_stmt.over f x)
       | Assign x -> Assign (assign_stmt.over f x)
@@ -963,6 +988,8 @@ module Last = struct
       | Break x -> Break x
       | SCall x -> SCall (call.over f x)
       | Semicolon x -> Semicolon x
+      | Goto x -> Goto (goto_stmt.over f x)
+      | Label x -> Label (label_stmt.over f x)
     in
     { get; over }
 

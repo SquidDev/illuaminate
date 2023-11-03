@@ -1,7 +1,8 @@
-%token <IlluaminateCore.Syntax.token> BREAK DO ELSE ELSEIF END FALSE FOR FUNCTION IF IN LOCAL NIL
+%token <IlluaminateCore.Syntax.token> BREAK DO ELSE ELSEIF END FALSE FOR FUNCTION GOTO IF IN LOCAL NIL
 %token <IlluaminateCore.Syntax.token> REPEAT RETURN THEN TRUE UNTIL WHILE EOF
 
 %token <IlluaminateCore.Syntax.token> COLON ":"
+%token <IlluaminateCore.Syntax.token> DOUBLE_COLON "::"
 %token <IlluaminateCore.Syntax.token> COMMA ","
 %token <IlluaminateCore.Syntax.token> DOT "."
 %token <IlluaminateCore.Syntax.token> DOTS "..."
@@ -63,7 +64,11 @@ let repl_exprs :=
   | repl_exprs = sep_list1(",", expr) ; repl_eof = EOF
   ; { { repl_exprs; repl_eof } }
 
-let var := ~ = IDENT ; <Var>
+let ident :=
+  | ~ = IDENT ; <>
+  | i = GOTO  ; { IlluaminateCore.Node.contents.over (fun _ -> "goto") i }
+
+let var := ~ = ident ; <Var>
 
 let arg :=
   | ~ = var ; <NamedArg>
@@ -76,7 +81,7 @@ let args :=
 let name :=
   | ~ = var
   ; <NVar>
-  | tbl = simple_expr ; dot = "." ; key = IDENT
+  | tbl = simple_expr ; dot = "." ; key = ident
   ; { NDot { tbl; dot; key } }
   | tbl = simple_expr ; open_k = "[" ; key = expr ; close_k = "]"
   ; { NLookup { tbl; open_k; key; close_k } }
@@ -90,7 +95,7 @@ let simple_expr :=
 let call :=
   | fn = simple_expr ; args = call_args
   ; { Call { fn; args } }
-  | obj = simple_expr ; colon = ":" ; meth = IDENT ; args = call_args
+  | obj = simple_expr ; colon = ":" ; meth = ident ; args = call_args
   ; { Invoke { obj; colon; meth; args } }
 
 let call_args :=
@@ -160,7 +165,7 @@ let table_body :=
 
 let table_entry :=
   | ~ = expr ;  <Array>
-  | ident = IDENT ; eq = "=" ; value = expr ; { RawPair { ident; eq; value } }
+  | ident = ident ; eq = "=" ; value = expr ; { RawPair { ident; eq; value } }
   | open_k = "[" ; key = expr ; close_k = "]" ; eq = "=" ; value = expr
   ; { ExprPair { open_k; key; close_k; eq; value } }
 
@@ -212,10 +217,16 @@ let stmt :=
   | return_return = RETURN ; return_vals = sep_list0(",", expr)
   ; { Return { return_return; return_vals } }
 
+  | goto_goto = GOTO ; goto_label = ident
+  ; { Goto { goto_goto; goto_label } }
+
+  | label_start = "::" ; label_name = ident ; label_finish = "::"
+  ; { Label { label_start; label_name; label_finish } }
+
 let function_name :=
   | ~ = var ; <FVar>
-  | tbl = function_name ; dot = "."   ; field = IDENT ; { FDot { tbl; dot; field } }
-  | tbl = function_name ; colon = ":" ; meth = IDENT  ; { FSelf { tbl; colon; meth } }
+  | tbl = function_name ; dot = "."   ; field = ident ; { FDot { tbl; dot; field } }
+  | tbl = function_name ; colon = ":" ; meth = ident  ; { FSelf { tbl; colon; meth } }
 
 let if_clause(t) :=
   | clause_if = t ; clause_test = expr ; clause_then = THEN ; clause_body = stmts ;

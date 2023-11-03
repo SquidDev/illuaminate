@@ -70,6 +70,7 @@ rule token l = parse
 | "while"    { Token While    }
 
 | ":"        { Token Colon }
+| "::"       { Token Double_colon }
 | ","        { Token Comma }
 | "."        { Token Dot }
 | "..."      { Token Dots }

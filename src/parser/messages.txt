@@ -1,8 +1,8 @@
 program: DO SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 165.
+## Ends in an error in state: 172.
 ##
-## stmt -> DO stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> DO stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## DO stmts
@@ -19,9 +19,9 @@ Expected `end` to terminate `do` block
 
 program: FOR IDENT COMMA IDENT WHILE
 ##
-## Ends in an error in state: 158.
+## Ends in an error in state: 162.
 ##
-## stmt -> FOR sep_list1(COMMA,var) . IN sep_list1(COMMA,expr) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FOR sep_list1(COMMA,var) . IN sep_list1(COMMA,expr) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR sep_list1(COMMA,var)
@@ -30,15 +30,15 @@ program: FOR IDENT COMMA IDENT WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 125, spurious reduction of production sep_list1(COMMA,var) -> var
-## In state 127, spurious reduction of production sep_list1(COMMA,var) -> var COMMA sep_list1(COMMA,var)
+## In state 127, spurious reduction of production sep_list1(COMMA,var) -> var
+## In state 129, spurious reduction of production sep_list1(COMMA,var) -> var COMMA sep_list1(COMMA,var)
 ##
 
 Expected `in` after for loop variables
 
 program: FOR IDENT EQUALS TRUE COMMA TRUE COMMA TRUE WHILE
 ##
-## Ends in an error in state: 153.
+## Ends in an error in state: 157.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT AND ADD ]
@@ -63,7 +63,7 @@ program: FOR IDENT EQUALS TRUE COMMA TRUE COMMA TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `do` after for loop initialisation
@@ -72,7 +72,7 @@ We should have something of the form
 
 program: FOR IDENT EQUALS TRUE COMMA TRUE COMMA WHILE
 ##
-## Ends in an error in state: 152.
+## Ends in an error in state: 156.
 ##
 ## option(__anonymous_1) -> COMMA . expr [ DO ]
 ##
@@ -84,9 +84,9 @@ Expected expression for for loop step
 
 program: FOR IDENT EQUALS TRUE COMMA TRUE DO SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 156.
+## Ends in an error in state: 160.
 ##
-## stmt -> FOR var EQUALS expr COMMA expr option(__anonymous_1) DO stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FOR var EQUALS expr COMMA expr option(__anonymous_1) DO stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR var EQUALS expr COMMA expr option(__anonymous_1) DO stmts
@@ -102,7 +102,7 @@ Expected `end` to close for loop
 
 program: FOR IDENT EQUALS TRUE COMMA TRUE WHILE
 ##
-## Ends in an error in state: 151.
+## Ends in an error in state: 155.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT COMMA AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT COMMA AND ADD ]
@@ -118,7 +118,7 @@ program: FOR IDENT EQUALS TRUE COMMA TRUE WHILE
 ## expr -> expr . LE expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT COMMA AND ADD ]
 ## expr -> expr . GT expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT COMMA AND ADD ]
 ## expr -> expr . GE expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT COMMA AND ADD ]
-## stmt -> FOR var EQUALS expr COMMA expr . option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FOR var EQUALS expr COMMA expr . option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR var EQUALS expr COMMA expr
@@ -127,7 +127,7 @@ program: FOR IDENT EQUALS TRUE COMMA TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `do` to finish for loop initialisation.
@@ -137,9 +137,9 @@ We expect something of the form
 
 program: FOR IDENT EQUALS TRUE COMMA WHILE
 ##
-## Ends in an error in state: 150.
+## Ends in an error in state: 154.
 ##
-## stmt -> FOR var EQUALS expr COMMA . expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FOR var EQUALS expr COMMA . expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR var EQUALS expr COMMA
@@ -149,7 +149,7 @@ Expected expression for for loop limit
 
 program: FOR IDENT EQUALS TRUE WHILE
 ##
-## Ends in an error in state: 149.
+## Ends in an error in state: 153.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA AND ADD ]
@@ -165,7 +165,7 @@ program: FOR IDENT EQUALS TRUE WHILE
 ## expr -> expr . LE expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA AND ADD ]
 ## expr -> expr . GT expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA AND ADD ]
 ## expr -> expr . GE expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA AND ADD ]
-## stmt -> FOR var EQUALS expr . COMMA expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FOR var EQUALS expr . COMMA expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR var EQUALS expr
@@ -174,16 +174,16 @@ program: FOR IDENT EQUALS TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 Expected comma after for loop start
 
 program: FOR IDENT EQUALS WHILE
 ##
-## Ends in an error in state: 148.
+## Ends in an error in state: 152.
 ##
-## stmt -> FOR var EQUALS . expr COMMA expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FOR var EQUALS . expr COMMA expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR var EQUALS
@@ -195,9 +195,9 @@ You should have something like
 
 program: FOR IDENT IN TRUE DO SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 162.
+## Ends in an error in state: 166.
 ##
-## stmt -> FOR sep_list1(COMMA,var) IN sep_list1(COMMA,expr) DO stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FOR sep_list1(COMMA,var) IN sep_list1(COMMA,expr) DO stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR sep_list1(COMMA,var) IN sep_list1(COMMA,expr) DO stmts
@@ -213,9 +213,9 @@ Expected `end` to close for loop.
 
 program: FOR IDENT IN TRUE WHILE
 ##
-## Ends in an error in state: 160.
+## Ends in an error in state: 164.
 ##
-## stmt -> FOR sep_list1(COMMA,var) IN sep_list1(COMMA,expr) . DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FOR sep_list1(COMMA,var) IN sep_list1(COMMA,expr) . DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR sep_list1(COMMA,var) IN sep_list1(COMMA,expr)
@@ -224,17 +224,17 @@ program: FOR IDENT IN TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
-## In state 78, spurious reduction of production sep_list1(COMMA,expr) -> expr
+## In state 41, spurious reduction of production expr -> expr_pow
+## In state 80, spurious reduction of production sep_list1(COMMA,expr) -> expr
 ##
 
 Expected `end` after for loop initialiser
 
 program: FOR IDENT IN WHILE
 ##
-## Ends in an error in state: 159.
+## Ends in an error in state: 163.
 ##
-## stmt -> FOR sep_list1(COMMA,var) IN . sep_list1(COMMA,expr) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FOR sep_list1(COMMA,var) IN . sep_list1(COMMA,expr) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR sep_list1(COMMA,var) IN
@@ -244,11 +244,11 @@ Expected generator expression in for loop
 
 program: FOR IDENT WHILE
 ##
-## Ends in an error in state: 147.
+## Ends in an error in state: 151.
 ##
 ## sep_list1(COMMA,var) -> var . [ IN ]
 ## sep_list1(COMMA,var) -> var . COMMA sep_list1(COMMA,var) [ IN ]
-## stmt -> FOR var . EQUALS expr COMMA expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FOR var . EQUALS expr COMMA expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR var
@@ -258,10 +258,10 @@ Expected `=` or `in` after `for` loop variables
 
 program: FOR WHILE
 ##
-## Ends in an error in state: 146.
+## Ends in an error in state: 150.
 ##
-## stmt -> FOR . var EQUALS expr COMMA expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
-## stmt -> FOR . sep_list1(COMMA,var) IN sep_list1(COMMA,expr) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FOR . var EQUALS expr COMMA expr option(__anonymous_1) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
+## stmt -> FOR . sep_list1(COMMA,var) IN sep_list1(COMMA,expr) DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FOR
@@ -271,9 +271,9 @@ Expected loop variabliables within `for` loop
 
 program: FUNCTION IDENT COLON WHILE
 ##
-## Ends in an error in state: 141.
+## Ends in an error in state: 145.
 ##
-## function_name -> function_name COLON . IDENT [ OPAREN DOT COLON ]
+## function_name -> function_name COLON . ident [ OPAREN DOT COLON ]
 ##
 ## The known suffix of the stack is as follows:
 ## function_name COLON
@@ -283,9 +283,9 @@ Expected method name after `:`.
 
 program: FUNCTION IDENT DOT WHILE
 ##
-## Ends in an error in state: 139.
+## Ends in an error in state: 143.
 ##
-## function_name -> function_name DOT . IDENT [ OPAREN DOT COLON ]
+## function_name -> function_name DOT . ident [ OPAREN DOT COLON ]
 ##
 ## The known suffix of the stack is as follows:
 ## function_name DOT
@@ -295,9 +295,9 @@ Expected function name after `.`.
 
 program: FUNCTION IDENT OPAREN CPAREN SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 144.
+## Ends in an error in state: 148.
 ##
-## stmt -> FUNCTION function_name args stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FUNCTION function_name args stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FUNCTION function_name args stmts
@@ -313,11 +313,11 @@ Expected `end` to terminate function definition.
 
 program: FUNCTION IDENT WHILE
 ##
-## Ends in an error in state: 138.
+## Ends in an error in state: 142.
 ##
-## function_name -> function_name . DOT IDENT [ OPAREN DOT COLON ]
-## function_name -> function_name . COLON IDENT [ OPAREN DOT COLON ]
-## stmt -> FUNCTION function_name . args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## function_name -> function_name . DOT ident [ OPAREN DOT COLON ]
+## function_name -> function_name . COLON ident [ OPAREN DOT COLON ]
+## stmt -> FUNCTION function_name . args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FUNCTION function_name
@@ -327,9 +327,9 @@ Expected `(` to start this function's argument list.
 
 program: FUNCTION WHILE
 ##
-## Ends in an error in state: 136.
+## Ends in an error in state: 140.
 ##
-## stmt -> FUNCTION . function_name args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> FUNCTION . function_name args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FUNCTION
@@ -340,21 +340,21 @@ You cannot have an anonymous functions at the top level!
 
 program: IDENT COLON IDENT WHILE
 ##
-## Ends in an error in state: 84.
+## Ends in an error in state: 86.
 ##
-## call -> simple_expr COLON IDENT . call_args [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## call -> simple_expr COLON ident . call_args [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
-## simple_expr COLON IDENT
+## simple_expr COLON ident
 ##
 
 Expected argument in self-call.
 
 program: IDENT COLON WHILE
 ##
-## Ends in an error in state: 83.
+## Ends in an error in state: 85.
 ##
-## call -> simple_expr COLON . IDENT call_args [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## call -> simple_expr COLON . ident call_args [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## simple_expr COLON
@@ -364,7 +364,7 @@ Expected method name in self-call.
 
 program: IDENT COMMA WHILE
 ##
-## Ends in an error in state: 174.
+## Ends in an error in state: 181.
 ##
 ## sep_list1(COMMA,name) -> name COMMA . sep_list1(COMMA,name) [ EQUALS ]
 ##
@@ -376,9 +376,9 @@ Expected another variable in assignment list.
 
 program: IDENT DOT WHILE
 ##
-## Ends in an error in state: 81.
+## Ends in an error in state: 83.
 ##
-## name -> simple_expr DOT . IDENT [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQUALS EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## name -> simple_expr DOT . ident [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQUALS EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## simple_expr DOT
@@ -388,9 +388,9 @@ Expected table key after `.`.
 
 program: IDENT EQUALS WHILE
 ##
-## Ends in an error in state: 171.
+## Ends in an error in state: 178.
 ##
-## stmt -> sep_list1(COMMA,name) EQUALS . sep_list1(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> sep_list1(COMMA,name) EQUALS . sep_list1(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## sep_list1(COMMA,name) EQUALS
@@ -400,9 +400,9 @@ Expected expressions on right hand side of an assignment.
 
 program: IDENT OPAREN TRUE BREAK
 ##
-## Ends in an error in state: 76.
+## Ends in an error in state: 78.
 ##
-## call_args -> OPAREN sep_list0(COMMA,expr) . CPAREN [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## call_args -> OPAREN sep_list0(COMMA,expr) . CPAREN [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## OPAREN sep_list0(COMMA,expr)
@@ -411,18 +411,18 @@ program: IDENT OPAREN TRUE BREAK
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
-## In state 78, spurious reduction of production sep_list1(COMMA,expr) -> expr
-## In state 75, spurious reduction of production sep_list0(COMMA,expr) -> sep_list1(COMMA,expr)
+## In state 41, spurious reduction of production expr -> expr_pow
+## In state 80, spurious reduction of production sep_list1(COMMA,expr) -> expr
+## In state 77, spurious reduction of production sep_list0(COMMA,expr) -> sep_list1(COMMA,expr)
 ##
 
 Expecting `)` to close opening `(`.
 
 program: IDENT OPAREN WHILE
 ##
-## Ends in an error in state: 74.
+## Ends in an error in state: 76.
 ##
-## call_args -> OPAREN . sep_list0(COMMA,expr) CPAREN [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## call_args -> OPAREN . sep_list0(COMMA,expr) CPAREN [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## OPAREN
@@ -432,7 +432,7 @@ Expected expression after `(`.
 
 program: IDENT OSQUARE TRUE WHILE
 ##
-## Ends in an error in state: 44.
+## Ends in an error in state: 46.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CSQUARE CONCAT AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CSQUARE CONCAT AND ADD ]
@@ -448,7 +448,7 @@ program: IDENT OSQUARE TRUE WHILE
 ## expr -> expr . LE expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CSQUARE CONCAT AND ADD ]
 ## expr -> expr . GT expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CSQUARE CONCAT AND ADD ]
 ## expr -> expr . GE expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CSQUARE CONCAT AND ADD ]
-## name -> simple_expr OSQUARE expr . CSQUARE [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQUALS EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## name -> simple_expr OSQUARE expr . CSQUARE [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQUALS EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## simple_expr OSQUARE expr
@@ -457,16 +457,16 @@ program: IDENT OSQUARE TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `]` to close table index.
 
 program: IDENT OSQUARE WHILE
 ##
-## Ends in an error in state: 37.
+## Ends in an error in state: 39.
 ##
-## name -> simple_expr OSQUARE . expr CSQUARE [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQUALS EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## name -> simple_expr OSQUARE . expr CSQUARE [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQUALS EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## simple_expr OSQUARE
@@ -476,10 +476,10 @@ Expected expression within table index.
 
 program: IDENT STRING TRUE
 ##
-## Ends in an error in state: 188.
+## Ends in an error in state: 195.
 ##
 ## simple_expr -> call . [ STRING OSQUARE OPAREN OBRACE DOT COLON ]
-## stmt -> call . [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> call . [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## call
@@ -489,7 +489,7 @@ Unexpected token after function call
 
 program: IDENT WHILE
 ##
-## Ends in an error in state: 173.
+## Ends in an error in state: 180.
 ##
 ## sep_list1(COMMA,name) -> name . [ EQUALS ]
 ## sep_list1(COMMA,name) -> name . COMMA sep_list1(COMMA,name) [ EQUALS ]
@@ -503,9 +503,9 @@ Unexpected token after variable.
 
 program: IF TRUE THEN BREAK UNTIL
 ##
-## Ends in an error in state: 176.
+## Ends in an error in state: 183.
 ##
-## stmt -> if_clause(IF) . list(if_clause(ELSEIF)) option(__anonymous_0) END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> if_clause(IF) . list(if_clause(ELSEIF)) option(__anonymous_0) END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## if_clause(IF)
@@ -515,16 +515,16 @@ program: IF TRUE THEN BREAK UNTIL
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 3, spurious reduction of production stmts -> rlist(stmt)
-## In state 135, spurious reduction of production if_clause(IF) -> IF expr THEN stmts
+## In state 137, spurious reduction of production if_clause(IF) -> IF expr THEN stmts
 ##
 
 Expected `end` to terminate this `if` block.
 
 program: IF TRUE THEN ELSE UNTIL
 ##
-## Ends in an error in state: 184.
+## Ends in an error in state: 191.
 ##
-## stmt -> if_clause(IF) list(if_clause(ELSEIF)) option(__anonymous_0) . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> if_clause(IF) list(if_clause(ELSEIF)) option(__anonymous_0) . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## if_clause(IF) list(if_clause(ELSEIF)) option(__anonymous_0)
@@ -534,14 +534,14 @@ program: IF TRUE THEN ELSE UNTIL
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 3, spurious reduction of production stmts -> rlist(stmt)
-## In state 183, spurious reduction of production option(__anonymous_0) -> ELSE stmts
+## In state 190, spurious reduction of production option(__anonymous_0) -> ELSE stmts
 ##
 
 Expected statement within `else` body.
 
 program: IF TRUE THEN ELSEIF TRUE THEN BREAK UNTIL
 ##
-## Ends in an error in state: 186.
+## Ends in an error in state: 193.
 ##
 ## list(if_clause(ELSEIF)) -> if_clause(ELSEIF) . list(if_clause(ELSEIF)) [ END ELSE ]
 ##
@@ -553,14 +553,14 @@ program: IF TRUE THEN ELSEIF TRUE THEN BREAK UNTIL
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 3, spurious reduction of production stmts -> rlist(stmt)
-## In state 180, spurious reduction of production if_clause(ELSEIF) -> ELSEIF expr THEN stmts
+## In state 187, spurious reduction of production if_clause(ELSEIF) -> ELSEIF expr THEN stmts
 ##
 
 Expected `end` to terminate this `if` block.
 
 program: IF TRUE THEN ELSEIF TRUE WHILE
 ##
-## Ends in an error in state: 178.
+## Ends in an error in state: 185.
 ##
 ## expr -> expr . AND expr [ THEN SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT AND ADD ]
 ## expr -> expr . OR expr [ THEN SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT AND ADD ]
@@ -585,14 +585,14 @@ program: IF TRUE THEN ELSEIF TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `then` within `elseif` condition.
 
 program: IF TRUE THEN ELSEIF WHILE
 ##
-## Ends in an error in state: 177.
+## Ends in an error in state: 184.
 ##
 ## if_clause(ELSEIF) -> ELSEIF . expr THEN stmts [ END ELSEIF ELSE ]
 ##
@@ -604,7 +604,7 @@ Expected condition after `elseif`.
 
 program: IF TRUE WHILE
 ##
-## Ends in an error in state: 133.
+## Ends in an error in state: 135.
 ##
 ## expr -> expr . AND expr [ THEN SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT AND ADD ]
 ## expr -> expr . OR expr [ THEN SUB OR NE MUL MOD LT LE GT GE EQ DIV CONCAT AND ADD ]
@@ -629,14 +629,14 @@ program: IF TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `then` after `if` condition.
 
 program: IF WHILE
 ##
-## Ends in an error in state: 132.
+## Ends in an error in state: 134.
 ##
 ## if_clause(IF) -> IF . expr THEN stmts [ END ELSEIF ELSE ]
 ##
@@ -648,9 +648,9 @@ Expected `condition` after `if`
 
 program: LOCAL FUNCTION IDENT OPAREN CPAREN SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 123.
+## Ends in an error in state: 125.
 ##
-## stmt -> LOCAL FUNCTION var args stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> LOCAL FUNCTION var args stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## LOCAL FUNCTION var args stmts
@@ -666,9 +666,9 @@ Expected `end` to close function definition.
 
 program: LOCAL FUNCTION IDENT WHILE
 ##
-## Ends in an error in state: 121.
+## Ends in an error in state: 123.
 ##
-## stmt -> LOCAL FUNCTION var . args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> LOCAL FUNCTION var . args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## LOCAL FUNCTION var
@@ -678,9 +678,9 @@ Expected `(` to start this function's argument list.
 
 program: LOCAL FUNCTION WHILE
 ##
-## Ends in an error in state: 120.
+## Ends in an error in state: 122.
 ##
-## stmt -> LOCAL FUNCTION . var args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> LOCAL FUNCTION . var args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## LOCAL FUNCTION
@@ -690,9 +690,9 @@ Expected local function name.
 
 program: LOCAL IDENT COMMA WHILE
 ##
-## Ends in an error in state: 126.
+## Ends in an error in state: 128.
 ##
-## sep_list1(COMMA,var) -> var COMMA . sep_list1(COMMA,var) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IN IF IDENT FUNCTION FOR EQUALS EOF END ELSEIF ELSE DO BREAK ]
+## sep_list1(COMMA,var) -> var COMMA . sep_list1(COMMA,var) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IN IF IDENT GOTO FUNCTION FOR EQUALS EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## var COMMA
@@ -702,9 +702,9 @@ Expected another identifier in function's argument list.
 
 program: LOCAL IDENT EQUALS WHILE
 ##
-## Ends in an error in state: 129.
+## Ends in an error in state: 131.
 ##
-## option(__anonymous_2) -> EQUALS . sep_list1(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## option(__anonymous_2) -> EQUALS . sep_list1(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## EQUALS
@@ -714,9 +714,9 @@ Expected an expression on the right hand side of a `local` declaration.
 
 program: LOCAL IDENT IN
 ##
-## Ends in an error in state: 128.
+## Ends in an error in state: 130.
 ##
-## stmt -> LOCAL sep_list1(COMMA,var) . option(__anonymous_2) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> LOCAL sep_list1(COMMA,var) . option(__anonymous_2) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## LOCAL sep_list1(COMMA,var)
@@ -725,17 +725,17 @@ program: LOCAL IDENT IN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 125, spurious reduction of production sep_list1(COMMA,var) -> var
+## In state 127, spurious reduction of production sep_list1(COMMA,var) -> var
 ##
 
 Expected statement or `=` after a `local` declaration
 
 program: LOCAL IDENT TRUE
 ##
-## Ends in an error in state: 125.
+## Ends in an error in state: 127.
 ##
-## sep_list1(COMMA,var) -> var . [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IN IF IDENT FUNCTION FOR EQUALS EOF END ELSEIF ELSE DO BREAK ]
-## sep_list1(COMMA,var) -> var . COMMA sep_list1(COMMA,var) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IN IF IDENT FUNCTION FOR EQUALS EOF END ELSEIF ELSE DO BREAK ]
+## sep_list1(COMMA,var) -> var . [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IN IF IDENT GOTO FUNCTION FOR EQUALS EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
+## sep_list1(COMMA,var) -> var . COMMA sep_list1(COMMA,var) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IN IF IDENT GOTO FUNCTION FOR EQUALS EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## var
@@ -745,10 +745,10 @@ Unexpected token after identifier.
 
 program: LOCAL WHILE
 ##
-## Ends in an error in state: 119.
+## Ends in an error in state: 121.
 ##
-## stmt -> LOCAL . sep_list1(COMMA,var) option(__anonymous_2) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
-## stmt -> LOCAL . FUNCTION var args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> LOCAL . sep_list1(COMMA,var) option(__anonymous_2) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
+## stmt -> LOCAL . FUNCTION var args stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## LOCAL
@@ -758,11 +758,11 @@ Expected identifier after `local`.
 
 program: OPAREN TRUE CPAREN CBRACE
 ##
-## Ends in an error in state: 169.
+## Ends in an error in state: 176.
 ##
-## call -> simple_expr . call_args [ WHILE UNTIL STRING SEMICOLON RETURN REPEAT OSQUARE OPAREN OBRACE LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DOT DO COLON BREAK ]
-## call -> simple_expr . COLON IDENT call_args [ WHILE UNTIL STRING SEMICOLON RETURN REPEAT OSQUARE OPAREN OBRACE LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DOT DO COLON BREAK ]
-## name -> simple_expr . DOT IDENT [ STRING OSQUARE OPAREN OBRACE EQUALS DOT COMMA COLON ]
+## call -> simple_expr . call_args [ WHILE UNTIL STRING SEMICOLON RETURN REPEAT OSQUARE OPAREN OBRACE LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DOT DO COLON BREAK ]
+## call -> simple_expr . COLON ident call_args [ WHILE UNTIL STRING SEMICOLON RETURN REPEAT OSQUARE OPAREN OBRACE LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DOT DO COLON BREAK ]
+## name -> simple_expr . DOT ident [ STRING OSQUARE OPAREN OBRACE EQUALS DOT COMMA COLON ]
 ## name -> simple_expr . OSQUARE expr CSQUARE [ STRING OSQUARE OPAREN OBRACE EQUALS DOT COMMA COLON ]
 ##
 ## The known suffix of the stack is as follows:
@@ -773,7 +773,7 @@ We've just finished parsing a simple expression.
 
 program: OPAREN TRUE WHILE
 ##
-## Ends in an error in state: 105.
+## Ends in an error in state: 107.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CPAREN CONCAT AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CPAREN CONCAT AND ADD ]
@@ -789,7 +789,7 @@ program: OPAREN TRUE WHILE
 ## expr -> expr . LE expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CPAREN CONCAT AND ADD ]
 ## expr -> expr . GT expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CPAREN CONCAT AND ADD ]
 ## expr -> expr . GE expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CPAREN CONCAT AND ADD ]
-## simple_expr -> OPAREN expr . CPAREN [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## simple_expr -> OPAREN expr . CPAREN [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## OPAREN expr
@@ -798,7 +798,7 @@ program: OPAREN TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `)` to close opening parenthesis.
@@ -807,7 +807,7 @@ program: OPAREN WHILE
 ##
 ## Ends in an error in state: 8.
 ##
-## simple_expr -> OPAREN . expr CPAREN [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## simple_expr -> OPAREN . expr CPAREN [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## OPAREN
@@ -817,9 +817,9 @@ Expected expression after `(`.
 
 program: REPEAT SEMICOLON EOF
 ##
-## Ends in an error in state: 116.
+## Ends in an error in state: 118.
 ##
-## stmt -> REPEAT stmts . UNTIL expr [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> REPEAT stmts . UNTIL expr [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## REPEAT stmts
@@ -835,23 +835,23 @@ Expected `until` to terminate `repeat` loop.
 
 program: REPEAT UNTIL TRUE THEN
 ##
-## Ends in an error in state: 118.
+## Ends in an error in state: 120.
 ##
-## expr -> expr . AND expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . OR expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . ADD expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . SUB expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . MUL expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . DIV expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . MOD expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . CONCAT expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . EQ expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . NE expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . LT expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . LE expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . GT expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## expr -> expr . GE expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CONCAT BREAK AND ADD ]
-## stmt -> REPEAT stmts UNTIL expr . [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## expr -> expr . AND expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . OR expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . ADD expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . SUB expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . MUL expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . DIV expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . MOD expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . CONCAT expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . EQ expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . NE expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . LT expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . LE expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . GT expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## expr -> expr . GE expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CONCAT BREAK AND ADD ]
+## stmt -> REPEAT stmts UNTIL expr . [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## REPEAT stmts UNTIL expr
@@ -860,16 +860,16 @@ program: REPEAT UNTIL TRUE THEN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 This is unexpected after a `repeat` block.
 
 program: REPEAT UNTIL WHILE
 ##
-## Ends in an error in state: 117.
+## Ends in an error in state: 119.
 ##
-## stmt -> REPEAT stmts UNTIL . expr [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> REPEAT stmts UNTIL . expr [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## REPEAT stmts UNTIL
@@ -879,9 +879,9 @@ Expected expression for `repeat` condition.
 
 program: RETURN FUNCTION OPAREN CPAREN SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 29.
+## Ends in an error in state: 31.
 ##
-## atom -> FUNCTION args stmts . END [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## atom -> FUNCTION args stmts . END [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## FUNCTION args stmts
@@ -897,7 +897,7 @@ Expected `end` to terminate function body.
 
 program: RETURN FUNCTION OPAREN IDENT COMMA WHILE
 ##
-## Ends in an error in state: 26.
+## Ends in an error in state: 28.
 ##
 ## sep_list1(COMMA,arg) -> arg COMMA . sep_list1(COMMA,arg) [ CPAREN ]
 ##
@@ -909,7 +909,7 @@ Expected another function argument within argument list.
 
 program: RETURN FUNCTION OPAREN IDENT WHILE
 ##
-## Ends in an error in state: 25.
+## Ends in an error in state: 27.
 ##
 ## sep_list1(COMMA,arg) -> arg . [ CPAREN ]
 ## sep_list1(COMMA,arg) -> arg . COMMA sep_list1(COMMA,arg) [ CPAREN ]
@@ -922,9 +922,9 @@ Expected another argument or `)` within argument list.
 
 program: RETURN FUNCTION OPAREN WHILE
 ##
-## Ends in an error in state: 19.
+## Ends in an error in state: 20.
 ##
-## args -> OPAREN . sep_list0(COMMA,arg) CPAREN [ WHILE SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR END DO BREAK ]
+## args -> OPAREN . sep_list0(COMMA,arg) CPAREN [ WHILE SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR END DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## OPAREN
@@ -934,9 +934,9 @@ Expected another argument or `)` within argument list.
 
 program: RETURN FUNCTION WHILE
 ##
-## Ends in an error in state: 18.
+## Ends in an error in state: 19.
 ##
-## atom -> FUNCTION . args stmts END [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## atom -> FUNCTION . args stmts END [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## FUNCTION
@@ -946,13 +946,13 @@ Expected `(` to start function's argument list.
 
 program: RETURN IDENT TRUE
 ##
-## Ends in an error in state: 35.
+## Ends in an error in state: 37.
 ##
-## atom -> simple_expr . [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
-## call -> simple_expr . call_args [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
-## call -> simple_expr . COLON IDENT call_args [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
-## name -> simple_expr . DOT IDENT [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
-## name -> simple_expr . OSQUARE expr CSQUARE [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## atom -> simple_expr . [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## call -> simple_expr . call_args [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## call -> simple_expr . COLON ident call_args [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## name -> simple_expr . DOT ident [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## name -> simple_expr . OSQUARE expr CSQUARE [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## simple_expr
@@ -964,7 +964,7 @@ program: RETURN LEN WHILE
 ##
 ## Ends in an error in state: 15.
 ##
-## expr_pow -> LEN . expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr_pow -> LEN . expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## LEN
@@ -976,7 +976,7 @@ program: RETURN NOT WHILE
 ##
 ## Ends in an error in state: 12.
 ##
-## expr_pow -> NOT . expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr_pow -> NOT . expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## NOT
@@ -986,7 +986,7 @@ Expected an expression after `not`
 
 program: RETURN OBRACE IDENT EQUALS TRUE WHILE
 ##
-## Ends in an error in state: 96.
+## Ends in an error in state: 103.
 ##
 ## expr -> expr . AND expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
 ## expr -> expr . OR expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
@@ -1002,35 +1002,35 @@ program: RETURN OBRACE IDENT EQUALS TRUE WHILE
 ## expr -> expr . LE expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
 ## expr -> expr . GT expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
 ## expr -> expr . GE expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
-## table_entry -> IDENT EQUALS expr . [ SEMICOLON COMMA CBRACE ]
+## table_entry -> ident EQUALS expr . [ SEMICOLON COMMA CBRACE ]
 ##
 ## The known suffix of the stack is as follows:
-## IDENT EQUALS expr
+## ident EQUALS expr
 ##
 ## WARNING: This example involves spurious reductions.
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `}` to close table.
 
 program: RETURN OBRACE IDENT EQUALS WHILE
 ##
-## Ends in an error in state: 95.
+## Ends in an error in state: 102.
 ##
-## table_entry -> IDENT EQUALS . expr [ SEMICOLON COMMA CBRACE ]
+## table_entry -> ident EQUALS . expr [ SEMICOLON COMMA CBRACE ]
 ##
 ## The known suffix of the stack is as follows:
-## IDENT EQUALS
+## ident EQUALS
 ##
 
 Expected expression after `=` in table entry.
 
 program: RETURN OBRACE OSQUARE TRUE CSQUARE EQUALS TRUE WHILE
 ##
-## Ends in an error in state: 93.
+## Ends in an error in state: 95.
 ##
 ## expr -> expr . AND expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
 ## expr -> expr . OR expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
@@ -1055,14 +1055,14 @@ program: RETURN OBRACE OSQUARE TRUE CSQUARE EQUALS TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `,` or `}` after table entry.
 
 program: RETURN OBRACE OSQUARE TRUE CSQUARE EQUALS WHILE
 ##
-## Ends in an error in state: 92.
+## Ends in an error in state: 94.
 ##
 ## table_entry -> OSQUARE expr CSQUARE EQUALS . expr [ SEMICOLON COMMA CBRACE ]
 ##
@@ -1074,7 +1074,7 @@ Expected expression after `=` in table entry.
 
 program: RETURN OBRACE OSQUARE TRUE CSQUARE WHILE
 ##
-## Ends in an error in state: 91.
+## Ends in an error in state: 93.
 ##
 ## table_entry -> OSQUARE expr CSQUARE . EQUALS expr [ SEMICOLON COMMA CBRACE ]
 ##
@@ -1086,7 +1086,7 @@ Expected `=` after table key.
 
 program: RETURN OBRACE OSQUARE TRUE WHILE
 ##
-## Ends in an error in state: 90.
+## Ends in an error in state: 92.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CSQUARE CONCAT AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DIV CSQUARE CONCAT AND ADD ]
@@ -1111,7 +1111,7 @@ program: RETURN OBRACE OSQUARE TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `]` to close `[` in table key.
@@ -1130,7 +1130,7 @@ Expected expression after opening table key.
 
 program: RETURN OBRACE TRUE SEMICOLON WHILE
 ##
-## Ends in an error in state: 100.
+## Ends in an error in state: 99.
 ##
 ## table_body -> table_entry table_sep . table_body [ CBRACE ]
 ##
@@ -1142,7 +1142,7 @@ Expected `}` or table entry.
 
 program: RETURN OBRACE TRUE WHILE
 ##
-## Ends in an error in state: 102.
+## Ends in an error in state: 104.
 ##
 ## expr -> expr . AND expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
 ## expr -> expr . OR expr [ SUB SEMICOLON OR NE MUL MOD LT LE GT GE EQ DIV CONCAT COMMA CBRACE AND ADD ]
@@ -1167,7 +1167,7 @@ program: RETURN OBRACE TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 This is unexpected after an expression.
@@ -1176,7 +1176,7 @@ program: RETURN OBRACE WHILE
 ##
 ## Ends in an error in state: 9.
 ##
-## table -> OBRACE . table_body CBRACE [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
+## table -> OBRACE . table_body CBRACE [ WHILE UNTIL THEN SUB STRING SEMICOLON RETURN REPEAT POW OSQUARE OR OPAREN OBRACE NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DOT DO DIV CSQUARE CPAREN CONCAT COMMA COLON CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## OBRACE
@@ -1191,7 +1191,7 @@ program: RETURN SUB WHILE
 ##
 ## Ends in an error in state: 6.
 ##
-## expr_pow -> SUB . expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr_pow -> SUB . expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## SUB
@@ -1201,9 +1201,9 @@ Expected expression after operator
 
 program: RETURN THEN
 ##
-## Ends in an error in state: 113.
+## Ends in an error in state: 115.
 ##
-## stmt -> RETURN . sep_list0(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> RETURN . sep_list0(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## RETURN
@@ -1213,9 +1213,9 @@ Expected an expression or end of block after `return`.
 
 program: RETURN TRUE ADD WHILE
 ##
-## Ends in an error in state: 59.
+## Ends in an error in state: 61.
 ##
-## expr -> expr ADD . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr ADD . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr ADD
@@ -1225,9 +1225,9 @@ Expected expression after operator
 
 program: RETURN TRUE AND WHILE
 ##
-## Ends in an error in state: 71.
+## Ends in an error in state: 73.
 ##
-## expr -> expr AND . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr AND . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr AND
@@ -1237,9 +1237,9 @@ Expected expression after operator
 
 program: RETURN TRUE COMMA WHILE
 ##
-## Ends in an error in state: 79.
+## Ends in an error in state: 81.
 ##
-## sep_list1(COMMA,expr) -> expr COMMA . sep_list1(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO CPAREN BREAK ]
+## sep_list1(COMMA,expr) -> expr COMMA . sep_list1(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO CPAREN BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr COMMA
@@ -1250,9 +1250,9 @@ Expected expression after comma
 
 program: RETURN TRUE CONCAT WHILE
 ##
-## Ends in an error in state: 57.
+## Ends in an error in state: 59.
 ##
-## expr -> expr CONCAT . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr CONCAT . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr CONCAT
@@ -1262,9 +1262,9 @@ Expected expression after operator
 
 program: RETURN TRUE DIV WHILE
 ##
-## Ends in an error in state: 51.
+## Ends in an error in state: 53.
 ##
-## expr -> expr DIV . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr DIV . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr DIV
@@ -1274,9 +1274,9 @@ Expected expression after operator
 
 program: RETURN TRUE EQ WHILE
 ##
-## Ends in an error in state: 69.
+## Ends in an error in state: 71.
 ##
-## expr -> expr EQ . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr EQ . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr EQ
@@ -1286,9 +1286,9 @@ Expected expression after operator
 
 program: RETURN TRUE GE WHILE
 ##
-## Ends in an error in state: 67.
+## Ends in an error in state: 69.
 ##
-## expr -> expr GE . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr GE . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr GE
@@ -1298,9 +1298,9 @@ Expected expression after operator
 
 program: RETURN TRUE GT WHILE
 ##
-## Ends in an error in state: 65.
+## Ends in an error in state: 67.
 ##
-## expr -> expr GT . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr GT . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr GT
@@ -1310,9 +1310,9 @@ Expected expression after operator
 
 program: RETURN TRUE LE WHILE
 ##
-## Ends in an error in state: 63.
+## Ends in an error in state: 65.
 ##
-## expr -> expr LE . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr LE . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr LE
@@ -1322,9 +1322,9 @@ Expected expression after operator
 
 program: RETURN TRUE LT WHILE
 ##
-## Ends in an error in state: 61.
+## Ends in an error in state: 63.
 ##
-## expr -> expr LT . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr LT . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr LT
@@ -1334,9 +1334,9 @@ Expected expression after operator
 
 program: RETURN TRUE MOD WHILE
 ##
-## Ends in an error in state: 49.
+## Ends in an error in state: 51.
 ##
-## expr -> expr MOD . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr MOD . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr MOD
@@ -1346,9 +1346,9 @@ Expected expression after operator
 
 program: RETURN TRUE MUL WHILE
 ##
-## Ends in an error in state: 47.
+## Ends in an error in state: 49.
 ##
-## expr -> expr MUL . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr MUL . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr MUL
@@ -1358,9 +1358,9 @@ Expected expression after operator
 
 program: RETURN TRUE NE WHILE
 ##
-## Ends in an error in state: 55.
+## Ends in an error in state: 57.
 ##
-## expr -> expr NE . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr NE . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr NE
@@ -1370,9 +1370,9 @@ Expected expression after operator
 
 program: RETURN TRUE OR WHILE
 ##
-## Ends in an error in state: 53.
+## Ends in an error in state: 55.
 ##
-## expr -> expr OR . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr OR . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr OR
@@ -1382,9 +1382,9 @@ Expected expression after operator
 
 program: RETURN TRUE POW WHILE
 ##
-## Ends in an error in state: 40.
+## Ends in an error in state: 42.
 ##
-## expr_pow -> expr_pow POW . expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr_pow -> expr_pow POW . expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr_pow POW
@@ -1394,9 +1394,9 @@ Expected expression after operator
 
 program: RETURN TRUE SUB WHILE
 ##
-## Ends in an error in state: 45.
+## Ends in an error in state: 47.
 ##
-## expr -> expr SUB . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr SUB . expr [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr SUB
@@ -1406,24 +1406,24 @@ Expected expression after operator
 
 program: RETURN TRUE THEN
 ##
-## Ends in an error in state: 78.
+## Ends in an error in state: 80.
 ##
-## expr -> expr . AND expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . OR expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . ADD expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . SUB expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . MUL expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . DIV expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . MOD expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . CONCAT expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . EQ expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . NE expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . LT expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . LE expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . GT expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## expr -> expr . GE expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
-## sep_list1(COMMA,expr) -> expr . [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO CPAREN BREAK ]
-## sep_list1(COMMA,expr) -> expr . COMMA sep_list1(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO CPAREN BREAK ]
+## expr -> expr . AND expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . OR expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . ADD expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . SUB expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . MUL expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . DIV expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . MOD expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . CONCAT expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . EQ expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . NE expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . LT expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . LE expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . GT expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## expr -> expr . GE expr [ WHILE UNTIL SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CPAREN CONCAT COMMA BREAK AND ADD ]
+## sep_list1(COMMA,expr) -> expr . [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO CPAREN BREAK ]
+## sep_list1(COMMA,expr) -> expr . COMMA sep_list1(COMMA,expr) [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO CPAREN BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr
@@ -1432,17 +1432,17 @@ program: RETURN TRUE THEN
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 Unexpected symbol after expression.
 
 program: RETURN TRUE TRUE
 ##
-## Ends in an error in state: 39.
+## Ends in an error in state: 41.
 ##
-## expr -> expr_pow . [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
-## expr_pow -> expr_pow . POW expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GE FUNCTION FOR EQ EOF END ELSEIF ELSE DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr -> expr_pow . [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
+## expr_pow -> expr_pow . POW expr_pow [ WHILE UNTIL THEN SUB SEMICOLON RETURN REPEAT POW OR OPAREN NE MUL MOD LT LOCAL LE IF IDENT GT GOTO GE FUNCTION FOR EQ EOF END ELSEIF ELSE DOUBLE_COLON DO DIV CSQUARE CPAREN CONCAT COMMA CBRACE BREAK AND ADD ]
 ##
 ## The known suffix of the stack is as follows:
 ## expr_pow
@@ -1470,9 +1470,9 @@ Expected another statement or end of block.
 
 program: WHILE TRUE DO SEMICOLON ELSEIF
 ##
-## Ends in an error in state: 110.
+## Ends in an error in state: 112.
 ##
-## stmt -> WHILE expr DO stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> WHILE expr DO stmts . END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## WHILE expr DO stmts
@@ -1488,7 +1488,7 @@ Expected `end` to close while loop.
 
 program: WHILE TRUE WHILE
 ##
-## Ends in an error in state: 108.
+## Ends in an error in state: 110.
 ##
 ## expr -> expr . AND expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT AND ADD ]
 ## expr -> expr . OR expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT AND ADD ]
@@ -1504,7 +1504,7 @@ program: WHILE TRUE WHILE
 ## expr -> expr . LE expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT AND ADD ]
 ## expr -> expr . GT expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT AND ADD ]
 ## expr -> expr . GE expr [ SUB OR NE MUL MOD LT LE GT GE EQ DO DIV CONCAT AND ADD ]
-## stmt -> WHILE expr . DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> WHILE expr . DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## WHILE expr
@@ -1513,7 +1513,7 @@ program: WHILE TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
+## In state 41, spurious reduction of production expr -> expr_pow
 ##
 
 Expected `do` after `while` loop condition.
@@ -1522,7 +1522,7 @@ program: WHILE WHILE
 ##
 ## Ends in an error in state: 4.
 ##
-## stmt -> WHILE . expr DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT FUNCTION FOR EOF END ELSEIF ELSE DO BREAK ]
+## stmt -> WHILE . expr DO stmts END [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
 ##
 ## The known suffix of the stack is as follows:
 ## WHILE
@@ -1532,7 +1532,7 @@ Expected condition for `while` loop
 
 repl_exprs: WHILE
 ##
-## Ends in an error in state: 190.
+## Ends in an error in state: 197.
 ##
 ## repl_exprs' -> . repl_exprs [ # ]
 ##
@@ -1544,7 +1544,7 @@ Expected an expression
 
 repl_exprs: TRUE WHILE
 ##
-## Ends in an error in state: 191.
+## Ends in an error in state: 198.
 ##
 ## repl_exprs -> sep_list1(COMMA,expr) . EOF [ # ]
 ##
@@ -1555,8 +1555,45 @@ repl_exprs: TRUE WHILE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production expr -> expr_pow
-## In state 78, spurious reduction of production sep_list1(COMMA,expr) -> expr
+## In state 41, spurious reduction of production expr -> expr_pow
+## In state 80, spurious reduction of production sep_list1(COMMA,expr) -> expr
 ##
 
 Expected eof after an expression.
+
+program: GOTO WHILE
+##
+## Ends in an error in state: 138.
+##
+## ident -> GOTO . [ STRING OSQUARE OPAREN OBRACE EQUALS DOT COMMA COLON ]
+## stmt -> GOTO . ident [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
+##
+## The known suffix of the stack is as follows:
+## GOTO
+##
+
+Expected a destination label after `goto`.
+
+program: DOUBLE_COLON WHILE
+##
+## Ends in an error in state: 168.
+##
+## stmt -> DOUBLE_COLON . ident DOUBLE_COLON [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
+##
+## The known suffix of the stack is as follows:
+## DOUBLE_COLON
+##
+
+Expected a label after `::`.
+
+program: DOUBLE_COLON GOTO WHILE
+##
+## Ends in an error in state: 169.
+##
+## stmt -> DOUBLE_COLON ident . DOUBLE_COLON [ WHILE UNTIL SEMICOLON RETURN REPEAT OPAREN LOCAL IF IDENT GOTO FUNCTION FOR EOF END ELSEIF ELSE DOUBLE_COLON DO BREAK ]
+##
+## The known suffix of the stack is as follows:
+## DOUBLE_COLON ident
+##
+
+Expected closing `::` after label.

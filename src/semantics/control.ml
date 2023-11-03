@@ -100,7 +100,14 @@ let build_func t entry_block =
         go loop bb stmts
   and go_one loop bb stmt rest =
     match stmt with
-    | Assign _ | Local _ | LocalFunction _ | AssignFunction _ | SCall _ | Semicolon _ -> Some bb
+    | Assign _
+    | Local _
+    | LocalFunction _
+    | AssignFunction _
+    | SCall _
+    | Semicolon _
+    | Goto _
+    | Label _ -> Some bb
     | Return _ ->
         (* Return terminates control flow. *)
         None

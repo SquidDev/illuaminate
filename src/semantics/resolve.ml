@@ -320,7 +320,7 @@ and resolve_stmt s (stmt : S.stmt) =
       S.SepList0.iter (resolve_expr s) return_vals;
       s
   | SCall call -> resolve_call s call; s
-  | Break _ | Semicolon _ -> s
+  | Break _ | Semicolon _ | Goto _ | Label _ -> s
 
 and resolve_function_name s = function
   | S.FVar var -> Some (var_usage s var)

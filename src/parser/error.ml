@@ -40,6 +40,10 @@ type t =
         token : Grammar.token  (** The current token. *)
       }  (** [end] was expected. *)
   | Unexpected_end of Grammar.token  (**An unexpected [end] in a statement. *)
+  | Unfinished_label of
+      { start : IlluaminateCore.Syntax.token;  (** The opening [::]. *)
+        token : Grammar.token  (** The current token. *)
+      }  (** A label declaration was started but not closed. *)
   | Expected_statement of Grammar.token
       (** A fallback error when we expected a statement but received another token. *)
   | Expected_function_args of Grammar.token  (** Expected `(` to open our function arguments. *)
@@ -147,6 +151,12 @@ let report errs pos err =
                 "Your program contains more %as than needed. Check each block (%a, %a, %a, ...) \
                  only has one %a"
                 pp_code_s "end" pp_code_s "if" pp_code_s "for" pp_code_s "function" pp_code_s "end")
+        ]
+  | Unfinished_label { start; token } ->
+      report
+        (fun f -> f "Unexpected %a." pp_token token)
+        [ annotation (IlluaminateCore.Node.span start) (fun f -> f "Label was started here.");
+          annotation (Token.get_span token) (fun f -> f "Tip: Try adding %a here." pp_code_s "::")
         ]
   (* Boring fallback errors *)
   | Expected_statement token ->

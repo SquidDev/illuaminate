@@ -71,6 +71,8 @@ rule error_message token top = parse error
   { Unclosed_brackets { open_ = unpack lp; token } }
 | OSQUARE as lp; [. CSQUARE]; !
   { Unclosed_brackets { open_ = unpack lp; token } }
+| DOUBLE_COLON as lp; [. DOUBLE_COLON]; !
+  { Unfinished_label { start = unpack lp; token } }
 
 (* `local function x.f() end` *)
 | ([stmt: LOCAL . FUNCTION] as loc); FUNCTION; var; !
