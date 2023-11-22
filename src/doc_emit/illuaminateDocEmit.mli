@@ -52,4 +52,4 @@ module Html : sig
   val embedded_css : string
 end
 
-module Summary = IlluaminateDocEmit__.Summary
+module Summary = Summary

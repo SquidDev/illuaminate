@@ -61,15 +61,6 @@
  (deps
   (alias check-messages)))
 
-;; Provide rules for generating the .conflict and .automaton file
-
-(rule
- (targets "type_grammar.conflicts" "type_grammar.automaton")
- (deps "type_grammar.mly")
- (mode promote)
- (action
-  (run menhir --table --explain --dump %{deps})))
-
 (ocamllex
  (modules doc_lexer))
 
