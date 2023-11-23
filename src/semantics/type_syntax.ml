@@ -7,7 +7,10 @@ module type S = sig
     | IntTy of int
     | NumberTy of float
     | StringTy of string
-    | Named of reference * string
+    | Named of
+        { ref : reference;
+          label : string
+        }
     | Function of
         { args : arg list;
           return : t list * t option
@@ -47,7 +50,10 @@ end) : S with type reference = X.reference = struct
     | IntTy of int
     | NumberTy of float
     | StringTy of string
-    | Named of reference * string
+    | Named of
+        { ref : reference;
+          label : string
+        }
     | Function of
         { args : arg list;
           return : t list * t option
@@ -92,7 +98,7 @@ module Lift (L : S) (R : S) = struct
       | IntTy x -> IntTy x
       | NumberTy x -> NumberTy x
       | StringTy x -> StringTy x
-      | Named (r, l) -> Named (of_ref r, l)
+      | Named { ref; label } -> Named { ref = of_ref ref; label }
       | Function { args; return = rs, r } ->
           Function { args = List.map arg args; return = (List.map ty rs, Option.map ty r) }
       | Table ts -> Table (List.map table_entry ts)
@@ -111,7 +117,8 @@ module Builtin = struct
   open Resolved
 
   let mk_external name =
-    Named (External { name; url = Lua_reference.(lookup_type name |> to_url) }, name)
+    Named
+      { ref = External { name; url = Lua_reference.(lookup_type name |> to_url) }; label = name }
 
   let string = mk_external "string"
   let number = mk_external "number"

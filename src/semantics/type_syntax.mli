@@ -7,7 +7,10 @@ module type S = sig
     | IntTy of int
     | NumberTy of float
     | StringTy of string
-    | Named of reference * string
+    | Named of
+        { ref : reference;
+          label : string
+        }
     | Function of
         { args : arg list;
           return : t list * t option

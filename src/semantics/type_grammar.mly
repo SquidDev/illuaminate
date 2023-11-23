@@ -65,8 +65,8 @@ let var :=
   | tbl = var ; "." ; field = name ;      { let (whole, display) = tbl in (whole ^ "." ^ field, display ^ "." ^ field) }
 
 let simple_type :=
-  | ~ = var ;                         { let (whole, display) = var in Named (Reference whole, display) }
-  | FUNCTION ;                        { Named (Reference "function", "function") }
+  | ~ = var ;                         { let (whole, label) = var in Named { ref = Reference whole; label } }
+  | FUNCTION ;                        { Named { ref = Reference "function"; label = "function" } }
   | "(" ; ~ =  ty ; ")" ;             <>
   | NIL ;                             { NilTy }
   | TRUE ;                            { BoolTy true }

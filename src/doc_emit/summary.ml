@@ -67,7 +67,7 @@ let dot_section (section : Reference.name_of) n : Reference.name_of =
   match section with
   | Module -> Value n
   | Value v -> Value (dot_name v n)
-  | Member (t, v) -> Member (t, dot_name v n)
+  | Member { type_name; member_name } -> Member { type_name; member_name = dot_name member_name n }
   | Type _ -> failwith "Cannot dot type."
 
 let of_term ~source_link ~in_module =
@@ -98,7 +98,7 @@ let of_type ~source_link ~in_module =
         member_name
     in
     of_term ~in_module ~source_link ~name
-      ~section:(Member (type_name, member_name))
+      ~section:(Member { type_name; member_name })
       names member_value
   in
   let ty names { type_name; type_members } =

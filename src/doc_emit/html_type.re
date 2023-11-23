@@ -44,7 +44,7 @@ let rec show_type = (~options, x) =>
   | IntTy(x) => x |> CCInt.to_string |> str
   | NumberTy(x) => x |> CCFloat.to_string |> str
   | StringTy(x) => x |> String.escaped |> Printf.sprintf("\"%s\"") |> str
-  | Named(r, l) => show_reference(~options, r, str(l))
+  | Named({ref, label}) => show_reference(~options, ref, str(label))
   | Union([]) => nil
   | Union([x, ...xs]) =>
     [

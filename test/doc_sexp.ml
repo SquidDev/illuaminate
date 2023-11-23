@@ -72,7 +72,7 @@ struct
     | IntTy x -> string_of_int x |> atom'
     | NumberTy x -> string_of_float x |> atom'
     | StringTy x -> Printf.sprintf "%S" x |> atom'
-    | Named (x, _) -> [ reference x ]
+    | Named { ref; _ } -> [ reference ref ]
     | Function _ -> atom' "function(...)"
     | Table _ -> atom' "{...}"
     | Union xs -> [ `List (atom "union" :: List.map (list' % type_) xs) ]

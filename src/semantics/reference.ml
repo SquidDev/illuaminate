@@ -16,7 +16,10 @@ type name_of =
   | Module
   | Value of string
   | Type of string
-  | Member of string * string
+  | Member of
+      { type_name : string;
+        member_name : string
+      }
 
 (** A name which has been resolved to a known location. *)
 type resolved =
@@ -37,8 +40,8 @@ let pp_resolved out = function
       Format.pp_print_string out (Namespace.Ref.display_name in_module)
   | Internal { in_module = { id = in_module; _ }; name = Value n | Type n; _ } ->
       Format.fprintf out "%s.%s" in_module n
-  | Internal { in_module = { id = in_module; _ }; name = Member (ty, n); _ } ->
-      Format.fprintf out "%s.%s:%s" in_module ty n
+  | Internal { in_module = { id = in_module; _ }; name = Member { type_name; member_name }; _ } ->
+      Format.fprintf out "%s.%s:%s" in_module type_name member_name
   | External { name; _ } | Unknown name -> Format.pp_print_string out name
 
 (** Get the name of a section for a specific reference. *)
@@ -46,4 +49,5 @@ let section_of_name = function
   | Module -> None
   | Value n -> Printf.sprintf "v:%s" n |> Option.some
   | Type n -> Printf.sprintf "ty:%s" n |> Option.some
-  | Member (ty, n) -> Printf.sprintf "ty:%s:%s" ty n |> Option.some
+  | Member { type_name; member_name } ->
+      Printf.sprintf "ty:%s:%s" type_name member_name |> Option.some

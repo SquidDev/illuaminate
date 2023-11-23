@@ -33,7 +33,7 @@ let check ~ctx ~span ~kind = function
 
 let rec type_ ~ctx ~span = function
   | Type.NilTy | BoolTy _ | IntTy _ | NumberTy _ | StringTy _ -> ()
-  | Named (n, _) -> check ~ctx ~span ~kind:"type" n
+  | Named { ref; _ } -> check ~ctx ~span ~kind:"type" ref
   | Function { args; return = rs, rest } ->
       List.iter (fun { Type.ty; _ } -> type_ ~ctx ~span ty) args;
       List.iter (type_ ~ctx ~span) rs;

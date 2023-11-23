@@ -91,7 +91,7 @@ module Resolvers = struct
          |> Option.map (fun { member_name; member_value; _ } ->
                 Internal
                   { in_module = page_ref;
-                    name = Member (type_name, member_name);
+                    name = Member { type_name; member_name };
                     definition = member_value.definition
                   })
 
