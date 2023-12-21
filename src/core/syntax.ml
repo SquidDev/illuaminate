@@ -399,13 +399,6 @@ and name =
         close_k : token  (** [\]] *)
       }  (** [[ t[x] ]] - Index a table with an expression key. *)
 
-(** A literal value. *)
-and 'a literal =
-  { lit_value : 'a;  (** The underlying value. *)
-    lit_node : string Node.t
-        (** The node that this value was parsed from, with its string representation. *)
-  }
-
 (** [function(x, ...) return x end] *)
 and fun_expr =
   { fun_function : token;  (** [function] *)
@@ -465,10 +458,8 @@ and expr =
   | Nil of token
   | True of token
   | False of token
-  | Number of float literal
-  | Int of Int64.t literal
-  | MalformedNumber of string Node.t
-  | String of string literal
+  | Number of string Node.t
+  | String of string Node.t
   | Fun of fun_expr
   | Table of table
   | UnOp of unop_expr
@@ -496,7 +487,7 @@ and call_args =
         close_a : token
       }
   | CallTable of table
-  | CallString of string literal
+  | CallString of string Node.t
 
 (** The arguments to a function definition. *)
 and args =
@@ -622,45 +613,21 @@ module First = struct
   let unop_expr = Unop_expr.unop_op -| Node.lens_embed UnOp.token
   let paren_expr = Paren_expr.paren_open
 
-  let literal_embed (get : 'a -> string -> Token.t) (set : Token.t -> 'a * string) =
-    let get { lit_node; lit_value } = (Node.contents %= fun x -> get lit_value x) @@ lit_node
-    and over f { lit_node; lit_value } =
-      let res = (Node.contents %= fun x -> get lit_value x) @@ lit_node |> f in
-      let lit_value, contents = res ^. Node.contents |> set in
-      { lit_node = Node.with_contents contents res; lit_value }
-    in
-    { get; over }
-
   let lit_string =
-    let get v t = Token.String (v, t)
-    and set = function
-      | Token.String (v, t) -> (v, t)
+    let get x = Token.String x
+    and over f x =
+      match f (Token.String x) with
+      | Token.String x -> x
       | t -> failwith (Format.asprintf "Cannot convert token '%a' to string." Token.pp t)
     in
-    literal_embed get set
+    Node.lens_embed { get; over }
 
   let lit_number =
-    let get v t = Token.Number (v, t)
-    and set = function
-      | Token.Number (v, t) -> (v, t)
-      | t -> failwith (Format.asprintf "Cannot convert token '%a' to number." Token.pp t)
-    in
-    literal_embed get set
-
-  let lit_int =
-    let get v t = Token.Int (v, t)
-    and set = function
-      | Token.Int (v, t) -> (v, t)
-      | t -> failwith (Format.asprintf "Cannot convert token '%a' to int." Token.pp t)
-    in
-    literal_embed get set
-
-  let lit_malformed_number =
-    let get x = Token.MalformedNumber x
+    let get x = Token.Number x
     and over f x =
-      match f (Token.MalformedNumber x) with
-      | Token.MalformedNumber x -> x
-      | t -> failwith (Format.asprintf "Cannot convert token '%a' to malformed number." Token.pp t)
+      match f (Token.Number x) with
+      | Token.Number x -> x
+      | t -> failwith (Format.asprintf "Cannot convert token '%a' to number." Token.pp t)
     in
     Node.lens_embed { get; over }
 
@@ -742,8 +709,6 @@ module First = struct
       | ECall x -> call.get x
       | Dots x | Nil x | True x | False x -> x
       | Number x -> lit_number.get x
-      | Int x -> lit_int.get x
-      | MalformedNumber x -> lit_malformed_number.get x
       | String x -> lit_string.get x
       | Fun x -> fun_expr.get x
       | Table x -> table.get x
@@ -758,8 +723,6 @@ module First = struct
       | True x -> True (f x)
       | False x -> False (f x)
       | Number x -> Number (lit_number.over f x)
-      | Int x -> Int (lit_int.over f x)
-      | MalformedNumber x -> MalformedNumber (lit_malformed_number.over f x)
       | String x -> String (lit_string.over f x)
       | Fun x -> Fun (fun_expr.over f x)
       | Table x -> Table (table.over f x)
@@ -877,8 +840,6 @@ module Last = struct
       | ECall x -> call.get x
       | Dots x | Nil x | True x | False x -> x
       | Number x -> First.lit_number.get x
-      | Int x -> First.lit_int.get x
-      | MalformedNumber x -> First.lit_malformed_number.get x
       | String x -> First.lit_string.get x
       | Fun x -> fun_expr.get x
       | Table x -> table.get x
@@ -893,8 +854,6 @@ module Last = struct
       | True x -> True (f x)
       | False x -> False (f x)
       | Number x -> Number (First.lit_number.over f x)
-      | Int x -> Int (First.lit_int.over f x)
-      | MalformedNumber x -> MalformedNumber (First.lit_malformed_number.over f x)
       | String x -> String (First.lit_string.over f x)
       | Fun x -> Fun (fun_expr.over f x)
       | Table x -> Table (table.over f x)
@@ -1026,16 +985,7 @@ module Precedence = struct
 
   (** Get the precedence of an expression. *)
   let of_expr = function
-    | Nil _
-    | True _
-    | False _
-    | Number _
-    | Int _
-    | MalformedNumber _
-    | String _
-    | Fun _
-    | Table _
-    | Dots _ -> Lit
+    | Nil _ | True _ | False _ | Number _ | String _ | Fun _ | Table _ | Dots _ -> Lit
     | ECall _ | Ref _ | Parens _ -> Raw
     | UnOp { unop_op; _ } -> Op (Node.contents.get unop_op |> UnOp.precedence)
     | BinOp { binop_op; _ } -> Op (Node.contents.get binop_op |> BinOp.precedence)

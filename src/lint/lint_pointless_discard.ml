@@ -45,9 +45,7 @@ module Fix = struct
 
   (** Attempt to flatten an expression into a series of statements. *)
   let rec flatten : expr -> (stmt list, string) result = function
-    | Ref (NVar _)
-    | Dots _ | Nil _ | True _ | False _ | Number _ | MalformedNumber _ | Int _ | String _ | Fun _ ->
-        Ok []
+    | Ref (NVar _) | Dots _ | Nil _ | True _ | False _ | Number _ | String _ | Fun _ -> Ok []
     | Parens { paren_expr = x; _ } -> flatten x
     | Table { table_body; _ } ->
         let rec items xs =

@@ -22,7 +22,7 @@ rule error_message lines = parse error
   { Error.Use_double_equals token }
 
 (* Suggest a missing comma in table entries. *)
-| last = [_ / table_body: table_entry . ...] @ STRING, NUMBER, INT, MNUMBER, TRUE, FALSE, NIL
+| last = [_ / table_body: table_entry . ...] @ STRING, NUMBER, TRUE, FALSE, NIL
   { Missing_table_comma { comma_pos = span_after lines $endloc(last); token } }
 
 (* Suggest removing a comma in function calls. *)

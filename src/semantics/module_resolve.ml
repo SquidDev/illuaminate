@@ -105,9 +105,12 @@ and get_expr ({ resolved; libraries; _ } as store) :
   | Parens { paren_expr = e; _ } -> get_expr store e
   | ECall (Call { fn; args }) when Global.of_expr resolved fn = require -> (
     match Syntax.Helpers.get_call_args args with
-    | Some (Mono (String { lit_value = name; _ })) ->
-        (* Identify calls to require("foo"), and find a module "foo". *)
-        StringMap.find_opt name libraries |> Option.map (mk_module ~name ~ns:Namespace.library)
+    | Some (Mono (String str)) -> (
+      (* Identify calls to require("foo"), and find a module "foo". *)
+      match Illuaminate.Syntax.Literal.String.parse_value (Node.contents.get str) with
+      | Ok name ->
+          StringMap.find_opt name libraries |> Option.map (mk_module ~name ~ns:Namespace.library)
+      | Error () -> None)
     | _ -> None)
   | _ -> None
 

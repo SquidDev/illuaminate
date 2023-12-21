@@ -61,7 +61,7 @@ let report errs pos err =
     | EOF _ -> Format.pp_print_string out "end of file"
     | IDENT _ -> Format.pp_print_string out "identifier"
     | STRING _ -> Format.pp_print_string out "string"
-    | NUMBER _ | INT _ | MNUMBER _ -> Format.pp_print_string out "number"
+    | NUMBER _ -> Format.pp_print_string out "number"
     | token -> pp_code IlluaminateCore.Token.pp out (Token.get_token token)
   in
   let fmt msg out () = msg (Fmt.pf out) in

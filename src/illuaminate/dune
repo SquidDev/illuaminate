@@ -2,3 +2,5 @@
  (name illuaminate)
  (public_name illuaminate)
  (libraries containers fmt fpath))
+
+(include_subdirs qualified)

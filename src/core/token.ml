@@ -30,18 +30,16 @@ type t =
   | Ident of string
   | If
   | In
-  | Int of Int64.t * string
   | Le
   | Len
   | Local
   | Lt
-  | MalformedNumber of string
   | Mod
   | Mul
   | Ne
   | Nil
   | Not
-  | Number of float * string
+  | Number of string
   | OBrace
   | OParen
   | Or
@@ -50,7 +48,7 @@ type t =
   | Repeat
   | Return
   | Semicolon
-  | String of string * string
+  | String of string
   | Sub
   | Then
   | True
@@ -91,18 +89,16 @@ let show = function
   | Ident x -> x
   | If -> "if"
   | In -> "in"
-  | Int (_, x) -> x
   | Le -> "<="
   | Len -> "#"
   | Local -> "local"
   | Lt -> "<"
-  | MalformedNumber x -> x
   | Mod -> "%"
   | Mul -> "*"
   | Ne -> "~="
   | Nil -> "nil"
   | Not -> "not"
-  | Number (_, x) -> x
+  | Number x -> x
   | OBrace -> "{"
   | OParen -> "("
   | Or -> "or"
@@ -111,7 +107,7 @@ let show = function
   | Repeat -> "repeat"
   | Return -> "return"
   | Semicolon -> ";"
-  | String (_, x) -> x
+  | String x -> x
   | Sub -> "-"
   | Then -> "then"
   | True -> "true"

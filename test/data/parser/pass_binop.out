@@ -28,17 +28,14 @@
                      { Syntax.binop_lhs =
                        (Syntax.BinOp
                           { Syntax.binop_lhs =
-                            (Syntax.Int
-                               { Syntax.lit_value = 1L;
-                                 lit_node =
-                                 Node.Node {leading_trivia = [];
-                                   trailing_trivia =
-                                   [{ Span.value = (Node.Whitespace " ");
-                                      span = pass_binop.lua[1:12-1:12] }
-                                     ];
-                                   contents = "1";
-                                   span = pass_binop.lua[1:11-1:11]}
-                                 });
+                            (Syntax.Number
+                               Node.Node {leading_trivia = [];
+                                 trailing_trivia =
+                                 [{ Span.value = (Node.Whitespace " ");
+                                    span = pass_binop.lua[1:12-1:12] }
+                                   ];
+                                 contents = "1";
+                                 span = pass_binop.lua[1:11-1:11]});
                             binop_op =
                             Node.Node {leading_trivia = [];
                               trailing_trivia =
@@ -47,17 +44,14 @@
                                 ];
                               contents = *; span = pass_binop.lua[1:13-1:13]};
                             binop_rhs =
-                            (Syntax.Int
-                               { Syntax.lit_value = 2L;
-                                 lit_node =
-                                 Node.Node {leading_trivia = [];
-                                   trailing_trivia =
-                                   [{ Span.value = (Node.Whitespace " ");
-                                      span = pass_binop.lua[1:16-1:16] }
-                                     ];
-                                   contents = "2";
-                                   span = pass_binop.lua[1:15-1:15]}
-                                 })
+                            (Syntax.Number
+                               Node.Node {leading_trivia = [];
+                                 trailing_trivia =
+                                 [{ Span.value = (Node.Whitespace " ");
+                                    span = pass_binop.lua[1:16-1:16] }
+                                   ];
+                                 contents = "2";
+                                 span = pass_binop.lua[1:15-1:15]})
                             });
                        binop_op =
                        Node.Node {leading_trivia = [];
@@ -67,17 +61,13 @@
                            ];
                          contents = +; span = pass_binop.lua[1:17-1:17]};
                        binop_rhs =
-                       (Syntax.Int
-                          { Syntax.lit_value = 4L;
-                            lit_node =
-                            Node.Node {leading_trivia = [];
-                              trailing_trivia =
-                              [{ Span.value = (Node.Whitespace "\n");
-                                 span = pass_binop.lua[1:20-1:20] }
-                                ];
-                              contents = "4";
-                              span = pass_binop.lua[1:19-1:19]}
-                            })
+                       (Syntax.Number
+                          Node.Node {leading_trivia = [];
+                            trailing_trivia =
+                            [{ Span.value = (Node.Whitespace "\n");
+                               span = pass_binop.lua[1:20-1:20] }
+                              ];
+                            contents = "4"; span = pass_binop.lua[1:19-1:19]})
                        }))))
         })
     ];

@@ -70,6 +70,3 @@
 
 (ocamllex
  (modules string_format))
-
-(ocamllex
- (modules string_escape))

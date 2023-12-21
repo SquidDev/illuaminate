@@ -1,4 +1,3 @@
-open IlluaminateCore
 module Control = Control
 module Global = Global
 module Pure = Pure
@@ -37,28 +36,4 @@ module Stringlib : sig
     (** Parse a format specifier. *)
     val parse : string -> t
   end
-
-  (** Parse strings and their internal escape sequences. *)
-  module Literal : sig
-    type component =
-      | Segment of string  (** A raw string, without any quotes or escape sequences. *)
-      | Escape of string * Uchar.t
-          (** A string escape, devised of the escape sequence (including ["\\"]) and the actual
-              character. *)
-      | Malformed of char * Span.t  (** A malformed string escape. *)
-      | Quote of char  (** A string quote, namely [''] or [""]. *)
-
-    type t = component list
-
-    (** Parse a string literal. *)
-    val parse : string Node.t -> t option
-  end
-end
-
-module Ident : sig
-  (** A set of Lua keywords. *)
-  val keywords : Set.Make(String).t
-
-  (** Is this string a valid identifier? *)
-  val is : string -> bool
 end

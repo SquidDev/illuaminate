@@ -147,15 +147,8 @@ let expr { Opt.clarifying } { path; _ } r parens =
         | Parens { paren_expr = e; _ } -> go unwrap_most e
         (* If we've got raw literals, then they only need to be wrapped when calling/indexing
            them. *)
-        | Nil _
-        | True _
-        | False _
-        | Number _
-        | String _
-        | Int _
-        | MalformedNumber _
-        | Fun _
-        | Table _ -> if is_fn_or_tbl () then msg else unwrap_all path
+        | Nil _ | True _ | False _ | Number _ | String _ | Fun _ | Table _ ->
+            if is_fn_or_tbl () then msg else unwrap_all path
         (* If we're a term which yields a variable number of arguments, we should protect when the
            last argument to a call, or last value in a binding. *)
         | ECall _ -> if is_variadic () then msg else unwrap_all path

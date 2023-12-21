@@ -64,11 +64,17 @@ let rec eval ?(var = fun _ -> RUnknown) =
   in
   function
   | Ref (NVar v) -> var v
-  | Ref _ | ECall _ | Dots _ | Fun _ | Table _ | MalformedNumber _ -> RUnknown
+  | Ref _ | ECall _ | Dots _ | Fun _ | Table _ -> RUnknown
   | Parens { paren_expr = e; _ } -> eval e
-  | Int { lit_value; _ } -> RNumber (Int64.to_float lit_value)
-  | Number { lit_value; _ } -> RNumber lit_value
-  | String { lit_value; _ } -> RString lit_value
+  | Number num -> (
+    match Illuaminate.Syntax.Literal.Number.parse (Node.contents.get num) with
+    | Ok (Int x) -> RNumber (Int64.to_float x)
+    | Ok (Float x) -> RNumber x
+    | Error () -> RUnknown)
+  | String str -> (
+    match Illuaminate.Syntax.Literal.String.parse_value (Node.contents.get str) with
+    | Ok x -> RString x
+    | Error () -> RUnknown)
   | Nil _ -> RNil
   | True _ -> RBool true
   | False _ -> RBool false

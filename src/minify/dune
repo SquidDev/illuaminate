@@ -2,6 +2,10 @@
  (name illuaminateMinify)
  (public_name illuaminate.minify)
  (synopsis "Utilities for minifying Lua code.")
- (libraries illuaminate.core illuaminate.data illuaminate.semantics)
+ (libraries
+  illuaminate
+  illuaminate.core
+  illuaminate.data
+  illuaminate.semantics)
  (instrumentation
   (backend bisect_ppx)))

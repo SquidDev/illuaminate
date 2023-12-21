@@ -22,10 +22,8 @@
 %token <IlluaminateCore.Syntax.UnOp.t IlluaminateCore.Node.t> NOT
 
 %token <string IlluaminateCore.Node.t> IDENT
-%token <string IlluaminateCore.Syntax.literal> STRING
-%token <Int64.t IlluaminateCore.Syntax.literal> INT
-%token <float IlluaminateCore.Syntax.literal> NUMBER
-%token <string IlluaminateCore.Node.t> MNUMBER
+%token <string IlluaminateCore.Node.t> STRING
+%token <string IlluaminateCore.Node.t> NUMBER
 
 %left OR
 %left AND
@@ -112,9 +110,7 @@ let atom :=
   | ~ = TRUE    ; <True>
   | ~ = FALSE   ; <False>
   | ~ = "..."   ; <Dots>
-  | ~ = INT     ; <Int>
   | ~ = NUMBER  ; <Number>
-  | ~ = MNUMBER ; <MalformedNumber>
   | ~ = STRING  ; <String>
   | fun_function = FUNCTION ; fun_args = args ; fun_body = stmts ; fun_end = END
   ; { Fun { fun_function; fun_args; fun_body; fun_end } }

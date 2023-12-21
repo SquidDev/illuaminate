@@ -9,8 +9,7 @@ module Safe = struct
      the environment, or when working with known globals. *)
 
   let rec expr = function
-    | String _ | Number _ | Int _ | MalformedNumber _ | Nil _ | True _ | False _ | Fun _ | Dots _ ->
-        true
+    | String _ | Number _ | Nil _ | True _ | False _ | Fun _ | Dots _ -> true
     | Ref n -> name n
     | (UnOp _ | BinOp _) as e -> (
       match Eval.eval e with

@@ -285,7 +285,7 @@ let program_worker ~options ~context ~r:({ r } : r) linter program =
     | Nil a -> token context a
     | True a -> token context a
     | False a -> token context a
-    | Number _ | Int _ | String _ | MalformedNumber _ -> ()
+    | Number _ | String _ -> ()
     | Fun a -> fun_expr context a
     | Table a -> table context a
     | UnOp a -> unop_expr context a

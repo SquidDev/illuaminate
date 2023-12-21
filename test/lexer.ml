@@ -47,7 +47,7 @@ let tests =
                     Token (Ident "y");
                     Trivial (LineComment "foo");
                     Trivial (Whitespace "\r\n");
-                    Token (String ("x\r\ny", "[[x\r\ny]]"));
+                    Token (String "[[x\r\ny]]");
                     Token EoF
                  |])
               (lex_list ~name:"=in" "x\r\ny--foo\r\n[[x\r\ny]]") )

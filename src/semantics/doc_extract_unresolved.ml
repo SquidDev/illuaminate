@@ -152,11 +152,14 @@ module Infer = struct
             (lazy
               (let def = Lazy.force def in
                simple_documented (Doc_syntax.Table [ (Node.contents.get key, def) ]) def.definition))
-      | NLookup { tbl = Ref tbl; key = String { lit_value; _ }; _ } ->
-          Fun.flip go tbl
-            (lazy
-              (let def = Lazy.force def in
-               simple_documented (Doc_syntax.Table [ (lit_value, def) ]) def.definition))
+      | NLookup { tbl = Ref tbl; key = String str; _ } -> (
+        match Illuaminate.Syntax.Literal.String.parse_value (Node.contents.get str) with
+        | Error () -> ()
+        | Ok str ->
+            Fun.flip go tbl
+              (lazy
+                (let def = Lazy.force def in
+                 simple_documented (Doc_syntax.Table [ (str, def) ]) def.definition)))
       | _ -> ()
     in
     match var with
@@ -181,16 +184,15 @@ module Infer = struct
     | Table { table_body; _ } ->
         let fields = infer_table state table_body in
         Doc_syntax.Table fields |> simp
-    | String { lit_value; _ } ->
+    | String str ->
+        let str = Node.contents.get str in
         Expr
           { ty = Type_syntax.Builtin.string;
-            value =
-              (if String.length lit_value < 32 then Printf.sprintf "%S" lit_value |> Option.some
-               else None)
+            value = (if String.length str < 32 then Some str else None)
           }
         |> simp
-    | Number { lit_node; _ } | Int { lit_node; _ } | MalformedNumber lit_node ->
-        Expr { ty = Type_syntax.Builtin.number; value = Node.contents.get lit_node |> Option.some }
+    | Number num ->
+        Expr { ty = Type_syntax.Builtin.number; value = Node.contents.get num |> Option.some }
         |> simp
     | True _ -> Expr { ty = Type_syntax.Builtin.boolean; value = Some "true" } |> simp
     | False _ -> Expr { ty = Type_syntax.Builtin.boolean; value = Some "false" } |> simp

@@ -64,8 +64,8 @@ let classify_string x : token_kind =
   | _ -> failwith "Impossible string"
 
 let token_ident : Token.t -> token_kind = function
-  | Int _ | MalformedNumber _ | Number _ -> Number
-  | String (_, x) -> classify_string x
+  | Number _ -> Number
+  | String x -> classify_string x
   | Concat -> Concat
   | OSquare -> OBracket
   | Sub -> Minus
@@ -123,7 +123,7 @@ let token_ident : Token.t -> token_kind = function
     [localx], but still allow things like [f()].*)
 class remove_trivia =
   object (self)
-    inherit Syntax.map
+    inherit Syntax.map as super
     val mutable last_kind = Symbol
 
     method private handle_node : 'a. now:token_kind -> ('a -> 'a) -> 'a Node.t -> 'a Node.t =
@@ -150,15 +150,11 @@ class remove_trivia =
     method! var (Var v) = Var (self#handle_node ~now:Ident Fun.id v)
     method! token t = self#handle_node ~now:(token_ident (Node.contents.get t)) Fun.id t
 
-    method! literal _ l =
-      let now : token_kind =
-        match (Node.contents.get l.lit_node).[0] with
-        | '0' .. '9' | '.' -> Number
-        | '\'' | '"' -> Symbol
-        | '[' -> LongString
-        | _ -> failwith "Unknown literal"
-      in
-      l |> Literal.lit_node %= self#handle_node ~now Fun.id
+    method! expr =
+      function
+      | Number n -> Number (self#handle_node ~now:Number Fun.id n)
+      | String n -> String (self#handle_node ~now:(Node.contents.get n |> classify_string) Fun.id n)
+      | n -> super#expr n
 
     method! unop_expr { unop_op; unop_rhs } =
       let now = Node.contents.get unop_op |> UnOp.to_token |> token_ident in
@@ -193,7 +189,7 @@ module Rename = struct
     }
 
   let mk resolve =
-    let keywords = IlluaminateSemantics.Ident.keywords |> StringSet.add "arg" in
+    let keywords = Illuaminate.Syntax.Ident.keywords |> StringSet.add "arg" in
     let keywords =
       Seq.fold_left (fun s v -> StringSet.add v.R.name s) keywords (R.globals resolve)
     in

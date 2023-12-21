@@ -14,7 +14,10 @@ let rec of_var_wk store xs var =
 and of_name_wk store xs = function
   | NVar v -> of_var_wk store xs v
   | NDot { tbl; key; _ } -> of_expr_wk store (Node.contents.get key :: xs) tbl
-  | NLookup { tbl; key = String { lit_value = key; _ }; _ } -> of_expr_wk store (key :: xs) tbl
+  | NLookup { tbl; key = String name; _ } -> (
+    match Illuaminate.Syntax.Literal.String.parse_value (Node.contents.get name) with
+    | Ok key -> of_expr_wk store (key :: xs) tbl
+    | Error () -> None)
   | _ -> None
 
 and of_expr_wk store xs = function

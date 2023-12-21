@@ -334,7 +334,7 @@ and resolve_function_name s = function
 and resolve_expr s = function
   | S.Ref var -> resolve_name s var
   | ECall call -> resolve_call s call
-  | Nil _ | True _ | False _ | Number _ | Int _ | MalformedNumber _ | String _ -> ()
+  | Nil _ | True _ | False _ | Number _ | String _ -> ()
   | Dots node ->
       let dots =
         match s.active_dots with

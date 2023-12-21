@@ -56,8 +56,6 @@ module Make (E : Emitter) : S with type t := E.t = struct
   let var out (Syntax.Var x as v) =
     tagged (Var v) (node ~kind:Identifier Format.pp_print_string) out x
 
-  let literal ~kind out { lit_node; _ } = node ~kind Format.pp_print_string out lit_node
-
   let rec do_stmt out { do_do; do_body; do_end } =
     token ~kind:Keyword out do_do; block out do_body; token ~kind:Keyword out do_end
 
@@ -250,10 +248,8 @@ module Make (E : Emitter) : S with type t := E.t = struct
     | Nil a -> token ~kind:LiteralKeyword out a
     | True a -> token ~kind:LiteralKeyword out a
     | False a -> token ~kind:LiteralKeyword out a
-    | Number a -> literal ~kind:Number out a
-    | Int a -> literal ~kind:Number out a
-    | MalformedNumber a -> node ~kind:Number Format.pp_print_string out a
-    | String a -> literal ~kind:String out a
+    | Number a -> node ~kind:Number Format.pp_print_string out a
+    | String a -> node ~kind:String Format.pp_print_string out a
     | Fun a -> fun_expr out a
     | Table a -> table out a
     | UnOp a -> unop_expr out a
@@ -272,7 +268,7 @@ module Make (E : Emitter) : S with type t := E.t = struct
     | CallArgs { open_a; args; close_a } ->
         token ~kind:Symbol out open_a; list0 expr out args; token ~kind:Symbol out close_a
     | CallTable a -> table out a
-    | CallString a -> literal ~kind:String out a
+    | CallString a -> node ~kind:String Format.pp_print_string out a
 
   and args out { args_open; args_args; args_close } =
     token ~kind:Symbol out args_open; list0 arg out args_args; token ~kind:Symbol out args_close

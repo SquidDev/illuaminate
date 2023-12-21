@@ -2,7 +2,6 @@
 
 open IlluaminateCore
 open Node
-open Syntax
 open Syntax.UnOp
 open Syntax.BinOp
 open! Token
@@ -15,7 +14,6 @@ type lexer_token =
 
 let make_token leading_trivia trailing_trivia span =
   let mk contents = Node { leading_trivia; trailing_trivia; span; contents } in
-  let mkl lit_value c = { lit_value; lit_node = mk c } in
   function
   | Add -> ADD (mk OpAdd)
   | And -> AND (mk OpAnd)
@@ -49,7 +47,6 @@ let make_token leading_trivia trailing_trivia span =
   | Len -> LEN (mk OpLen)
   | Local -> LOCAL (mk Token.Local)
   | Lt -> LT (mk OpLt)
-  | MalformedNumber x -> MNUMBER (mk x)
   | Mod -> MOD (mk OpMod)
   | Mul -> MUL (mk OpMul)
   | Ne -> NE (mk OpNe)
@@ -69,9 +66,8 @@ let make_token leading_trivia trailing_trivia span =
   | Until -> UNTIL (mk Until)
   | While -> WHILE (mk Token.While)
   | Ident x -> IDENT (mk x)
-  | String (x, c) -> STRING (mkl x c)
-  | Number (x, c) -> NUMBER (mkl x c)
-  | Int (x, c) -> INT (mkl x c)
+  | String x -> STRING (mk x)
+  | Number x -> NUMBER (mk x)
 
 let get_token = function
   | ADD _ -> Add
@@ -125,10 +121,8 @@ let get_token = function
   | UNTIL _ -> Until
   | WHILE _ -> While
   | IDENT x -> Ident (x ^. contents)
-  | STRING { lit_value; lit_node } -> String (lit_value, lit_node ^. contents)
-  | NUMBER { lit_value; lit_node; _ } -> Number (lit_value, lit_node ^. contents)
-  | INT { lit_value; lit_node; _ } -> Int (lit_value, lit_node ^. contents)
-  | MNUMBER x -> MalformedNumber (x ^. contents)
+  | STRING x -> String (x ^. contents)
+  | NUMBER x -> Number (x ^. contents)
 
 let get_span =
   let get_span = function
@@ -185,7 +179,4 @@ let get_span =
   | TRUE x
   | UNTIL x
   | WHILE x -> get_span x
-  | IDENT x | MNUMBER x -> get_span x
-  | STRING { lit_node; _ } -> get_span lit_node
-  | NUMBER { lit_node; _ } -> get_span lit_node
-  | INT { lit_node; _ } -> get_span lit_node
+  | IDENT x | STRING x | NUMBER x -> get_span x

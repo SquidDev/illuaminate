@@ -1,0 +1,2 @@
+(ocamllex
+ (modules literal_string_escape))
