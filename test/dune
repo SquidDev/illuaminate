@@ -15,6 +15,7 @@
   omnomnom.golden
   omnomnom.alcotest
   containers
+  illuaminate
   illuaminate.core
   illuaminate.config
   illuaminate.data
@@ -48,19 +49,19 @@
   diff
   doc_emit_summary
   leak_trace_gc
-  md_test_runner
-  span)
+  md_test_runner)
  (action
   (run %{test} --base-dir "../")))
 
 (tests
- (names config_format data doc_emit_summary span)
- (modules config_format data doc_emit_summary span)
+ (names config_format data doc_emit_summary)
+ (modules config_format data doc_emit_summary)
  (libraries
   ; External libs
   fpath
   cmarkit
   ; To test
+  illuaminate
   illuaminate.core
   illuaminate.data
   illuaminate.semantics

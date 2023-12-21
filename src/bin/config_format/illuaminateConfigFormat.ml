@@ -1,3 +1,4 @@
+open Illuaminate
 open IlluaminateCore
 open IlluaminateConfig
 open IlluaminateLint
@@ -93,12 +94,12 @@ let parser =
 
 let parse_error = Error.(Tag.make ~attr:[] ~level:Critical "config:parse")
 
-let of_lexer ~directory (file : Span.filename) lexbuf =
+let of_lexer ~directory (file : File_id.t) lexbuf =
   match IlluaminateConfig.Parser.parse_buf file lexbuf parser with
   | Ok c -> c directory |> Result.ok
   | Error (span, message) -> Error { Span.span; value = message }
 
-let of_file err (file : Span.filename) =
+let of_file err (file : File_id.t) =
   let path =
     match file.path with
     | None -> failwith "of_file: must have a location on disk"

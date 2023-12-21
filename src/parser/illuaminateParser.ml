@@ -67,7 +67,7 @@ let get_error_message lines ((token, _, _) as tok) ~pre_env ~post_env =
       let message = try Messages.message state |> String.trim with Not_found -> "Unknown error" in
       Unexpected_token { token; message }
 
-let parse start (file : Span.filename) (lexbuf : Lexing.lexbuf) =
+let parse start (file : Illuaminate.File_id.t) (lexbuf : Lexing.lexbuf) =
   Span.Lines.using file lexbuf @@ fun lines ->
   let rec go env token token_start token_end next = function
     | I.InputNeeded env as checkpoint -> go_input env checkpoint next
@@ -99,7 +99,7 @@ module Lexer = struct
     | Token of IlluaminateCore.Token.t
     | Trivial of IlluaminateCore.Node.trivial
 
-  let lex (file : Span.filename) (lexbuf : Lexing.lexbuf) :
+  let lex (file : Illuaminate.File_id.t) (lexbuf : Lexing.lexbuf) :
       (token Span.spanned array, Error.t Span.spanned) result =
     Span.Lines.using file lexbuf @@ fun lines ->
     try

@@ -19,7 +19,7 @@ let display ~out ~contents comments =
 
 let process_lua_worker ~name contents out =
   let lexbuf = Lexing.from_string contents in
-  let name = Span.Filename.mk name in
+  let name = Illuaminate.File_id.mk name in
   match IlluaminateParser.program name lexbuf with
   | Error err ->
       let errs = Error.make () in
@@ -31,7 +31,7 @@ let process_lua_worker ~name contents out =
 
 let process_md_worker ~name input out =
   let lexbuf = Lexing.from_string input in
-  let name = Span.Filename.mk name in
+  let name = Illuaminate.File_id.mk name in
   let attributes, contents = IlluaminateParserMd.parse name lexbuf in
   let data = make_data name (Markdown { attributes; contents }) in
   D.get data Doc.file name |> Option.get |> display ~out ~contents:input

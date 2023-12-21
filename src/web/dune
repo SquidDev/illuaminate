@@ -5,6 +5,7 @@
   containers
   fmt
   fpath
+  illuaminate
   illuaminate.core
   illuaminate.parser
   illuaminate.semantics

@@ -73,7 +73,7 @@ val fix : File.t -> Notes.t -> File.t
 val lint_and_fix_all :
   store:IlluaminateConfig.Schema.store ->
   data:IlluaminateData.t ->
-  ?files:Span.filename * IlluaminateData.Programs.FileStore.t ->
+  ?files:Illuaminate.File_id.t * IlluaminateData.Programs.FileStore.t ->
   ?tags:Error.Tag.filter ->
   Linter.t list ->
   File.t ->

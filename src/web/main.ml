@@ -1,4 +1,5 @@
 open Js_of_ocaml
+open Illuaminate
 open IlluaminateCore
 open IlluaminateLint
 
@@ -64,7 +65,7 @@ let data name file =
 (** Fix all errors within the program. *)
 let rec fix_all () : unit =
   let lexbuf = input##.value |> Js.to_string |> Lexing.from_string in
-  let name = Span.Filename.mk "=input" in
+  let name = File_id.mk "=input" in
   match IlluaminateParser.program name lexbuf with
   | Error _ -> ()
   | Ok parsed ->
@@ -77,7 +78,7 @@ let rec fix_all () : unit =
 
 and minify () : unit =
   let lexbuf = input##.value |> Js.to_string |> Lexing.from_string in
-  match IlluaminateParser.program (Span.Filename.mk "=input") lexbuf with
+  match IlluaminateParser.program (File_id.mk "=input") lexbuf with
   | Error _ -> ()
   | Ok parsed ->
       let new_contents =
@@ -100,7 +101,7 @@ and lint () : unit =
   let errs = Error.make () in
   let input = Js.to_string input##.value in
   let lexbuf = Lexing.from_string input in
-  let name = Span.Filename.mk "=input" in
+  let name = File_id.mk "=input" in
   (match IlluaminateParser.program name lexbuf with
   | Error err -> IlluaminateParser.Error.report errs err.span err.value
   | Ok parsed ->

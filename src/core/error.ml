@@ -68,10 +68,7 @@ let error_ansi : level -> Fmt.color = function
   | Note -> `Blue
 
 let pp_source_line out get_line span message =
-  let start_l = Span.start_line span
-  and start_c = Span.start_col.get span
-  and finish_l = Span.finish_line span
-  and finish_c = Span.finish_col.get span in
+  let start_l, start_c = Span.start_pos span and finish_l, finish_c = Span.finish_pos span in
   let line_no = start_l |> string_of_int in
 
   let line = get_line span in

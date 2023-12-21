@@ -1,10 +1,11 @@
 open Omnomnom.Tests
+open Illuaminate
 open IlluaminateCore
 
 let process name =
   let path = Filename.concat "data/reprint" name in
   let contents = CCIO.(with_in path read_all) in
-  let name = Span.Filename.mk name in
+  let name = File_id.mk name in
   match Lexing.from_string contents |> IlluaminateParser.program name with
   | Error err ->
       let errs = Error.make () in

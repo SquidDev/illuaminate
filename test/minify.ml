@@ -3,7 +3,7 @@ open IlluaminateMinify
 
 let process ~name contents =
   let lexbuf = Lexing.from_string contents in
-  let name = Span.Filename.mk name in
+  let name = Illuaminate.File_id.mk name in
   let errs = Error.make () in
   Format.asprintf "%t" @@ fun out ->
   match IlluaminateParser.program name lexbuf with

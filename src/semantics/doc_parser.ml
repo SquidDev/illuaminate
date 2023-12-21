@@ -810,7 +810,7 @@ let rec extract_block line column lines = function
   | { Span.value = Node.Whitespace _; _ } :: xs -> extract_block line column lines xs
   (* Comments aligned with this one on successive lines are included *)
   | { Span.value = Node.LineComment value; span } :: xs
-    when Span.start_line span = line + 1 && Span.start_col.get span = column ->
+    when Span.start_line span = line + 1 && Span.start_col span = column ->
       let span = span |> Lens.(Span.start_offset %= fun p -> p + 2) in
       extract_block (line + 1) column ({ Span.span; value } :: lines) xs
   | xs -> (List.rev lines, (List.hd lines).span, xs)
@@ -832,7 +832,7 @@ let extract node =
            && (* Skip comments which start with a line entirely composed of '-'. *)
            (String.length c = 1 || CCString.exists (fun x -> x <> '-') c) ->
         let lines, last, xs =
-          extract_block (Span.start_line span) (Span.start_col.get span)
+          extract_block (Span.start_line span) (Span.start_col span)
             [ { span = (span |> Lens.(Span.start_offset %= fun p -> p + 3));
                 value = CCString.drop 1 c
               }

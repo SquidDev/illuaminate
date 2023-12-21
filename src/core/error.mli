@@ -95,4 +95,8 @@ val display_of_files : ?out:Format.formatter -> ?with_summary:bool -> t -> unit
 
 (** Display any errors which occurred, with a function which maps file names to strings *)
 val display_of_string :
-  ?out:Format.formatter -> ?with_summary:bool -> (Span.filename -> string option) -> t -> unit
+  ?out:Format.formatter ->
+  ?with_summary:bool ->
+  (Illuaminate.File_id.t -> string option) ->
+  t ->
+  unit

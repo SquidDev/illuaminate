@@ -5,11 +5,12 @@
  (libraries
   cmarkit
   containers
-  illuaminate.html
+  illuaminate
   illuaminate.core
   illuaminate.data
-  illuaminate.semantics
+  illuaminate.html
   illuaminate.parser
+  illuaminate.semantics
   fpath
   yojson
   unix)

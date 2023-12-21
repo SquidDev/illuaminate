@@ -11,9 +11,8 @@ type component =
 let pos (span : Span.t) lexbuf =
   let open Lens in
   span
-  |> (Span.start_col ^= (Span.start_col.get span + (Lexing.lexeme_start_p lexbuf).pos_cnum))
-     % (Span.finish_col ^= (Span.start_col.get span + (Lexing.lexeme_end_p lexbuf).pos_cnum - 1))
-
+  |> (Span.start_offset ^= (Span.start_offset.get span + (Lexing.lexeme_start_p lexbuf).pos_cnum))
+   % (Span.finish_offset ^= (Span.start_offset.get span + (Lexing.lexeme_end_p lexbuf).pos_cnum - 1))
 }
 
 let digit = ['0'-'9']

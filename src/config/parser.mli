@@ -3,6 +3,7 @@
     Config files are built from s-expressions, and so the parsing combinators reflect the underlying
     structure of the file. *)
 
+open Illuaminate
 open IlluaminateCore
 
 (** Represents a configured term.
@@ -98,4 +99,4 @@ val field_repeated : name:string -> 'a t -> 'a list fields
 (** {4 Running the parser} *)
 
 (** Run this parser against a buffer. *)
-val parse_buf : Span.filename -> Lexing.lexbuf -> 'a t -> ('a, Span.t * string) result
+val parse_buf : File_id.t -> Lexing.lexbuf -> 'a t -> ('a, Span.t * string) result

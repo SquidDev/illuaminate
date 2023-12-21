@@ -1,7 +1,7 @@
 open IlluaminateCore
 
 let parse_string ~name contents =
-  let name = Span.Filename.mk name in
+  let name = Illuaminate.File_id.mk name in
   let lexbuf = Lexing.from_string contents in
   match IlluaminateParser.Lexer.lex name lexbuf with
   | Error err ->

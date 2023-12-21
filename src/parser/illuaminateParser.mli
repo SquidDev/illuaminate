@@ -11,13 +11,19 @@ module Lexer : sig
 
   (** Lex a file, producing a simple token stream. *)
   val lex :
-    Span.filename -> Lexing.lexbuf -> (token Span.spanned array, Error.t Span.spanned) result
+    Illuaminate.File_id.t ->
+    Lexing.lexbuf ->
+    (token Span.spanned array, Error.t Span.spanned) result
 end
 
 (** Parse a file, either producing a program or some syntax error. *)
 val program :
-  Span.filename -> Lexing.lexbuf -> (IlluaminateCore.Syntax.program, Error.t Span.spanned) result
+  Illuaminate.File_id.t ->
+  Lexing.lexbuf ->
+  (IlluaminateCore.Syntax.program, Error.t Span.spanned) result
 
 (** Parse a list of expressions. *)
 val repl_exprs :
-  Span.filename -> Lexing.lexbuf -> (IlluaminateCore.Syntax.repl_exprs, Error.t Span.spanned) result
+  Illuaminate.File_id.t ->
+  Lexing.lexbuf ->
+  (IlluaminateCore.Syntax.repl_exprs, Error.t Span.spanned) result

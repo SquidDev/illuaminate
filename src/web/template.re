@@ -38,9 +38,9 @@ let partition_string = (start, length, str) => {
 
 let source_line = (source, span, message) => {
   let start_line = Span.start_line(span);
-  let start_col = Span.start_col.get(span);
+  let start_col = Span.start_col(span);
   let finish_line = Span.finish_line(span);
-  let finish_col = Span.finish_col.get(span);
+  let finish_col = Span.finish_col(span);
 
   let bol = Span.start_bol(span);
   let line_end =

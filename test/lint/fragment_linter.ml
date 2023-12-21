@@ -27,7 +27,7 @@ let parse_schema : Node.trivial Span.spanned -> _ = function
       |> Option.map @@ fun c ->
          let buf = Lexing.from_string c in
          Schema.to_parser schema |> Parser.fields
-         |> Parser.parse_buf (Span.Filename.mk "=config") buf
+         |> Parser.parse_buf (Illuaminate.File_id.mk "=config") buf
          |> Result.fold ~ok:Fun.id ~error:(fun (_, x) -> failwith x)
   | { value = Whitespace _; _ } -> None
 
@@ -44,7 +44,7 @@ let files ~errs extra =
     Sys.readdir (Fpath.to_string dir)
     |> Array.iter (fun d ->
            let file = Fpath.(dir / d) in
-           let name = Span.Filename.mk ~path:file d in
+           let name = Illuaminate.File_id.mk ~path:file d in
            let program =
              CCIO.with_in (Fpath.to_string file)
                (IlluaminateParser.program name % Lexing.from_channel)
@@ -60,7 +60,7 @@ let files ~errs extra =
 
 let process ?(name = "input.lua") contents =
   let lexbuf = Lexing.from_string contents in
-  let name = Span.Filename.mk name in
+  let name = Illuaminate.File_id.mk name in
   let errs = Error.make () in
   match IlluaminateParser.program name lexbuf with
   | Error err ->

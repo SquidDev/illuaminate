@@ -6,12 +6,12 @@ let root = Sys.getcwd () |> Fpath.v
 
 let parse str =
   Lexing.from_string str
-  |> C.of_lexer ~directory:root (Span.Filename.mk "=in")
+  |> C.of_lexer ~directory:root (Illuaminate.File_id.mk "=in")
   |> Result.fold ~ok:Fun.id ~error:(fun { Span.value; span } ->
          Format.asprintf "%a: %s" Span.pp span value |> failwith)
 
 let get_source_link format span =
-  let c = Printf.sprintf "(doc (source-link %S))" format |> parse |> C.get_doc_options in
+  let c = Printf.sprintf "(doc (site (source-link %S)))" format |> parse |> C.get_doc_options in
   c.site_properties.source_link (Span span)
 
 let mk_span file =
@@ -26,7 +26,7 @@ let mk_span file =
   let f = { Lexing.pos_bol = 0; pos_lnum = 2; pos_cnum = 3; pos_fname = "" } in
   of_pos2 l s f
 
-let span = Span.Filename.mk ~path:Fpath.(root / "test.lua") "=in" |> mk_span
+let span = Illuaminate.File_id.mk ~path:Fpath.(root / "test.lua") "=in" |> mk_span
 
 let () =
   Alcotest.run "Config format"
@@ -54,12 +54,12 @@ let () =
           test_case "Path fails for temporary programs" `Quick (fun () ->
               Alcotest.(check (option string))
                 "Format string is None"
-                (Span.Filename.mk "=in" |> mk_span |> get_source_link "[ ${path} ]")
+                (Illuaminate.File_id.mk "=in" |> mk_span |> get_source_link "[ ${path} ]")
                 None);
           test_case "Line works for temporary programs" `Quick (fun () ->
               Alcotest.(check (option string))
                 "Format string is correct"
-                (Span.Filename.mk "=in" |> mk_span |> get_source_link "[ ${line} ]")
+                (Illuaminate.File_id.mk "=in" |> mk_span |> get_source_link "[ ${line} ]")
                 (Some "[ 1 ]"))
         ] );
       ( "Reprinting",

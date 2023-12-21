@@ -1,4 +1,4 @@
-open IlluaminateCore
+open Illuaminate
 open IlluaminateConfig
 module D = IlluaminateData
 
@@ -55,7 +55,7 @@ let guess_module path : D.Programs.Context.t -> string option = function
         List.fold_left shortest_module None module_path
 
 let guess_module' filename context =
-  match filename.Span.Filename.path with
+  match filename.File_id.path with
   | None -> None
   | Some path ->
       let config = D.need context D.Programs.Context.key filename in

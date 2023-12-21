@@ -4,6 +4,7 @@
  (synopsis "Some basic semantic analysis for Illuaminate.")
  (libraries
   containers
+  illuaminate
   illuaminate.core
   illuaminate.config
   illuaminate.data

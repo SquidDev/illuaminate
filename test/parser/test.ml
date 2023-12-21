@@ -1,7 +1,7 @@
 open IlluaminateCore
 
 let parse out parser pp str =
-  match parser (Span.Filename.mk "=input") (Lexing.from_string str) with
+  match parser (Illuaminate.File_id.mk "=input") (Lexing.from_string str) with
   | Error ({ span; value = err } : IlluaminateParser.Error.t Span.spanned) -> (
       let errs = Error.make () in
       IlluaminateParser.Error.report errs span err;

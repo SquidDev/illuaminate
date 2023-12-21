@@ -1,32 +1,4 @@
-(** A file, with both a display name and absolute path *)
-module Filename : sig
-  type t = private
-    { name : string;  (** A "display" name of the file, which can be shown to the user. *)
-      path : Fpath.t option;  (** An absolute path this file may exist at. *)
-      id : string;
-          (** A unique identifier for this file. This may be the path, or some other piece of data.
-
-              Generally the meaning/contents of this will vary depending on what program/library is
-              constructing the spans, and thus should not be understood to have any specific
-              meaning. *)
-      hash : int  (** A cached hash of [id] *)
-    }
-
-  val pp : Format.formatter -> t -> unit
-
-  include Hashtbl.HashedType with type t := t
-  include Set.OrderedType with type t := t
-
-  (** Construct a new filename from a unique id, with an optional on-disk file and display name. *)
-  val mk : ?path:Fpath.t -> ?name:string -> string -> t
-end
-
-type filename = Filename.t = private
-  { name : string;
-    path : Fpath.t option;
-    id : string;
-    hash : int
-  }
+open Illuaminate
 
 (** A builder, which tracks the start position of newlines, allowing you to map between the two. *)
 module Lines : sig
@@ -35,7 +7,9 @@ module Lines : sig
   (** Lex using this line builder. This sets up the lexer with the appropriate positions and then
       passes the lines builder to the given lexing/parsing function. This object may then be used to
       construct positions, using {!of_pos2}. *)
-  val using : filename -> Lexing.lexbuf -> (t -> 'a) -> 'a
+  val using : File_id.t -> Lexing.lexbuf -> (t -> 'a) -> 'a
+
+  val position_map : t -> Position_map.t
 
   (** Wraps {!Lexing.new_line}, also tracking it within the context. *)
   val new_line : t -> unit
@@ -45,7 +19,7 @@ end
 type t
 
 (** Get the filename for this span. *)
-val filename : t -> filename
+val filename : t -> File_id.t
 
 (** Get the start line of this span.*)
 val start_line : t -> int
@@ -57,19 +31,19 @@ val start_bol : t -> int
 val start_offset : (t, int) Lens.lens'
 
 (** A lens over the starting column of this span. *)
-val start_col : (t, int) Lens.lens'
+val start_col : t -> int
 
 (** A lens over the starting line and column of this span. *)
-val start_pos : (t, int * int) Lens.lens'
+val start_pos : t -> int * int
 
 (** Get the end line this span. *)
 val finish_line : t -> int
 
 (** A lens over the end column of this span. *)
-val finish_col : (t, int) Lens.lens'
+val finish_col : t -> int
 
 (** A lens over the end line and column of this span. *)
-val finish_pos : (t, int * int) Lens.lens'
+val finish_pos : t -> int * int
 
 (** Get the end offset of this span. *)
 val finish_offset : (t, int) Lens.lens'

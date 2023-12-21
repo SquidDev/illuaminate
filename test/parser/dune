@@ -2,6 +2,7 @@
  (name test)
  (modules test)
  (libraries
+  illuaminate
   illuaminate.core
   illuaminate.parser
   md_test_runner

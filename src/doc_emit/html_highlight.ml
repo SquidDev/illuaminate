@@ -83,7 +83,7 @@ let emit ~options ~data ~input visit tree =
   raw (Buffer.contents res)
 
 let do_lua ~options:({ Html_options.data; _ } as options) input =
-  let file = Span.Filename.mk "=input" in
+  let file = Illuaminate.File_id.mk "=input" in
   let expr = Lexing.from_string input |> IlluaminateParser.repl_exprs file in
   let program = lazy (Lexing.from_string input |> IlluaminateParser.program file) in
 

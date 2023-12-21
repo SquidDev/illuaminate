@@ -1,3 +1,4 @@
+open Illuaminate
 open IlluaminateCore
 
 module Fixer = struct
@@ -43,7 +44,7 @@ type path_item =
 type context =
   { path : path_item list;
     data : IlluaminateData.context;
-    file : Span.filename
+    file : File_id.t
   }
 
 type ('op, 'term) visitor = 'op -> context -> 'term reporter -> 'term -> unit

@@ -6,6 +6,7 @@
   cmdliner
   fpath
   logs
+  illuaminate
   illuaminate.core
   illuaminate.data
   illuaminate.lint

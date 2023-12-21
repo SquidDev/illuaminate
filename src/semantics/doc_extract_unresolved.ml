@@ -1,3 +1,4 @@
+open Illuaminate
 open IlluaminateCore
 module StringMap = Map.Make (String)
 open Syntax
@@ -32,7 +33,7 @@ let report state = Error.report state.errs
 type result =
   | Named of page documented
   | Unnamed of
-      { file : Span.filename;
+      { file : File_id.t;
         body : value documented;
         mod_types : type_info documented list;
         mod_kind : module_kind;
@@ -79,20 +80,20 @@ module Infer = struct
        it. *)
     let start_line = Span.start_line span
     and finish_line = Span.finish_line span
-    and start_col = Span.start_col.get span in
+    and start_col = Span.start_col span in
     let before =
       match before with
       | ({ C.source; _ } as c) :: _
         when Span.start_line source = start_line
-             || (Span.finish_line source = start_line - 1 && Span.start_col.get source = start_col)
-        -> Some c
+             || (Span.finish_line source = start_line - 1 && Span.start_col source = start_col) ->
+          Some c
       | _ -> None
     and after =
       match after with
       | ({ C.source; _ } as c) :: _
         when Span.finish_line source = finish_line
-             || (Span.start_line source = finish_line + 1 && Span.start_col.get source = start_col)
-        -> Some c
+             || (Span.start_line source = finish_line + 1 && Span.start_col source = start_col) ->
+          Some c
       | _ -> None
     in
     document state ~before ~after value
@@ -368,7 +369,7 @@ module Infer = struct
     let module_comment =
       match P.comment (First.program.get program) state.comments |> fst |> CCList.last_opt with
       | Some ({ source; _ } as c)
-        when Span.start_col.get source = 1
+        when Span.start_col source = 1
              && Span.start_line source < (First.program.get program |> Node.span |> Span.start_line)
              && CommentCollection.mem state.unused_comments c ->
           CommentCollection.remove state.unused_comments c;

@@ -10,6 +10,7 @@
   fpath
   fmt
   fmt.tty
+  illuaminate
   illuaminate.core
   illuaminate.data
   illuaminate.parser

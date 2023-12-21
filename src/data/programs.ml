@@ -1,3 +1,4 @@
+open Illuaminate
 open IlluaminateCore
 
 module Context = struct
@@ -8,26 +9,25 @@ module Context = struct
 
   let eq a b = a.root = b.root && a.config == b.config
 
-  let key : (Span.filename, t) Core.Key.t =
-    Core.Key.deferred ~name:(__MODULE__ ^ ".Context") ~eq ~key:(module Span.Filename) ()
+  let key : (File_id.t, t) Core.Key.t =
+    Core.Key.deferred ~name:(__MODULE__ ^ ".Context") ~eq ~key:(module File_id) ()
 end
 
 module Files = struct
-  let file : (Span.filename, File.t option) Core.Key.t =
+  let file : (File_id.t, File.t option) Core.Key.t =
     Core.Key.deferred ~name:(__MODULE__ ^ ".Files.file") ~eq:(Option.equal File.( = ))
-      ~key:(module Span.Filename)
+      ~key:(module File_id)
       ()
 
-  let files : (unit, Span.filename list) Core.Key.t =
-    Core.Key.deferred ~name:(__MODULE__ ^ ".Files.files")
-      ~eq:(CCList.equal Span.Filename.equal)
+  let files : (unit, File_id.t list) Core.Key.t =
+    Core.Key.deferred ~name:(__MODULE__ ^ ".Files.files") ~eq:(CCList.equal File_id.equal)
       ~key:(module Types.Unit)
       ()
 end
 
 module FileStore = struct
   module Tbl = Hashtbl.Make (struct
-    type t = Span.filename
+    type t = File_id.t
 
     let hash = Hashtbl.hash
     let equal = ( == )
@@ -35,7 +35,7 @@ module FileStore = struct
 
   type t =
     { files : File.t Tbl.t;
-      mutable file_list : Span.filename list option
+      mutable file_list : File_id.t list option
     }
 
   let lazy_builder store builder =
@@ -70,7 +70,7 @@ module FileStore = struct
         store.file_list <- Option.map (fun x -> path :: x) store.file_list
 end
 
-type 'a key = (Span.filename, 'a option) Core.Key.t
+type 'a key = (File_id.t, 'a option) Core.Key.t
 
 let key ~name ?eq build : 'a key =
   let build data file =
@@ -78,7 +78,7 @@ let key ~name ?eq build : 'a key =
     | Some (Lua x) -> Some (build data file x)
     | Some (Markdown _) | None -> None
   in
-  Core.Key.key ~name ?eq:(Option.map Option.equal eq) ~key:(module Span.Filename) build
+  Core.Key.key ~name ?eq:(Option.map Option.equal eq) ~key:(module File_id) build
 
 let file_key ~name ?eq build =
   let build data file =
@@ -86,4 +86,4 @@ let file_key ~name ?eq build =
     | Some x -> Some (build data file x)
     | None -> None
   in
-  Core.Key.key ~name ?eq:(Option.map Option.equal eq) ~key:(module Span.Filename) build
+  Core.Key.key ~name ?eq:(Option.map Option.equal eq) ~key:(module File_id) build

@@ -1,3 +1,4 @@
+open Illuaminate
 open IlluaminateCore
 module StringMap = Map.Make (String)
 
@@ -165,7 +166,7 @@ let parse state (body : 'a t) last : ('a, Span.t * string) result =
   in
   parse_til_empty body (get_last state) state
 
-let parse_buf (file : Span.filename) (lexbuf : Lexing.lexbuf) body =
+let parse_buf (file : File_id.t) (lexbuf : Lexing.lexbuf) body =
   Span.Lines.using file lexbuf @@ fun lines ->
   try
     let rec go stack (head : Sexp.t list) head_start : Sexp.t list =

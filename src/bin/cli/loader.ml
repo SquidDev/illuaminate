@@ -1,3 +1,4 @@
+open Illuaminate
 open IlluaminateCore
 module FileStore = IlluaminateData.Programs.FileStore
 module StringMap = Map.Make (String)
@@ -10,7 +11,7 @@ module Log = (val Logs.src_log src)
 type file =
   { root : Fpath.t;
     path : Fpath.t;
-    file : Span.filename;
+    file : File_id.t;
     config : Config.t;
     body : File.t option
   }
@@ -32,7 +33,7 @@ let mk_name ~loader:{ relative; _ } path =
   let name =
     Fpath.(relativize ~root:relative path |> Option.map (fun f -> normalise_p f |> to_string))
   in
-  Span.Filename.mk ?name ~path path_s
+  File_id.mk ?name ~path path_s
 
 let rec get_config ~loader dir =
   let dir = normalise_p dir in
@@ -58,7 +59,7 @@ let get_config_for ~loader path =
   if Sys.is_directory str then get_config ~loader path else get_config ~loader (Fpath.parent path)
 
 (** Parse a file and report its errors. *)
-let parse ~loader:{ errors; _ } ({ Span.id; _ } as file) =
+let parse ~loader:{ errors; _ } ({ File_id.id; _ } as file) =
   CCIO.with_in id (fun channel ->
       let lexbuf = Lexing.from_channel channel in
       match IlluaminateParser.program file lexbuf with
@@ -87,7 +88,7 @@ let do_load_from ~loader ~files ~file_store ~config root =
           parse ~loader file |> add_with path file
       | ".md" ->
           Log.debug (fun f -> f "Using markdown file %S" path_s);
-          let ({ Span.id; _ } as file) = mk_name ~loader path in
+          let ({ File_id.id; _ } as file) = mk_name ~loader path in
           let attributes, contents =
             CCIO.with_in id @@ fun channel ->
             Lexing.from_channel channel |> IlluaminateParserMd.parse file
@@ -101,7 +102,7 @@ let do_load_from ~loader ~files ~file_store ~config root =
 let add_rules files file_store builder =
   IlluaminateData.Builder.oracle IlluaminateData.Programs.Context.key
     (fun file _ ->
-      match StringMap.find_opt file.Span.id files with
+      match StringMap.find_opt file.File_id.id files with
       | Some { root; config; _ } -> { root = Some root; config = Config.get_store config }
       | None -> { root = None; config = Config.get_store Config.default })
     builder;

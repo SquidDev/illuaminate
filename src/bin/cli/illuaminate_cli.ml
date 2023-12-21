@@ -1,3 +1,4 @@
+open Illuaminate
 open IlluaminateCore
 open IlluaminateLint
 module StringMap = Map.Make (String)
@@ -253,10 +254,10 @@ let minify file =
     | Some file ->
         let path = Fpath.(v (Sys.getcwd ()) // file) in
         let path_s = Fpath.to_string path in
-        let filename = Span.Filename.mk ~name:(Fpath.to_string file) ~path path_s in
+        let filename = File_id.mk ~name:(Fpath.to_string file) ~path path_s in
         CCIO.with_in path_s @@ (IlluaminateParser.program filename % Lexing.from_channel)
     | None ->
-        let filename = Span.Filename.mk "=stdin" in
+        let filename = File_id.mk "=stdin" in
         Lexing.from_channel stdin |> IlluaminateParser.program filename
   in
   match program with

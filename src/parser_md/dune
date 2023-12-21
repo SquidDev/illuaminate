@@ -3,7 +3,7 @@
  (public_name illuaminate.parser_md)
  (synopsis
   "Basic markdown parser for illuaminate. This doesn't actually parse markdown (yet!), but just extracts the frontmatter.")
- (libraries containers illuaminate.core)
+ (libraries containers illuaminate illuaminate.core)
  (instrumentation
   (backend bisect_ppx)))
 

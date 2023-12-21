@@ -8,7 +8,7 @@ module NMap = Map.Make (Namespace)
 let process ~parse ~go ~name contents =
   Format.asprintf "%t" @@ fun out ->
   let lexbuf = Lexing.from_string contents in
-  let name = Span.Filename.mk name in
+  let name = Illuaminate.File_id.mk name in
   let errs = Error.make () in
   (match parse ~errs name lexbuf with
   | Some parsed ->

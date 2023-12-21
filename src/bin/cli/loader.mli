@@ -5,7 +5,7 @@ module Data := IlluaminateData
 type file =
   { root : Fpath.t;
     path : Fpath.t;
-    file : Span.filename;
+    file : Illuaminate.File_id.t;
     config : Config.t;
     body : File.t option
   }

@@ -18,7 +18,7 @@ let has_trailing = function
 let has_leading prev = function
   | Node.SimpleNode _ -> true
   | Node.Node { leading_trivia; span; _ } ->
-      Span.start_col.get span = 1
+      Span.start_col span = 1
       || (match CCList.last_opt leading_trivia with
          | Some { value = Whitespace ws; _ } when String.length ws > 0 -> true
          | _ -> false)

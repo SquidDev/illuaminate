@@ -1,5 +1,6 @@
 (** The base type for linters, and the information they produce. *)
 
+open Illuaminate
 open IlluaminateCore
 
 module Fixer : sig
@@ -68,7 +69,7 @@ type path_item =
 type context =
   { path : path_item list;  (** The path taken to reach this node. *)
     data : IlluaminateData.context;  (** A store for the current program data. *)
-    file : Span.filename
+    file : File_id.t
   }
 
 (** The primary visitor for each node a linter can consider. *)

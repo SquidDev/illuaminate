@@ -2,7 +2,7 @@
  (name illuaminateConfig)
  (public_name illuaminate.config)
  (synopsis "Helpers for loading/saving configuration files.")
- (libraries illuaminate.core)
+ (libraries illuaminate illuaminate.core)
  (instrumentation
   (backend bisect_ppx)))
 

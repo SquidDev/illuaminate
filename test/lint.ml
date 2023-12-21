@@ -21,7 +21,7 @@ let files ?out ?(extra = []) () =
 
 let _leak =
   let open Leak in
-  let name = Span.Filename.mk "=stdin" in
+  let name = Illuaminate.File_id.mk "=stdin" in
   let store = Schema.default schema in
   let context = { D.Programs.Context.root = None; config = store } in
   let data =

@@ -1,0 +1,4 @@
+(library
+ (name illuaminate)
+ (public_name illuaminate)
+ (libraries containers fmt fpath))

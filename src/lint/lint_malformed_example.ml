@@ -8,7 +8,7 @@ module E = Doc.Extract
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:malformed-example"
 
 let check ~r ~spanner contents =
-  let file = Span.Filename.mk "=input" in
+  let file = Illuaminate.File_id.mk "=input" in
   let program = Lexing.from_string contents |> IlluaminateParser.program file
   and expr = lazy (Lexing.from_string contents |> IlluaminateParser.repl_exprs file) in
 

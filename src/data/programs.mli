@@ -1,5 +1,6 @@
 (** Utilities for working with programs and other code units. *)
 
+open Illuaminate
 open IlluaminateCore
 
 (** Provides information about a given program's context. *)
@@ -13,18 +14,18 @@ module Context : sig
     }
 
   (** An oracle for fetching the context. This must be provided using {!Core.Builder.oracle}. *)
-  val key : (Span.filename, t) Core.Key.t
+  val key : (File_id.t, t) Core.Key.t
 end
 
 module Files : sig
   (** Fetch a given file's contents.
 
       This may be registered using {!FileStore.builder}, or your own implementation. *)
-  val file : (Span.filename, File.t option) Core.Key.t
+  val file : (File_id.t, File.t option) Core.Key.t
 
   (** List all available files. This may be registered using {!FileStore.builder}, or your own
       implementation.*)
-  val files : (unit, Span.filename list) Core.Key.t
+  val files : (unit, File_id.t list) Core.Key.t
 end
 
 module FileStore : sig
@@ -40,13 +41,13 @@ module FileStore : sig
   val lazy_builder : t Lazy.t -> Core.Builder.t -> unit
 
   (** Update a file's program. You should call {!Core.refresh} after calling this. *)
-  val update : t -> Span.filename -> File.t option -> unit
+  val update : t -> File_id.t -> File.t option -> unit
 end
 
 (** A key within the data store.
 
     This is used by {!get} to look up all associated information for a specific analysis pass. *)
-type 'a key = (Span.filename, 'a option) Core.Key.t
+type 'a key = (File_id.t, 'a option) Core.Key.t
 
 (** Construct a new {!type:key} from some "metadata getter" function.
 
@@ -54,11 +55,11 @@ type 'a key = (Span.filename, 'a option) Core.Key.t
 val key :
   name:string ->
   ?eq:('a -> 'a -> bool) ->
-  (Core.context -> Span.filename -> Syntax.program -> 'a) ->
+  (Core.context -> File_id.t -> Syntax.program -> 'a) ->
   'a key
 
 (** Construct a new key from some "metadata getter" function.
 
     Note that the "metadata generator" function can be lazy in generating data. *)
 val file_key :
-  name:string -> ?eq:('a -> 'a -> bool) -> (Core.context -> Span.filename -> File.t -> 'a) -> 'a key
+  name:string -> ?eq:('a -> 'a -> bool) -> (Core.context -> File_id.t -> File.t -> 'a) -> 'a key
