@@ -502,6 +502,7 @@ f(2, )
    │    ^ Tip: Try removing this `,`.
 1 errors and 0 warnings
 ```
+
 ```lua
 f(2, 3, )
 ```
@@ -514,5 +515,20 @@ f(2, 3, )
    │
  1 │ f(2, 3, )
    │       ^ Tip: Try removing this `,`.
+1 errors and 0 warnings
+```
+
+```lua
+x:f(2, 3, )
+```
+
+```txt
+=input: Unexpected `)` in function call. [parse:syntax-error]
+   │
+ 1 │ x:f(2, 3, )
+   │           ^
+   │
+ 1 │ x:f(2, 3, )
+   │         ^ Tip: Try removing this `,`.
 1 errors and 0 warnings
 ```

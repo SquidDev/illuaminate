@@ -55,7 +55,7 @@ rule error_message token top = parse error
   }
 
 (* Suggest removing a comma in function calls. *)
-| simple_expr; OPAREN;
+| [call_args: OPAREN . ];
   (expr | COMMA)* ;
   [^sep_list1(COMMA,expr): expr COMMA . sep_list1(COMMA,expr)] as comma
   partial {
