@@ -36,11 +36,17 @@ let partition_string = (start, length, str) => {
   };
 };
 
-let error = (line, ~fix=?, {Error.Error.span, message, tag, _}) => {
+let source_line = (source, span, message) => {
   let start_line = Span.start_line(span);
   let start_col = Span.start_col.get(span);
   let finish_line = Span.finish_line(span);
   let finish_col = Span.finish_col.get(span);
+
+  let bol = Span.start_bol(span);
+  let line_end =
+    String.index_from_opt(source, bol, '\n')
+    |> Option.value(~default=String.length(source));
+  let line = String.sub(source, bol, line_end - bol);
 
   let length =
     if (finish_line == start_line) {
@@ -48,37 +54,52 @@ let error = (line, ~fix=?, {Error.Error.span, message, tag, _}) => {
     } else {
       String.length(line) - start_col + 1;
     };
-
   let (before, contents, after) =
     partition_string(start_col - 1, length, line);
 
-  <div class_={"error error-" ++ level(tag.level)}>
-    <div class_="error-pos">
-      {Format.asprintf(
-         "[%d:%d-%d:%d]: %a [%s]",
-         start_line,
-         start_col,
-         finish_line,
-         finish_col,
-         message,
-         (),
-         tag.name,
-       )
-       |> str}
-      {switch (fix) {
-       | Some(fix) =>
-         <button onClick=fix class_="error-fix"> {str("Fix")} </button>
+  <div class_="error-line">
+    <div class_="error-line-no"> {str(string_of_int(start_line))} </div>
+    <div class_="error-line-body">
+      <div class_="error-line-str">
+        {str(before)}
+        <em> {Option.fold(~none=str(" "), ~some=str, contents)} </em>
+        {str(after)}
+      </div>
+      {switch (message) {
        | None => nil
+       | Some(msg) =>
+         <div class_="error-message">
+           {str(
+              Format.asprintf(
+                "%s^ %a",
+                String.make(start_col - 1, ' '),
+                msg,
+                (),
+              ),
+            )}
+         </div>
        }}
     </div>
-    <div class_="error-line">
-      <span class_="error-line-no"> {str(string_of_int(start_line))} </span>
-      <span class_="error-line-str">
-        {str(before)}
-        <strong> {Option.fold(~none=str(" "), ~some=str, contents)} </strong>
-        {str(after)}
-      </span>
+  </div>;
+};
+
+let annotation = (source, annotation) => {
+  switch (annotation) {
+  | Error.Error.Message(msg) =>
+    <div class_="error-message"> {str(Format.asprintf("%a", msg, ()))} </div>
+  | Error.Error.Annotation(span, msg) => source_line(source, span, msg)
+  };
+};
+
+let error = (source, {Error.Error.span, message, tag, annotations}) => {
+  <div class_={"error error-" ++ level(tag.level)}>
+    <div class_="error-message">
+      {Format.asprintf("%a [%s]", message, (), tag.name) |> str}
     </div>
+    {switch (annotations) {
+     | [] => source_line(source, span, None)
+     | _ => List.map(annotation(source), annotations) |> many
+     }}
   </div>;
 };
 
