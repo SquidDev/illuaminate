@@ -1,7 +1,13 @@
 (executable
  (name test)
  (modules test)
- (libraries illuaminate.core illuaminate.parser re ppx_deriving.runtime))
+ (libraries
+  illuaminate.core
+  illuaminate.parser
+  md_test_runner
+  ppx_deriving.runtime))
+
+; Test the sentences from t_parse_errors.md generate the correct message.
 
 (rule
  (action
@@ -16,7 +22,36 @@
  (action
   (diff t_parse_errors.md t_parse_errors.new.md)))
 
+; Test all sentences from messages.txt.
+
+(executable
+ (name mk_messages)
+ (modules mk_messages)
+ (libraries re))
+
+(rule
+ (action
+  (with-stdout-to
+   t_parse_exhaustive.gen.md
+   (with-stdin-from
+    ../../src/parser/messages_complete.txt
+    (run %{dep:./mk_messages.exe})))))
+
+(rule
+ (action
+  (with-stdout-to
+   t_parse_exhaustive.new.md
+   (with-stdin-from
+    t_parse_exhaustive.gen.md
+    (run %{dep:./test.exe})))))
+
+(rule
+ (alias t_parse_exhaustive)
+ (action
+  (diff t_parse_exhaustive.md t_parse_exhaustive.new.md)))
+
 (alias
  (name runtest)
  (deps
-  (alias t_parse_errors)))
+  (alias t_parse_errors)
+  (alias t_parse_exhaustive)))

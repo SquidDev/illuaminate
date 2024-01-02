@@ -3,6 +3,11 @@
  (libraries fmt)
  (modules diff))
 
+(library
+ (name md_test_runner)
+ (libraries containers)
+ (modules md_test_runner))
+
 (test
  (name test)
  (libraries
@@ -38,12 +43,13 @@
  (modules
   :standard
   \
-  leak_trace_gc
   config_format
   data
+  diff
   doc_emit_summary
-  span
-  diff)
+  leak_trace_gc
+  md_test_runner
+  span)
  (action
   (run %{test} --base-dir "../")))
 

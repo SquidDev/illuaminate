@@ -16,7 +16,6 @@ if a = b then end
  1 │ if a = b then end
    │      ^
 Tip: Replace this with `==` to check if two values are equal.
-1 errors and 0 warnings
 ```
 
 We apply a slightly different error when this occurs in tables:
@@ -31,7 +30,6 @@ return { "abc" = "def" }
  1 │ return { "abc" = "def" }
    │                ^
 Tip: Wrap the preceding expression in `[` and `]` to use it as a table key.
-1 errors and 0 warnings
 ```
 
 Note this doesn't occur if this there's already a table key here:
@@ -46,7 +44,6 @@ return { x = "abc" = }
  1 │ return { x = "abc" = }
    │                    ^
 Tip: Replace this with `==` to check if two values are equal.
-1 errors and 0 warnings
 ```
 
 ## Unclosed parenthesis
@@ -64,7 +61,6 @@ return (2
    │
  1 │ return (2
    │          ^ Unexpected end of file here.
-1 errors and 0 warnings
 ```
 
 Function calls:
@@ -81,7 +77,6 @@ return f(2
    │
  1 │ return f(2
    │           ^ Unexpected end of file here.
-1 errors and 0 warnings
 ```
 
 and function definitions:
@@ -98,7 +93,6 @@ local function f(a
    │
  1 │ local function f(a
    │                   ^ Unexpected end of file here.
-1 errors and 0 warnings
 ```
 
 ## Missing commas in tables
@@ -115,7 +109,6 @@ return { 1 2 }
    │
  1 │ return { 1 2 }
    │           ^ Are you missing a comma here?
-1 errors and 0 warnings
 ```
 ```lua
 return { 1, 2 3 }
@@ -129,7 +122,6 @@ return { 1, 2 3 }
    │
  1 │ return { 1, 2 3 }
    │              ^ Are you missing a comma here?
-1 errors and 0 warnings
 ```
 ```lua
 print({ 1, )
@@ -143,7 +135,6 @@ print({ 1, )
    │
  1 │ print({ 1, )
    │            ^ Unexpected `)` here.
-1 errors and 0 warnings
 ```
 
 # Statements
@@ -163,7 +154,6 @@ local function x.f() end
    │
  1 │ local function x.f() end
    │ ^^^^^ Tip: Try removing this `local` keyword.
-1 errors and 0 warnings
 ```
 
 ## Standalone identifiers
@@ -181,7 +171,6 @@ local _ = 1
  1 │ term.clear
    │           ^ Expected something before the end of the line.
 Tip: Use `()` to call with no arguments.
-1 errors and 0 warnings
 ```
 
 If the next symbol is on the same line we provide a slightly different error:
@@ -196,7 +185,6 @@ x 1
  1 │ x 1
    │   ^
 Did you mean to assign this or call it as a function?
-1 errors and 0 warnings
 ```
 
 An EOF token is treated as a new line.
@@ -211,7 +199,6 @@ term.clear
  1 │ term.clear
    │           ^ Expected something before the end of the line.
 Tip: Use `()` to call with no arguments.
-1 errors and 0 warnings
 ```
 
 ## If statements
@@ -229,7 +216,6 @@ if 0
    │
  1 │ if 0
    │     ^ Expected `then` before here.
-1 errors and 0 warnings
 ```
 
 ```lua
@@ -245,7 +231,6 @@ elseif 0
    │
  2 │ elseif 0
    │         ^ Expected `then` before here.
-1 errors and 0 warnings
 ```
 
 ## Expecting `end`
@@ -264,7 +249,6 @@ if true then
    │
  2 │   print("Hello")
    │                 ^ Expected end of block here.
-1 errors and 0 warnings
 ```
 
 ```lua
@@ -281,7 +265,6 @@ else
    │
  3 │   print("Hello")
    │                 ^ Expected end of block here.
-1 errors and 0 warnings
 ```
 
 ```lua
@@ -298,7 +281,6 @@ elseif true then
    │
  3 │   print("Hello")
    │                 ^ Expected end of block here.
-1 errors and 0 warnings
 ```
 
 ```lua
@@ -314,7 +296,6 @@ while true do
    │
  2 │   print("Hello")
    │                 ^ Expected end of block here.
-1 errors and 0 warnings
 ```
 
 ```lua
@@ -329,7 +310,6 @@ local function f()
    │
  1 │ local function f()
    │                   ^ Expected end of block here.
-1 errors and 0 warnings
 ```
 
 ```lua
@@ -344,7 +324,6 @@ function f()
    │
  1 │ function f()
    │             ^ Expected end of block here.
-1 errors and 0 warnings
 ```
 
 ```lua
@@ -359,7 +338,6 @@ return function()
    │
  1 │ return function()
    │                  ^ Expected end of block here.
-1 errors and 0 warnings
 ```
 
 While we typically see these errors at the end of the file, there are some cases
@@ -379,7 +357,6 @@ return (function()
    │
  3 │ )()
    │ ^ Expected end of block here.
-1 errors and 0 warnings
 ```
 
 Note we do not currently attempt to identify mismatched `end`s. This might be
@@ -399,7 +376,6 @@ end
    │
  3 │ end
    │    ^ Expected end of block here.
-1 errors and 0 warnings
 ```
 
 ## Unexpected `end`
@@ -417,7 +393,6 @@ end
  3 │ end
    │ ^^^
 Your program contains more `end`s than needed. Check each block (`if`, `for`, `function`, ...) only has one `end`
-1 errors and 0 warnings
 ```
 
 ```lua
@@ -434,7 +409,6 @@ until true
  4 │   end
    │   ^^^
 Your program contains more `end`s than needed. Check each block (`if`, `for`, `function`, ...) only has one `end`
-1 errors and 0 warnings
 ```
 
 ## `goto` and labels
@@ -450,7 +424,6 @@ goto 2
  1 │ goto 2
    │      ^
 Did you mean to assign this or call it as a function?
-1 errors and 0 warnings
 ```
 
 Labels have a basic closing check:
@@ -466,7 +439,6 @@ Labels have a basic closing check:
    │
  1 │ ::foo
    │      ^ Tip: Try adding `::` here.
-1 errors and 0 warnings
 ```
 
 But we do nothing fancy for just a `::`
@@ -480,7 +452,7 @@ But we do nothing fancy for just a `::`
    │
  1 │ ::
    │   ^
-1 errors and 0 warnings
+(from messages.txt)
 ```
 
 # Function calls
@@ -500,7 +472,6 @@ f(2, )
    │
  1 │ f(2, )
    │    ^ Tip: Try removing this `,`.
-1 errors and 0 warnings
 ```
 
 ```lua
@@ -515,7 +486,6 @@ f(2, 3, )
    │
  1 │ f(2, 3, )
    │       ^ Tip: Try removing this `,`.
-1 errors and 0 warnings
 ```
 
 ```lua
@@ -530,5 +500,4 @@ x:f(2, 3, )
    │
  1 │ x:f(2, 3, )
    │         ^ Tip: Try removing this `,`.
-1 errors and 0 warnings
 ```

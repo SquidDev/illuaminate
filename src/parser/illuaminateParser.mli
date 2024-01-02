@@ -1,18 +1,13 @@
-open IlluaminateCore
+module Span := IlluaminateCore.Span
 
 (** An error which may occur when parsing. *)
-module Error : sig
-  type t
-
-  val tag : Error.Tag.t
-  val report : Error.t -> Span.t -> t -> unit
-end
+module Error = Error
 
 module Lexer : sig
   (** The type of tokens produced by the lexer. *)
   type token =
-    | Token of Token.t
-    | Trivial of Node.trivial
+    | Token of IlluaminateCore.Token.t
+    | Trivial of IlluaminateCore.Node.trivial
 
   (** Lex a file, producing a simple token stream. *)
   val lex :
@@ -20,7 +15,9 @@ module Lexer : sig
 end
 
 (** Parse a file, either producing a program or some syntax error. *)
-val program : Span.filename -> Lexing.lexbuf -> (Syntax.program, Error.t Span.spanned) result
+val program :
+  Span.filename -> Lexing.lexbuf -> (IlluaminateCore.Syntax.program, Error.t Span.spanned) result
 
 (** Parse a list of expressions. *)
-val repl_exprs : Span.filename -> Lexing.lexbuf -> (Syntax.repl_exprs, Error.t Span.spanned) result
+val repl_exprs :
+  Span.filename -> Lexing.lexbuf -> (IlluaminateCore.Syntax.repl_exprs, Error.t Span.spanned) result
