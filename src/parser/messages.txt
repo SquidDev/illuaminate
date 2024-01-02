@@ -228,7 +228,7 @@ program: FOR IDENT IN TRUE WHILE
 ## In state 80, spurious reduction of production sep_list1(COMMA,expr) -> expr
 ##
 
-Expected `end` after for loop initialiser
+Expected `do` after for loop initialiser
 
 program: FOR IDENT IN WHILE
 ##

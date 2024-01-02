@@ -166,7 +166,7 @@ for goto in goto while
 ```
 
 ```txt
-=input: Unexpected `while`: Expected `end` after for loop initialiser [parse:syntax-error]
+=input: Unexpected `while`: Expected `do` after for loop initialiser [parse:syntax-error]
    │
  1 │ for goto in goto while
    │                  ^^^^^

@@ -105,13 +105,13 @@ rule error_message lines = parse error
   }
 
 (* Fallback parse error for function arguments. *)
-| [_ / ... . args ...] | (_ / ... . args ...)
+| [_? / ... . args ...]
   { Expected_function_args token }
 
 (* Fallback parse error for when we expected an expression. *)
-| (_ / ... . expr ...) | (_ / ... . expr_pow ...) | (_ / ... . sep_list1(COMMA,expr) ...)
+| [/ ... . expr ...] | [/ ... . expr_pow ...] | [/ ... . sep_list1(COMMA,expr) ...]
   { Expected_expression token }
 
 (* Fallback parse error for when we expected a variable name. *)
-| (_ / ... . var ...) | (_ / ... . name ...) | (_ / ... . function_name ...)
+| [/ ... . var ...] | [/ ... . name ...] | [_ / ... . function_name ...]
   { Expected_var token }
