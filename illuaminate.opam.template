@@ -1,4 +1,4 @@
 pin-depends: [
   ["omnomnom.dev" "git+https://github.com/SquidDev/omnomnom.git#b14c939500de840f866665918cb3c66f08075962"]
-  ["lrgrep.dev" "git+https://github.com/SquidDev/lrgrep.git#a2480aeed6307033e1d835f83f2488b9fdbb6a88"]
+  ["lrgrep.dev" "git+https://github.com/let-def/lrgrep.git#23e4ad3d411e89f1ee0810016bb23ba2b37e49f3"]
 ]

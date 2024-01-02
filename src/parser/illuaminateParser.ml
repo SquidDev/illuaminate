@@ -52,15 +52,11 @@ let lex_token file lexbuf (next : lexer_token located) =
       let trailing, next = lex_trailing file lexbuf start.pos_lnum in
       (Token.make_token leading trailing tok_span token, start, finish, next)
 
-let get_error_message lines token ~pre_env ~post_env =
-  let top =
-    match I.top pre_env with
-    | Some (I.Element (_, _, l, r)) -> Span.of_pos2 lines l r
-    | _ ->
-        let s = { Lexing.dummy_pos with pos_cnum = 0 } in
-        Span.of_pos2 lines s s
-  in
-  match PE.run pre_env |> List.find_map (Parse_errors.execute_error_message token top) with
+let get_error_message lines ((token, _, _) as tok) ~pre_env ~post_env =
+  match
+    PE.run pre_env
+    |> List.find_map (fun x -> Parse_errors.execute_error_message lines x Lexing.dummy_pos tok)
+  with
   | Some x -> x
   | None ->
       let state =
@@ -73,17 +69,20 @@ let get_error_message lines token ~pre_env ~post_env =
 
 let parse start (file : Span.filename) (lexbuf : Lexing.lexbuf) =
   Span.Lines.using file lexbuf @@ fun lines ->
-  let rec go env token next = function
+  let rec go env token token_start token_end next = function
     | I.InputNeeded env as checkpoint -> go_input env checkpoint next
-    | (I.Shifting _ | I.AboutToReduce _) as checkpoint -> I.resume checkpoint |> go env token next
+    | (I.Shifting _ | I.AboutToReduce _) as checkpoint ->
+        I.resume checkpoint |> go env token token_start token_end next
     | I.HandlingError post_env ->
-        let error = get_error_message lines token ~pre_env:env ~post_env in
+        let error =
+          get_error_message lines (token, token_start, token_end) ~pre_env:env ~post_env
+        in
         Error { Span.span = Token.get_span token; value = error }
     | I.Accepted x -> Ok x
     | I.Rejected -> assert false
   and go_input env checkpoint token =
     let token, start, finish, next = lex_token lines lexbuf token in
-    I.offer checkpoint (token, start, finish) |> go env token next
+    I.offer checkpoint (token, start, finish) |> go env token start finish next
   in
   try
     match start Lexing.dummy_pos with

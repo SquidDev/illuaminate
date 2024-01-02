@@ -59,11 +59,10 @@ for goto , while
 ```
 
 ```txt
-=input: Unexpected `while`: Expected another identifier in function's argument list. [parse:syntax-error]
+=input: Unexpected `while`. Expected a variable name. [parse:syntax-error]
    │
  1 │ for goto , while
    │            ^^^^^
-(from messages.txt)
 ```
 
 ```lua
@@ -156,13 +155,10 @@ for goto in goto do true
 ```
 
 ```txt
-=input: Unexpected `true`. Expected `end` or another statement. [parse:syntax-error]
+=input: Unexpected `true`. Expected a statement. [parse:syntax-error]
    │
  1 │ for goto in goto do true
-   │ ^^^ Block started here.
-   │
- 1 │ for goto in goto do true
-   │                     ^^^^ Expected end of block here.
+   │                     ^^^^
 ```
 
 ```lua
@@ -276,11 +272,10 @@ goto , while
 ```
 
 ```txt
-=input: Unexpected `while`: Expected another variable in assignment list. [parse:syntax-error]
+=input: Unexpected `while`. Expected a variable name. [parse:syntax-error]
    │
  1 │ goto , while
    │        ^^^^^
-(from messages.txt)
 ```
 
 ```lua
@@ -376,13 +371,10 @@ if goto then elseif while
 ```
 
 ```txt
-=input: Expected `then` after if condition. [parse:syntax-error]
+=input: Unexpected `while`. Expected an expression. [parse:syntax-error]
    │
  1 │ if goto then elseif while
-   │              ^^^^^^ If statement started here.
-   │
- 1 │ if goto then elseif while
-   │                     ^^^^^ Expected `then` before here.
+   │                     ^^^^^
 ```
 
 ```lua
@@ -418,13 +410,10 @@ if while
 ```
 
 ```txt
-=input: Expected `then` after if condition. [parse:syntax-error]
+=input: Unexpected `while`. Expected an expression. [parse:syntax-error]
    │
  1 │ if while
-   │ ^^ If statement started here.
-   │
- 1 │ if while
-   │    ^^^^^ Expected `then` before here.
+   │    ^^^^^
 ```
 
 ```lua
@@ -501,11 +490,10 @@ local while
 ```
 
 ```txt
-=input: Unexpected `while`: Expected identifier after `local`. [parse:syntax-error]
+=input: Unexpected `while`. Expected a variable name. [parse:syntax-error]
    │
  1 │ local while
    │       ^^^^^
-(from messages.txt)
 ```
 
 ```lua
@@ -643,11 +631,10 @@ function ( goto , while
 ```
 
 ```txt
-=input: Unexpected `while`: Expected another function argument within argument list. [parse:syntax-error]
+=input: Unexpected `while`. Expected a variable name. [parse:syntax-error]
    │
  1 │ function ( goto , while
    │                   ^^^^^
-(from messages.txt)
 ```
 
 ```lua{repl_exprs}
@@ -1107,13 +1094,11 @@ not while
 ```
 
 ```txt
-=input: Unexpected `while`. Are you missing a closing bracket? [parse:syntax-error]
+=input: Unexpected `while`: Expected `]` to close `[` in table key. [parse:syntax-error]
    │
  1 │ { [ goto while
-   │   ^ Brackets were opened here.
-   │
- 1 │ { [ goto while
-   │          ^^^^^ Unexpected `while` here.
+   │          ^^^^^
+(from messages.txt)
 ```
 
 ```lua{repl_exprs}
@@ -1182,9 +1167,8 @@ while
 ```
 
 ```txt
-=input: Unexpected `while`: Unknown error [parse:syntax-error]
+=input: Unexpected `while`. Expected an expression. [parse:syntax-error]
    │
  1 │ while
    │ ^^^^^
-(from messages.txt)
 ```
