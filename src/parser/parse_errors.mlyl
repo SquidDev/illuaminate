@@ -1,18 +1,4 @@
 {
-  let unpack (t, _, _) = t
-  let get_token x : IlluaminateCore.Syntax.token =
-    let Grammar.MenhirInterpreter.Element (st, x, _, _) = x in
-    match Grammar.MenhirInterpreter.incoming_symbol st with
-    | T T_DO -> x
-    | T T_ELSE -> x
-    | T T_ELSEIF -> x
-    | T T_FOR -> x
-    | T T_FUNCTION -> x
-    | T T_IF -> x
-    | T T_LOCAL -> x
-    | T T_WHILE -> x
-    | _ -> assert false
-
   let is_same_line prev token =
     match token with
     | Grammar.EOF _ -> false
@@ -117,7 +103,6 @@ rule error_message lines = parse error
     | EOF _ -> None
     | _ -> Some (Expected_statement token)
   }
-
 
 (* Fallback parse error for function arguments. *)
 | [_ / ... . args ...] | (_ / ... . args ...)
