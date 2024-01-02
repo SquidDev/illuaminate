@@ -455,6 +455,31 @@ But we do nothing fancy for just a `::`
 (from messages.txt)
 ```
 
+## Missing function arguments
+We provide an error message for missing arguments in function definitions:
+
+```lua
+function f
+```
+
+```txt
+=input: Unexpected end of file. Expected `(` to start function arguments. [parse:syntax-error]
+   │
+ 1 │ function f
+   │           ^
+```
+
+```lua
+return function
+```
+
+```txt
+=input: Unexpected end of file. Expected `(` to start function arguments. [parse:syntax-error]
+   │
+ 1 │ return function
+   │                ^
+```
+
 # Function calls
 
 ## Additional commas
