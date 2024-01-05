@@ -2,14 +2,13 @@ open IlluaminateCore
 
 let parse ~name contents =
   let lexbuf = Lexing.from_string contents in
-  let errs = Error.make () in
   let name = Illuaminate.File_id.mk name in
   match IlluaminateParser.program name lexbuf with
   | Error err ->
-      let buffer = Buffer.create 128 in
-      IlluaminateParser.Error.report errs err.span err.value;
-      Error.display_of_string ~out:(Format.formatter_of_buffer buffer) (fun _ -> Some contents) errs;
-      Buffer.contents buffer
+      Format.asprintf "%t" @@ fun out ->
+      Illuaminate.Console_reporter.display_of_string ~out ~with_summary:false
+        (fun _ -> Some contents)
+        [ IlluaminateParser.Error.to_error err ]
   | Ok parsed -> Syntax.show_program parsed
 
 let tests =

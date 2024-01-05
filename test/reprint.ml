@@ -8,9 +8,9 @@ let process name =
   let name = File_id.mk name in
   match Lexing.from_string contents |> IlluaminateParser.program name with
   | Error err ->
-      let errs = Error.make () in
-      IlluaminateParser.Error.report errs err.span err.value;
-      Error.display_of_string (fun _ -> Some contents) errs;
+      Illuaminate.Console_reporter.display_of_string ~with_summary:false
+        (fun _ -> Some contents)
+        [ IlluaminateParser.Error.to_error err ];
       result (Failed { backtrace = None })
   | Ok program ->
       let new_contents = Format.asprintf "%a" Emit.program program in

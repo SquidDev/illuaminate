@@ -36,6 +36,7 @@ type 'a reporter =
       ('f, Format.formatter, unit, unit) format4 ->
       'f;
         (** Report a problem at the current location, with an optional fixer. *)
+    x : 'f. Illuaminate.Error.t -> unit;
     e :
       'a 'f.
       ?fix:'a Fixer.t ->

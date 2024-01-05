@@ -2,7 +2,7 @@ See [`lint_doc_parser.ml`](../../src/lint/lint_doc_parser.ml)
 
 # Unknown module kinds
 ```lua
--- config: (lint (only doc:unknown-module-kind)) (doc (module-kinds (kind1 "Kind 1")))
+-- config: (doc (module-kinds (kind1 "Kind 1")))
 
 --- @module[kind=kind1]
 
@@ -19,8 +19,6 @@ in.lua: Unknown module kind "kind2" [doc:unknown-module-kind]
 # Duplicate definitions
 
 ```lua
--- config: (lint (only doc:duplicate-definitions))
-
 --- A module
 --
 -- @module foo
@@ -30,15 +28,13 @@ in.lua: Unknown module kind "kind2" [doc:unknown-module-kind]
 ```txt
 in.lua: Duplicate @module definitions (named 'foo' and 'bar') [doc:duplicate-definitions]
    │
- 6 │ -- @module bar
+ 4 │ -- @module bar
    │    ^^^^^^^
 ```
 
 # Unknown tags and flags
 ```lua
--- config: (lint (only doc:unknown-flag doc:unknown-tag))
-
--- @module[x]
+--- @module[abc, abc=xyz]
 
 --- @unknown
 
@@ -48,13 +44,23 @@ in.lua: Duplicate @module definitions (named 'foo' and 'bar') [doc:duplicate-def
 ```
 
 ```txt
+in.lua: @module has unknown flag 'abc' [doc:unknown-flag]
+   │
+ 1 │ --- @module[abc, abc=xyz]
+   │             ^^^
+
+in.lua: @module has unknown flag 'abc' [doc:unknown-flag]
+   │
+ 1 │ --- @module[abc, abc=xyz]
+   │                  ^^^
+
 in.lua: Unknown tag @unknown [doc:unknown-tag]
    │
- 5 │ --- @unknown
+ 3 │ --- @unknown
    │     ^^^^^^^^
 
 in.lua: Unknown tag @unknown [doc:unknown-tag]
    │
- 8 │   @unknown
+ 6 │   @unknown
    │   ^^^^^^^^
 ```

@@ -9,13 +9,15 @@ module Lines = struct
   type t =
     { file : filename;
       map : Illuaminate.Position_map.t;
-      builder : Illuaminate.Position_map.Builder.t
+      builder : Illuaminate.Position_map.Builder.t option
     }
 
-  let new_line { builder; _ } = Illuaminate.Position_map.Builder.new_line builder
+  let new_line { builder; _ } = Illuaminate.Position_map.Builder.new_line (Option.get builder)
 
   let using file buf f =
-    Illuaminate.Position_map.Builder.using buf (fun builder map -> f { file; builder; map }) |> fst
+    Illuaminate.Position_map.Builder.using buf (fun builder map ->
+        f { file; builder = Some builder; map })
+    |> fst
 
   let position_map lines = lines.map
 
@@ -46,6 +48,19 @@ type t =
 
 let unpos (Illuaminate.Position_map.Pos x) = x
 let filename x = x.lines.file
+
+let to_error_position (span : t) : Illuaminate.Error.Position.t =
+  { file = span.lines.file;
+    position_map = span.lines.map;
+    start = Pos span.start;
+    finish = Pos span.finish
+  }
+
+let of_error_position
+    ({ file; position_map; start = Pos start; finish = Pos finish } : Illuaminate.Error.Position.t)
+    =
+  { lines = { file; map = position_map; builder = None }; start; finish }
+
 let start_line { lines; start; _ } = Lines.get_line lines start
 
 let start_bol { lines; start; _ } =

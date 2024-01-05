@@ -1,12 +1,9 @@
-open Linter
-open IlluaminateCore
-open IlluaminateSemantics
-module E = Doc.Extract
+module E = IlluaminateSemantics.Doc.Extract
 
 let linter =
-  make_no_opt ~tags:E.Tag.all
+  Linter.make_no_opt ~tags:[]
     ~file:(fun () context r _ ->
       IlluaminateData.need context.data E.file context.file
       |> Option.get |> E.errors
-      |> List.iter (fun { Error.Error.span; tag; message; _ } -> r.r ~span ~tag "%a" message ()))
+      |> List.iter (fun error -> r.x (E.Extract_error.to_error error)))
     ()

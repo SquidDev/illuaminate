@@ -27,15 +27,3 @@ module Data : sig
   (** Get all documentation comments within a program. *)
   val comments : t -> comment list
 end
-
-(** A set of all tags that may result from parsing. *)
-module Tag : sig
-  val malformed_tag : IlluaminateCore.Error.Tag.t
-  val malformed_type : IlluaminateCore.Error.Tag.t
-  val unknown_flag : IlluaminateCore.Error.Tag.t
-  val unknown_tag : IlluaminateCore.Error.Tag.t
-  val duplicate_definitions : IlluaminateCore.Error.Tag.t
-  val bad_index : IlluaminateCore.Error.Tag.t
-  val wrong_tag : IlluaminateCore.Error.Tag.t
-  val all : IlluaminateCore.Error.Tag.t list
-end

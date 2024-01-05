@@ -92,28 +92,19 @@ let parser =
 
   fields main
 
-let parse_error = Error.(Tag.make ~attr:[] ~level:Critical "config:parse")
-
 let of_lexer ~directory (file : File_id.t) lexbuf =
   match IlluaminateConfig.Parser.parse_buf file lexbuf parser with
   | Ok c -> c directory |> Result.ok
   | Error (span, message) -> Error { Span.span; value = message }
 
-let of_file err (file : File_id.t) =
+let of_file (file : File_id.t) =
   let path =
     match file.path with
     | None -> failwith "of_file: must have a location on disk"
     | Some path -> path
   in
-  let parsed =
-    CCIO.with_in (Fpath.to_string path) (fun channel ->
-        Lexing.from_channel channel |> of_lexer ~directory:(Fpath.parent path) file)
-  in
-  match parsed with
-  | Ok x -> Some x
-  | Error { Span.span; value = message } ->
-      Error.report err parse_error span message;
-      None
+  CCIO.with_in (Fpath.to_string path) (fun channel ->
+      Lexing.from_channel channel |> of_lexer ~directory:(Fpath.parent path) file)
 
 let default = Default
 

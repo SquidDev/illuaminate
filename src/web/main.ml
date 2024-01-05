@@ -98,25 +98,22 @@ and display_errors program =
 
 (** Lint the input program and display the relevant error messages. *)
 and lint () : unit =
-  let errs = Error.make () in
   let input = Js.to_string input##.value in
   let lexbuf = Lexing.from_string input in
   let name = File_id.mk "=input" in
-  (match IlluaminateParser.program name lexbuf with
-  | Error err -> IlluaminateParser.Error.report errs err.span err.value
-  | Ok parsed ->
-      let data = data name parsed in
-      let tags _ = true in
-      Linters.all
-      |> List.iter @@ fun l ->
-         Driver.lint ~store ~data ~tags l (Lua parsed)
-         |> Driver.Notes.to_seq
-         |> Seq.iter (Driver.Note.report_any errs));
-  let out =
-    Error.errors errs
-    |> List.sort Error.Error.span_compare
-    |> display_errors input |> render Dom_html.document
+  let errs =
+    match IlluaminateParser.program name lexbuf with
+    | Error err -> [ IlluaminateParser.Error.to_error err ]
+    | Ok parsed ->
+        let data = data name parsed in
+        let tags _ = true in
+        List.to_seq Linters.all
+        |> Seq.flat_map (fun l ->
+               Driver.lint ~store ~data ~tags l (Lua parsed)
+               |> Driver.Notes.to_seq |> Seq.map Driver.Note.any_to_error)
+        |> List.of_seq
   in
+  let out = display_errors input errs |> render Dom_html.document in
   match Js.Opt.to_option output##.lastChild with
   | None -> output##appendChild out |> ignore
   | Some last -> output##replaceChild out last |> ignore

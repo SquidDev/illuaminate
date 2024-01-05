@@ -21,6 +21,12 @@ type t
 (** Get the filename for this span. *)
 val filename : t -> File_id.t
 
+(** Convert this span to an {! Illuaminate.Error.Position.t error position}. *)
+val to_error_position : t -> Illuaminate.Error.Position.t
+
+(** Create a span from an {! Illuaminate.Error.Position.t error position}. *)
+val of_error_position : Illuaminate.Error.Position.t -> t
+
 (** Get the start line of this span.*)
 val start_line : t -> int
 

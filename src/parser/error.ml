@@ -52,9 +52,9 @@ type t =
   | Expected_var of Grammar.token
       (** A fallback error when we expected a variable but received another token. *)
 
-let tag = E.Tag.make ~attr:[] ~level:E.Critical "parse:syntax-error"
+let tag = E.Tag.make ~attr:[] ~level:E.Error "parse:syntax-error"
 
-let report errs pos err =
+let to_error ({ span = pos; value = err } : t IlluaminateCore.Span.spanned) =
   let pp_code pp = Fmt.styled `Underline (fun o -> Fmt.fmt "`%a`" o pp) in
   let pp_code_s = pp_code Format.pp_print_string in
   let pp_token out : Grammar.token -> unit = function
@@ -65,10 +65,11 @@ let report errs pos err =
     | token -> pp_code IlluaminateCore.Token.pp out (Token.get_token token)
   in
   let fmt msg out () = msg (Fmt.pf out) in
-  let report msg = E.report_detailed errs tag pos (fmt msg) in
-  let report' msg = report msg [] in
-  let msg msg = E.Error.Message (fmt msg) in
-  let annotation pos msg = E.Error.Annotation (pos, Some (fmt msg)) in
+  let mk = Illuaminate.Error.v ~code:"parse:syntax-error" ~severity:Error ~tags:[] in
+  let report ?(pos = pos) msg = mk (IlluaminateCore.Span.to_error_position pos) (fmt msg) in
+  let report' ?(pos = pos) msg = report ~pos msg [] None in
+  let msg msg = Some (fmt msg) and no_msg = None in
+  let annotation pos msg = (IlluaminateCore.Span.to_error_position pos, Some (fmt msg)) in
   match err with
   (* Generic errors *)
   | Unexpected_character c -> report' @@ fun f -> f "Unexpected character \"%s\"" (String.escaped c)
@@ -79,37 +80,38 @@ let report errs pos err =
   | Table_key_equals _ ->
       report
         (fun f -> f "Unexpected %a in expression." pp_code_s "=")
-        [ Annotation (pos, None);
-          msg (fun f ->
-              f "Tip: Wrap the preceding expression in %a and %a to use it as a table key."
-                pp_code_s "[" pp_code_s "]")
-        ]
+        []
+        (msg (fun f ->
+             f "Tip: Wrap the preceding expression in %a and %a to use it as a table key." pp_code_s
+               "[" pp_code_s "]"))
   | Use_double_equals _ ->
       report
         (fun f -> f "Unexpected %a in expression." pp_code_s "=")
-        [ Annotation (pos, None);
-          msg (fun f ->
-              f "Tip: Replace this with %a to check if two values are equal." pp_code_s "==")
-        ]
+        []
+        (msg (fun f ->
+             f "Tip: Replace this with %a to check if two values are equal." pp_code_s "=="))
   | Unclosed_brackets { open_; token } ->
       report
         (fun f -> f "Unexpected %a. Are you missing a closing bracket?" pp_token token)
         [ annotation (IlluaminateCore.Node.span open_) (fun f -> f "Brackets were opened here.");
           annotation (Token.get_span token) (fun f -> f "Unexpected %a here." pp_token token)
         ]
+        no_msg
   | Missing_table_comma { comma_pos; token } ->
       report
         (fun f -> f "Unexpected %a in table." pp_token token)
-        [ Annotation (Token.get_span token, None);
+        [ (Token.get_span token |> IlluaminateCore.Span.to_error_position, None);
           annotation comma_pos (fun f -> f "Are you missing a comma here?")
         ]
+        no_msg
   | Trailing_call_comma { comma; token } ->
       report
         (fun f -> f "Unexpected %a in function call." pp_token token)
-        [ Annotation (Token.get_span token, None);
+        [ (Token.get_span token |> IlluaminateCore.Span.to_error_position, None);
           annotation (IlluaminateCore.Node.span comma) (fun f ->
               f "Tip: Try removing this %a." pp_code_s ",")
         ]
+        no_msg
   | Local_function_dot { local; token } ->
       report
         (fun f -> f "Cannot use %a with a table key." pp_code_s "local function")
@@ -117,24 +119,25 @@ let report errs pos err =
           annotation (IlluaminateCore.Node.span local) (fun f ->
               f "Tip: Try removing this %a keyword." pp_code_s "local")
         ]
+        no_msg
   | Standalone_name token ->
       report
+        ~pos:(Token.get_span token |> IlluaminateCore.Span.start)
         (fun f -> f "Unexpected %a after name." pp_token token)
-        [ Annotation (Token.get_span token |> IlluaminateCore.Span.start, None);
-          msg (fun f -> f "Did you mean to assign this or call it as a function?")
-        ]
+        []
+        (msg (fun f -> f "Did you mean to assign this or call it as a function?"))
   | Standalone_name_call pos ->
       report
         (fun f -> f "Unexpected symbol after name.")
-        [ annotation pos (fun f -> f "Expected something before the end of the line.");
-          msg (fun f -> f "Tip: Use %a to call with no arguments." pp_code_s "()")
-        ]
+        [ annotation pos (fun f -> f "Expected something before the end of the line.") ]
+        (msg (fun f -> f "Tip: Use %a to call with no arguments." pp_code_s "()"))
   | Expected_then { if_; pos } ->
       report
         (fun f -> f "Expected %a after if condition." pp_code_s "then")
         [ annotation (IlluaminateCore.Node.span if_) (fun f -> f "If statement started here.");
           annotation pos (fun f -> f "Expected %a before here." pp_code_s "then")
         ]
+        no_msg
   | Expected_end { token; start } ->
       report
         (fun f ->
@@ -142,22 +145,23 @@ let report errs pos err =
         [ annotation start (fun f -> f "Block started here.");
           annotation (Token.get_span token) (fun f -> f "Expected end of block here.")
         ]
+        no_msg
   | Unexpected_end _ ->
       report
         (fun f -> f "Unexpected %a." pp_code_s "end")
-        [ Annotation (pos, None);
-          msg (fun f ->
-              f
-                "Your program contains more %as than needed. Check each block (%a, %a, %a, ...) \
-                 only has one %a"
-                pp_code_s "end" pp_code_s "if" pp_code_s "for" pp_code_s "function" pp_code_s "end")
-        ]
+        []
+        (msg (fun f ->
+             f
+               "Your program contains more %as than needed. Check each block (%a, %a, %a, ...) \
+                only has one %a"
+               pp_code_s "end" pp_code_s "if" pp_code_s "for" pp_code_s "function" pp_code_s "end"))
   | Unfinished_label { start; token } ->
       report
         (fun f -> f "Unexpected %a." pp_token token)
         [ annotation (IlluaminateCore.Node.span start) (fun f -> f "Label was started here.");
           annotation (Token.get_span token) (fun f -> f "Tip: Try adding %a here." pp_code_s "::")
         ]
+        no_msg
   (* Boring fallback errors *)
   | Expected_statement token ->
       report' @@ fun f -> f "Unexpected %a. Expected a statement." pp_token token

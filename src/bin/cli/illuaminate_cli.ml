@@ -41,27 +41,26 @@ let reporter () =
   { Logs.report }
 
 let lint paths =
-  let errs = Error.make () in
-  let loader = Loader.create errs in
-  let modules, builder = Loader.load_from_many ~loader paths in
+  let modules, builder, load_errors = Loader.load_from_many paths in
   let data = IlluaminateData.Builder.build builder in
-  modules
-  |> List.iter (function
-       | { Loader.body = None; _ } -> ()
-       | { path; config; body = Some parsed; _ } ->
-           let tags, store = Config.get_linters config ~path () in
-           Linters.all
-           |> List.iter @@ fun l ->
-              Driver.lint ~store ~data ~tags l parsed
-              |> Driver.Notes.to_seq
-              |> Seq.iter (Driver.Note.report_any errs));
-  Error.display_of_files errs;
-  if Error.has_problems errs then exit 1
+  let errs =
+    List.to_seq modules
+    |> Seq.flat_map (function
+         | { Loader.body = None; _ } -> Seq.empty
+         | { path; config; body = Some parsed; _ } ->
+             let tags, store = Config.get_linters config ~path () in
+             List.to_seq Linters.all
+             |> Seq.flat_map @@ fun l ->
+                Driver.lint ~store ~data ~tags l parsed
+                |> Driver.Notes.to_seq |> Seq.map Driver.Note.any_to_error)
+    |> Seq.append (List.to_seq load_errors)
+    |> List.of_seq
+  in
+  Illuaminate.Console_reporter.display_of_files errs;
+  if errs <> [] then exit 1
 
 let fix paths =
-  let errs = Error.make () in
-  let loader = Loader.create errs in
-  let modules, builder = Loader.load_from_many ~loader paths in
+  let modules, builder, errs = Loader.load_from_many paths in
   let data = IlluaminateData.Builder.build builder in
   let modules' =
     modules
@@ -84,8 +83,8 @@ let fix paths =
     | _ -> ()
   in
   List.iter2 rewrite modules modules';
-  Error.display_of_files errs;
-  if Error.has_problems errs then exit 1
+  Illuaminate.Console_reporter.display_of_files errs;
+  if errs <> [] then exit 1
 
 let mkdirs =
   let rec go xs path =
@@ -133,10 +132,8 @@ let doc_gen path =
       let hash = Digest.file output |> Digest.to_hex |> CCString.take 8 in
       Printf.sprintf "%s?v=%s" name hash
   end in
-  let errs = Error.make () in
-  let loader = Loader.create errs in
-
-  (Loader.load_from ~loader path
+  let loaded, errs = Loader.load_from path in
+  (loaded
   |> Option.iter @@ fun (config, _, builder) ->
      let data = IlluaminateData.Builder.build builder in
      let pages = IlluaminateData.get data Doc.Extract.public_pages () in
@@ -203,13 +200,11 @@ let doc_gen path =
        in
        E.Summary.(everything ~source_link pages |> to_json)
        |> Yojson.Safe.to_file (Fpath.to_string path));
-  Error.display_of_files errs;
-  if Error.has_problems errs then exit 1
+  Console_reporter.display_of_files errs;
+  if errs <> [] then exit 1
 
 let dump_globals ~defined paths =
-  let errs = Error.make () in
-  let loader = Loader.create errs in
-  let modules, builder = Loader.load_from_many ~loader paths in
+  let modules, builder, _ = Loader.load_from_many paths in
   let data = IlluaminateData.Builder.build builder in
   let gather =
     Seq.fold_left (fun (unbound, defined) var ->
@@ -248,7 +243,6 @@ let init_config config force =
 
 let minify file =
   let module M = IlluaminateMinify in
-  let errs = Error.make () in
   let program =
     match file with
     | Some file ->
@@ -261,7 +255,9 @@ let minify file =
         Lexing.from_channel stdin |> IlluaminateParser.program filename
   in
   match program with
-  | Error err -> IlluaminateParser.Error.report errs err.span err.value
+  | Error err ->
+      Illuaminate.Console_reporter.display_of_files [ IlluaminateParser.Error.to_error err ];
+      exit 1
   | Ok program ->
       let out = Format.formatter_of_out_channel stdout in
       M.minify program |> M.Emit.(with_wrapping out "%a" program)

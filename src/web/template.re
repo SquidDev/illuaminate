@@ -9,7 +9,6 @@ include JsHtml;
 let level: Error.level => string =
   level =>
     switch (level) {
-    | Critical => "critical"
     | Error => "error"
     | Warning => "warning"
     | Note => "note"
@@ -37,6 +36,7 @@ let partition_string = (start, length, str) => {
 };
 
 let source_line = (source, span, message) => {
+  let span = Span.of_error_position(span);
   let start_line = Span.start_line(span);
   let start_col = Span.start_col(span);
   let finish_line = Span.finish_line(span);
@@ -83,22 +83,38 @@ let source_line = (source, span, message) => {
   </div>;
 };
 
-let annotation = (source, annotation) => {
-  switch (annotation) {
-  | Error.Error.Message(msg) =>
-    <div class_="error-message"> {str(Format.asprintf("%a", msg, ()))} </div>
-  | Error.Error.Annotation(span, msg) => source_line(source, span, msg)
-  };
-};
-
-let error = (source, {Error.Error.span, message, tag, annotations}) => {
-  <div class_={"error error-" ++ level(tag.level)}>
+let error =
+    (
+      source,
+      {
+        Illuaminate.Error.position,
+        message,
+        code,
+        severity,
+        annotations,
+        trailer,
+        tags: _,
+      },
+    ) => {
+  <div class_={"error error-" ++ level(severity)}>
     <div class_="error-message">
-      {Format.asprintf("%a [%s]", message, (), tag.name) |> str}
+      {Format.asprintf("%a [%s]", message, (), code) |> str}
     </div>
     {switch (annotations) {
-     | [] => source_line(source, span, None)
-     | _ => List.map(annotation(source), annotations) |> many
+     | [] => source_line(source, position, None)
+     | _ =>
+       List.map(
+         ((span, msg)) => {source_line(source, span, msg)},
+         annotations,
+       )
+       |> many
+     }}
+    {switch (trailer) {
+     | Some(msg) =>
+       <div class_="error-message">
+         {str(Format.asprintf("%a", msg, ()))}
+       </div>
+     | None => nil
      }}
   </div>;
 };
@@ -109,11 +125,12 @@ let mk_minify = minify => {
   </button>;
 };
 
-let some_errors = (program, ~minify, ~fix=?, errors) => {
+let some_errors =
+    (program, ~minify, ~fix=?, errors: list(Illuaminate.Error.t)) => {
   let main =
     List.map(
-      ({Error.Error.span, _} as err) => {
-        let bol = Span.start_bol(span);
+      ({Illuaminate.Error.position, _} as err) => {
+        let bol = Span.start_bol(Span.of_error_position(position));
         let line_end =
           String.index_from_opt(program, bol, '\n')
           |> Option.value(~default=String.length(program));
@@ -124,9 +141,8 @@ let some_errors = (program, ~minify, ~fix=?, errors) => {
     );
   let (errors, warnings) =
     List.fold_left(
-      ((errors, warnings), {Error.Error.tag, _}) =>
-        switch (tag.level) {
-        | Critical
+      ((errors, warnings), {Illuaminate.Error.severity, _}) =>
+        switch (severity) {
         | Error => (errors + 1, warnings)
         | Warning
         | Note => (errors, warnings + 1)

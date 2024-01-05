@@ -1,14 +1,6 @@
 (** Extract documentation comments from a program and resolve them. *)
 
-open IlluaminateCore
 open Doc_syntax
-
-module Tag : sig
-  (** All errors which may be reported as part of documentation extraction.
-
-      Errors with these tags can be extracted by {!errors}. *)
-  val all : Error.Tag.t list
-end
 
 module Config : sig
   open IlluaminateConfig
@@ -42,9 +34,20 @@ type t
 (** The key to query the data cache with. *)
 val file : t IlluaminateData.Programs.key
 
+(** An error that occurred during doc extraction. *)
+module Extract_error : sig
+  type t =
+    | Value_mismatch of IlluaminateCore.Span.t * value * value
+    | Func_and_type of IlluaminateCore.Span.t
+    | Func_and_field of IlluaminateCore.Span.t
+
+  (** Convert this error to a {!Illuaminate.Error.t}. *)
+  val to_error : t -> Illuaminate.Error.t
+end
+
 (** Get any errors which occurred as part of documentation extraction. These errors are guaranteed
     to have a tag in {!Tags.all} *)
-val errors : t -> Error.Error.t list
+val errors : t -> Extract_error.t list
 
 (** Comments which were not attached to any node, and thus not processed. *)
 val detached_comments : t -> Doc_comment.comment list

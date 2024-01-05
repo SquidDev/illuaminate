@@ -61,13 +61,14 @@ let markdown () =
           in
           (match result with
           | Ok (errs, diff) ->
-              (if IlluaminateCore.Error.errors errs = [] then print_endline "No errors"
-               else
-                 let out = Format.std_formatter in
-                 IlluaminateCore.Error.display_of_string ~with_summary:false ~out
-                   (fun _ -> Some lua)
-                   errs;
-                 Format.pp_print_flush out ());
+              (match errs with
+              | [] -> print_endline "No errors"
+              | _ ->
+                  let out = Format.std_formatter in
+                  Illuaminate.Console_reporter.display_of_string ~with_summary:false ~out
+                    (fun _ -> Some lua)
+                    errs;
+                  Format.pp_print_flush out ());
 
               Option.iter
                 (fun diff ->

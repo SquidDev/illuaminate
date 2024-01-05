@@ -4,25 +4,17 @@ module C = IlluaminateConfig
 
 module Note = struct
   type 'a t =
-    { message : string;
-      detail : (Format.formatter -> unit) option;
-      fix : 'a Fixer.t;
-      tag : Error.Tag.t;
-      span : Span.t;
+    { error : Illuaminate.Error.t;  (** The actual error. *)
       source : 'a;
+      fix : 'a Fixer.t;
       kind : 'a Witness.t
     }
 
-  let report err { detail; tag; span; message; _ } =
-    match detail with
-    | None -> Error.report err tag span message
-    | Some detail ->
-        Error.report_detailed err tag span (Fmt.const Fmt.string message)
-          [ Annotation (span, None); Message (fun out () -> detail out) ]
+  let to_error { error; _ } = error
 
-  type any = Note : 'a t -> any
+  type any = Note : 'a t -> any [@@unboxed]
 
-  let report_any err (Note n) = report err n
+  let any_to_error (Note n) = to_error n
 end
 
 module Node = struct
@@ -111,7 +103,8 @@ end
 let always : Error.Tag.filter = fun _ -> true
 
 type r =
-  { r :
+  { x : Illuaminate.Error.t -> unit;
+    r :
       'a 'b.
       ?fix:'a Linter.Fixer.t ->
       ?span:IlluaminateCore.Span.t ->
@@ -123,10 +116,10 @@ type r =
       'b
   }
 
-let program_worker ~options ~context ~r:({ r } : r) linter program =
+let program_worker ~options ~context ~r:({ r; x } : r) linter program =
   let open! Syntax in
   let visit (type a) (f : (_, a) Linter.visitor) (kind : a Witness.t) ctx (source : a) =
-    f options ctx { r = r ~kind ~source; e = r } source
+    f options ctx { r = r ~kind ~source; e = r; x } source
   in
   let ( |: ) t ctx = { ctx with path = t :: ctx.path } in
   let token = visit linter.token Token in
@@ -318,7 +311,8 @@ let program_worker ~options ~context ~r:({ r } : r) linter program =
 let worker ~store ~data ~tags (Linter linter : t) document =
   let options = C.Schema.get linter.options store in
   let messages = Notes.Tbl.create 16 in
-  let r ?(fix = Fixer.none) ?span ?detail ~tag ~kind ~source message =
+  let r ?(fix = Fixer.none) ?span ?detail ~(tag : IlluaminateCore.Error.Tag.t) ~kind ~source message
+      =
     if tags tag then
       let span =
         match span with
@@ -327,22 +321,32 @@ let worker ~store ~data ~tags (Linter linter : t) document =
       in
       Format.kasprintf
         (fun message ->
-          Notes.Tbl.add messages
-            (Node (kind, source))
-            (Note.Note { fix; message; detail; span; tag; kind; source }))
+          let error =
+            Illuaminate.Error.v ~code:tag.name ~severity:tag.level
+              ~tags:(List.filter_map IlluaminateCore.Error.tag_of_attribute tag.attributes)
+              (Span.to_error_position span) (Fmt.const Fmt.string message) []
+              (Option.map (fun f out () -> f out) detail)
+          in
+          Notes.Tbl.add messages (Node (kind, source)) (Note.Note { error; fix; source; kind }))
         message
     else Format.ifprintf Format.std_formatter message
+  in
+  let x error =
+    Notes.Tbl.add messages
+      (Node (File, document))
+      (Note.Note { error; kind = File; source = document; fix = Fixer.none })
   in
 
   let context = { data; path = []; file = File.span document |> Span.filename } in
   (match document with
-  | File.Lua x -> program_worker ~options ~context ~r:{ r } linter x
+  | File.Lua l -> program_worker ~options ~context ~r:{ r; x } linter l
   | _ -> ());
-  linter.file options context { r = r ~kind:File ~source:document; e = r } document;
+  linter.file options context { r = r ~kind:File ~source:document; e = r; x } document;
   messages
 
 let need_lint ~store ~data ?(tags = always) (Linter l as linter : t) program =
-  if List.exists tags l.tags then worker ~store ~data ~tags linter program else Notes.empty
+  if l.tags = [] || List.exists tags l.tags then worker ~store ~data ~tags linter program
+  else Notes.empty
 
 let lint ~store ~data ?tags l program =
   IlluaminateData.compute (fun data -> need_lint ~store ~data ?tags l program) data

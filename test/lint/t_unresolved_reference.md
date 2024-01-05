@@ -41,12 +41,12 @@ in.lua: Unknown reference "UnknownExample". [doc:unresolved-reference]
  17 │   -- @usage See @{UnknownExample}
     │                   ^^^^^^^^^^^^^^
 
-in.lua: Unknown type "UnknownRetType". [doc:unresolved-reference]
+in.lua: Unknown type "UnknownArgType". [doc:unresolved-reference]
     │
  21 │   has_docs = function(f) end,
     │              ^^^^^^^^^^^^^^^
 
-in.lua: Unknown type "UnknownArgType". [doc:unresolved-reference]
+in.lua: Unknown type "UnknownRetType". [doc:unresolved-reference]
     │
  21 │   has_docs = function(f) end,
     │              ^^^^^^^^^^^^^^^

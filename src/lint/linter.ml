@@ -21,6 +21,7 @@ type 'a reporter =
       tag:Error.Tag.t ->
       ('f, Format.formatter, unit, unit) format4 ->
       'f;
+    x : 'f. Illuaminate.Error.t -> unit;
     e :
       'a 'f.
       ?fix:'a Fixer.t ->

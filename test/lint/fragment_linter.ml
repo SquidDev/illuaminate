@@ -34,9 +34,11 @@ let parse_schema : Node.trivial Span.spanned -> _ = function
 let parse_schema program =
   program ^. (Syntax.First.program -| Node.leading_trivia)
   |> CCList.find_map parse_schema
+  |> CCOption.or_lazy ~else_:(fun () ->
+         program ^. (Syntax.Last.program -| Node.leading_trivia) |> CCList.find_map parse_schema)
   |> CCOption.get_lazy @@ fun () -> Schema.default schema
 
-let files ~errs extra =
+let files ~report extra =
   lazy
     (let module FileStore = D.Programs.FileStore in
     let files = FileStore.create () in
@@ -49,9 +51,7 @@ let files ~errs extra =
              CCIO.with_in (Fpath.to_string file)
                (IlluaminateParser.program name % Lexing.from_channel)
            in
-           Result.iter_error
-             (fun (err : _ Span.spanned) -> IlluaminateParser.Error.report errs err.span err.value)
-             program;
+           Result.iter_error (fun err -> report (IlluaminateParser.Error.to_error err)) program;
            Result.to_option program
            |> Option.map (fun x -> File.Lua x)
            |> FileStore.update files name);
@@ -61,39 +61,46 @@ let files ~errs extra =
 let process ?(name = "input.lua") contents =
   let lexbuf = Lexing.from_string contents in
   let name = Illuaminate.File_id.mk name in
-  let errs = Error.make () in
+  let errors = ref [] in
+  let report x = errors := x :: !errors in
   match IlluaminateParser.program name lexbuf with
   | Error err ->
-      IlluaminateParser.Error.report errs err.span err.value;
-      (errs, None)
+      report (IlluaminateParser.Error.to_error err);
+      (!errors, None)
   | Ok parsed ->
       let store = parse_schema parsed in
-      let only = Schema.get only store in
-      let only =
-        List.map
-          (fun x ->
-            match Error.Tag.find x with
-            | None -> failwith (Printf.sprintf "Unknown tag %S" x)
-            | Some t -> t)
-          only
+      let linters =
+        match Schema.get only store with
+        | [ ":all" ] -> Linters.all
+        | tags -> (
+            let tags =
+              List.map
+                (fun x ->
+                  match Error.Tag.find x with
+                  | None -> failwith (Printf.sprintf "Unknown tag %S" x)
+                  | Some t -> t)
+                tags
+            in
+            Linters.all
+            |> List.filter @@ fun (Linter.Linter l) ->
+               match l.tags with
+               | [] -> true
+               | _ -> List.exists (fun x -> List.mem x l.tags) tags)
       in
       let context = { D.Programs.Context.root = None; config = store } in
       let data =
         let open D.Builder in
         build @@ fun b ->
-        D.Programs.FileStore.lazy_builder (files ~errs [ (name, Lua parsed) ]) b;
+        D.Programs.FileStore.lazy_builder (files ~report [ (name, Lua parsed) ]) b;
         oracle D.Programs.Context.key (fun _ _ -> context) b
       in
-      let linters =
-        Linters.all
-        |> List.filter (fun (Linter.Linter l) ->
-               match only with
-               | [] -> true
-               | _ -> List.exists (fun x -> List.mem x l.tags) only)
-      in
       let program, notes = Driver.lint_and_fix_all ~store ~data linters (Lua parsed) in
-      let errs = Error.make () in
-      Driver.Notes.to_seq notes |> Seq.iter (Driver.Note.report_any errs);
+      let errs =
+        Seq.append (List.to_seq !errors)
+          (Driver.Notes.to_seq notes |> Seq.map Driver.Note.any_to_error)
+        |> List.of_seq
+        |> List.sort Illuaminate.Error.compare_by_position
+      in
 
       let new_contents = Format.asprintf "%a" File.emit program in
       ( errs,

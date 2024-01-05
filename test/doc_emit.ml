@@ -7,11 +7,13 @@ module NMap = Map.Make (Namespace)
 
 let process ~parse ~go ~name contents =
   Format.asprintf "%t" @@ fun out ->
+  let report errs =
+    Illuaminate.Console_reporter.display_of_string ~out (fun _ -> Some contents) errs
+  in
   let lexbuf = Lexing.from_string contents in
   let name = Illuaminate.File_id.mk name in
-  let errs = Error.make () in
-  (match parse ~errs name lexbuf with
-  | Some parsed ->
+  match parse name lexbuf with
+  | Ok parsed ->
       let context =
         { D.Programs.Context.root = Sys.getcwd () |> Fpath.v |> Option.some;
           config = Schema.(singleton Doc.Config.key |> default)
@@ -26,28 +28,22 @@ let process ~parse ~go ~name contents =
         oracle D.Programs.Context.key (fun _ _ -> context) b
       in
       let docs = D.get data Doc.file name |> Option.get in
-      Doc.errors docs
-      |> List.iter (fun (e : Error.Error.t) ->
-             Error.report_detailed errs e.tag e.span e.message e.annotations);
+      Doc.errors docs |> List.map Doc.Extract_error.to_error |> report;
       Doc.get_page docs |> Option.iter (fun m -> go out data m)
-  | None -> ());
-
-  Error.display_of_string ~out (fun _ -> Some contents) errs
+  | Error err -> report [ err ]
 
 let process_lua ~go ~name contents =
-  let parse ~errs name lexbuf =
+  let parse name lexbuf =
     match IlluaminateParser.program name lexbuf with
-    | Error err ->
-        IlluaminateParser.Error.report errs err.span err.value;
-        None
-    | Ok parsed -> Some (IlluaminateCore.File.Lua parsed)
+    | Error err -> Error (IlluaminateParser.Error.to_error err)
+    | Ok parsed -> Ok (IlluaminateCore.File.Lua parsed)
   in
   process ~parse ~go ~name contents
 
 let process_md ~go ~name contents =
-  let parse ~errs:_ name lexbuf =
+  let parse name lexbuf =
     let attributes, contents = IlluaminateParserMd.parse name lexbuf in
-    Some (IlluaminateCore.File.Markdown { attributes; contents })
+    Ok (IlluaminateCore.File.Markdown { attributes; contents })
   in
   process ~parse ~go ~name contents
 

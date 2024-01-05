@@ -1,15 +1,14 @@
-open IlluaminateCore
 open IlluaminateMinify
 
 let process ~name contents =
   let lexbuf = Lexing.from_string contents in
   let name = Illuaminate.File_id.mk name in
-  let errs = Error.make () in
   Format.asprintf "%t" @@ fun out ->
   match IlluaminateParser.program name lexbuf with
   | Error err ->
-      IlluaminateParser.Error.report errs err.span err.value;
-      Error.display_of_string ~out ~with_summary:false (fun _ -> Some contents) errs
+      Illuaminate.Console_reporter.display_of_string ~out ~with_summary:false
+        (fun _ -> Some contents)
+        [ IlluaminateParser.Error.to_error err ]
   | Ok parsed -> (
       let updated =
         let buffer = Buffer.create 512 in
@@ -23,9 +22,10 @@ let process ~name contents =
       match IlluaminateParser.program name lexbuf with
       | Ok _ -> ()
       | Error err ->
-          IlluaminateParser.Error.report errs err.span err.value;
           Format.pp_print_string out "\n--[==[\n";
-          Error.display_of_string ~out ~with_summary:false (fun _ -> Some updated) errs;
+          Illuaminate.Console_reporter.display_of_string ~out ~with_summary:false
+            (fun _ -> Some updated)
+            [ IlluaminateParser.Error.to_error err ];
           Format.pp_print_string out "]==]\n")
 
 let tests =

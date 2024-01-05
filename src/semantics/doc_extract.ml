@@ -1,4 +1,3 @@
-open IlluaminateCore
 open! Doc_syntax
 module StringMap = Map.Make (String)
 module NMap = Map.Make (Namespace)
@@ -10,16 +9,39 @@ module U = Doc_extract_unresolved
 
 (* Actually exported modules *)
 module Config = Doc_extract_config
-module Tag = Doc_extract_helpers.Tag
+
+module Extract_error = struct
+  type t = Doc_extract_helpers.extract_error =
+    | Value_mismatch of IlluaminateCore.Span.t * value * value
+    | Func_and_type of IlluaminateCore.Span.t
+    | Func_and_field of IlluaminateCore.Span.t
+
+  let code = "doc:extract"
+  let severity = Illuaminate.Error.Error
+
+  let to_error = function
+    | Value_mismatch (pos, left, right) ->
+        Illuaminate.Error.simple ~code ~severity (IlluaminateCore.Span.to_error_position pos)
+          (fun f ->
+            f "Conflicting definitions, cannot merge `%s` and `%s`"
+              (Doc_extract_helpers.Value.debug_name left)
+              (Doc_extract_helpers.Value.debug_name right))
+    | Func_and_type pos ->
+        Illuaminate.Error.simple ~code ~severity (IlluaminateCore.Span.to_error_position pos)
+          (fun f -> f "Documentation comment cannot have both @param/@return and @type")
+    | Func_and_field pos ->
+        Illuaminate.Error.simple ~code ~severity (IlluaminateCore.Span.to_error_position pos)
+          (fun f -> f "Documentation comment cannot have both @param/@return and @type")
+end
 
 type t =
-  { errors : Error.t;
+  { errors : Doc_extract_helpers.extract_error list;
     comments : unit U.CommentCollection.t;
     contents : page documented option;
     vars : value documented VarTbl.t
   }
 
-let errors { errors; _ } = Error.errors errors
+let errors { errors; _ } = errors
 
 let detached_comments ({ comments; _ } : t) =
   U.CommentCollection.to_seq_keys comments |> List.of_seq
@@ -27,8 +49,7 @@ let detached_comments ({ comments; _ } : t) =
 let crunch_pages : page documented list -> page documented = function
   | [] -> failwith "Impossible"
   | x :: xs ->
-      let errs = Error.make () in
-      List.fold_left Doc_extract_helpers.Merge.(documented (page ~errs)) x xs
+      List.fold_left Doc_extract_helpers.Merge.(documented (page ~report:(fun _ -> ()))) x xs
 
 let add_page map modu =
   let ref = modu.descriptor.page_ref in
@@ -84,11 +105,7 @@ let file =
       let contents = D.need data U.unresolved_module_file filename |> Option.get in
       let cache, lift = build_resolver data contents in
       let contents = Option.map (Resolve.go_page ~cache lift) contents in
-      { contents;
-        errors = Error.make ();
-        comments = U.CommentCollection.create 0;
-        vars = VarTbl.create 0
-      }
+      { contents; errors = []; comments = U.CommentCollection.create 0; vars = VarTbl.create 0 }
 
 let get_page ({ contents; _ } : t) = contents
 let get_var ({ vars; _ } : t) var = VarTbl.find_opt vars var

@@ -1,4 +1,3 @@
-open IlluaminateCore
 open IlluaminateLint
 open IlluaminateConfig
 open IlluaminateSemantics
@@ -10,13 +9,11 @@ let schema =
     Schema.empty Linters.all
   |> Schema.union (Schema.singleton Doc.Extract.Config.key)
 
-let files ?out ?(extra = []) () =
+let files ?(extra = []) () =
   lazy
     (let module FileStore = D.Programs.FileStore in
     let files = FileStore.create () in
-    let errs = Error.make () in
     List.iter (fun (name, program) -> FileStore.update files name (Some program)) extra;
-    Error.display_of_files ?out ~with_summary:false errs;
     files)
 
 let _leak =
@@ -37,10 +34,10 @@ let _leak =
          let contents = "print('hello world')" in
          match Lexing.from_string contents |> IlluaminateParser.program name with
          | Error err ->
-             let errs = Error.make () in
-             IlluaminateParser.Error.report errs err.span err.value;
              Alcotest.failf "%t" (fun out ->
-                 Error.display_of_string ~out (fun _ -> Some contents) errs)
+                 Illuaminate.Console_reporter.display_of_string ~out ~with_summary:false
+                   (fun _ -> Some contents)
+                   [ IlluaminateParser.Error.to_error err ])
          | Ok parsed -> parsed)
     >-> action ~name:"Lint and fix" (fun prog ->
             match Driver.lint_and_fix_all ~store ~data Linters.all (Lua prog) with

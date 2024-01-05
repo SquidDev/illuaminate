@@ -18,15 +18,15 @@ type file =
 
 type t =
   { relative : Fpath.t;
-    errors : Error.t;
+    mutable errors : Illuaminate.Error.t list;
     mutable configs : Config.t option StringMap.t
   }
 
 let normalise_p p = Fpath.(normalize p |> rem_empty_seg)
 
-let create ?root errors =
+let create ?root () =
   let relative = CCOption.get_lazy (fun () -> Fpath.(Sys.getcwd () |> v |> normalise_p)) root in
-  { relative; errors; configs = StringMap.empty }
+  { relative; errors = []; configs = StringMap.empty }
 
 let mk_name ~loader:{ relative; _ } path =
   let path_s = Fpath.to_string path in
@@ -47,7 +47,14 @@ let rec get_config ~loader dir =
       let c =
         if Sys.file_exists config_path_s && not (Sys.is_directory config_path_s) then (
           Log.info (fun f -> f "Loading config from %S" config_path_s);
-          Config.of_file loader.errors (mk_name ~loader config_path))
+          match Config.of_file (mk_name ~loader config_path) with
+          | Ok x -> Some x
+          | Error { span; value = message } ->
+              loader.errors <-
+                Illuaminate.Error.simple ~code:"config:parse" ~severity:Error
+                  (Span.to_error_position span) (fun f -> f "%s" message)
+                :: loader.errors;
+              None)
         else if Fpath.is_root dir || dir = parent then Some Config.default
         else get_config ~loader parent
       in
@@ -59,12 +66,12 @@ let get_config_for ~loader path =
   if Sys.is_directory str then get_config ~loader path else get_config ~loader (Fpath.parent path)
 
 (** Parse a file and report its errors. *)
-let parse ~loader:{ errors; _ } ({ File_id.id; _ } as file) =
+let parse ~loader ({ File_id.id; _ } as file) =
   CCIO.with_in id (fun channel ->
       let lexbuf = Lexing.from_channel channel in
       match IlluaminateParser.program file lexbuf with
       | Error err ->
-          IlluaminateParser.Error.report errors err.span err.value;
+          loader.errors <- IlluaminateParser.Error.to_error err :: loader.errors;
           None
       | Ok tree -> Some (File.Lua tree))
 
@@ -110,16 +117,21 @@ let add_rules files file_store builder =
 
 let keys m = StringMap.to_seq m |> Seq.map snd |> List.of_seq
 
-let load_from ~loader path =
+let load_from ?root path =
+  let loader = create ?root () in
   let path = Fpath.(append loader.relative path |> normalise_p) in
-  get_config_for ~loader path
-  |> Option.map @@ fun config ->
-     let files = ref StringMap.empty in
-     let file_store = FileStore.create () in
-     do_load_from ~loader ~files ~file_store ~config path;
-     (config, keys !files, add_rules !files file_store)
+  let result =
+    get_config_for ~loader path
+    |> Option.map @@ fun config ->
+       let files = ref StringMap.empty in
+       let file_store = FileStore.create () in
+       do_load_from ~loader ~files ~file_store ~config path;
+       (config, keys !files, add_rules !files file_store)
+  in
+  (result, loader.errors)
 
-let load_from_many ~loader paths =
+let load_from_many ?root paths =
+  let loader = create ?root () in
   let files = ref StringMap.empty in
   let file_store = FileStore.create () in
   paths
@@ -127,4 +139,4 @@ let load_from_many ~loader paths =
          let path = Fpath.(append loader.relative path |> normalise_p) in
          get_config_for ~loader path
          |> Option.iter (fun config -> do_load_from ~loader ~files ~file_store ~config path));
-  (keys !files, add_rules !files file_store)
+  (keys !files, add_rules !files file_store, loader.errors)

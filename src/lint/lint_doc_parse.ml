@@ -10,8 +10,7 @@ module NSet = Set.Make (Namespace)
 let tag_module_kind = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:unknown-module-kind"
 
 let linter =
-  make_no_opt
-    ~tags:(tag_module_kind :: Doc.Parser.Tag.all)
+  make_no_opt ~tags:[]
     ~file:(fun () context r _ ->
       let module_kinds =
         lazy
@@ -25,7 +24,9 @@ let linter =
       IlluaminateData.need context.data D.file context.file
       |> Option.get |> D.comments
       |> List.iter @@ fun (x : Doc.Comment.comment) ->
-         x.Doc.Comment.errors |> List.iter (fun (tag, span, msg) -> r.r ~span ~tag "%s" msg);
+         List.iter
+           (fun error -> r.x (Doc.Comment.Comment_error.to_error error))
+           x.Doc.Comment.errors;
          match x.module_info with
          | Some { value = { mod_namespace = Some namespace; _ }; span }
            when not (NSet.mem namespace (Lazy.force module_kinds)) ->

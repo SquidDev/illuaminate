@@ -1,6 +1,8 @@
 See [`lint_deprecated.ml`](../../src/lint/lint_deprecated.ml)
 
 ```lua
+--- config: (lint (only var:deprecated))
+
 --- @deprecated
 local x
 
@@ -17,17 +19,17 @@ print(x, y)
 ```txt
 in.lua: Using deprecated member. [var:deprecated]
     │
- 10 │ x.a = 1
+ 12 │ x.a = 1
     │ ^
 
 in.lua: Using deprecated member. [var:deprecated]
     │
- 11 │ print(x, y)
+ 13 │ print(x, y)
     │       ^
 
 in.lua: Using deprecated member. [var:deprecated]
     │
- 11 │ print(x, y)
+ 13 │ print(x, y)
     │          ^
 Use something else instead
 ```

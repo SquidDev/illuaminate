@@ -13,18 +13,17 @@ let display ~out ~contents comments =
      match comment.errors with
      | [] -> ()
      | _ :: _ as errors ->
-         let errs = Error.make () in
-         List.iter (fun (tag, f, msg) -> Error.report errs tag f msg) errors;
-         Error.display_of_string ~out (fun _ -> Some contents) errs
+         List.map Comment_error.to_error errors
+         |> Illuaminate.Console_reporter.display_of_string ~out (fun _ -> Some contents)
 
 let process_lua_worker ~name contents out =
   let lexbuf = Lexing.from_string contents in
   let name = Illuaminate.File_id.mk name in
   match IlluaminateParser.program name lexbuf with
   | Error err ->
-      let errs = Error.make () in
-      IlluaminateParser.Error.report errs err.span err.value;
-      Error.display_of_string ~out (fun _ -> Some contents) errs
+      Illuaminate.Console_reporter.display_of_string ~out ~with_summary:false
+        (fun _ -> Some contents)
+        [ IlluaminateParser.Error.to_error err ]
   | Ok parsed ->
       let data = make_data name (Lua parsed) in
       D.get data Doc.program name |> Option.get |> display ~out ~contents

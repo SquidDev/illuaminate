@@ -19,9 +19,10 @@ type attribute =
 
           This maps to LSP's "deprecated" diagnostic tag. *)
 
+val tag_of_attribute : attribute -> Illuaminate.Error.tag option
+
 (** An error reporting level *)
-type level =
-  | Critical  (** An error which cannot be recovered from *)
+type level = Illuaminate.Error.severity =
   | Error  (** A problem, which may cause problems during processing or runtime *)
   | Warning  (** A potential problem or bug. *)
   | Note  (** A minor issue. Effectively just a less major warning. *)
@@ -52,51 +53,3 @@ module Tag : sig
   (** A predicate which determines if a tag should be reported or not. *)
   type filter = t -> bool
 end
-
-module Error : sig
-  type annotation =
-    | Message of unit Fmt.t
-    | Annotation of Span.t * unit Fmt.t option
-
-  (** An error reported within the system. *)
-  type t = private
-    { tag : Tag.t;
-      span : Span.t;
-      message : unit Fmt.t;
-      annotations : annotation list
-    }
-
-  (** Compare two errors by their position. This is suitable for sorting, but obviously does not
-      determine equality. *)
-  val span_compare : t -> t -> int
-end
-
-(** An error reporting writer, into which errors are placed *)
-type t
-
-(** Make a new error reporter *)
-val make : unit -> t
-
-(** Report a new error at a specific position *)
-val report : t -> Tag.t -> Span.t -> string -> unit
-
-(** Report a new error at a specific position with additional details. *)
-val report_detailed : t -> Tag.t -> Span.t -> unit Fmt.t -> Error.annotation list -> unit
-
-(** Determine if the error reporter has any problems in it. *)
-val has_problems : t -> bool
-
-(** Return a sorted list of errors and their locations. *)
-val errors : t -> Error.t list
-
-(** Display any errors which occurred. This assumes files exist on disk - use {!display_of_string}
-    if this is not the case. *)
-val display_of_files : ?out:Format.formatter -> ?with_summary:bool -> t -> unit
-
-(** Display any errors which occurred, with a function which maps file names to strings *)
-val display_of_string :
-  ?out:Format.formatter ->
-  ?with_summary:bool ->
-  (Illuaminate.File_id.t -> string option) ->
-  t ->
-  unit

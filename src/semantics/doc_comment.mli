@@ -5,6 +5,28 @@ type reference = Reference.unresolved = Reference of string [@@unboxed]
 include
   Doc_abstract_syntax.S with type reference := reference and module Type = Type_syntax.Unresolved
 
+(** A comment that occurs when parsing a doc comment. *)
+module Comment_error : sig
+  type t =
+    | Unknown_tag of
+        { span : Span.t;  (** The position of this tag. *)
+          tag : string  (** The name of the tag. *)
+        }  (** An unknown tag was encountered, for instance [@foo]. *)
+    | Unknown_flag of
+        { span : Span.t;  (** The position of this flag. *)
+          tag : string;  (** The tag this flag appears under. *)
+          flag : string  (** The name of the unknown flag. *)
+        }  (** An unknown flag. *)
+    | Comment_error of
+        { code : string;
+          span : Span.t;
+          message : string
+        }
+
+  (** Convert this error to a {!Illuaminate.Error.t}. *)
+  val to_error : t -> Illuaminate.Error.t
+end
+
 (** Information about this module. *)
 type module_info =
   { mod_name : string;  (** The name of this module. *)
@@ -30,7 +52,7 @@ type field =
 type comment =
   { (* Some general information about this comment. *)
     source : Span.t;  (** Where this doc comment originates from. *)
-    errors : (Error.Tag.t * Span.t * string) list;  (** Additional errors from this term. *)
+    errors : Comment_error.t list;  (** Additional errors from this term. *)
     (* Shared fields across all types. *)
     description : description option;  (** The description for this documented term. *)
     see : see list;  (** All [@see] tags. *)

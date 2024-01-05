@@ -5,11 +5,10 @@ open struct
   module C = Doc_comment
 end
 
-module Tag = struct
-  let type_mismatch = Error.Tag.make ~attr:[ Default ] ~level:Warning "doc:type-mismatch"
-  let kind_mismatch = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:kind-mismatch"
-  let all = [ kind_mismatch; type_mismatch ]
-end
+type extract_error =
+  | Value_mismatch of Span.t * value * value
+  | Func_and_type of Span.t
+  | Func_and_field of Span.t
 
 module Value = struct
   module Lift = Doc_abstract_syntax.Lift (Doc_comment) (Doc_syntax)
@@ -65,12 +64,10 @@ module Value = struct
     | None, None, (_ :: _ as fields) ->
         Table (List.map (fun f -> (f.C.field_name, field_value f)) fields)
     | Some _, Some _, _ ->
-        report Tag.kind_mismatch comment.source
-          "Documentation comment cannot have both @param/@return and @type";
+        report (Func_and_type comment.source);
         Undefined
     | Some _, None, _ ->
-        report Tag.kind_mismatch comment.source
-          "Documentation comment cannot have both @param/@return and @field";
+        report (Func_and_field comment.source);
         Undefined
 
   let get_documented ~report (comment : C.comment) =
@@ -103,7 +100,7 @@ module Merge = struct
     }
 
   (** Right biased union of two values. *)
-  let value ~errs pos left right =
+  let value ~report pos left right =
     match (left, right) with
     (* The trivial cases *)
     | Unknown, x | x, Unknown -> x
@@ -144,22 +141,20 @@ module Merge = struct
                        { member_name; member_is_method; member_value }))
           }
     | _ ->
-        Printf.sprintf "Conflicting definitions, cannot merge `%s` and `%s`" (Value.debug_name left)
-          (Value.debug_name right)
-        |> Error.report errs Tag.kind_mismatch pos;
+        report (Value_mismatch (pos, left, right));
         right
 
   (** Merge two documented values. *)
-  let doc_value ~errs = documented (value ~errs)
+  let doc_value ~report = documented (value ~report)
 
-  let page_value ~errs span left right =
+  let page_value ~report span left right =
     match (left, right) with
     | _, None | None, _ -> left (* TODO: Error. Markdown documents should never be merged. *)
-    | Some left, Some right -> Some (value ~errs span left right)
+    | Some left, Some right -> Some (value ~report span left right)
 
-  let page ~errs span left right =
+  let page ~report span left right =
     { page_ref = left.page_ref;
-      page_value = page_value ~errs span left.page_value right.page_value;
+      page_value = page_value ~report span left.page_value right.page_value;
       page_types = left.page_types @ right.page_types;
       page_module_kind = left.page_module_kind
     }

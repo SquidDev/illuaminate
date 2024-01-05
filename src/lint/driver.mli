@@ -7,27 +7,22 @@ open IlluaminateCore
 module Note : sig
   (** A linter message which will be attached to a specific node. *)
   type 'a t = private
-    { message : string;  (** The message used within this warning. *)
-      detail : (Format.formatter -> unit) option;  (** Additional detail to the message. *)
+    { error : Illuaminate.Error.t;  (** The actual error. *)
+      source : 'a;  (** The source node we're attached to. *)
       fix : 'a Linter.Fixer.t;
           (** A function which will be used to fix up this warning. Note, this function should not
               make any assumptions about the form of this node. *)
-      tag : Error.Tag.t;  (** The tag associated with this error. *)
-      span : Span.t;
-          (** The location of this note. Will generally be [source]'s position, but may be
-              overridden. *)
-      source : 'a;  (** The source node we're attached to. *)
       kind : 'a Witness.t  (** The kind of source node. *)
     }
 
   (** Report a note to an error sink. *)
-  val report : Error.t -> 'a t -> unit
+  val to_error : 'a t -> Illuaminate.Error.t
 
   (** A note of any type. *)
-  type any = private Note : 'a t -> any
+  type any = private Note : 'a t -> any [@@unboxed]
 
   (** Report a note to an error sink. *)
-  val report_any : Error.t -> any -> unit
+  val any_to_error : any -> Illuaminate.Error.t
 end
 
 module Notes : sig

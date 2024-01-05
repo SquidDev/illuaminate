@@ -33,7 +33,7 @@ end
 val of_lexer : directory:Fpath.t -> File_id.t -> Lexing.lexbuf -> (t, string Span.spanned) result
 
 (** Read config from a file, either accepting some options or producing a warning. *)
-val of_file : Error.t -> File_id.t -> t option
+val of_file : File_id.t -> (t, string Span.spanned) result
 
 (** Get the default config. *)
 val default : t

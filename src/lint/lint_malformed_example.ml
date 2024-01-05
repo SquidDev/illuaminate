@@ -16,11 +16,7 @@ let check ~r ~spanner contents =
   | Ok _, _ | Error _, (lazy (Ok _)) -> ()
   | Error error1, (lazy (Error error2)) ->
       let error = if Span.compare error1.span error2.span <= 0 then error2 else error1 in
-      let detail out =
-        let errs = Error.make () in
-        IlluaminateParser.Error.report errs error.span error.value;
-        Error.errors errs |> List.iter (fun (x : Error.Error.t) -> x.message out ())
-      in
+      let detail out = (IlluaminateParser.Error.to_error error).message out () in
       let span = spanner error.span in
       r.r ~span ~detail ~tag "Cannot parse example"
 

@@ -151,26 +151,12 @@ let parse_description ?(default_lua = false) x =
   Markdown.Markdown doc
 
 module Tag = struct
-  let malformed_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:malformed-tag"
-  let malformed_type = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:malformed-type"
-  let unknown_flag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:unknown-flag"
-  let unknown_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:unknown-tag"
-
-  let duplicate_definitions =
-    Error.Tag.make ~attr:[ Default ] ~level:Error "doc:duplicate-definitions"
-
-  let bad_index = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:bad-index"
-  let wrong_tag = Error.Tag.make ~attr:[ Default ] ~level:Error "doc:wrong-tag"
-
-  let all =
-    [ bad_index;
-      duplicate_definitions;
-      malformed_tag;
-      malformed_type;
-      unknown_flag;
-      unknown_tag;
-      wrong_tag
-    ]
+  (* TODO: Replace these with separate error types. *)
+  let malformed_tag = "doc:malformed-tag"
+  let malformed_type = "doc:malformed-type"
+  let duplicate_definitions = "doc:duplicate-definitions"
+  let bad_index = "doc:bad-index"
+  let wrong_tag = "doc:wrong-tag"
 end
 
 module Lex = struct
@@ -306,7 +292,7 @@ module Build = struct
     group.all |> IntMap.bindings |> List.map (fun (_, v) -> List.rev v)
 
   type t =
-    { mutable b_errors : (Error.Tag.t * Span.t * string) list;
+    { mutable b_errors : Comment_error.t list;
       (* General. *)
       mutable b_see : see list;
       mutable b_usages : example list;
@@ -344,15 +330,20 @@ module Build = struct
       b_fields = []
     }
 
-  let report b tag span f = Format.kasprintf (fun x -> b.b_errors <- (tag, span, x) :: b.b_errors) f
+  let report' b err = b.b_errors <- err :: b.b_errors
 
-  let unknown b name x =
-    let span, value =
+  let report b code span f =
+    Format.kasprintf
+      (fun message -> b.b_errors <- Comment_error { code; span; message } :: b.b_errors)
+      f
+
+  let unknown b tag x =
+    let span, flag =
       match x with
       | Named ({ span; value }, _) -> (span, value)
       | Marker x -> (Lex.to_span x, x.contents)
     in
-    report b Tag.unknown_flag span "%s has unknown flag '%s'" name value
+    report' b (Unknown_flag { span; tag; flag })
 
   let parse_arg b arg =
     (None, arg)
@@ -653,7 +644,7 @@ module Build = struct
             flags
         in
         b.b_fields <- field :: b.b_fields
-    | _ -> report b Tag.unknown_tag tag.span "Unknown tag @%s" tag.value
+    | _ -> report' b (Unknown_tag { span = tag.span; tag = tag.value })
 
   let build ~span ~description b =
     { source = span;
@@ -683,7 +674,9 @@ module Parse = struct
     let value = Lex.(with_range lbuf @@ value (Buffer.create 8)) in
     let xs =
       match (key.value, value.contents) with
-      | Some k, _ -> Named ({ key with value = k }, value) :: xs
+      | Some k, _ ->
+          let span = Span.finish_offset.over (fun x -> x - 1) key.span in
+          Named ({ span; value = k }, value) :: xs
       | None, "" -> xs (* TODO: Warn. *)
       | None, _ -> Marker value :: xs
     in

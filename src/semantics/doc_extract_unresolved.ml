@@ -18,7 +18,7 @@ module CommentCollection = Hashtbl.Make (struct
 end)
 
 type state =
-  { errs : Error.t;
+  { mutable errs : extract_error list;
     unused_comments : unit CommentCollection.t;
     comments : P.t;
     resolve : R.t;
@@ -28,7 +28,7 @@ type state =
     mutable types : type_info documented StringMap.t
   }
 
-let report state = Error.report state.errs
+let report state msg = state.errs <- msg :: state.errs
 
 type result =
   | Named of page documented
@@ -69,7 +69,7 @@ module Infer = struct
       | Some comment when CommentCollection.mem state.unused_comments comment ->
           CommentCollection.remove state.unused_comments comment;
           Value.get_documented ~report:(report state) comment
-          |> Merge.doc_value ~errs:state.errs value
+          |> Merge.doc_value ~report:(report state) value
       | _ -> value
     in
     value |> add_doc before |> add_doc after
@@ -134,7 +134,7 @@ module Infer = struct
         let def = ref def in
         VarTbl.add state.vars var def; update_info def
     | Some existing ->
-        existing := Merge.doc_value ~errs:state.errs !existing def;
+        existing := Merge.doc_value ~report:(report state) !existing def;
         update_info existing
 
   (** Add a {!var} to the current scope. *)
@@ -344,12 +344,11 @@ module Infer = struct
         CCOption.( <+> ) docs rest
 
   let extract_module data filename program =
-    let errs = Error.make () in
     let comments = D.need data P.program filename |> Option.get in
     let resolve = D.need data R.key filename |> Option.get in
     let env = ref (simple_documented (Doc_syntax.Table []) (Spanned.program program)) in
     let state =
-      { errs;
+      { errs = [];
         unused_comments = CommentCollection.create 16;
         comments;
         resolve;
@@ -386,7 +385,7 @@ module Infer = struct
              _
            } as comment) ->
           let merge pos implicit body =
-            let mod_contents = Merge.value ~errs:state.errs pos implicit body in
+            let mod_contents = Merge.value ~report:(report state) pos implicit body in
             mk_page ~mod_name ~mod_contents ~mod_types
               ~mod_kind:(Option.value ~default:mod_kind k)
               ~mod_namespace:(Option.value ~default:mod_namespace ns)
@@ -395,7 +394,7 @@ module Infer = struct
       | Some ({ module_info = None; _ } as comment) ->
           let body =
             Value.get_documented ~report:(report state) comment
-            |> Merge.doc_value ~errs:state.errs body
+            |> Merge.doc_value ~report:(report state) body
           in
           Unnamed
             { body;
@@ -494,7 +493,7 @@ let unresolved_module_file =
           in
           id
           |> Option.map @@ fun id ->
-             let d = Value.get_documented ~report:(fun _ _ _ -> ()) comment in
+             let d = Value.get_documented ~report:(fun _ -> ()) comment in
              let title, description = extract_title d.description in
              (* TODO: Warn if the above is a non-module/unknown. *)
              (* I don't even know what this code is meant to be doing! Maybe worth some comments! *)

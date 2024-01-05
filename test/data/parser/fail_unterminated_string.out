@@ -2,4 +2,3 @@ fail_unterminated_string.lua: Unterminated string [parse:syntax-error]
    │
  1 │ print("
    │        ^
-1 errors and 0 warnings

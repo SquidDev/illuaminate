@@ -2,11 +2,11 @@ open IlluaminateCore
 
 let parse out parser pp str =
   match parser (Illuaminate.File_id.mk "=input") (Lexing.from_string str) with
-  | Error ({ span; value = err } : IlluaminateParser.Error.t Span.spanned) -> (
-      let errs = Error.make () in
-      IlluaminateParser.Error.report errs span err;
-      Error.display_of_string ~out ~with_summary:false (fun _ -> Some str) errs;
-      match err with
+  | Error err -> (
+      Illuaminate.Console_reporter.display_of_string ~out ~with_summary:false
+        (fun _ -> Some str)
+        [ IlluaminateParser.Error.to_error err ];
+      match err.value with
       | IlluaminateParser.Error.Unexpected_token _ -> Format.fprintf out "(from messages.txt)\n"
       | _ -> ())
   | Ok parsed -> pp out parsed

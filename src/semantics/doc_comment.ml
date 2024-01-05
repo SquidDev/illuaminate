@@ -8,6 +8,37 @@ include Doc_abstract_syntax.Make (struct
   module Type = Type_syntax.Unresolved
 end)
 
+module Comment_error = struct
+  type t =
+    | Unknown_tag of
+        { span : Span.t;
+          tag : string
+        }
+    | Unknown_flag of
+        { span : Span.t;
+          tag : string;
+          flag : string
+        }
+    | Comment_error of
+        { code : string;
+          span : Span.t;
+          message : string
+        }
+
+  let severity = Illuaminate.Error.Error
+
+  let to_error : t -> Illuaminate.Error.t = function
+    | Unknown_tag { span; tag } ->
+        Illuaminate.Error.simple ~code:"doc:unknown-tag" ~severity (Span.to_error_position span)
+          (fun f -> f "Unknown tag @%s" tag)
+    | Unknown_flag { span; tag; flag } ->
+        Illuaminate.Error.simple ~code:"doc:unknown-flag" ~severity (Span.to_error_position span)
+          (fun f -> f "%s has unknown flag '%s'" tag flag)
+    | Comment_error { code; span; message } ->
+        Illuaminate.Error.simple ~code ~severity (Span.to_error_position span) (fun f ->
+            f "%s" message)
+end
+
 type module_info =
   { mod_name : string;
     mod_namespace : Namespace.t option;
@@ -26,7 +57,7 @@ type field =
 type comment =
   { (* Some general information about this comment. *)
     source : Span.t;
-    errors : (Error.Tag.t * Span.t * string) list;
+    errors : Comment_error.t list;
     (* Shared fields across all types. *)
     description : description option;
     see : see list;
