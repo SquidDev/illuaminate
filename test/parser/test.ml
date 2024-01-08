@@ -1,13 +1,14 @@
 open IlluaminateCore
 
 let parse out parser pp str =
-  match parser (Illuaminate.File_id.mk "=input") (Lexing.from_string str) with
+  let file = Illuaminate.File_id.mk "=input" in
+  match parser file (Lexing.from_string str) with
   | Error err -> (
       Illuaminate.Console_reporter.display_of_string ~out ~with_summary:false
         (fun _ -> Some str)
         [ IlluaminateParser.Error.to_error err ];
-      match err.value with
-      | IlluaminateParser.Error.Unexpected_token _ -> Format.fprintf out "(from messages.txt)\n"
+      match err.message with
+      | Unexpected_token _ -> Format.fprintf out "(from messages.txt)\n"
       | _ -> ())
   | Ok parsed -> pp out parsed
   | exception e ->

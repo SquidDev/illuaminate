@@ -15,9 +15,12 @@ let check ~r ~spanner contents =
   match (program, expr) with
   | Ok _, _ | Error _, (lazy (Ok _)) -> ()
   | Error error1, (lazy (Error error2)) ->
-      let error = if Span.compare error1.span error2.span <= 0 then error2 else error1 in
-      let detail out = (IlluaminateParser.Error.to_error error).message out () in
-      let span = spanner error.span in
+      let error1, error2 = IlluaminateParser.Error.(to_error error1, to_error error2) in
+      let error =
+        if Illuaminate.Error.compare_by_position error1 error2 <= 0 then error2 else error1
+      in
+      let detail out = error.message out () in
+      let span = IlluaminateCore.Span.of_error_position error.position |> spanner in
       r.r ~span ~detail ~tag "Cannot parse example"
 
 let rec block_line_offset offset : Cmarkit.Block_line.t list -> int option = function

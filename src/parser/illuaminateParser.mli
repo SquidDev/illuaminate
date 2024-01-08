@@ -1,5 +1,3 @@
-module Span := IlluaminateCore.Span
-
 (** An error which may occur when parsing. *)
 module Error = Error
 
@@ -13,17 +11,13 @@ module Lexer : sig
   val lex :
     Illuaminate.File_id.t ->
     Lexing.lexbuf ->
-    (token Span.spanned array, Error.t Span.spanned) result
+    (token IlluaminateCore.Span.spanned array, Error.t) result
 end
 
 (** Parse a file, either producing a program or some syntax error. *)
 val program :
-  Illuaminate.File_id.t ->
-  Lexing.lexbuf ->
-  (IlluaminateCore.Syntax.program, Error.t Span.spanned) result
+  Illuaminate.File_id.t -> Lexing.lexbuf -> (IlluaminateCore.Syntax.program, Error.t) result
 
 (** Parse a list of expressions. *)
 val repl_exprs :
-  Illuaminate.File_id.t ->
-  Lexing.lexbuf ->
-  (IlluaminateCore.Syntax.repl_exprs, Error.t Span.spanned) result
+  Illuaminate.File_id.t -> Lexing.lexbuf -> (IlluaminateCore.Syntax.repl_exprs, Error.t) result

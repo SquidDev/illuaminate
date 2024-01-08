@@ -1,13 +1,23 @@
 {
   [@@@coverage exclude_file]
-  open Error
   open Token
-  open IlluaminateCore.Node
-  open IlluaminateCore.Token
   let new_line = IlluaminateCore.Span.Lines.new_line
 
-  exception Error of (Error.t * Lexing.position * Lexing.position)
+  exception Error of Error.message
   let lexeme_spanned lexbuf x = (x, Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf)
+  let fail_here err = raise (Error err)
+
+  let unexpected_character lexbuf = fail_here (Unexpected_character {
+    position = Lexing.lexeme_start_p lexbuf;
+    character = Lexing.lexeme lexbuf;
+  })
+  let unterminated_string ~eol lexbuf =
+    let position = Lexing.lexeme_end_p lexbuf in
+    let position = if eol then { position with pos_cnum = position.pos_cnum - 1 } else position in
+    fail_here (Unterminated_string {
+      start = Lexing.lexeme_start_p lexbuf;
+      position
+    })
 
   let buffer_with len char =
     let b = Buffer.create len in
@@ -102,7 +112,7 @@ rule token l = parse
 
 | eof { Token EoF }
 
-| _ { raise (Error (lexeme_spanned lexbuf (Unexpected_character (Lexing.lexeme lexbuf)))) }
+| _ { unexpected_character lexbuf }
 
 and string contents c = parse
 | '\"'              { Buffer.add_char contents '\"';
@@ -138,10 +148,10 @@ and string contents c = parse
                     { Buffer.add_string contents x;
                       string contents c lexbuf }
 
-| eof { raise (Error (lexeme_spanned lexbuf Unterminated_string)) }
-| '\r' { raise (Error (lexeme_spanned lexbuf Unterminated_string)) }
-| '\n' { raise (Error (lexeme_spanned lexbuf Unterminated_string)) }
-| _ { raise (Error (lexeme_spanned lexbuf (Unexpected_character (Lexing.lexeme lexbuf)))) }
+| eof { unterminated_string ~eol:false lexbuf }
+| '\r' { unterminated_string ~eol:true lexbuf }
+| '\n' { unterminated_string ~eol:true lexbuf }
+| _ { unexpected_character lexbuf }
 
 and long_string buf eqs term l = parse
 | [^']' '\r' '\n']+ as x { Buffer.add_string buf x;              long_string buf eqs term l lexbuf }
@@ -151,7 +161,7 @@ and long_string buf eqs term l = parse
 | ']'                    { Buffer.add_char buf ']';              long_string buf eqs term l lexbuf }
 | '\n'                   { Buffer.add_char buf '\n'; new_line l; long_string buf eqs term l lexbuf }
 | '\r' '\n'              { Buffer.add_string buf "\r\n"; new_line l; long_string buf eqs term l lexbuf }
-| eof                    { raise (Error (lexeme_spanned lexbuf Unterminated_string)) }
+| eof                    { unterminated_string ~eol:false lexbuf }
 
 and line_comment = parse
 | [^'\r' '\n']* as x     { Trivial (LineComment x) }

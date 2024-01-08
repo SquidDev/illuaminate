@@ -14,7 +14,4 @@ val make_token :
   Grammar.token
 
 (** Convert a grammar token back into a normal one. *)
-val get_token : Grammar.token -> Token.t
-
-(** Get the span of a token. *)
-val get_span : Grammar.token -> Span.t
+val to_string : Grammar.token -> string

@@ -8,6 +8,11 @@ module Position = struct
     }
 
   let v ~file ~position_map start finish = { file; position_map; start; finish }
+
+  let of_lex_pos ~file ~position_map (start : Lexing.position) (fin : Lexing.position) =
+    v ~file ~position_map (Pos start.pos_cnum)
+      (Pos (if fin.pos_cnum <= start.pos_cnum then start.pos_cnum else fin.pos_cnum - 1))
+
   let start_pos p = Position_map.position_of p.position_map p.start
   let finish_pos p = Position_map.position_of p.position_map p.finish
 

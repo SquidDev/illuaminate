@@ -308,7 +308,7 @@ goto while
 =input: Unexpected `while` after name. [parse:syntax-error]
    │
  1 │ goto while
-   │      ^
+   │      ^^^^^
 Did you mean to assign this or call it as a function?
 ```
 
@@ -320,7 +320,7 @@ xyz while
 =input: Unexpected `while` after name. [parse:syntax-error]
    │
  1 │ xyz while
-   │     ^
+   │     ^^^^^
 Did you mean to assign this or call it as a function?
 ```
 

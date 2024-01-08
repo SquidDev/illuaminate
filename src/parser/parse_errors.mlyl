@@ -1,61 +1,87 @@
 {
-  let is_same_line prev token =
+  let is_same_line prev token token_start =
     match token with
     | Grammar.EOF _ -> false
-    | _ -> prev.Lexing.pos_lnum = IlluaminateCore.Span.start_line (Token.get_span token)
-
-  let span_after lines (pos : Lexing.position) =
-    IlluaminateCore.Span.of_pos2 lines pos { pos with pos_cnum = pos.pos_cnum + 1 }
-
-  let line_end_position lines prev token =
-    if is_same_line prev token then Token.get_span token else span_after lines prev
+    | _ -> prev.Lexing.pos_lnum = token_start.Lexing.pos_lnum
 }
 
-rule error_message lines = parse error
+rule error_message = parse error
 
 (* Match `expr() =` in tables: probably wanted `[expr()] = ...` *)
 | [_ / table_entry: expr . ...] @ EQUALS
-  { Error.Table_key_equals token }
+  { Error.Table_key_equals (token, $startloc(token), $endloc(token)) }
 
 (* Match `expr() = ` in any other context: probably wanted `expr() == `. *)
 | [expr] @ EQUALS
-  { Error.Use_double_equals token }
+  { Error.Use_double_equals (token, $startloc(token), $endloc(token)) }
 
 (* Suggest a missing comma in table entries. *)
 | last = [_ / table_body: table_entry . ...] @ STRING, NUMBER, TRUE, FALSE, NIL
-  { Missing_table_comma { comma_pos = span_after lines $endloc(last); token } }
+  {
+    let token = (token, $startloc(token), $endloc(token)) in
+    Missing_table_comma { comma_pos = $endloc(last); token }
+  }
 
 (* Suggest removing a comma in function calls. *)
 | (_ / call_args: OPAREN . ...);
   (expr | COMMA)* ;
   (comma = COMMA / sep_list1(COMMA,expr): expr COMMA . sep_list1(COMMA,expr) ...)
   @ CPAREN
-  { Trailing_call_comma { comma = comma; token } }
+  {
+    Trailing_call_comma {
+      comma = (comma, $startloc(comma), $endloc(comma));
+      token = (token, $startloc(token), $endloc(token))
+    }
+  }
 
 (* Unclosed parentheses. *)
 | open_ = OPAREN; [_ / ... . CPAREN]
 | open_ = OBRACE; [_ / ... . CBRACE]
 | open_ = OSQUARE; [_ / ... . CSQUARE]
-  { Unclosed_brackets { open_; token } }
+  {
+    Unclosed_brackets {
+      open_ = (open_, $startloc(open_), $endloc(open_));
+      token = (token, $startloc(token), $endloc(token))
+    }
+  }
 | start = DOUBLE_COLON; [_ / stmt: DOUBLE_COLON ident . DOUBLE_COLON]
-  { Unfinished_label { start; token } }
+  {
+    Unfinished_label {
+      start = (start, $startloc(start), $endloc(start));
+      token = (token, $startloc(token), $endloc(token))
+    }
+  }
 
 (* `local function x.f() end` *)
 | local = LOCAL; FUNCTION; [var] @ DOT
-  { Local_function_dot { local; token } }
+  {
+    Local_function_dot {
+      local = (local, $startloc(local), $endloc(local));
+      token = (token, $startloc(token), $endloc(token))
+    }
+  }
 
 (* A standalone name in a statement context *)
 | x = [sep_list1(COMMA,name)]
   {
-    if is_same_line $endloc(x) token then
-      Standalone_name token
+    if is_same_line $endloc(x) token $startloc(token) then
+      Standalone_name (token, $startloc(token), $endloc(token))
     else
-      Standalone_name_call (span_after lines $endloc(x))
+      Standalone_name_call $endloc(x)
   }
 
 (* An `if`/`elseif` statement with a missing `then`. *)
 | (if_ = IF | if_ = ELSEIF); expr = [expr]
-  { Expected_then { if_; pos = line_end_position lines $endloc(expr) token } }
+  {
+    let pos =
+      if is_same_line $endloc(expr) token $startloc(token) then ($startloc(token), $endloc(token))
+      else ($endloc(expr), $endloc(expr))
+    in
+    Expected_then {
+      if_ = (if_, $startloc(if_), $endloc(if_));
+      pos
+    }
+  }
 
 (* Statements with a missing `end`. *)
 | (start = IF | start = ELSEIF) ; expr ; THEN; [stmts]
@@ -64,34 +90,39 @@ rule error_message lines = parse error
 | (start = DO / stmt: DO . ...) ; [stmts]
 | (start = FUNCTION / stmt: FUNCTION . ...) ; function_name; [args ; stmts]
 | (start = FUNCTION / atom: FUNCTION . ...) ; [args ; stmts]
-  { Expected_end { start = IlluaminateCore.Node.span start; token } }
+  {
+    Expected_end {
+      start = ($startloc(start), $endloc(start));
+      token = (token, $startloc(token), $endloc(token))
+    }
+  }
 
 (* We handle local function specially, to capture both loc and func. *)
 | loc = LOCAL; func = FUNCTION; var; [args ; stmts]
   {
-    let start = IlluaminateCore.Span.of_span2
-      (IlluaminateCore.Node.span loc)
-      (IlluaminateCore.Node.span func)
-    in
-    Expected_end { start; token } }
+    Expected_end {
+      start = ($startloc(loc), $endloc(func));
+      token = (token, $startloc(token), $endloc(token))
+    }
+  }
 
 (* Fallback parse error for when we expected a statement. *)
 | [_ / stmts: ... . ...]
   partial {
     match token with
-    | END _ -> Some (Unexpected_end token)
+    | END _ -> Some (Unexpected_end (token, $startloc(token), $endloc(token)))
     | EOF _ -> None
-    | _ -> Some (Expected_statement token)
+    | _ -> Some (Expected_statement (token, $startloc(token), $endloc(token)))
   }
 
 (* Fallback parse error for function arguments. *)
 | [_? / ... . args ...]
-  { Expected_function_args token }
+  { Expected_function_args (token, $startloc(token), $endloc(token)) }
 
 (* Fallback parse error for when we expected an expression. *)
 | [/ ... . expr ...] | [/ ... . expr_pow ...] | [/ ... . sep_list1(COMMA,expr) ...]
-  { Expected_expression token }
+  { Expected_expression (token, $startloc(token), $endloc(token)) }
 
 (* Fallback parse error for when we expected a variable name. *)
 | [/ ... . var ...] | [/ ... . name ...] | [_ / ... . function_name ...]
-  { Expected_var token }
+  { Expected_var (token, $startloc(token), $endloc(token)) }
