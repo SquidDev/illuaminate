@@ -2,7 +2,7 @@ open IlluaminateCore
 open IlluaminateLint
 open IlluaminateConfig
 open IlluaminateSemantics
-open Lens
+open Illuaminate.Lens
 module D = IlluaminateData
 
 let only =

@@ -1,7 +1,7 @@
 open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
-open Lens
+open Illuaminate.Lens
 
 module Opt = struct
   type t = { clarifying : bool }
@@ -42,7 +42,7 @@ let unwrap_all =
   in
   let fix path = function
     | Parens _ as e ->
-        let open Lens in
+        let open Illuaminate.Lens in
         let before, after =
           match path with
           | Expr (UnOp _) :: _ -> (true, false)
@@ -67,7 +67,7 @@ let unwrap_most =
   (* The fixer attempts to append the leading/trailing trivia to the outer parenthesis. *)
   let fix = function
     | Parens { paren_open; paren_expr = e; paren_close } ->
-        let open Lens in
+        let open Illuaminate.Lens in
         let l, e, t = unwrap e in
         Parens
           { paren_open = (Node.trailing_trivia %= fun x -> Node.join_trivia x l) @@ paren_open;

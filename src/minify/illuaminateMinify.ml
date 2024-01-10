@@ -1,6 +1,6 @@
 open IlluaminateCore
 open Syntax
-open Lens
+open Illuaminate.Lens
 module R = IlluaminateSemantics.Resolve
 
 module Emitter = struct

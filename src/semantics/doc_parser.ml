@@ -194,7 +194,7 @@ module Lex = struct
     let start = start + offset and finish = finish + offset in
     let start_pos, start_span = IntMap.find_last (fun x -> x <= start) mapping
     and finish_pos, finish_span = IntMap.find_last (fun x -> x <= finish) mapping in
-    let open Lens in
+    let open Illuaminate.Lens in
     start_span
     |> Span.start_offset ^= ((start_span ^. Span.start_offset) + start - start_pos)
     |> Span.finish_offset ^= ((finish_span ^. Span.start_offset) + finish - finish_pos)
@@ -760,7 +760,7 @@ module Indent = struct
   (** Drop i characters from a string and adjust its span. *)
   let drop i { Span.value; span } =
     { Span.value = (if i >= String.length value then "" else CCString.drop i value);
-      span = (span |> Lens.(Span.start_offset %= fun p -> p + i))
+      span = (span |> Illuaminate.Lens.(Span.start_offset %= fun p -> p + i))
     }
 
   (** Drop a common indent from all input lines. *)
@@ -788,7 +788,7 @@ let split_lines str span =
     | y :: ys ->
         let len = String.length y in
         let span =
-          let open Lens in
+          let open Illuaminate.Lens in
           span
           |> Span.start_offset %= ( + ) offset
           |> Span.start_offset ^= ((span ^. Span.start_offset) + offset)
@@ -804,7 +804,7 @@ let rec extract_block line column lines = function
   (* Comments aligned with this one on successive lines are included *)
   | { Span.value = Node.LineComment value; span } :: xs
     when Span.start_line span = line + 1 && Span.start_col span = column ->
-      let span = span |> Lens.(Span.start_offset %= fun p -> p + 2) in
+      let span = span |> Illuaminate.Lens.(Span.start_offset %= fun p -> p + 2) in
       extract_block (line + 1) column ({ Span.span; value } :: lines) xs
   | xs -> (List.rev lines, (List.hd lines).span, xs)
 
@@ -815,7 +815,8 @@ let extract node =
     | { Span.value = Node.BlockComment (n, c); span } :: xs when String.length c > 0 && c.[0] == '-'
       ->
         let documented =
-          split_lines (CCString.drop 1 c) (Lens.(Span.start_offset %= fun p -> p + n + 5) span)
+          split_lines (CCString.drop 1 c)
+            (Illuaminate.Lens.(Span.start_offset %= fun p -> p + n + 5) span)
           |> Indent.drop_rest |> Lex.lex_of_lines |> Parse.comment span
         in
         extract_comments (documented :: cs) xs
@@ -826,7 +827,7 @@ let extract node =
            (String.length c = 1 || CCString.exists (fun x -> x <> '-') c) ->
         let lines, last, xs =
           extract_block (Span.start_line span) (Span.start_col span)
-            [ { span = (span |> Lens.(Span.start_offset %= fun p -> p + 3));
+            [ { span = (span |> Illuaminate.Lens.(Span.start_offset %= fun p -> p + 3));
                 value = CCString.drop 1 c
               }
             ]
@@ -838,7 +839,7 @@ let extract node =
         extract_comments (documented :: cs) xs
     | _ :: xs -> extract_comments cs xs
   in
-  let open Lens in
+  let open Illuaminate.Lens in
   ( extract_comments [] (node ^. Node.leading_trivia),
     extract_comments [] (node ^. Node.trailing_trivia) |> List.rev )
 

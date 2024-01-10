@@ -1,7 +1,7 @@
 open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
-open Lens
+open Illuaminate.Lens
 module Separator = Lint_table_trailing.Separator
 
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Note "format:table-separator"

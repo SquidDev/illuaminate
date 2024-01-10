@@ -20,14 +20,14 @@ module Fix = struct
   let rec fix_list1 is_discard trailing : 'a SepList1.t -> ('a stripped_list, string) result =
     function
     | SepList1.Mono v ->
-        if is_discard v then Ok (Empty (trailing.Lens.get v))
+        if is_discard v then Ok (Empty (trailing.Illuaminate.Lens.get v))
         else Error "Not terminated by a discarded variable."
     | Cons1 (v, s, xs) -> (
       match fix_list1 is_discard trailing xs with
       | Ok (Empty tt) ->
           Ok
             (if is_discard v then Empty tt
-             else Present (SepList1.Mono (trailing.Lens.over (fun t -> t @ tt) v)))
+             else Present (SepList1.Mono (trailing.over (fun t -> t @ tt) v)))
       | Ok (Present xs) -> Ok (Present (SepList1.Cons1 (v, s, xs)))
       | Error e -> Error e)
 
@@ -40,7 +40,7 @@ module Fix = struct
     function
     | { args_args = None; _ } -> Error "No arguments in this function"
     | { args_args = Some x; _ } as a ->
-        fix_list1 check_arg Lens.(Syntax.Last.arg -| Node.trailing_trivia) x
+        fix_list1 check_arg Illuaminate.Lens.(Syntax.Last.arg -| Node.trailing_trivia) x
         |> Result.map (fun x -> { a with args_args = to_option x })
 
   (** Attempt to flatten an expression into a series of statements. *)
@@ -80,14 +80,15 @@ module Fix = struct
       | NVar v -> is_discard v
       | _ -> false
     in
+    let open Illuaminate.Lens in
     Fixer.block @@ function
     | Assign ({ assign_vars = vs; assign_vals = es; _ } as st) -> (
-      match fix_list1 is_discard_name Lens.(Syntax.Last.name -| Node.trailing_trivia) vs with
+      match fix_list1 is_discard_name (Syntax.Last.name -| Node.trailing_trivia) vs with
       | Error e -> Error e
       | Ok (Present vs) -> Ok [ Assign { st with assign_vars = vs } ]
       | Ok (Empty _) -> flatten1 es)
     | Local ({ local_vars = vs; local_vals = es; _ } as st) -> (
-      match fix_list1 is_discard Lens.(Syntax.Last.var -| Node.trailing_trivia) vs with
+      match fix_list1 is_discard (Syntax.Last.var -| Node.trailing_trivia) vs with
       | Error e -> Error e
       | Ok (Present vs) -> Ok [ Local { st with local_vars = vs } ]
       | Ok (Empty _) -> (
@@ -95,7 +96,7 @@ module Fix = struct
         | None -> Ok []
         | Some (_, vs) -> flatten1 vs))
     | ForIn ({ forp_vars = SepList1.Cons1 (v, s, vs); _ } as forp) -> (
-        let lens = Lens.(Syntax.Last.var -| Node.trailing_trivia) in
+        let lens = Syntax.Last.var -| Node.trailing_trivia in
         match fix_list1 is_discard lens vs with
         | Error e -> Error e
         | Ok (Empty tt) ->

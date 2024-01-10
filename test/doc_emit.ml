@@ -90,6 +90,6 @@ end
 module Dump_sexp = struct
   let tests =
     tests ~extension:"sexp" ~group:"Dump" @@ fun out _ m ->
-    let open Lens in
+    let open Illuaminate.Lens in
     Doc_sexp.Syntax.(documented (Doc_sexp.one' % module_info) m) |> CCSexp.pp out
 end

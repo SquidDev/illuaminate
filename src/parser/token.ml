@@ -5,7 +5,7 @@ open Node
 open Syntax.UnOp
 open Syntax.BinOp
 open Token
-open Lens
+open Illuaminate.Lens
 
 type lexer_token =
   | Token of IlluaminateCore.Token.t

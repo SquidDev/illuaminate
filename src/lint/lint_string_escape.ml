@@ -17,7 +17,7 @@ let expr () _ r = function
           | { contents = Unknown_escape chr; start; length } ->
               let span = Node.span node in
               let span =
-                let open Lens in
+                let open Illuaminate.Lens in
                 span
                 |> (Span.start_offset ^= (Span.start_offset.get span + start))
                    % (Span.finish_offset ^= (Span.start_offset.get span + start + length - 1))

@@ -33,7 +33,7 @@ let fix =
   | ECall (Call { fn; args = CallArgs { open_a; args = Some (Mono a); close_a }; _ }) ->
       let a =
         if Precedence.compare (Precedence.of_expr a) (Op (UnOp.precedence OpLen)) <= 0 then
-          Lens.(Last.expr -| Node.trailing_trivia).over
+          Illuaminate.Lens.(Last.expr -| Node.trailing_trivia).over
             (fun x -> Node.join_trivia x (Node.trailing_trivia.get close_a))
             a
         else Parens { paren_open = open_a; paren_expr = a; paren_close = close_a }

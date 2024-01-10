@@ -36,7 +36,7 @@ module Comment_lines = struct
   let span_of_range mapping start finish =
     let start_pos, start_span = IntMap.find_last (fun x -> x <= start) mapping
     and finish_pos, finish_span = IntMap.find_last (fun x -> x <= finish) mapping in
-    let open Lens in
+    let open Illuaminate.Lens in
     start_span
     |> Span.start_offset ^= ((start_span ^. Span.start_offset) + start - start_pos)
     |> Span.finish_offset ^= ((finish_span ^. Span.start_offset) + finish - finish_pos)

@@ -70,7 +70,7 @@ let start_col { lines; start; _ } = Lines.get_col lines start
 let start_pos { lines; start; _ } = Lines.get_pos lines start
 
 let start_offset =
-  { Lens.get = (fun { start; _ } -> start);
+  { Illuaminate.Lens.get = (fun { start; _ } -> start);
     over = (fun f ({ lines; start; _ } as l) -> { l with start = Lines.over_offset f lines start })
   }
 
@@ -79,7 +79,7 @@ let finish_col { lines; finish; _ } = Lines.get_col lines finish
 let finish_pos { lines; finish; _ } = Lines.get_pos lines finish
 
 let finish_offset =
-  { Lens.get = (fun { finish; _ } -> finish);
+  { Illuaminate.Lens.get = (fun { finish; _ } -> finish);
     over =
       (fun f ({ lines; finish; _ } as l) -> { l with finish = Lines.over_offset f lines finish })
   }

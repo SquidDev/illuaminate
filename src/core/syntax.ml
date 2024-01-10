@@ -1,6 +1,10 @@
 (* The traverse deriver doesn't play well with bisect. *)
 [@@@coverage exclude_file]
 
+open struct
+  module Lens = Illuaminate.Lens
+end
+
 type token = Token.t Node.t [@@deriving show]
 
 module SepList1 = struct
@@ -557,7 +561,7 @@ class map =
 
 (** Get the first token within a term. *)
 module First = struct
-  open Lens
+  open Illuaminate.Lens
 
   let do_stmt = Do_stmt.do_do
   let while_stmt = While_stmt.while_while
@@ -769,7 +773,7 @@ end
 
 (** Get the last token within a term. *)
 module Last = struct
-  open Lens
+  open Illuaminate.Lens
 
   let do_stmt = Do_stmt.do_end
   let while_stmt = While_stmt.while_end
@@ -957,7 +961,7 @@ end
 
 (** Get the span terms range over. These just wrap functions declared in {!First} and {!Last}. *)
 module Spanned = struct
-  open Lens
+  open Illuaminate.Lens
 
   let project first last x = Span.of_span2 (first.get x |> Node.span) (last.get x |> Node.span)
   let expr = project First.expr Last.expr

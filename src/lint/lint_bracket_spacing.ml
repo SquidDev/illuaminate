@@ -1,7 +1,7 @@
 open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
-open Lens
+open Illuaminate.Lens
 
 (** How terms within brackets should be spaced. *)
 module BracketSpace = struct

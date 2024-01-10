@@ -30,7 +30,7 @@ let name (type a) : a t -> string = function
   | Var -> "Var"
   | File -> "File"
 
-let first (type a) : a t -> (a, token) Lens.lens' = function
+let first (type a) : a t -> (a, token) Illuaminate.Lens.lens' = function
   | Args -> First.args
   | BinOp -> Node.lens_embed BinOp.token
   | Call -> First.call
@@ -41,11 +41,11 @@ let first (type a) : a t -> (a, token) Lens.lens' = function
   | Program -> First.program
   | Stmt -> First.stmt
   | TableItem -> First.table_item
-  | Token -> Lens.Lenses.id
+  | Token -> Illuaminate.Lens.Lenses.id
   | Var -> First.var
   | File -> File.first
 
-let last (type a) : a t -> (a, token) Lens.lens' = function
+let last (type a) : a t -> (a, token) Illuaminate.Lens.lens' = function
   | Args -> Last.args
   | BinOp -> Node.lens_embed BinOp.token
   | Call -> Last.call
@@ -56,7 +56,7 @@ let last (type a) : a t -> (a, token) Lens.lens' = function
   | Program -> Last.program
   | Stmt -> Last.stmt
   | TableItem -> Last.table_item
-  | Token -> Lens.Lenses.id
+  | Token -> Illuaminate.Lens.Lenses.id
   | Var -> Last.var
   | File -> File.last
 

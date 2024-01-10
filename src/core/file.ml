@@ -27,7 +27,7 @@ let str_tok =
     | t ->
         failwith (Format.asprintf "Cannot convert token '%a' to identifier." (Node.pp Token.pp) t)
   in
-  { Lens.get; over }
+  { Illuaminate.Lens.get; over }
 
 let first =
   let get = function
@@ -41,7 +41,7 @@ let first =
     | Markdown { attributes = []; contents } ->
         Markdown { attributes = []; contents = str_tok.over f contents }
   in
-  { Lens.get; over }
+  { Illuaminate.Lens.get; over }
 
 let last =
   let get = function
@@ -51,7 +51,7 @@ let last =
     | Lua p -> Lua (Syntax.First.program.over f p)
     | Markdown ({ contents; _ } as md) -> Markdown { md with contents = str_tok.over f contents }
   in
-  { Lens.get; over }
+  { Illuaminate.Lens.get; over }
 
 let emit out = function
   | Lua x -> Emit.program out x

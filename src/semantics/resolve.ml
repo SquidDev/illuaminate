@@ -1,7 +1,7 @@
 module StringMap = Map.Make (String)
 module S = IlluaminateCore.Syntax
 open IlluaminateCore
-open Lens
+open Illuaminate.Lens
 
 type scope =
   { scope_id : int;

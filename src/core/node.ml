@@ -58,7 +58,7 @@ let trivia_finish = function
 (** Get the span of this node, including trivia of this node. *)
 let trivia_span n = Span.of_span2 (trivia_start n) (trivia_finish n)
 
-open Lens
+open Illuaminate.Lens
 
 (** A lens which exposes the contents of the term. *)
 let contents =

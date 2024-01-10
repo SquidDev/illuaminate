@@ -1,7 +1,7 @@
 open Linter
 open IlluaminateCore
 open IlluaminateSemantics
-open Lens
+open Illuaminate.Lens
 open! Doc.Syntax
 module E = Doc.Extract
 

@@ -58,7 +58,7 @@ let fix =
           Buffer.add_char buf quote;
           Buffer.contents buf
   in
-  let requote quote = Lens.(Node.contents %= requote (Quote.prefix quote)) in
+  let requote quote = Illuaminate.Lens.(Node.contents %= requote (Quote.prefix quote)) in
   let fix quote = function
     | String lit -> Ok (String (requote quote lit))
     | _ -> Error "Expected a string"
