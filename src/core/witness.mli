@@ -23,12 +23,6 @@ type 'a t =
 (** Get the name of this witness. *)
 val name : 'a t -> string
 
-(** A lens to return the first token in the term, much like with {!First}. *)
-val first : 'a t -> ('a, token) Illuaminate.Lens.lens'
-
-(** A lens to return the last token in the term, much like with {!Last}. *)
-val last : 'a t -> ('a, token) Illuaminate.Lens.lens'
-
 (** Get the span of this term, excluding leading/trailing trivia. *)
 val span : 'a t -> 'a -> Span.t
 

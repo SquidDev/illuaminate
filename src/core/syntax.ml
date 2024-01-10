@@ -638,7 +638,7 @@ module First = struct
   let rec stmt =
     let get = function
       | Do x -> do_stmt.get x
-      | Assign x -> assign_stmt.get x
+      | Assign x -> assign_stmt x
       | While x -> while_stmt.get x
       | Repeat x -> repeat_stmt.get x
       | ForNum x -> for_num_stmt.get x
@@ -653,30 +653,12 @@ module First = struct
       | Semicolon x -> x
       | Goto x -> goto_stmt.get x
       | Label x -> label_stmt.get x
-    and over f = function
-      | Do x -> Do (do_stmt.over f x)
-      | Assign x -> Assign (assign_stmt.over f x)
-      | While x -> While (while_stmt.over f x)
-      | Repeat x -> Repeat (repeat_stmt.over f x)
-      | ForNum x -> ForNum (for_num_stmt.over f x)
-      | ForIn x -> ForIn (for_in_stmt.over f x)
-      | Local x -> Local (local_stmt.over f x)
-      | LocalFunction x -> LocalFunction (local_function_stmt.over f x)
-      | AssignFunction x -> AssignFunction (function_stmt.over f x)
-      | Return x -> Return (return_stmt.over f x)
-      | If x -> If (if_stmt.over f x)
-      | Break x -> Break x
-      | SCall x -> SCall (call.over f x)
-      | Semicolon x -> Semicolon x
-      | Goto x -> Goto (goto_stmt.over f x)
-      | Label x -> Label (label_stmt.over f x)
     in
-    { get; over }
+    get
 
   and assign_stmt =
-    let get x = Assign_stmt.assign_vars.get x |> SepList1.first.get |> name.get
-    and over f = Assign_stmt.assign_vars.over (SepList1.first.over (name.over f)) in
-    { get; over }
+    let get x = Assign_stmt.assign_vars.get x |> SepList1.first.get |> name.get in
+    get
 
   and name =
     let get = function
@@ -762,13 +744,9 @@ module First = struct
     let get { program; eof } =
       match program with
       | [] -> eof
-      | x :: _ -> stmt.get x
-    and over f { program; eof } =
-      match program with
-      | [] -> { program; eof = f eof }
-      | x :: xs -> { program = stmt.over f x :: xs; eof }
+      | x :: _ -> stmt x
     in
-    { get; over }
+    get
 end
 
 (** Get the last token within a term. *)
@@ -936,27 +914,10 @@ module Last = struct
       | Semicolon x -> x
       | Goto x -> goto_stmt.get x
       | Label x -> label_stmt.get x
-    and over f = function
-      | Do x -> Do (do_stmt.over f x)
-      | Assign x -> Assign (assign_stmt.over f x)
-      | While x -> While (while_stmt.over f x)
-      | Repeat x -> Repeat (repeat_stmt.over f x)
-      | ForNum x -> ForNum (for_num_stmt.over f x)
-      | ForIn x -> ForIn (for_in_stmt.over f x)
-      | Local x -> Local (local_stmt.over f x)
-      | LocalFunction x -> LocalFunction (local_function_stmt.over f x)
-      | AssignFunction x -> AssignFunction (function_stmt.over f x)
-      | Return x -> Return (return_stmt.over f x)
-      | If x -> If (if_stmt.over f x)
-      | Break x -> Break x
-      | SCall x -> SCall (call.over f x)
-      | Semicolon x -> Semicolon x
-      | Goto x -> Goto (goto_stmt.over f x)
-      | Label x -> Label (label_stmt.over f x)
     in
-    { get; over }
+    get
 
-  let program = Program.eof
+  let program = Program.eof.get
 end
 
 (** Get the span terms range over. These just wrap functions declared in {!First} and {!Last}. *)
@@ -964,11 +925,12 @@ module Spanned = struct
   open Illuaminate.Lens
 
   let project first last x = Span.of_span2 (first.get x |> Node.span) (last.get x |> Node.span)
+  let project' first last x = Span.of_span2 (first x |> Node.span) (last x |> Node.span)
   let expr = project First.expr Last.expr
   let var x = First.var.get x |> Node.span
   let name = project First.name Last.name
-  let stmt = project First.stmt Last.stmt
-  let program = project First.program Last.program
+  let stmt = project' First.stmt Last.stmt
+  let program = project' First.program Last.program
   let table_item = project First.table_item Last.table_item
   let table = project First.table Last.table
   let call = project First.call Last.call

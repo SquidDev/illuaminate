@@ -22,8 +22,8 @@ let stmt () context r stmt =
         match go [] bs with
         | [], _ | _, [] -> true
         | before :: _, after :: _ -> (
-            let before = before ^. (Last.stmt -| Node.contents)
-            and after = after ^. (First.stmt -| Node.contents) in
+            let before = Last.stmt before ^. Node.contents
+            and after = First.stmt after ^. Node.contents in
             match (before, after) with
             | Token.CParen, (Token.OParen | Token.String _ | Token.OBrace) -> false
             | _ -> true)

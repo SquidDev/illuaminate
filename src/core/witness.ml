@@ -30,36 +30,6 @@ let name (type a) : a t -> string = function
   | Var -> "Var"
   | File -> "File"
 
-let first (type a) : a t -> (a, token) Illuaminate.Lens.lens' = function
-  | Args -> First.args
-  | BinOp -> Node.lens_embed BinOp.token
-  | Call -> First.call
-  | CallArgs -> First.call_args
-  | Expr -> First.expr
-  | FunctionName -> First.function_name
-  | Name -> First.name
-  | Program -> First.program
-  | Stmt -> First.stmt
-  | TableItem -> First.table_item
-  | Token -> Illuaminate.Lens.Lenses.id
-  | Var -> First.var
-  | File -> File.first
-
-let last (type a) : a t -> (a, token) Illuaminate.Lens.lens' = function
-  | Args -> Last.args
-  | BinOp -> Node.lens_embed BinOp.token
-  | Call -> Last.call
-  | CallArgs -> Last.call_args
-  | Expr -> Last.expr
-  | FunctionName -> Last.function_name
-  | Name -> Last.name
-  | Program -> Last.program
-  | Stmt -> Last.stmt
-  | TableItem -> Last.table_item
-  | Token -> Illuaminate.Lens.Lenses.id
-  | Var -> Last.var
-  | File -> File.last
-
 let span (type a) : a t -> a -> Span.t = function
   | Args -> Spanned.args
   (* While we could just use first/last, it's a nice micro-optimisation to avoid allocating the

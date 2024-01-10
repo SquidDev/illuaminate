@@ -106,8 +106,7 @@ module Infer = struct
 
   (** Annotate a value with documentation comments taken from a statement. *)
   let document_stmt state stmt value : value documented =
-    document_with state ~before:(First.stmt.get stmt) ~after:(Last.stmt.get stmt)
-      (Spanned.stmt stmt) value
+    document_with state ~before:(First.stmt stmt) ~after:(Last.stmt stmt) (Spanned.stmt stmt) value
 
   (** Add a {!R.var} to the current scope. *)
   let add_resolved_var state var def =
@@ -368,10 +367,10 @@ module Infer = struct
     let body = Option.fold ~none:body ~some:(fun x -> !x) state.export in
     let body = { body with descriptor = DropLocal.value body.descriptor } in
     let module_comment =
-      match P.comment (First.program.get program) state.comments |> fst |> CCList.last_opt with
+      match P.comment (First.program program) state.comments |> fst |> CCList.last_opt with
       | Some ({ source; _ } as c)
         when Span.start_col source = 1
-             && Span.start_line source < (First.program.get program |> Node.span |> Span.start_line)
+             && Span.start_line source < (First.program program |> Node.span |> Span.start_line)
              && CommentCollection.mem state.unused_comments c ->
           CommentCollection.remove state.unused_comments c;
           Some c

@@ -32,10 +32,10 @@ let parse_schema : Node.trivial Span.spanned -> _ = function
   | { value = Whitespace _; _ } -> None
 
 let parse_schema program =
-  program ^. (Syntax.First.program -| Node.leading_trivia)
+  Syntax.First.program program ^. Node.leading_trivia
   |> CCList.find_map parse_schema
   |> CCOption.or_lazy ~else_:(fun () ->
-         program ^. (Syntax.Last.program -| Node.leading_trivia) |> CCList.find_map parse_schema)
+         Syntax.Last.program program ^. Node.leading_trivia |> CCList.find_map parse_schema)
   |> CCOption.get_lazy @@ fun () -> Schema.default schema
 
 let files ~report extra =

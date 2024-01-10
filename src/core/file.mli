@@ -10,13 +10,7 @@ type t =
           the same as one long documentation comment. *)
   | Lua of Syntax.program  (** A Lua program. *)
 
-val ( = ) : t -> t -> bool
-
-(** A lens to return the first token in the term, much like with {!First}. *)
-val first : (t, Syntax.token) Illuaminate.Lens.lens'
-
-(** A lens to return the last token in the term, much like with {!Last}. *)
-val last : (t, Syntax.token) Illuaminate.Lens.lens'
+val equal : t -> t -> bool
 
 (** Get the span of this term, excluding leading/trailing trivia. *)
 val span : t -> Span.t

@@ -15,7 +15,7 @@ end
 
 module Files = struct
   let file : (File_id.t, File.t option) Core.Key.t =
-    Core.Key.deferred ~name:(__MODULE__ ^ ".Files.file") ~eq:(Option.equal File.( = ))
+    Core.Key.deferred ~name:(__MODULE__ ^ ".Files.file") ~eq:(Option.equal File.equal)
       ~key:(module File_id)
       ()
 

@@ -40,7 +40,7 @@ module Node = struct
       | String l, String r -> l == r
       | Table l, Table r -> l == r
       | l, r -> l == r)
-    | File, File -> File.( = ) l r
+    | File, File -> File.equal l r
     | ( ( Stmt
         | Program
         | Token
