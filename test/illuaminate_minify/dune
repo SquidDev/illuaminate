@@ -1,17 +1,11 @@
 (executable
  (name main)
  (libraries
-  containers
-  diff
-  fpath
   illuaminate
-  illuaminate.config
   illuaminate.core
-  illuaminate.data
-  illuaminate.lint
   illuaminate.parser
-  illuaminate.semantics
-  re
+  illuaminate.minify
+  md_test_runner
   ppx_deriving.runtime))
 
 (rule

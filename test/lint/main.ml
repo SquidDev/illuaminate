@@ -1,26 +1,3 @@
-(** Generate our [rules.inc] file. *)
-let gen_rules () =
-  let files =
-    Array.to_seq Sys.argv |> Seq.drop 2 |> Seq.map Fpath.v
-    |> Seq.filter (Fpath.has_ext "md")
-    |> Seq.map (fun x -> Fpath.rem_ext x |> Fpath.to_string)
-    |> List.of_seq |> List.sort String.compare
-  in
-  List.iter
-    (fun name ->
-      let println x = Printf.printf (x ^^ "\n") in
-      println
-        {|(rule (deps (glob_files extra/*.lua)) (action (with-stdout-to %s.new (with-stdin-from %%{dep:%s.md} (run %%{dep:./main.exe} md)))))|}
-        name name;
-      println {|(rule (alias %s) (action (diff %s.md %s.new)))|} name name name)
-    files;
-  print_string {|
-(alias
- (name runtest)
- (deps|};
-  List.iter (Printf.printf "\n  (alias %s)") files;
-  print_endline "))"
-
 let regex =
   let open Re in
   let code_block lang =
@@ -35,7 +12,7 @@ let regex =
   |> compile
 
 (** Process a markdown file. *)
-let markdown () =
+let () =
   let input = In_channel.input_all stdin in
 
   let limit = String.length input in
@@ -84,10 +61,3 @@ let markdown () =
   in
 
   go 0
-
-let () =
-  Printexc.record_backtrace true;
-  match Sys.argv.(1) with
-  | "rules" -> gen_rules ()
-  | "md" -> markdown ()
-  | _ -> exit 1

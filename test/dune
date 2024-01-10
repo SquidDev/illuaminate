@@ -8,6 +8,10 @@
  (libraries containers)
  (modules md_test_runner))
 
+(executable
+ (name md_test_gen)
+ (modules md_test_gen))
+
 (test
  (name test)
  (libraries
@@ -22,7 +26,6 @@
   illuaminate.parser
   illuaminate.parser_md
   illuaminate.lint
-  illuaminate.minify
   cmarkit
   fpath
   illuaminate.semantics
@@ -49,7 +52,8 @@
   diff
   doc_emit_summary
   leak_trace_gc
-  md_test_runner)
+  md_test_runner
+  md_test_gen)
  (action
   (run %{test} --base-dir "../")))
 

@@ -63,7 +63,6 @@ let () =
          Lint.tests;
          Pattern.tests;
          Reprint.tests;
-         Minify.tests;
          group "Documentation"
            [ Doc_parser.tests;
              Doc_emit.Json_summary.tests;
