@@ -108,7 +108,7 @@ rule error_message = parse error
 
 (* Fallback parse error for when we expected a statement. *)
 | [_ / stmts: ... . ...]
-  partial {
+  %partial {
     match token with
     | END _ -> Some (Unexpected_end (token, $startloc(token), $endloc(token)))
     | EOF _ -> None
