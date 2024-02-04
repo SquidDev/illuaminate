@@ -38,7 +38,8 @@ type message =
       { local : IlluaminateCore.Syntax.token positioned;  (** The [local] token *)
         token : token  (** The invalid [.] token. *)
       }  (** [local function] was used with a table identifier.*)
-  | Standalone_name of token  (** A statement of the form [x.y z]*)
+  | Standalone_name of token  (** A statement of the form [x.y]*)
+  | Standalone_names of token  (** A statement of the form [x.y, z]*)
   | Standalone_name_call of Lexing.position
       (** A statement of the form [x.y]. This is similar to {!Standalone_name}, but when the next
           token is on another line. *)
@@ -153,6 +154,11 @@ let to_error { message; file; position_map } =
         (fun f -> f "Unexpected %a after name." pp_token token)
         []
         (msg (fun f -> f "Did you mean to assign this or call it as a function?"))
+  | Standalone_names token ->
+      report ~pos:(posd token)
+        (fun f -> f "Unexpected %a after list of name." pp_token token)
+        []
+        (msg (fun f -> f "Did you mean to assign this?"))
   | Standalone_name_call pos ->
       report ~pos:(lex_pos1 pos)
         (fun f -> f "Unexpected symbol after name.")

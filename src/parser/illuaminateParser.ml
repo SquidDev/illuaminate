@@ -50,7 +50,7 @@ let lex_token file lexbuf (next : Token.lexer_token located) =
       let trailing, next = lex_trailing file lexbuf start.pos_lnum in
       (Token.make_token leading trailing tok_span token, start, finish, next)
 
-let get_error_message token ~pre_env ~post_env =
+let get_error_message token ~pre_env ~post_env : Error.message =
   match
     PE.run pre_env
     |> List.find_map (fun x -> Parse_errors.execute_error_message x Lexing.dummy_pos token)

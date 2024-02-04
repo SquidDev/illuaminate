@@ -201,6 +201,34 @@ term.clear
 Tip: Use `()` to call with no arguments.
 ```
 
+When we've got a list of variables, we only suggest assigning it.
+
+```lua
+term.clear, foo
+```
+
+```txt
+=input: Unexpected end of file after list of name. [parse:syntax-error]
+   │
+ 1 │ term.clear, foo
+   │                ^
+Did you mean to assign this?
+```
+
+And when we've got a partial expression, we only suggest calling it.
+
+```lua
+(a + b)
+```
+
+```txt
+=input: Unexpected symbol after name. [parse:syntax-error]
+   │
+ 1 │ (a + b)
+   │        ^ Expected something before the end of the line.
+Tip: Use `()` to call with no arguments.
+```
+
 ## If statements
 For if statements, we say when we expected the `then` keyword.
 

@@ -61,15 +61,6 @@ rule error_message = parse error
     }
   }
 
-(* A standalone name in a statement context *)
-| x = [sep_list1(COMMA,name)]
-  {
-    if is_same_line $endloc(x) token $startloc(token) then
-      Standalone_name (token, $startloc(token), $endloc(token))
-    else
-      Standalone_name_call $endloc(x)
-  }
-
 (* An `if`/`elseif` statement with a missing `then`. *)
 | (if_ = IF | if_ = ELSEIF); expr = [expr]
   {
@@ -105,6 +96,21 @@ rule error_message = parse error
       token = (token, $startloc(token), $endloc(token))
     }
   }
+
+(* A standalone name in a statement context *)
+| (/ stmt: . call) ; x = [simple_expr]
+  partial {
+    if not (is_same_line $endloc(x) token $startloc(token)) then
+      Some (Standalone_name_call $endloc(x))
+    else
+      None
+  }
+
+| (/ stmt: . sep_list1(COMMA,name) ...) ; x = [name]
+  { Standalone_name (token, $startloc(token), $endloc(token)) }
+
+| (/ stmt: . sep_list1(COMMA,name) ...) ; x = [sep_list1(COMMA,name)]
+  { Standalone_names (token, $startloc(token), $endloc(token)) }
 
 (* Fallback parse error for when we expected a statement. *)
 | [_ / stmts: ... . ...]
