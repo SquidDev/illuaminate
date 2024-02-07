@@ -96,6 +96,7 @@ local function f(a
 ```
 
 ## Missing commas in tables
+We try to detect missing commas in tables, and print an appropriate error message.
 
 ```lua
 return { 1 2 }
@@ -123,6 +124,39 @@ return { 1, 2 3 }
  1 │ return { 1, 2 3 }
    │              ^ Are you missing a comma here?
 ```
+
+This also works with table keys.
+
+```lua
+print({ x = 1 y = 2 })
+```
+
+```txt
+=input: Unexpected identifier in table. [parse:syntax-error]
+   │
+ 1 │ print({ x = 1 y = 2 })
+   │               ^
+   │
+ 1 │ print({ x = 1 y = 2 })
+   │              ^ Are you missing a comma here?
+```
+
+```lua
+print({ ["x"] = 1 ["y"] = 2 })
+```
+
+```txt
+=input: Unexpected `[` in table. [parse:syntax-error]
+   │
+ 1 │ print({ ["x"] = 1 ["y"] = 2 })
+   │                   ^
+   │
+ 1 │ print({ ["x"] = 1 ["y"] = 2 })
+   │                  ^ Are you missing a comma here?
+```
+
+We gracefully handle the case where we are actually missing a closing brace.
+
 ```lua
 print({ 1, )
 ```

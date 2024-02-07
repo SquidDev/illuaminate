@@ -16,7 +16,7 @@ rule error_message = parse error
   { Error.Use_double_equals (token, $startloc(token), $endloc(token)) }
 
 (* Suggest a missing comma in table entries. *)
-| last = [_ / table_body: table_entry . ...] @ STRING, NUMBER, TRUE, FALSE, NIL
+| last = [_ / table_body: table_entry . ...] @ STRING, NUMBER, TRUE, FALSE, NIL, OSQUARE, OPAREN, IDENT
   {
     let token = (token, $startloc(token), $endloc(token)) in
     Missing_table_comma { comma_pos = $endloc(last); token }
