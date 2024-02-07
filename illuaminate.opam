@@ -11,7 +11,7 @@ homepage: "https://github.com/squiddev/illuaminate"
 bug-reports: "https://github.com/squiddev/illuaminate/issues"
 depends: [
   "ocaml" {>= "4.14"}
-  "dune" {>= "3.8" & >= "3.1"}
+  "dune" {>= "3.7" & >= "3.1"}
   "js_of_ocaml-compiler" {build & >= "4.0.0"}
   "js_of_ocaml-ppx" {build}
   "ppx_deriving" {build}
@@ -54,4 +54,5 @@ dev-repo: "git+https://github.com/squiddev/illuaminate.git"
 pin-depends: [
   ["omnomnom.dev" "git+https://github.com/SquidDev/omnomnom.git#b14c939500de840f866665918cb3c66f08075962"]
   ["lrgrep.dev" "git+https://github.com/let-def/lrgrep.git#23e4ad3d411e89f1ee0810016bb23ba2b37e49f3"]
+  ["grenier.dev" "git+https://github.com/let-def/grenier.git#8cb374afc42c4f6f505d194c8455b08455906933"]
 ]

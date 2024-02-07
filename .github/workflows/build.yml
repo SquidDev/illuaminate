@@ -7,14 +7,14 @@ jobs:
     name: Run tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
     - name: Use OCaml
       uses: ocaml/setup-ocaml@v2
       with:
-        ocaml-compiler: 4.14.x
+        ocaml-compiler: "5.1.1"
 
     - name: Install dependencies
       run: opam install . --deps-only --with-test
@@ -29,22 +29,30 @@ jobs:
         include:
         - name: Windows
           uses: windows-latest
-          ocaml: 4.14.x
+          ocaml:
+            ocaml-compiler: ocaml-variants.5.1.1+options,ocaml-option-mingw
+            # Copied from https://github.com/ocaml-multicore/eio/blob/main/.github/workflows/main.yml
+            opam-depext: false
+            opam-repositories: |
+              dra27: https://github.com/dra27/opam-repository.git#windows-5.0
+              normal: https://github.com/ocaml/opam-repository.git
           input-file: illuaminate.exe
           output-file: illuaminate-windows-x86_64.exe
           dune-flags:
 
         - name: Linux
-          uses: ubuntu-22.04
+          uses: ubuntu-latest
           # We don't use flambda as that ends up much buliker than without.
-          ocaml: ocaml-variants.4.14.0+options,ocaml-option-musl
+          ocaml:
+            ocaml-compiler: ocaml-variants.5.1.1+options,ocaml-option-static
           input-file: illuaminate
           output-file: illuaminate-linux-x86_64
           dune-flags: --workspace dune-workspace.release
 
         - name: macOS
           uses: macos-latest
-          ocaml: 4.14.x
+          ocaml:
+            ocaml-compiler: "5.1.1"
           input-file: illuaminate
           output-file: illuaminate-macos-x86_64
           dune-flags:
@@ -52,14 +60,21 @@ jobs:
     name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.uses }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
+    # This is required to make the static/musl build work. I *believe*, OCaml
+    # finds the glibc libzstd during ./configure, and then looks for a musl
+    # version when compiling. Not 100% sure, as I've not been able to reproduce
+    # this failure locally.
+    - name: Remove libzstd
+      run: sudo apt remove libzstd-dev --yes
+      if: "matrix.name == 'Linux'"
+
     - name: Use OCaml
       uses: ocaml/setup-ocaml@v2
-      with:
-        ocaml-compiler: ${{ matrix.ocaml }}
+      with: ${{ matrix.ocaml }}
 
     - name: Install dependencies
       run: opam install . --deps-only
@@ -72,7 +87,7 @@ jobs:
         cp _install/bin/${{ matrix.input-file }} ${{ matrix.output-file }}
 
     - name: Publish executable
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.output-file }}
         path: ${{ matrix.output-file }}
@@ -86,12 +101,12 @@ jobs:
     if: github.ref == 'refs/heads/master'
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
     - name: Download executable
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: artifacts
 

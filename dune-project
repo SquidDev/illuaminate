@@ -1,4 +1,4 @@
-(lang dune 3.8)
+(lang dune 3.7)
 (using menhir 2.1)
 (implicit_transitive_deps false)
 (generate_opam_files true)
