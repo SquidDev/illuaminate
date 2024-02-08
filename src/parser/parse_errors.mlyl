@@ -79,6 +79,8 @@ rule error_message = parse error
 | start = ELSE ; [stmts]
 | start = WHILE ; expr ; DO; [stmts]
 | (start = DO / stmt: DO . ...) ; [stmts]
+| (start = FOR / stmt: FOR . ...) ; sep_list1(COMMA,var) ; IN ; sep_list1(COMMA,expr) ; DO ; [stmts]
+| (start = FOR / stmt: FOR . ...) ; var ; EQUALS ; expr ; COMMA ; expr ; (COMMA ; expr)? ; DO ; [stmts]
 | (start = FUNCTION / stmt: FUNCTION . ...) ; function_name; [args ; stmts]
 | (start = FUNCTION / atom: FUNCTION . ...) ; [args ; stmts]
   {
@@ -106,10 +108,10 @@ rule error_message = parse error
       None
   }
 
-| (/ stmt: . sep_list1(COMMA,name) ...) ; x = [name]
+| (/ stmt: . sep_list1(COMMA,name) ...) ; [name]
   { Standalone_name (token, $startloc(token), $endloc(token)) }
 
-| (/ stmt: . sep_list1(COMMA,name) ...) ; x = [sep_list1(COMMA,name)]
+| (/ stmt: . sep_list1(COMMA,name) ...) ; [sep_list1(COMMA,name)]
   { Standalone_names (token, $startloc(token), $endloc(token)) }
 
 (* Fallback parse error for when we expected a statement. *)

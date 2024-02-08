@@ -32,6 +32,20 @@ return { "abc" = "def" }
 Tip: Wrap the preceding expression in `[` and `]` to use it as a table key.
 ```
 
+and also
+
+```lua
+return { x + 1 = 1 }
+```
+
+```txt
+=input: Unexpected `=` in expression. [parse:syntax-error]
+   │
+ 1 │ return { x + 1 = 1 }
+   │                ^
+Tip: Wrap the preceding expression in `[` and `]` to use it as a table key.
+```
+
 Note this doesn't occur if this there's already a table key here:
 
 ```lua

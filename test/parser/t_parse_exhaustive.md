@@ -66,6 +66,20 @@ for goto , while
 ```
 
 ```lua
+for goto = goto , goto , goto do true
+```
+
+```txt
+=input: Unexpected `true`. Expected `end` or another statement. [parse:syntax-error]
+   │
+ 1 │ for goto = goto , goto , goto do true
+   │ ^^^ Block started here.
+   │
+ 1 │ for goto = goto , goto , goto do true
+   │                                  ^^^^ Expected end of block here.
+```
+
+```lua
 for goto = goto , goto , goto while
 ```
 
@@ -95,10 +109,13 @@ for goto = goto , goto do true
 ```
 
 ```txt
-=input: Unexpected `true`. Expected a statement. [parse:syntax-error]
+=input: Unexpected `true`. Expected `end` or another statement. [parse:syntax-error]
    │
  1 │ for goto = goto , goto do true
-   │                           ^^^^
+   │ ^^^ Block started here.
+   │
+ 1 │ for goto = goto , goto do true
+   │                           ^^^^ Expected end of block here.
 ```
 
 ```lua
@@ -155,10 +172,13 @@ for goto in goto do true
 ```
 
 ```txt
-=input: Unexpected `true`. Expected a statement. [parse:syntax-error]
+=input: Unexpected `true`. Expected `end` or another statement. [parse:syntax-error]
    │
  1 │ for goto in goto do true
-   │                     ^^^^
+   │ ^^^ Block started here.
+   │
+ 1 │ for goto in goto do true
+   │                     ^^^^ Expected end of block here.
 ```
 
 ```lua
