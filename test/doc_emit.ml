@@ -5,13 +5,16 @@ module Doc = Doc.Extract
 module D = IlluaminateData
 module NMap = Map.Make (Namespace)
 
+let root = Fpath.(v (Sys.getcwd ()) / "data" / "doc-emit")
+let temp = lazy (Filename.temp_dir "illuaminate" "doc-emit" |> Fpath.v)
+
 let process ~parse ~go ~name contents =
   Format.asprintf "%t" @@ fun out ->
   let report errs =
     Illuaminate.Console_reporter.display_of_string ~out (fun _ -> Some contents) errs
   in
   let lexbuf = Lexing.from_string contents in
-  let name = Illuaminate.File_id.mk name in
+  let name = Illuaminate.File_id.mk ~path:Fpath.(root / name) name in
   match parse name lexbuf with
   | Ok parsed ->
       let context =
@@ -25,6 +28,7 @@ let process ~parse ~go ~name contents =
         let open D.Builder in
         build @@ fun b ->
         D.Programs.FileStore.builder files b;
+        IlluaminateDocEmit.Html.Assets.add_find_asset (Lazy.force temp) b;
         oracle D.Programs.Context.key (fun _ _ -> context) b
       in
       let docs = D.get data Doc.file name |> Option.get in

@@ -1,3 +1,3 @@
 ((description
-  "<!-- Comment before the header -->\n<p>This is a small example module. Its main purpose is testing doc generation for\nMarkdown files.</p>\n")
+  "<!-- Comment before the header -->\n<p>This is a small example module. Its main purpose is testing doc generation for\nMarkdown files.</p>\n<h1>Images</h1>\n<p>Images can be included with Markdown:</p>\n<p><img src=\"example.svg\" alt=\"\" ></p>\n<p>and as HTML:</p>\n<img src=\"example.svg\" />\n<p>URLs, absolute files, and missing files are not included</p>\n<p><img src=\"https://example.com/example.svg\" alt=\"\" > <img src=\"/example.svg\" alt=\"\" > <img src=\"missing.svg\" alt=\"\" ></p>\n")
  (body (id text_page) (title "An example module!")))

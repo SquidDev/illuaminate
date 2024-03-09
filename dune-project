@@ -46,7 +46,9 @@
     js_of_ocaml
     logs
     lrgrep
+    markup
     menhir
     menhirLib
     re
+    uri
     yojson))

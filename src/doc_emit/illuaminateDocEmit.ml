@@ -1,6 +1,7 @@
 module Html = struct
   module Options = Html_options
   module Highlight = Html_highlight
+  module Assets = Html_assets
   include Html_main
   include Html_loader
 

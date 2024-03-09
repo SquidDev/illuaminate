@@ -25,6 +25,7 @@ module Html : sig
       ?attrs:(string * string option) list -> options:Html_options.t -> string -> Html.Default.node
   end
 
+  module Assets = Html_assets
   module Doc := IlluaminateSemantics.Doc
 
   type page_list :=

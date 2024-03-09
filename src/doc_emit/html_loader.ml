@@ -17,7 +17,7 @@ let load_file ~options path =
           }
         in
         IlluaminateSemantics.Doc.Parser.parse_description contents
-        |> Lift.markdown lifter |> Html_md.md ~options |> Result.ok
+        |> Lift.markdown lifter |> Html_md.md ~path ~options |> Result.ok
     | ".txt" | "" -> create_node ~tag:"pre" ~children:[ str contents ] () |> Result.ok
     | ext ->
         Format.asprintf "Cannot handle documentation index '%a' (unknown file extension %S)\n%!"

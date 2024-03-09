@@ -269,7 +269,9 @@ let build_result (type k v) store (rule : (k, v) Key.t) (key : k) ~has_change ~p
       trace
     }
   in
-  let log kind = Log.info (fun f -> f "Finished %a in %.2f (%s)" rule.pp key delta kind) in
+  let log kind =
+    Log.info (fun f -> f "Finished %s[%a] in %.2f (%s)" rule.name rule.pp key delta kind)
+  in
   match previous with
   | Some ({ changed_at; _ } as old) -> (
     match new_result.changed with
