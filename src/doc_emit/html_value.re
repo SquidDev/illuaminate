@@ -111,7 +111,7 @@ let show_preamble = (~options, {description, deprecated, _}) =>
     switch (deprecated) {
     | None => nil
     | Some({deprecation_message}) =>
-      <div class_="admonition admonition-caution">
+      <div class_="admonition admonition-warning">
         <h5 class_="admonition-heading">
           warning_icon
           {str("Deprecated")}
