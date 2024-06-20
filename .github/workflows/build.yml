@@ -79,41 +79,35 @@ jobs:
     - name: Install dependencies
       run: opam install . --deps-only
 
-    - name: Build release
+    - name: Build
       run: |
         opam exec -- dune subst
         opam exec -- dune build ${{ matrix.dune-flags }} -p illuaminate @install
         opam exec -- dune install --prefix=_install
-        cp _install/bin/${{ matrix.input-file }} ${{ matrix.output-file }}
 
-    - name: Publish executable
+    # We move our executable into a folder layout that matches the website (e.g.
+    # bin/${version}/illuaminate-${suffix}). This is a bit cumbersome, but
+    # easier to do it now rather when unpacking the artifact.
+    - name: Package
+      shell: bash
+      run: |
+        OUT_DIR="out/bin/$(git describe --always --abbrev=7)"
+        mkdir -p "$OUT_DIR"
+        cp _install/bin/${{ matrix.input-file }} "$OUT_DIR/${{ matrix.output-file }}"
+
+    - name: Upload executable
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.output-file }}
-        path: ${{ matrix.output-file }}
+        path: ./out
         if-no-files-found: error
         retention-days: 1
 
-  upload_archives:
-    name: Upload Archives
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/master'
-
-    steps:
-    - uses: actions/checkout@v4
+    - name: Upload website
+      uses: actions/upload-artifact@v4
       with:
-        fetch-depth: 0
-
-    - name: Download executable
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
-
-    - name: Upload
-      run: .github/workflows/deploy.sh 2> /dev/null
-      env:
-        SSH_KEY:  ${{ secrets.SSH_KEY  }}
-        SSH_USER: ${{ secrets.SSH_USER }}
-        SSH_HOST: ${{ secrets.SSH_HOST }}
-        SSH_PORT: ${{ secrets.SSH_PORT }}
+        name: Website
+        path: _install/etc/illuaminate/web/
+        if-no-files-found: error
+        retention-days: 1
+      if: "matrix.name == 'Linux'"
