@@ -217,16 +217,19 @@ let emit_block_html ~path ~options c block =
         | (k', _) :: xs when k = k' -> (k, v) :: xs
         | kv :: xs -> kv :: set_assoc k v xs
       in
+      let replace_asset_link ~attr name attrs e =
+        match
+          List.assoc_opt ("", attr) attrs
+          |> CCOption.flat_map (resolve_asset_link ~md_file ~options)
+        with
+        | Some link -> `Start_element (name, set_assoc ("", attr) link attrs)
+        | None -> e
+      in
       let map_signal : Markup.signal -> Markup.signal = function
-        | `Start_element (name, attrs) as e ->
-            if name = (Markup.Ns.html, "img") then
-              match
-                List.assoc_opt ("", "src") attrs
-                |> CCOption.flat_map (resolve_asset_link ~md_file ~options)
-              with
-              | Some link -> `Start_element (name, set_assoc ("", "src") link attrs)
-              | None -> e
-            else e
+        | `Start_element (((ns, "img") as name), attrs) as e when ns = Markup.Ns.html ->
+            replace_asset_link ~attr:"src" name attrs e
+        | `Start_element (((ns, "source") as name), attrs) as e when ns = Markup.Ns.html ->
+            replace_asset_link ~attr:"srcset" name attrs e
         | e -> e
       in
       Stream.stream block
