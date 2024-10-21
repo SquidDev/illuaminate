@@ -1,10 +1,8 @@
 open IlluaminateCore;
-module JsHtml =
-  Html.Make({
-    open Js_of_ocaml;
-    type event_handler = Js.t(Dom_html.event) => Js.t(bool);
-  });
-include JsHtml;
+open Illuaminate.Html;
+
+type event_handler =
+  Js_of_ocaml.Js.t(Js_of_ocaml.Dom_html.event) => Js_of_ocaml.Js.t(bool);
 
 let level: Error.level => string =
   level =>

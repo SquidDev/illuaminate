@@ -19,10 +19,13 @@ module Html : sig
 
   module Highlight : sig
     (** Highlight a Lua string, rendering it as HTML *)
-    val lua : options:Html_options.t -> string -> Html.Default.node
+    val lua : options:Html_options.t -> string -> Illuaminate.Html.node_
 
     val lua_block :
-      ?attrs:(string * string option) list -> options:Html_options.t -> string -> Html.Default.node
+      ?attrs:(string * string option) list ->
+      options:Html_options.t ->
+      string ->
+      Illuaminate.Html.node_
   end
 
   module Assets = Html_assets
@@ -33,18 +36,19 @@ module Html : sig
     Map.Make(IlluaminateSemantics.Namespace).t
 
   (** Emit an index file from a list of pages. *)
-  val emit_index : options:Options.t -> pages:page_list -> Html.Default.node -> Html.Default.node
+  val emit_index :
+    options:Options.t -> pages:page_list -> Illuaminate.Html.node_ -> Illuaminate.Html.node_
 
   (** Emit a single page. *)
   val emit_page :
     options:Options.t ->
     pages:page_list ->
     Doc.Syntax.page Doc.Syntax.documented ->
-    Html.Default.node
+    Illuaminate.Html.node_
 
   (** Load a file and convert it to HTML. This correctly handles loading markdown, HTML and text
       files. *)
-  val load_file : options:Options.t -> Fpath.t -> (Html.Default.node, string) result
+  val load_file : options:Options.t -> Fpath.t -> (Illuaminate.Html.node_, string) result
 
   (** The contents of the default JS file. *)
   val embedded_js : string

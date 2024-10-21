@@ -86,7 +86,7 @@ module Html_module = struct
         ~data ~source_link ()
     in
     H.emit_page ~options ~pages:NMap.empty m
-    |> Format.asprintf "%a" Html.Default.emit_pretty
+    |> Format.asprintf "%a" Illuaminate.Html.emit_pretty
     |> (fun x -> CCString.replace ~sub:date ~by:"xxxx-xx-xx" x)
     |> Format.pp_print_string out
 end

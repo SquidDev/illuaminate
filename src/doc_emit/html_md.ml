@@ -1,4 +1,4 @@
-open Html.Default
+open Illuaminate.Html
 open Cmarkit
 module S = IlluaminateSemantics.Doc.Syntax
 module A = IlluaminateSemantics.Doc.AbstractSyntax
@@ -132,7 +132,8 @@ let emit_code_block ~options c block =
   match language with
   | "lua" ->
       let attrs = merge_classes ~classes ~attrs in
-      Cmarkit_ext.cprintf c "%a" Html.Default.emit (Html_highlight.lua_block ~attrs ~options code)
+      let sink = Illuaminate.Output_sink.of_buffer (Cmarkit_renderer.Context.buffer c) in
+      Illuaminate.Html.emit sink (Html_highlight.lua_block ~attrs ~options code)
   | _ ->
       C.string c {|<pre|};
       (match (language, classes) with

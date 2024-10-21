@@ -9,10 +9,11 @@ let reference_link ~options:{ resolve; _ } : Reference.resolved -> string option
   | External { url = None; _ } -> None
   | Unknown _ -> None
 
-let show_list ?(tag = "h3") ?(expandable = false) ?(expand = true) title = function
-  | [] -> Html.Default.nil
+let show_list ?(tag = "h3") ?(expandable = false) ?(expand = true) title =
+  let open Illuaminate.Html in
+  function
+  | [] -> nil
   | xs ->
-      let open Html.Default in
       [ create_node ~tag
           ~children:[ str title ]
           ~attributes:

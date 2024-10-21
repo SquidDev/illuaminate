@@ -16,7 +16,8 @@ let store =
   |> Schema.default
 
 (** Append virtual HTML node to a concrete element. *)
-let rec render_to (out : Dom.node Js.t) : Template.node -> unit = function
+let rec render_to (out : Dom.node Js.t) : Template.event_handler Illuaminate.Html.node -> unit =
+  function
   | Nil -> ()
   | Raw _ -> failwith "Cannot render raw HTML"
   | Text txt ->

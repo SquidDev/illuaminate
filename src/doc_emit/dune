@@ -9,7 +9,6 @@
   illuaminate
   illuaminate.core
   illuaminate.data
-  illuaminate.html
   illuaminate.parser
   illuaminate.semantics
   markup

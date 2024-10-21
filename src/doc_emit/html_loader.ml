@@ -1,5 +1,5 @@
 let load_file ~options path =
-  let open Html.Default in
+  let open Illuaminate.Html in
   match CCIO.File.read (Fpath.to_string path) with
   | Error msg ->
       Format.asprintf "Cannot open documentation index '%a' (%s)\n%!" Fpath.pp path msg

@@ -104,10 +104,7 @@ let doc_gen path =
   let to_abs path = Fpath.to_string (to_abs' path) in
 
   (* Write a HTML doc to a file. *)
-  let emit_doc node out =
-    let fmt = Format.formatter_of_out_channel out in
-    Html.Default.emit_doc fmt node; Format.pp_print_flush fmt ()
-  in
+  let emit_doc node out = Output_sink.with_output_stream out @@ fun out -> Html.emit_doc out node in
 
   (* Resolve the path to the logo, copying it into the output directory if needed. *)
   let resolve_logo ~data ~destination logo =
@@ -199,7 +196,7 @@ let doc_gen path =
        |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path) );
 
      let path = Fpath.(destination / "index.html") in
-     Option.fold ~none:Html.Default.nil ~some:(parse_index ~options:(options Fun.id)) index
+     Option.fold ~none:Html.nil ~some:(parse_index ~options:(options Fun.id)) index
      |> E.Html.emit_index ~options:(options Fun.id) ~pages
      |> emit_doc
      |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path);

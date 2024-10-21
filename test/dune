@@ -38,7 +38,6 @@
   alcotest
   fmt
   qcheck-core
-  html
   unix)
  (deps
   (source_tree data))

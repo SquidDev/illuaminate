@@ -1,4 +1,4 @@
-open Html.Default;
+open Illuaminate.Html;
 open Html_basic;
 open Html_md;
 open Html_type;
