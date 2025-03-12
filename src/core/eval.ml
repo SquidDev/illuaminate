@@ -1,5 +1,6 @@
 (** A basic evaluator. This is not designed to be a complete definition of Lua, for obvious reasons,
-    but instead a way to evaluate {i simple} expressions (such as binary operators and constants). *)
+    but instead a way to evaluate {i simple} expressions (such as binary operators and constants).
+*)
 
 open Syntax
 

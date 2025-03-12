@@ -1,7 +1,8 @@
 (** Converts Menhir's error messages file (passed on stdin) into a list of test cases which can be
     passed to ./check-markdown.lua.
 
-    This is used to generate ./parser_messages_spec.md: see the dune file in the parent directory. *)
+    This is used to generate ./parser_messages_spec.md: see the dune file in the parent directory.
+*)
 
 let token_name = function
   | "ADD" -> "+"

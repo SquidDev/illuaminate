@@ -97,12 +97,10 @@ let expr { Opt.clarifying } { path; _ } r parens =
     match path with
     (* If we're the last term of a call or return statement. *)
     | Expr
-        (ECall
-          (Call { args = CallArgs { args; _ }; _ } | Invoke { args = CallArgs { args; _ }; _ }))
+        (ECall (Call { args = CallArgs { args; _ }; _ } | Invoke { args = CallArgs { args; _ }; _ }))
       :: _
     | Stmt
-        (SCall
-          (Call { args = CallArgs { args; _ }; _ } | Invoke { args = CallArgs { args; _ }; _ }))
+        (SCall (Call { args = CallArgs { args; _ }; _ } | Invoke { args = CallArgs { args; _ }; _ }))
       :: _
     | Stmt (Return { return_vals = args; _ }) :: _ -> SepList0.last args |> contains parens
     (* If we're the last term in a table. *)

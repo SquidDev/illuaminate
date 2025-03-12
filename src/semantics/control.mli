@@ -27,7 +27,8 @@ type edge = private
     from_block : basic_block;  (** The block this edge comes from. *)
     to_block : basic_block;  (** The block this edge goes to. *)
     backwards : bool
-        (** If this is a backwards/reverse jump. Namely, does this go back to the start of a loop? *)
+        (** If this is a backwards/reverse jump. Namely, does this go back to the start of a loop?
+        *)
   }
 
 and basic_block = private
@@ -41,7 +42,8 @@ and basic_block = private
 
 and func = private
   { func_id : int;
-        (** The unique identifier of this function. This has mo meaning beyond determining equality. *)
+        (** The unique identifier of this function. This has mo meaning beyond determining equality.
+        *)
     entry : basic_block;  (** The entry block for this function. *)
     mutable blocks : basic_block list  (** All blocks within this function. *)
   }

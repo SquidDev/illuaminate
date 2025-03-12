@@ -51,7 +51,8 @@ let rec match_end ~before paths pats =
 
 let match_end path pattern = match_end ~before:[] (Fpath.segs path) pattern
 
-(** A set of files we'll always skip over. Just saves us iterating over VCS directories and whatnot. *)
+(** A set of files we'll always skip over. Just saves us iterating over VCS directories and whatnot.
+*)
 let ignored_files =
   List.to_seq [ ".git"; ".svn"; "_build"; "_opam"; "_esy"; "node_modules" ]
   |> Seq.map (fun x -> (x, ()))

@@ -144,7 +144,10 @@ let build_func t entry_block =
         let head = fresh_block (Test test) (* The condition *)
         and loop = fresh_block (Block body) (* The loop body *)
         and loop_end = fresh_block (LoopEnd stmt) (* The end of the loop body *)
-        and continue = fresh_block (Block rest) (* Everything after the loop. *) in
+        and continue =
+          fresh_block (Block rest)
+          (* Everything after the loop. *)
+        in
         (* The current block jumps to the head, the head jumps to the loop&continuation, and the end
            backwards jumps to the head. *)
         add_edge bb head (Jump stmt) false;
@@ -158,7 +161,10 @@ let build_func t entry_block =
         let tail = fresh_block (Test test) (* The condition. *)
         and loop = fresh_block (Block body) (* The loop body *)
         and loop_end = fresh_block (LoopEnd stmt) (* The end of the loop body *)
-        and continue = fresh_block (Block rest) (* Everything after the loop. *) in
+        and continue =
+          fresh_block (Block rest)
+          (* Everything after the loop. *)
+        in
         (* The current block jumps to the body, the end jumps to the test, and the test jumps to the
            loop&continuation. *)
         add_edge bb loop (Jump stmt) false;

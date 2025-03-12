@@ -23,14 +23,14 @@ let fix =
             { args =
                 Some
                   (Mono
-                    (Fun
-                      { fun_args = { args_args = None; _ };
-                        fun_body =
-                          [ ( Return { return_vals = Some (Mono (ECall (Call call))); _ }
-                            | SCall (Call call) )
-                          ];
-                        _
-                      }));
+                     (Fun
+                        { fun_args = { args_args = None; _ };
+                          fun_body =
+                            [ ( Return { return_vals = Some (Mono (ECall (Call call))); _ }
+                              | SCall (Call call) )
+                            ];
+                          _
+                        }));
               open_a;
               close_a
             }
@@ -69,14 +69,14 @@ let check ~r ~(context : context) = function
             { args =
                 Some
                   (Mono
-                    (Fun
-                      { fun_args = { args_args = None; _ };
-                        fun_body =
-                          [ ( Return { return_vals = Some (Mono (ECall (Call call))); _ }
-                            | SCall (Call call) )
-                          ];
-                        _
-                      }));
+                     (Fun
+                        { fun_args = { args_args = None; _ };
+                          fun_body =
+                            [ ( Return { return_vals = Some (Mono (ECall (Call call))); _ }
+                              | SCall (Call call) )
+                            ];
+                          _
+                        }));
               _
             }
       } as c -> (

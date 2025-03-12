@@ -59,7 +59,8 @@ module Key : sig
       outside world.*)
   val key : ?eq:('v -> 'v -> bool) -> ('k, 'v, context -> 'k -> 'v) factory
 
-  (** A basic oracle. This simply fetches from the outside world, without caring about dependencies. *)
+  (** A basic oracle. This simply fetches from the outside world, without caring about dependencies.
+  *)
   val oracle : ?eq:('v -> 'v -> bool) -> ('k, 'v, 'k -> 'v option -> 'v) factory
 
   (** Construct a deferred key, whose provider function can be specified when constructing the

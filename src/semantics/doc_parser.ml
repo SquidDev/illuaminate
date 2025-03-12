@@ -823,7 +823,8 @@ let extract node =
     | { Span.value = Node.LineComment c; span } :: xs
       when String.length c > 0
            && c.[0] == '-'
-           && (* Skip comments which start with a line entirely composed of '-'. *)
+           &&
+           (* Skip comments which start with a line entirely composed of '-'. *)
            (String.length c = 1 || CCString.exists (fun x -> x <> '-') c) ->
         let lines, last, xs =
           extract_block (Span.start_line span) (Span.start_col span)

@@ -58,11 +58,11 @@ let parse_til_empty body end_pos state =
 let many (term : 'a t) : 'a list t =
   let rec go xs : 'a list t =
    fun end_pos -> function
-    | [] -> Ok (List.rev xs, [])
-    | ss -> (
-      match term end_pos ss with
-      | Error e -> Error e
-      | Ok (x, ss') -> go (x :: xs) end_pos ss')
+     | [] -> Ok (List.rev xs, [])
+     | ss -> (
+       match term end_pos ss with
+       | Error e -> Error e
+       | Ok (x, ss') -> go (x :: xs) end_pos ss')
   in
   go []
 

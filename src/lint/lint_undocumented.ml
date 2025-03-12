@@ -31,8 +31,7 @@ let rec value ~r ~span = function
   | Type x -> ty ~r ~span x
   | Expr _ | Unknown | Undefined -> ()
 
-and documented :
-    type a b.
+and documented : type a b.
     (r:b reporter -> span:Span.t -> a -> unit) -> r:b reporter -> a documented -> string -> unit =
  fun child ~r { description; descriptor; definition; _ } message ->
   check ~r ~span:definition ~tag description message;

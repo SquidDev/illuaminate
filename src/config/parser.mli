@@ -15,7 +15,8 @@ module Kind : sig
   type fields
 end
 
-(** An arbitrary parser for terms. This allows some combinators to span over fields and base terms. *)
+(** An arbitrary parser for terms. This allows some combinators to span over fields and base terms.
+*)
 type ('a, 'kind) parser
 
 (** The main term parser. This consumes a list of sexprs and yields an arbitrary value. *)

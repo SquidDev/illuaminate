@@ -1,7 +1,8 @@
 (** A generic type that can be used for outputting strings.
 
     Like {!Format.formatter}, this provides a generic interface for outputting strings. However,
-    this sacrifices the flexibility of {!Format} to provide a simpler and more efficient interface. *)
+    this sacrifices the flexibility of {!Format} to provide a simpler and more efficient interface.
+*)
 
 type t
 type 'a pp = t -> 'a -> unit

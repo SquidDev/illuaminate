@@ -21,7 +21,8 @@ let parse_attributes s =
           | Some i -> (classes, (CCString.take i s, Some (CCString.drop (i + 1) s)) :: extra)))
     ([], []) (String.split_on_char ' ' s)
 
-(** Merge the classes into the main attributes, from a {! parse_attributes parsed attribute string}. *)
+(** Merge the classes into the main attributes, from a {! parse_attributes parsed attribute string}.
+*)
 let merge_classes ~classes ~attrs =
   match classes with
   | [] -> attrs

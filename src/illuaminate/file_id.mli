@@ -7,7 +7,8 @@ type t = private
         (** A unique identifier for this file. This may be the path, or some other piece of data.
 
             Generally the meaning/contents of this will vary depending on what program/library is
-            constructing the spans, and thus should not be understood to have any specific meaning. *)
+            constructing the spans, and thus should not be understood to have any specific meaning.
+        *)
     hash : int  (** A cached hash of [id] *)
   }
 

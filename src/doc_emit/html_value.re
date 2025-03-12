@@ -213,7 +213,10 @@ and show_member =
     type_name ++ (if (member_is_method) {":"} else {"."}) ++ member_name;
   show_named_value(
     ~options,
-    Member({type_name, member_name}),
+    Member({
+      type_name,
+      member_name,
+    }),
     name,
     member_value,
   );
