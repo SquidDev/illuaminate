@@ -1,5 +1,5 @@
 let load_file ~options path =
-  let open Html.Default in
+  let open Illuaminate.Html in
   match CCIO.File.read (Fpath.to_string path) with
   | Error msg ->
       Format.asprintf "Cannot open documentation index '%a' (%s)\n%!" Fpath.pp path msg
@@ -17,7 +17,7 @@ let load_file ~options path =
           }
         in
         IlluaminateSemantics.Doc.Parser.parse_description contents
-        |> Lift.markdown lifter |> Html_md.md ~options |> Result.ok
+        |> Lift.markdown lifter |> Html_md.md ~path ~options |> Result.ok
     | ".txt" | "" -> create_node ~tag:"pre" ~children:[ str contents ] () |> Result.ok
     | ext ->
         Format.asprintf "Cannot handle documentation index '%a' (unknown file extension %S)\n%!"

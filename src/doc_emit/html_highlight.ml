@@ -21,7 +21,7 @@ let transform_ref ~options ((r : M.Reference.t), t) =
   | _ -> None
 
 let emit ~options ~data ~input visit tree =
-  let open Html.Default in
+  let open Illuaminate.Html in
   (* TODO: Emit a true HTML node. Not sure how to do that elegantly though - we'd probably need to
      use a visitor within Emit instead. *)
   let res = Buffer.create (String.length input) in
@@ -49,7 +49,11 @@ let emit ~options ~data ~input visit tree =
                 in
                 ("title", desc) :: attrs
           in
-          Format.asprintf "<a%a>" Html.Emitters.attrs attrs
+          let module Sink = Illuaminate.Output_sink in
+          Sink.with_to_str @@ fun out ->
+          Sink.write out "<a";
+          Illuaminate.Html.emit_attrs out attrs;
+          Sink.write out ">"
       | None ->
           stack := false :: xs;
           ""
@@ -117,7 +121,7 @@ let do_lua ~options:({ Html_options.data; _ } as options) input =
   | Error _, (lazy (Ok tree)) ->
       let data = resolve tree in
       (emit ~options ~data ~input Emit.program tree, Some `Stmt)
-  | Error _, (lazy (Error _)) -> (Html.Default.str input, None)
+  | Error _, (lazy (Error _)) -> (Illuaminate.Html.str input, None)
 
 let lua ~options input = do_lua ~options input |> fst
 
@@ -129,6 +133,6 @@ let lua_block ?(attrs = []) ~options input =
     | Some `Expr -> Some "expr"
     | Some `Stmt -> Some "stmt"
   in
-  Html.Default.create_node ~tag:"pre"
+  Illuaminate.Html.create_node ~tag:"pre"
     ~attributes:(("class", Some "highlight") :: ("data-lua-kind", kind) :: attrs)
     ~children:[ highlighted ] ()

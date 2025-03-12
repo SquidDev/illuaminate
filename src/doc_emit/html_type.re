@@ -1,4 +1,4 @@
-open Html.Default;
+open Illuaminate.Html;
 open! IlluaminateSemantics.Doc.Syntax.Type;
 
 let show_opt = (~kind, optional) =>

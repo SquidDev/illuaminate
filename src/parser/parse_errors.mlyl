@@ -16,7 +16,7 @@ rule error_message = parse error
   { Error.Use_double_equals (token, $startloc(token), $endloc(token)) }
 
 (* Suggest a missing comma in table entries. *)
-| last = [_ / table_body: table_entry . ...] @ STRING, NUMBER, TRUE, FALSE, NIL
+| last = [_ / table_body: table_entry . ...] @ STRING, NUMBER, TRUE, FALSE, NIL, OSQUARE, OPAREN, IDENT
   {
     let token = (token, $startloc(token), $endloc(token)) in
     Missing_table_comma { comma_pos = $endloc(last); token }
@@ -61,15 +61,6 @@ rule error_message = parse error
     }
   }
 
-(* A standalone name in a statement context *)
-| x = [sep_list1(COMMA,name)]
-  {
-    if is_same_line $endloc(x) token $startloc(token) then
-      Standalone_name (token, $startloc(token), $endloc(token))
-    else
-      Standalone_name_call $endloc(x)
-  }
-
 (* An `if`/`elseif` statement with a missing `then`. *)
 | (if_ = IF | if_ = ELSEIF); expr = [expr]
   {
@@ -88,6 +79,8 @@ rule error_message = parse error
 | start = ELSE ; [stmts]
 | start = WHILE ; expr ; DO; [stmts]
 | (start = DO / stmt: DO . ...) ; [stmts]
+| (start = FOR / stmt: FOR . ...) ; sep_list1(COMMA,var) ; IN ; sep_list1(COMMA,expr) ; DO ; [stmts]
+| (start = FOR / stmt: FOR . ...) ; var ; EQUALS ; expr ; COMMA ; expr ; (COMMA ; expr)? ; DO ; [stmts]
 | (start = FUNCTION / stmt: FUNCTION . ...) ; function_name; [args ; stmts]
 | (start = FUNCTION / atom: FUNCTION . ...) ; [args ; stmts]
   {
@@ -105,6 +98,21 @@ rule error_message = parse error
       token = (token, $startloc(token), $endloc(token))
     }
   }
+
+(* A standalone name in a statement context *)
+| (/ stmt: . call) ; x = [simple_expr]
+  partial {
+    if not (is_same_line $endloc(x) token $startloc(token)) then
+      Some (Standalone_name_call $endloc(x))
+    else
+      None
+  }
+
+| (/ stmt: . sep_list1(COMMA,name) ...) ; [name]
+  { Standalone_name (token, $startloc(token), $endloc(token)) }
+
+| (/ stmt: . sep_list1(COMMA,name) ...) ; [sep_list1(COMMA,name)]
+  { Standalone_names (token, $startloc(token), $endloc(token)) }
 
 (* Fallback parse error for when we expected a statement. *)
 | [_ / stmts: ... . ...]

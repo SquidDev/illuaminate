@@ -1,7 +1,0 @@
-(library
- (name html)
- (public_name illuaminate.html)
- (synopsis "A basic HTML library suitable for using with illuaminate.jsx")
- (libraries containers)
- (instrumentation
-  (backend bisect_ppx)))

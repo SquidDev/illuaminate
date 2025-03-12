@@ -32,6 +32,20 @@ return { "abc" = "def" }
 Tip: Wrap the preceding expression in `[` and `]` to use it as a table key.
 ```
 
+and also
+
+```lua
+return { x + 1 = 1 }
+```
+
+```txt
+=input: Unexpected `=` in expression. [parse:syntax-error]
+   │
+ 1 │ return { x + 1 = 1 }
+   │                ^
+Tip: Wrap the preceding expression in `[` and `]` to use it as a table key.
+```
+
 Note this doesn't occur if this there's already a table key here:
 
 ```lua
@@ -96,6 +110,7 @@ local function f(a
 ```
 
 ## Missing commas in tables
+We try to detect missing commas in tables, and print an appropriate error message.
 
 ```lua
 return { 1 2 }
@@ -123,6 +138,39 @@ return { 1, 2 3 }
  1 │ return { 1, 2 3 }
    │              ^ Are you missing a comma here?
 ```
+
+This also works with table keys.
+
+```lua
+print({ x = 1 y = 2 })
+```
+
+```txt
+=input: Unexpected identifier in table. [parse:syntax-error]
+   │
+ 1 │ print({ x = 1 y = 2 })
+   │               ^
+   │
+ 1 │ print({ x = 1 y = 2 })
+   │              ^ Are you missing a comma here?
+```
+
+```lua
+print({ ["x"] = 1 ["y"] = 2 })
+```
+
+```txt
+=input: Unexpected `[` in table. [parse:syntax-error]
+   │
+ 1 │ print({ ["x"] = 1 ["y"] = 2 })
+   │                   ^
+   │
+ 1 │ print({ ["x"] = 1 ["y"] = 2 })
+   │                  ^ Are you missing a comma here?
+```
+
+We gracefully handle the case where we are actually missing a closing brace.
+
 ```lua
 print({ 1, )
 ```
@@ -198,6 +246,34 @@ term.clear
    │
  1 │ term.clear
    │           ^ Expected something before the end of the line.
+Tip: Use `()` to call with no arguments.
+```
+
+When we've got a list of variables, we only suggest assigning it.
+
+```lua
+term.clear, foo
+```
+
+```txt
+=input: Unexpected end of file after list of name. [parse:syntax-error]
+   │
+ 1 │ term.clear, foo
+   │                ^
+Did you mean to assign this?
+```
+
+And when we've got a partial expression, we only suggest calling it.
+
+```lua
+(a + b)
+```
+
+```txt
+=input: Unexpected symbol after name. [parse:syntax-error]
+   │
+ 1 │ (a + b)
+   │        ^ Expected something before the end of the line.
 Tip: Use `()` to call with no arguments.
 ```
 

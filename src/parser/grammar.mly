@@ -191,8 +191,12 @@ let stmt :=
   ; { If { if_if; if_elseif; if_else; if_end } }
 
   | forn_for = FOR ; forn_var = var ; forn_eq = "=" ; forn_start = expr ; forn_comma = ","; forn_limit = expr
-  ; forn_step = option (x = "," ; y = expr ; { (x, y) }) ; forn_do = DO ; forn_body = stmts ; forn_end = END
-  ; { ForNum { forn_for; forn_var; forn_eq; forn_start; forn_comma; forn_limit; forn_step; forn_do; forn_body; forn_end } }
+  ; forn_do = DO ; forn_body = stmts ; forn_end = END
+  ; { ForNum { forn_for; forn_var; forn_eq; forn_start; forn_comma; forn_limit; forn_step = None; forn_do; forn_body; forn_end } }
+
+  | forn_for = FOR ; forn_var = var ; forn_eq = "=" ; forn_start = expr ; forn_comma = ","; forn_limit = expr
+  ; forn_step_c = "," ; forn_step_e = expr ; forn_do = DO ; forn_body = stmts ; forn_end = END
+  ; { ForNum { forn_for; forn_var; forn_eq; forn_start; forn_comma; forn_limit; forn_step = Some (forn_step_c, forn_step_e); forn_do; forn_body; forn_end } }
 
   | forp_for = FOR ; forp_vars = sep_list1(",", var) ; forp_in = IN ; forp_iter = sep_list1(",", expr)
   ; forp_do = DO ; forp_body = stmts ; forp_end = END

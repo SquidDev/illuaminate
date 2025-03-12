@@ -100,43 +100,46 @@ let doc_gen path =
   let module E = IlluaminateDocEmit in
   let path = CCOption.get_lazy (fun () -> Sys.getcwd () |> Fpath.v) path in
   let root = if Sys.is_directory (Fpath.to_string path) then path else Fpath.parent path in
-  let to_abs path = Fpath.(to_string (root // path)) in
-  let open struct
-    let emit_doc node out =
-      let fmt = Format.formatter_of_out_channel out in
-      Html.Default.emit_doc fmt node; Format.pp_print_flush fmt ()
+  let to_abs' path = Fpath.(root // path |> normalize) in
+  let to_abs path = Fpath.to_string (to_abs' path) in
 
-    let resolve_logo ~destination logo =
-      if Fpath.is_rooted ~root:destination logo then
-        Fpath.relativize ~root:destination logo |> Option.get |> Fpath.to_string
-      else
-        let our_logo = Fpath.(base logo |> to_string) in
-        CCIO.(
-          with_in (to_abs logo) @@ fun i ->
-          with_out Fpath.(destination / our_logo |> to_string) @@ fun o -> copy_into i o);
-        our_logo
+  (* Write a HTML doc to a file. *)
+  let emit_doc node out = Output_sink.with_output_stream out @@ fun out -> Html.emit_doc out node in
 
-    let parse_index ~options path =
-      E.Html.load_file ~options path
-      |> Result.fold ~ok:Fun.id ~error:(fun e -> Printf.eprintf "%s\n%!" e; exit 1)
+  (* Resolve the path to the logo, copying it into the output directory if needed. *)
+  let resolve_logo ~data ~destination logo =
+    if Fpath.is_rooted ~root:destination logo then
+      Fpath.relativize ~root:destination logo |> Option.get |> Fpath.to_string
+    else
+      match IlluaminateData.get data E.Html.Assets.find_asset (to_abs' logo) with
+      | None ->
+          Log.err (fun f -> f "Cannot find logo %a" Fpath.pp logo);
+          exit 1
+      | Some logo -> logo
+  in
 
-    let gen_appended ~destination ~name ~contents extra =
-      let output = Fpath.(destination / name |> to_string) in
-      ( CCIO.with_out output @@ fun out ->
-        output_string out contents;
-        Option.iter
-          (fun extra -> CCIO.with_in (to_abs extra) @@ fun i -> CCIO.copy_into i out)
-          extra );
-      (* Append an 8 byte cachebuster. There's no reason to only make it 8 bytes, but it doesn't
-         need to be a full hash either. *)
-      let hash = Digest.file output |> Digest.to_hex |> CCString.take 8 in
-      Printf.sprintf "%s?v=%s" name hash
-  end in
+  (* Parse the index file. *)
+  let parse_index ~options path =
+    match E.Html.load_file ~options path with
+    | Ok res -> res
+    | Error e ->
+        Log.err (fun f -> f "Cannot parse index file %a: %s" Fpath.pp path e);
+        exit 1
+  in
+
+  (* Generate an asset file from some [contents], appending the contents of [extra] if needed. *)
+  let gen_appended ~destination ~name ~contents extra =
+    let output = Fpath.(destination / name) in
+    ( Out_channel.with_open_bin (Fpath.to_string output) @@ fun out ->
+      output_string out contents;
+      Option.iter
+        (fun extra -> In_channel.with_open_bin (to_abs extra) @@ fun i -> CCIO.copy_into i out)
+        extra );
+    E.Html.Assets.hashed_url output name
+  in
   let loaded, errs = Loader.load_from path in
   (loaded
-  |> Option.iter @@ fun (config, _, builder) ->
-     let data = IlluaminateData.Builder.build builder in
-     let pages = IlluaminateData.get data Doc.Extract.public_pages () in
+  |> Option.iter @@ fun (config, _, configure_builder) ->
      let { Config.DocOptions.site_properties =
              { site_title; site_image; site_url; embed_head; embed_js; embed_css; source_link };
            index;
@@ -145,9 +148,15 @@ let doc_gen path =
          } =
        Config.get_doc_options config
      in
+     let data =
+       IlluaminateData.Builder.build (fun buider ->
+           configure_builder buider;
+           E.Html.Assets.add_find_asset destination buider)
+     in
+     let pages = IlluaminateData.get data Doc.Extract.public_pages () in
 
      mkdirs destination;
-     let site_image = Option.map (resolve_logo ~destination) site_image in
+     let site_image = Option.map (resolve_logo ~data ~destination) site_image in
      let site_css =
        gen_appended ~destination ~name:"main.css" ~contents:E.Html.embedded_css embed_css
      in
@@ -187,7 +196,7 @@ let doc_gen path =
        |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path) );
 
      let path = Fpath.(destination / "index.html") in
-     Option.fold ~none:Html.Default.nil ~some:(parse_index ~options:(options Fun.id)) index
+     Option.fold ~none:Html.nil ~some:(parse_index ~options:(options Fun.id)) index
      |> E.Html.emit_index ~options:(options Fun.id) ~pages
      |> emit_doc
      |> CCIO.with_out ~flags:[ Open_creat; Open_trunc; Open_binary ] (Fpath.to_string path);

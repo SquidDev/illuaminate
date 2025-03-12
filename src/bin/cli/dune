@@ -19,7 +19,6 @@
   illuaminate.lint
   illuaminate.config
   illuaminateConfigFormat
-  illuaminate.html
   illuaminate.minify
   illuaminate.pattern
   illuaminate.doc_emit

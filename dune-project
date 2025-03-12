@@ -1,4 +1,4 @@
-(lang dune 3.8)
+(lang dune 3.17)
 (using menhir 2.1)
 (implicit_transitive_deps false)
 (generate_opam_files true)
@@ -15,10 +15,9 @@
   (synopsis "Source code analysis for Lua")
   (description "Provides various tools for parsing, processing and producing Lua source code. Currently does very little, but will hopefully grow in the future.")
   (depends
-    (ocaml (>= 4.14))
+    (ocaml (>= 5.3))
 
     ;; Build-time
-    (dune (>= 3.1))
     (js_of_ocaml-compiler (and :build (>= 4.0.0)))
     (js_of_ocaml-ppx :build)
     (ppx_deriving :build)
@@ -46,7 +45,9 @@
     js_of_ocaml
     logs
     lrgrep
+    markup
     menhir
     menhirLib
     re
+    uri
     yojson))

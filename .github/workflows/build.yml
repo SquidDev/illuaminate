@@ -7,14 +7,14 @@ jobs:
     name: Run tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
     - name: Use OCaml
-      uses: ocaml/setup-ocaml@v2
+      uses: ocaml/setup-ocaml@v3
       with:
-        ocaml-compiler: 4.14.x
+        ocaml-compiler: "5.3.0"
 
     - name: Install dependencies
       run: opam install . --deps-only --with-test
@@ -29,22 +29,25 @@ jobs:
         include:
         - name: Windows
           uses: windows-latest
-          ocaml: 4.14.x
+          ocaml:
+            ocaml-compiler: "5.3.0"
           input-file: illuaminate.exe
           output-file: illuaminate-windows-x86_64.exe
           dune-flags:
 
         - name: Linux
-          uses: ubuntu-22.04
+          uses: ubuntu-latest
           # We don't use flambda as that ends up much buliker than without.
-          ocaml: ocaml-variants.4.14.0+options,ocaml-option-musl
+          ocaml:
+            ocaml-compiler: ocaml-variants.5.3.0+options,ocaml-option-static
           input-file: illuaminate
           output-file: illuaminate-linux-x86_64
           dune-flags: --workspace dune-workspace.release
 
         - name: macOS
           uses: macos-latest
-          ocaml: 4.14.x
+          ocaml:
+            ocaml-compiler: "5.3.0"
           input-file: illuaminate
           output-file: illuaminate-macos-x86_64
           dune-flags:
@@ -52,53 +55,54 @@ jobs:
     name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.uses }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
+    # This is required to make the static/musl build work. I *believe*, OCaml
+    # finds the glibc libzstd during ./configure, and then looks for a musl
+    # version when compiling. Not 100% sure, as I've not been able to reproduce
+    # this failure locally.
+    - name: Remove libzstd
+      run: sudo apt remove libzstd-dev --yes
+      if: "matrix.name == 'Linux'"
+
     - name: Use OCaml
-      uses: ocaml/setup-ocaml@v2
-      with:
-        ocaml-compiler: ${{ matrix.ocaml }}
+      uses: ocaml/setup-ocaml@v3
+      with: ${{ matrix.ocaml }}
 
     - name: Install dependencies
       run: opam install . --deps-only
 
-    - name: Build release
+    - name: Build
       run: |
         opam exec -- dune subst
         opam exec -- dune build ${{ matrix.dune-flags }} -p illuaminate @install
         opam exec -- dune install --prefix=_install
-        cp _install/bin/${{ matrix.input-file }} ${{ matrix.output-file }}
 
-    - name: Publish executable
-      uses: actions/upload-artifact@v3
+    # We move our executable into a folder layout that matches the website (e.g.
+    # bin/${version}/illuaminate-${suffix}). This is a bit cumbersome, but
+    # easier to do it now rather when unpacking the artifact.
+    - name: Package
+      shell: bash
+      run: |
+        OUT_DIR="out/bin/$(git describe --always --abbrev=7)"
+        mkdir -p "$OUT_DIR"
+        cp _install/bin/${{ matrix.input-file }} "$OUT_DIR/${{ matrix.output-file }}"
+
+    - name: Upload executable
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.output-file }}
-        path: ${{ matrix.output-file }}
+        path: ./out
         if-no-files-found: error
         retention-days: 1
 
-  upload_archives:
-    name: Upload Archives
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/master'
-
-    steps:
-    - uses: actions/checkout@v3
+    - name: Upload website
+      uses: actions/upload-artifact@v4
       with:
-        fetch-depth: 0
-
-    - name: Download executable
-      uses: actions/download-artifact@v3
-      with:
-        path: artifacts
-
-    - name: Upload
-      run: .github/workflows/deploy.sh 2> /dev/null
-      env:
-        SSH_KEY:  ${{ secrets.SSH_KEY  }}
-        SSH_USER: ${{ secrets.SSH_USER }}
-        SSH_HOST: ${{ secrets.SSH_HOST }}
-        SSH_PORT: ${{ secrets.SSH_PORT }}
+        name: Website
+        path: _install/etc/illuaminate/web/
+        if-no-files-found: error
+        retention-days: 1
+      if: "matrix.name == 'Linux'"

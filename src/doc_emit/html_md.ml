@@ -1,4 +1,4 @@
-open Html.Default
+open Illuaminate.Html
 open Cmarkit
 module S = IlluaminateSemantics.Doc.Syntax
 module A = IlluaminateSemantics.Doc.AbstractSyntax
@@ -68,6 +68,51 @@ let emit_link ~options c l =
         | Some _ -> emit_invalid_admonition c l; true
         | None -> false))
 
+(** If [link] is a relative path, then resolve the file (relative to [md_file]) and
+    {!Html_assets.find_asset copy it into the destination directory} *)
+let resolve_asset_link ~md_file ~(options : Html_options.t) link =
+  let uri = Uri.of_string link in
+  match
+    (Uri.scheme uri, Uri.userinfo uri, Uri.host uri, Uri.port uri, Uri.query uri, Uri.fragment uri)
+  with
+  | None, None, None, None, [], None -> (
+    match Fpath.of_string (Uri.path uri) with
+    | Ok path when Fpath.is_rel path ->
+        let path = Fpath.(parent md_file // path |> normalize) in
+        IlluaminateData.get options.data Html_assets.find_asset path |> Option.map options.resolve
+    | _ -> None)
+  | _ -> None
+
+let emit_basic_image c ~link ~title ~text =
+  let plain_text i =
+    let lines = Inline.to_plain_text ~break_on_soft:false i in
+    String.concat "\n" (List.map (String.concat "") lines)
+  in
+  let title =
+    match title with
+    | None -> ""
+    | Some title -> String.concat "\n" (List.map (fun (_, (t, _)) -> t) title)
+  in
+  C.string c "<img src=\"";
+  H.pct_encoded_string c link;
+  C.string c "\" alt=\"";
+  H.html_escaped_string c (plain_text text);
+  C.byte c '\"';
+  if title <> "" then (C.string c " title=\""; H.html_escaped_string c title; C.byte c '\"');
+  C.string c "/>"
+
+let emit_image ~path ~(options : Html_options.t) (c : Cmarkit_renderer.context) l =
+  match (path, Inline.Link.reference_definition (C.get_defs c) l) with
+  | Some md_file, Some (Link_definition.Def (ld, _)) -> (
+    match
+      Option.bind (Link_definition.dest ld) (fun (ld, _) -> resolve_asset_link ~md_file ~options ld)
+    with
+    | Some link ->
+        emit_basic_image c ~link ~title:(Link_definition.title ld) ~text:(Inline.Link.text l);
+        true
+    | None -> false)
+  | _ -> false
+
 let emit_code_block ~options c block =
   let language, extra =
     Block.Code_block.info_string block
@@ -87,7 +132,8 @@ let emit_code_block ~options c block =
   match language with
   | "lua" ->
       let attrs = merge_classes ~classes ~attrs in
-      Cmarkit_ext.cprintf c "%a" Html.Default.emit (Html_highlight.lua_block ~attrs ~options code)
+      let sink = Illuaminate.Output_sink.of_buffer (Cmarkit_renderer.Context.buffer c) in
+      Illuaminate.Html.emit sink (Html_highlight.lua_block ~attrs ~options code)
   | _ ->
       C.string c {|<pre|};
       (match (language, classes) with
@@ -139,49 +185,110 @@ let emit_block_quote c body =
       H.admonition c ~level ?label contents;
       true
 
-let custom_html ~options =
+module Stream = struct
+  type t =
+    { mutable index : int;
+      mutable lines : Cmarkit.Block_line.t list
+    }
+
+  let stream lines =
+    let state = { index = 0; lines } in
+    let rec poll () =
+      match state.lines with
+      | [] -> None
+      | (l, _) :: ls ->
+          let index = state.index in
+          if index >= String.length l then (
+            state.index <- 0;
+            state.lines <- ls;
+            poll ())
+          else (
+            state.index <- index + 1;
+            Some l.[index])
+    in
+    Markup.stream poll
+end
+
+let emit_block_html ~path ~options c block =
+  match path with
+  | None -> false
+  | Some md_file ->
+      let rec set_assoc k v = function
+        | [] -> failwith "Did not find key"
+        | (k', _) :: xs when k = k' -> (k, v) :: xs
+        | kv :: xs -> kv :: set_assoc k v xs
+      in
+      let replace_asset_link ~attr name attrs e =
+        match
+          List.assoc_opt ("", attr) attrs
+          |> CCOption.flat_map (resolve_asset_link ~md_file ~options)
+        with
+        | Some link -> `Start_element (name, set_assoc ("", attr) link attrs)
+        | None -> e
+      in
+      let map_signal : Markup.signal -> Markup.signal = function
+        | `Start_element (((ns, "img") as name), attrs) as e when ns = Markup.Ns.html ->
+            replace_asset_link ~attr:"src" name attrs e
+        | `Start_element (((ns, "source") as name), attrs) as e when ns = Markup.Ns.html ->
+            replace_asset_link ~attr:"srcset" name attrs e
+        | e -> e
+      in
+      Stream.stream block
+      |> Markup.parse_html ~context:(`Fragment "body")
+      |> Markup.signals |> Markup.map map_signal |> Markup.write_html
+      |> Markup.iter (fun chr -> Buffer.add_char (C.buffer c) chr);
+      true
+
+let custom_html ~path ~options =
   let inline c = function
     | Inline.Link (l, _) -> emit_link ~options c l
+    | Inline.Image (l, _) -> emit_image ~path ~options c l
     | _ -> false (* let the default HTML renderer handle that *)
   in
   let block c = function
     | Block.Code_block (block, _) -> emit_code_block ~options c block; true
     | Block.Block_quote (block, _) -> emit_block_quote c (Block.Block_quote.block block)
+    | Block.Html_block (block, _) -> emit_block_html ~path ~options c block
     | _ -> false (* let the default HTML renderer handle that *)
   in
   Cmarkit_renderer.make ~inline ~block ()
 
-let renderer ~options =
-  Cmarkit_renderer.compose (Cmarkit_html.renderer ~safe:false ()) (custom_html ~options)
+let renderer ~path ~options =
+  Cmarkit_renderer.compose (Cmarkit_html.renderer ~safe:false ()) (custom_html ~path ~options)
 
 (** Render an inline fragment of a markdown document. *)
-let render_inline ~options ~doc inline =
+let render_inline ~path ~options ~doc inline =
   let b = Buffer.create 16 in
-  let ctx = Cmarkit_renderer.Context.make (renderer ~options) b in
+  let ctx = Cmarkit_renderer.Context.make (renderer ~path ~options) b in
   Cmarkit_renderer.Context.init ctx (S.Markdown.doc doc);
   Cmarkit_renderer.Context.inline ctx inline;
   Buffer.contents b |> raw
 
 (** Render a markdown document to a HTML {!node}.*)
-let md ~options doc =
-  S.Markdown.doc doc |> Cmarkit_renderer.doc_to_string (renderer ~options) |> raw
+let md ?path ~options doc =
+  S.Markdown.doc doc |> Cmarkit_renderer.doc_to_string (renderer ~path ~options) |> raw
 
 (** Render a markdown document to a HTML {!node}, trying to unwrap documents containing a single
     paragraph. *)
-let md_inline ~options doc =
+let md_inline ~path ~options doc =
   match S.Markdown.as_single_paragraph doc with
-  | Some t -> render_inline ~options ~doc t
-  | None -> md ~options doc
+  | Some t -> render_inline ~path ~options ~doc t
+  | None -> md ?path ~options doc
+
+let description_file (d : S.description) =
+  let file = A.Comment_lines.span d.description_pos |> IlluaminateCore.Span.filename in
+  file.path
 
 let show_desc ~options = function
   | None -> nil
-  | Some (d : S.description) -> md ~options d.description
+  | Some (d : S.description) -> md ?path:(description_file d) ~options d.description
 
 let show_summary ~options = function
   | None -> nil
   | Some (d : S.description) ->
-      Helpers.get_summary d.description |> render_inline ~options ~doc:d.description
+      Helpers.get_summary d.description
+      |> render_inline ~path:(description_file d) ~options ~doc:d.description
 
 let show_desc_inline ~options = function
   | None -> nil
-  | Some (d : S.description) -> md_inline ~options d.description
+  | Some (d : S.description) -> md_inline ~path:(description_file d) ~options d.description

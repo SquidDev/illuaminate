@@ -7,10 +7,10 @@ type page_list :=
 
 /** Emit an index file from a list of page.  */
 let emit_index:
-  (~options: Html_options.t, ~pages: page_list, Html.Default.node) =>
-  Html.Default.node;
+  (~options: Html_options.t, ~pages: page_list, Illuaminate.Html.node_) =>
+  Illuaminate.Html.node_;
 
 /** Emit a single page. */
 let emit_page:
   (~options: Html_options.t, ~pages: page_list, documented(page)) =>
-  Html.Default.node;
+  Illuaminate.Html.node_;
