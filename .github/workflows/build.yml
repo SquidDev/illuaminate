@@ -12,9 +12,9 @@ jobs:
         fetch-depth: 0
 
     - name: Use OCaml
-      uses: ocaml/setup-ocaml@v2
+      uses: ocaml/setup-ocaml@v3
       with:
-        ocaml-compiler: "5.1.1"
+        ocaml-compiler: "5.3.0"
 
     - name: Install dependencies
       run: opam install . --deps-only --with-test
@@ -30,12 +30,8 @@ jobs:
         - name: Windows
           uses: windows-latest
           ocaml:
-            ocaml-compiler: ocaml-variants.5.1.1+options,ocaml-option-mingw
-            # Copied from https://github.com/ocaml-multicore/eio/blob/main/.github/workflows/main.yml
+            ocaml-compiler: "5.3.0"
             opam-depext: false
-            opam-repositories: |
-              dra27: https://github.com/dra27/opam-repository.git#windows-5.0
-              normal: https://github.com/ocaml/opam-repository.git
           input-file: illuaminate.exe
           output-file: illuaminate-windows-x86_64.exe
           dune-flags:
@@ -44,7 +40,7 @@ jobs:
           uses: ubuntu-latest
           # We don't use flambda as that ends up much buliker than without.
           ocaml:
-            ocaml-compiler: ocaml-variants.5.1.1+options,ocaml-option-static
+            ocaml-compiler: ocaml-variants.5.3.0+options,ocaml-option-static
           input-file: illuaminate
           output-file: illuaminate-linux-x86_64
           dune-flags: --workspace dune-workspace.release
@@ -52,7 +48,7 @@ jobs:
         - name: macOS
           uses: macos-latest
           ocaml:
-            ocaml-compiler: "5.1.1"
+            ocaml-compiler: "5.3.0"
           input-file: illuaminate
           output-file: illuaminate-macos-x86_64
           dune-flags:
@@ -73,7 +69,7 @@ jobs:
       if: "matrix.name == 'Linux'"
 
     - name: Use OCaml
-      uses: ocaml/setup-ocaml@v2
+      uses: ocaml/setup-ocaml@v3
       with: ${{ matrix.ocaml }}
 
     - name: Install dependencies
