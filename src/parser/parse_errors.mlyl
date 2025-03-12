@@ -7,8 +7,8 @@
 
 rule error_message = parse error
 
-(* Match `expr() =` in tables: probably wanted `[expr()] = ...` *)
-| [_ / table_entry: expr . ...] @ EQUALS
+(* Match `expr() =` in tables: probably wanted `[expr()] = _*` *)
+| [_ / table_entry: expr . _*] @ EQUALS
   { Error.Table_key_equals (token, $startloc(token), $endloc(token)) }
 
 (* Match `expr() = ` in any other context: probably wanted `expr() == `. *)
@@ -16,28 +16,28 @@ rule error_message = parse error
   { Error.Use_double_equals (token, $startloc(token), $endloc(token)) }
 
 (* Suggest a missing comma in table entries. *)
-| last = [_ / table_body: table_entry . ...] @ STRING, NUMBER, TRUE, FALSE, NIL, OSQUARE, OPAREN, IDENT
+| last = [_ / table_body: table_entry . _*] @ STRING, NUMBER, TRUE, FALSE, NIL, OSQUARE, OPAREN, IDENT
   {
     let token = (token, $startloc(token), $endloc(token)) in
     Missing_table_comma { comma_pos = $endloc(last); token }
   }
 
 (* Suggest removing a comma in function calls. *)
-| (_ / call_args: OPAREN . ...);
+| (_ / call_args: OPAREN . _*);
   (expr | COMMA)* ;
-  (comma = COMMA / sep_list1(COMMA,expr): expr COMMA . sep_list1(COMMA,expr) ...)
+  (comma = COMMA / sep_list1(COMMA,expr): expr COMMA . sep_list1(COMMA,expr))
   @ CPAREN
   {
     Trailing_call_comma {
-      comma = (comma, $startloc(comma), $endloc(comma));
+      comma = (Obj.magic comma, $startloc(comma), $endloc(comma));
       token = (token, $startloc(token), $endloc(token))
     }
   }
 
 (* Unclosed parentheses. *)
-| open_ = OPAREN; [_ / ... . CPAREN]
-| open_ = OBRACE; [_ / ... . CBRACE]
-| open_ = OSQUARE; [_ / ... . CSQUARE]
+| open_ = OPAREN; [_ / _* . CPAREN]
+| open_ = OBRACE; [_ / _* . CBRACE]
+| open_ = OSQUARE; [_ / _* . CSQUARE]
   {
     Unclosed_brackets {
       open_ = (open_, $startloc(open_), $endloc(open_));
@@ -78,11 +78,11 @@ rule error_message = parse error
 | (start = IF | start = ELSEIF) ; expr ; THEN; [stmts]
 | start = ELSE ; [stmts]
 | start = WHILE ; expr ; DO; [stmts]
-| (start = DO / stmt: DO . ...) ; [stmts]
-| (start = FOR / stmt: FOR . ...) ; sep_list1(COMMA,var) ; IN ; sep_list1(COMMA,expr) ; DO ; [stmts]
-| (start = FOR / stmt: FOR . ...) ; var ; EQUALS ; expr ; COMMA ; expr ; (COMMA ; expr)? ; DO ; [stmts]
-| (start = FUNCTION / stmt: FUNCTION . ...) ; function_name; [args ; stmts]
-| (start = FUNCTION / atom: FUNCTION . ...) ; [args ; stmts]
+| (start = DO / stmt: DO . _*) ; [stmts]
+| (start = FOR / stmt: FOR . _*) ; sep_list1(COMMA,var) ; IN ; sep_list1(COMMA,expr) ; DO ; [stmts]
+| (start = FOR / stmt: FOR . _*) ; var ; EQUALS ; expr ; COMMA ; expr ; (COMMA ; expr)? ; DO ; [stmts]
+| (start = FUNCTION / stmt: FUNCTION . _*) ; function_name; [args ; stmts]
+| (start = FUNCTION / atom: FUNCTION . _*) ; [args ; stmts]
   {
     Expected_end {
       start = ($startloc(start), $endloc(start));
@@ -101,21 +101,21 @@ rule error_message = parse error
 
 (* A standalone name in a statement context *)
 | (/ stmt: . call) ; x = [simple_expr]
-  partial {
+  %partial {
     if not (is_same_line $endloc(x) token $startloc(token)) then
       Some (Standalone_name_call $endloc(x))
     else
       None
   }
 
-| (/ stmt: . sep_list1(COMMA,name) ...) ; [name]
+| (/ stmt: . sep_list1(COMMA,name) _*) ; [name]
   { Standalone_name (token, $startloc(token), $endloc(token)) }
 
-| (/ stmt: . sep_list1(COMMA,name) ...) ; [sep_list1(COMMA,name)]
+| (/ stmt: . sep_list1(COMMA,name) _*) ; [sep_list1(COMMA,name)]
   { Standalone_names (token, $startloc(token), $endloc(token)) }
 
 (* Fallback parse error for when we expected a statement. *)
-| [_ / stmts: ... . ...]
+| [_ / stmts: _* . _*]
   %partial {
     match token with
     | END _ -> Some (Unexpected_end (token, $startloc(token), $endloc(token)))
@@ -124,13 +124,13 @@ rule error_message = parse error
   }
 
 (* Fallback parse error for function arguments. *)
-| [_? / ... . args ...]
+| [_? / _* . args _*]
   { Expected_function_args (token, $startloc(token), $endloc(token)) }
 
 (* Fallback parse error for when we expected an expression. *)
-| [/ ... . expr ...] | [/ ... . expr_pow ...] | [/ ... . sep_list1(COMMA,expr) ...]
+| [/ _* . expr _*] | [/ _* . expr_pow _*] | [/ _* . sep_list1(COMMA,expr) _*]
   { Expected_expression (token, $startloc(token), $endloc(token)) }
 
 (* Fallback parse error for when we expected a variable name. *)
-| [/ ... . var ...] | [/ ... . name ...] | [_ / ... . function_name ...]
+| [/ _* . var _*] | [/ _* . name _*] | [_ / _* . function_name _*]
   { Expected_var (token, $startloc(token), $endloc(token)) }

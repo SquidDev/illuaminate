@@ -55,5 +55,5 @@ build: [
 dev-repo: "git+https://github.com/squiddev/illuaminate.git"
 pin-depends: [
   ["omnomnom.dev" "git+https://github.com/SquidDev/omnomnom.git#b14c939500de840f866665918cb3c66f08075962"]
-  ["lrgrep.dev" "git+https://github.com/let-def/lrgrep.git#23e4ad3d411e89f1ee0810016bb23ba2b37e49f3"]
+  ["lrgrep.dev" "git+https://github.com/let-def/lrgrep.git#edbef34a53c756b18a9195c139fa57fc87fb9436"]
 ]
