@@ -11,7 +11,7 @@ let pp_error out contents err =
     [ IlluaminateParser.Error.to_error err ]
 
 let pp_token f : IlluaminateParser.Lexer.token -> unit = function
-  | Token t -> Token.pp f t
+  | Token t -> Format.pp_print_string f t
   | Trivial t -> Node.pp_trivial f t
 
 let pp_lex_result ~name out contents =
@@ -40,13 +40,13 @@ let tests =
             Alcotest.(check (result (array token_eq) string))
               "Parses linebreaks"
               (Ok
-                 [| Token (Ident "x");
+                 [| Token "x";
                     Trivial (Whitespace "\r\n");
-                    Token (Ident "y");
+                    Token "y";
                     Trivial (LineComment "--foo");
                     Trivial (Whitespace "\r\n");
-                    Token (String "[[x\r\ny]]");
-                    Token EoF
+                    Token "[[x\r\ny]]";
+                    Token "end of file"
                  |])
               (lex_list ~name:"=in" "x\r\ny--foo\r\n[[x\r\ny]]") )
     ]

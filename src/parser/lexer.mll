@@ -29,8 +29,8 @@
     Buffer.add_string b str;
     b
 
-  let mk_long_comment c = Trivial (BlockComment c)
-  let mk_long_string c = Token (String c)
+  let mk_long_comment c = TRIVIA (BlockComment c)
+  let mk_long_string c = STRING c
 }
 
 let white = [' ' '\t']
@@ -44,85 +44,85 @@ let ident_head = ['a'-'z' 'A'-'Z' '_']
 let ident_tail = ident_head | '_' | digit
 
 rule token l = parse
-| white+ as x           { Trivial (Whitespace x) }
-| '\n'                  { new_line l; Trivial (Whitespace "\n") }
-| '\r' '\n'             { new_line l; Trivial (Whitespace "\r\n") }
+| white+ as x           { TRIVIA (Whitespace x) }
+| '\n'                  { new_line l; TRIVIA (Whitespace "\n") }
+| '\r' '\n'             { new_line l; TRIVIA (Whitespace "\r\n") }
 | ("--[" '='* '[') as x { long_string (buffer_with' 16 x) (String.length x - 4) mk_long_comment l lexbuf }
 (* We split line comments into two parts. Otherwise "--[^\n]*" would match "--[[foo]]". *)
 | "--"                  { line_comment lexbuf }
 
-| "and"      { Token And      }
-| "break"    { Token Break    }
-| "do"       { Token Do       }
-| "else"     { Token Else     }
-| "elseif"   { Token ElseIf   }
-| "end"      { Token End      }
-| "false"    { Token False    }
-| "for"      { Token For      }
-| "function" { Token Function }
-| "if"       { Token If       }
-| "in"       { Token In       }
-| "local"    { Token Local    }
-| "nil"      { Token Nil      }
-| "not"      { Token Not      }
-| "or"       { Token Or       }
-| "repeat"   { Token Repeat   }
-| "return"   { Token Return   }
-| "then"     { Token Then     }
-| "true"     { Token True     }
-| "until"    { Token Until    }
-| "while"    { Token While    }
+| "and"      { AND      }
+| "break"    { BREAK    }
+| "do"       { DO       }
+| "else"     { ELSE     }
+| "elseif"   { ELSEIF   }
+| "end"      { END      }
+| "false"    { FALSE    }
+| "for"      { FOR      }
+| "function" { FUNCTION }
+| "if"       { IF       }
+| "in"       { IN       }
+| "local"    { LOCAL    }
+| "nil"      { NIL      }
+| "not"      { NOT      }
+| "or"       { OR       }
+| "repeat"   { REPEAT   }
+| "return"   { RETURN   }
+| "then"     { THEN     }
+| "true"     { TRUE     }
+| "until"    { UNTIL    }
+| "while"    { WHILE    }
 
-| ":"        { Token Colon }
-| "::"       { Token Double_colon }
-| ","        { Token Comma }
-| "."        { Token Dot }
-| "..."      { Token Dots }
-| "="        { Token Equals }
-| ";"        { Token Semicolon }
+| ":"        { COLON }
+| "::"       { DOUBLE_COLON }
+| ","        { COMMA }
+| "."        { DOT }
+| "..."      { DOTS }
+| "="        { EQUALS }
+| ";"        { SEMICOLON }
 
-| '(' { Token OParen }  | ')' { Token CParen }
-| '{' { Token OBrace }  | '}' { Token CBrace }
-| '[' { Token OSquare } | ']' { Token CSquare }
+| '(' { OPAREN }  | ')' { CPAREN }
+| '{' { OBRACE }  | '}' { CBRACE }
+| '[' { OSQUARE } | ']' { CSQUARE }
 
-| '+'  { Token Add }
-| '-'  { Token Sub }
-| '*'  { Token Mul }
-| '/'  { Token Div }
-| '^'  { Token Pow }
-| '%'  { Token Mod }
-| ".." { Token Concat }
-| "==" { Token Eq }
-| "~=" { Token Ne }
-| "<"  { Token Lt }
-| "<=" { Token Le }
-| ">"  { Token Gt }
-| ">=" { Token Ge }
-| '#'  { Token Len }
+| '+'  { ADD }
+| '-'  { SUB }
+| '*'  { MUL }
+| '/'  { DIV }
+| '^'  { POW }
+| '%'  { MOD }
+| ".." { CONCAT }
+| "==" { EQ }
+| "~=" { NE }
+| "<"  { LT }
+| "<=" { LE }
+| ">"  { GT }
+| ">=" { GE }
+| '#'  { LEN }
 
 (* Numbers *)
-| "0x" hex+ as i         { Token (Number i) }
-| digit+ as i            { Token (Number i) }
-| digit number* as i     { Token (Number i) }
-| '.' digit number* as i { Token (Number i) }
+| "0x" hex+ as i         { NUMBER i }
+| digit+ as i            { NUMBER i }
+| digit number* as i     { NUMBER i }
+| '.' digit number* as i { NUMBER i }
 
 (* Identifiers *)
-| ident_head ident_tail* as i { Token (Ident i) }
+| ident_head ident_tail* as i { IDENT i }
 
 | '\"'          { string (buffer_with 17 '\"') '\"' lexbuf }
 | '\''          { string (buffer_with 17 '\'') '\'' lexbuf }
 | ('[' '='* '[') as x { long_string (buffer_with' 16 x) (String.length x - 2) mk_long_string l lexbuf }
 
-| eof { Token EoF }
+| eof { EOF }
 
 | _ { unexpected_character lexbuf }
 
 and string contents c = parse
 | '\"'              { Buffer.add_char contents '\"';
-                      if c = '\"' then Token (String (Buffer.contents contents))
+                      if c = '\"' then STRING (Buffer.contents contents)
                       else string contents c lexbuf }
 | '\''              { Buffer.add_char contents '\'';
-                      if c = '\'' then Token (String (Buffer.contents contents))
+                      if c = '\'' then STRING (Buffer.contents contents)
                       else string contents c lexbuf }
 
 | "\\a"             { Buffer.add_string contents "\\a"; string contents c lexbuf }
@@ -168,4 +168,4 @@ and long_string buf eqs term l = parse
 | eof                    { unterminated_string ~eol:false lexbuf }
 
 and line_comment = parse
-| [^'\r' '\n']* as x     { Trivial (LineComment ("--" ^ x)) }
+| [^'\r' '\n']* as x     { TRIVIA (LineComment ("--" ^ x)) }

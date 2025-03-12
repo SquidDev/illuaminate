@@ -1,124 +1,195 @@
-(** Represents any kind of token *)
+open struct
+  module Node = IlluaminateCore.Node
+end
 
-open IlluaminateCore
-open Node
-open Syntax.UnOp
-open Syntax.BinOp
-open Token
-open Illuaminate.Lens
+(** Tokens produced by the lexer.
 
+    Unlike the parser's tokens ({!Grammar.token}), these carry minimal metadata. *)
 type lexer_token =
-  | Token of IlluaminateCore.Token.t
-  | Trivial of IlluaminateCore.Node.trivial
-
-let make_token leading_trivia trailing_trivia span : IlluaminateCore.Token.t -> Grammar.token =
-  let mk contents = Node { leading_trivia; trailing_trivia; span; contents } in
-  function
-  | Add -> ADD (mk OpAdd)
-  | And -> AND (mk OpAnd)
-  | Break -> BREAK (mk Token.Break)
-  | CBrace -> CBRACE (mk CBrace)
-  | Colon -> COLON (mk Colon)
-  | Comma -> COMMA (mk Comma)
-  | Concat -> CONCAT (mk OpConcat)
-  | CParen -> CPAREN (mk CParen)
-  | CSquare -> CSQUARE (mk CSquare)
-  | Div -> DIV (mk OpDiv)
-  | Do -> DO (mk Token.Do)
-  | Dot -> DOT (mk Dot)
-  | Dots -> DOTS (mk Token.Dots)
-  | Else -> ELSE (mk Else)
-  | ElseIf -> ELSEIF (mk ElseIf)
-  | End -> END (mk End)
-  | EoF -> EOF (mk Token.EoF)
-  | Eq -> EQ (mk OpEq)
-  | Equals -> EQUALS (mk Equals)
-  | False -> FALSE (mk Token.False)
-  | For -> FOR (mk For)
-  | Function -> FUNCTION (mk Function)
-  | Goto -> GOTO (mk Token.Goto)
-  | Double_colon -> DOUBLE_COLON (mk Double_colon)
-  | Ge -> GE (mk OpGe)
-  | Gt -> GT (mk OpGt)
-  | If -> IF (mk Token.If)
-  | In -> IN (mk In)
-  | Le -> LE (mk OpLe)
-  | Len -> LEN (mk OpLen)
-  | Local -> LOCAL (mk Token.Local)
-  | Lt -> LT (mk OpLt)
-  | Mod -> MOD (mk OpMod)
-  | Mul -> MUL (mk OpMul)
-  | Ne -> NE (mk OpNe)
-  | Nil -> NIL (mk Token.Nil)
-  | Not -> NOT (mk OpNot)
-  | OBrace -> OBRACE (mk OBrace)
-  | OParen -> OPAREN (mk OParen)
-  | Or -> OR (mk OpOr)
-  | OSquare -> OSQUARE (mk OSquare)
-  | Pow -> POW (mk OpPow)
-  | Repeat -> REPEAT (mk Token.Repeat)
-  | Return -> RETURN (mk Token.Return)
-  | Semicolon -> SEMICOLON (mk Token.Semicolon)
-  | Sub -> SUB (mk OpSub)
-  | Then -> THEN (mk Then)
-  | True -> TRUE (mk Token.True)
-  | Until -> UNTIL (mk Until)
-  | While -> WHILE (mk Token.While)
-  | Ident x -> IDENT (mk x)
-  | String x -> STRING (mk x)
-  | Number x -> NUMBER (mk x)
+  (* Symbols *)
+  | BREAK
+  | DO
+  | ELSE
+  | ELSEIF
+  | END
+  | FALSE
+  | FOR
+  | FUNCTION
+  | GOTO
+  | IF
+  | IN
+  | LOCAL
+  | NIL
+  | REPEAT
+  | RETURN
+  | THEN
+  | TRUE
+  | UNTIL
+  | WHILE
+  | COLON
+  | COMMA
+  | DOT
+  | DOTS
+  | DOUBLE_COLON
+  | EQUALS
+  | SEMICOLON
+  | OPAREN
+  | CPAREN
+  | OBRACE
+  | CBRACE
+  | OSQUARE
+  | CSQUARE
+  | ADD
+  | SUB
+  | MUL
+  | DIV
+  | POW
+  | MOD
+  | CONCAT
+  | EQ
+  | NE
+  | LT
+  | LE
+  | GT
+  | GE
+  | LEN
+  | AND
+  | OR
+  | NOT
+  (* Metadata carrying *)
+  | IDENT of string
+  | STRING of string
+  | NUMBER of string
+  (* Trivia *)
+  | TRIVIA of Node.trivial
+  | EOF
 
 let to_string : Grammar.token -> string = function
-  (* Keywords and symbols *)
-  | ADD _ -> "add"
-  | AND _ -> "and"
+  (* Keywords *)
   | BREAK _ -> "break"
-  | CBRACE _ -> "}"
-  | COLON _ -> ":"
-  | COMMA _ -> ","
-  | CONCAT _ -> ".."
-  | CPAREN _ -> ")"
-  | CSQUARE _ -> "]"
-  | DIV _ -> "/"
   | DO _ -> "do"
-  | DOT _ -> "."
-  | DOTS _ -> "..."
-  | DOUBLE_COLON _ -> "::"
   | ELSE _ -> "else"
+  | GOTO _ -> "goto"
   | ELSEIF _ -> "elseif"
   | END _ -> "end"
-  | EQ _ -> "=="
-  | EQUALS _ -> "="
   | FALSE _ -> "false"
   | FOR _ -> "for"
   | FUNCTION _ -> "function"
-  | GE _ -> ">="
-  | GOTO _ -> "goto"
-  | GT _ -> ">"
   | IF _ -> "if"
   | IN _ -> "in"
-  | LE _ -> "<="
-  | LEN _ -> "#"
   | LOCAL _ -> "local"
-  | LT _ -> "<"
-  | MOD _ -> "%"
-  | MUL _ -> "*"
-  | NE _ -> "~="
   | NIL _ -> "nil"
-  | NOT _ -> "not"
-  | OBRACE _ -> "{"
-  | OPAREN _ -> "("
-  | OR _ -> "or"
-  | OSQUARE _ -> "["
-  | POW _ -> "^"
   | REPEAT _ -> "repeat"
   | RETURN _ -> "return"
-  | SEMICOLON _ -> ";"
-  | SUB _ -> "-"
   | THEN _ -> "then"
   | TRUE _ -> "true"
   | UNTIL _ -> "until"
   | WHILE _ -> "while"
-  (* Special tokens. *)
-  | EOF _ -> "<eof>"
-  | IDENT x | STRING x | NUMBER x -> x ^. contents
+  (* Symbols *)
+  | COLON _ -> ":"
+  | COMMA _ -> ","
+  | DOT _ -> "."
+  | DOTS _ -> "..."
+  | DOUBLE_COLON _ -> "::"
+  | EQUALS _ -> "="
+  | SEMICOLON _ -> ";"
+  | OPAREN _ -> "("
+  | CPAREN _ -> ")"
+  | OBRACE _ -> "{"
+  | CBRACE _ -> "}"
+  | OSQUARE _ -> "["
+  | CSQUARE _ -> "]"
+  | ADD _ -> "+"
+  | SUB _ -> "-"
+  | MUL _ -> "*"
+  | DIV _ -> "/"
+  | POW _ -> "^"
+  | MOD _ -> "%"
+  | CONCAT _ -> ".."
+  | EQ _ -> "=="
+  | NE _ -> "~="
+  | LT _ -> "<"
+  | LE _ -> "<="
+  | GT _ -> ">"
+  | GE _ -> ">="
+  | LEN _ -> "#"
+  (* Keyword operators *)
+  | AND _ -> "and"
+  | OR _ -> "or"
+  | NOT _ -> "not"
+  (* Metadata carrying *)
+  | IDENT x -> Node.contents.get x
+  | STRING x -> Node.contents.get x
+  | NUMBER x -> Node.contents.get x
+  | EOF _ -> "end of file"
+
+let mk ~leading_trivia ~trailing_trivia ~span contents : _ Node.t =
+  Node { leading_trivia; trailing_trivia; span; contents }
+
+(** Convert the token to a parser token.
+
+    This converts the token to a syntax node, and then boxes it into a {!Parser.token}. *)
+let make_token ~leading_trivia ~trailing_trivia ~span t : Grammar.token =
+  let open IlluaminateCore.Token in
+  let open IlluaminateCore.Syntax.BinOp in
+  let open IlluaminateCore.Syntax.UnOp in
+  match t with
+  (* Keywords *)
+  | BREAK -> BREAK (mk ~leading_trivia ~trailing_trivia ~span Break)
+  | DO -> DO (mk ~leading_trivia ~trailing_trivia ~span Do)
+  | ELSE -> ELSE (mk ~leading_trivia ~trailing_trivia ~span Else)
+  | ELSEIF -> ELSEIF (mk ~leading_trivia ~trailing_trivia ~span ElseIf)
+  | END -> END (mk ~leading_trivia ~trailing_trivia ~span End)
+  | FALSE -> FALSE (mk ~leading_trivia ~trailing_trivia ~span False)
+  | FOR -> FOR (mk ~leading_trivia ~trailing_trivia ~span For)
+  | FUNCTION -> FUNCTION (mk ~leading_trivia ~trailing_trivia ~span Function)
+  | GOTO -> GOTO (mk ~leading_trivia ~trailing_trivia ~span Goto)
+  | IF -> IF (mk ~leading_trivia ~trailing_trivia ~span If)
+  | IN -> IN (mk ~leading_trivia ~trailing_trivia ~span In)
+  | LOCAL -> LOCAL (mk ~leading_trivia ~trailing_trivia ~span Local)
+  | NIL -> NIL (mk ~leading_trivia ~trailing_trivia ~span Nil)
+  | REPEAT -> REPEAT (mk ~leading_trivia ~trailing_trivia ~span Repeat)
+  | RETURN -> RETURN (mk ~leading_trivia ~trailing_trivia ~span Return)
+  | THEN -> THEN (mk ~leading_trivia ~trailing_trivia ~span Then)
+  | TRUE -> TRUE (mk ~leading_trivia ~trailing_trivia ~span True)
+  | UNTIL -> UNTIL (mk ~leading_trivia ~trailing_trivia ~span Until)
+  | WHILE -> WHILE (mk ~leading_trivia ~trailing_trivia ~span While)
+  (* Symbols *)
+  | COLON -> COLON (mk ~leading_trivia ~trailing_trivia ~span Colon)
+  | DOUBLE_COLON -> DOUBLE_COLON (mk ~leading_trivia ~trailing_trivia ~span Double_colon)
+  | COMMA -> COMMA (mk ~leading_trivia ~trailing_trivia ~span Comma)
+  | DOT -> DOT (mk ~leading_trivia ~trailing_trivia ~span Dot)
+  | DOTS -> DOTS (mk ~leading_trivia ~trailing_trivia ~span Dots)
+  | EQUALS -> EQUALS (mk ~leading_trivia ~trailing_trivia ~span Equals)
+  | SEMICOLON -> SEMICOLON (mk ~leading_trivia ~trailing_trivia ~span Semicolon)
+  | OPAREN -> OPAREN (mk ~leading_trivia ~trailing_trivia ~span OParen)
+  | CPAREN -> CPAREN (mk ~leading_trivia ~trailing_trivia ~span CParen)
+  | OBRACE -> OBRACE (mk ~leading_trivia ~trailing_trivia ~span OBrace)
+  | CBRACE -> CBRACE (mk ~leading_trivia ~trailing_trivia ~span CBrace)
+  | OSQUARE -> OSQUARE (mk ~leading_trivia ~trailing_trivia ~span OSquare)
+  | CSQUARE -> CSQUARE (mk ~leading_trivia ~trailing_trivia ~span CSquare)
+  | ADD -> ADD (mk ~leading_trivia ~trailing_trivia ~span OpAdd)
+  | SUB -> SUB (mk ~leading_trivia ~trailing_trivia ~span OpSub)
+  | MUL -> MUL (mk ~leading_trivia ~trailing_trivia ~span OpMul)
+  | DIV -> DIV (mk ~leading_trivia ~trailing_trivia ~span OpDiv)
+  | POW -> POW (mk ~leading_trivia ~trailing_trivia ~span OpPow)
+  | MOD -> MOD (mk ~leading_trivia ~trailing_trivia ~span OpMod)
+  | CONCAT -> CONCAT (mk ~leading_trivia ~trailing_trivia ~span OpConcat)
+  | EQ -> EQ (mk ~leading_trivia ~trailing_trivia ~span OpEq)
+  | NE -> NE (mk ~leading_trivia ~trailing_trivia ~span OpNe)
+  | LT -> LT (mk ~leading_trivia ~trailing_trivia ~span OpLt)
+  | LE -> LE (mk ~leading_trivia ~trailing_trivia ~span OpLe)
+  | GT -> GT (mk ~leading_trivia ~trailing_trivia ~span OpGt)
+  | GE -> GE (mk ~leading_trivia ~trailing_trivia ~span OpGe)
+  | LEN -> LEN (mk ~leading_trivia ~trailing_trivia ~span OpLen)
+  (* Keyword operators *)
+  | AND -> AND (mk ~leading_trivia ~trailing_trivia ~span OpAnd)
+  | OR -> OR (mk ~leading_trivia ~trailing_trivia ~span OpOr)
+  | NOT -> NOT (mk ~leading_trivia ~trailing_trivia ~span OpNot)
+  (* Metadata carrying *)
+  | IDENT x -> IDENT (mk ~leading_trivia ~trailing_trivia ~span x)
+  | STRING x -> STRING (mk ~leading_trivia ~trailing_trivia ~span x)
+  | NUMBER x -> NUMBER (mk ~leading_trivia ~trailing_trivia ~span x)
+  (* Trivia *)
+  | TRIVIA _ -> invalid_arg "Cannot create token of trivia"
+  | EOF -> EOF (mk ~leading_trivia ~trailing_trivia ~span EoF)

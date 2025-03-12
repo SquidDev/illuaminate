@@ -4,7 +4,7 @@ module Error = Error
 module Lexer : sig
   (** The type of tokens produced by the lexer. *)
   type token =
-    | Token of IlluaminateCore.Token.t
+    | Token of string
     | Trivial of IlluaminateCore.Node.trivial
 
   (** Lex a file, producing a simple token stream. *)
