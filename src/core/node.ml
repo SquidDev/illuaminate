@@ -7,7 +7,7 @@
     may be useful for understanding or recreating it. *)
 type trivial =
   | LineComment of string  (** A short, comment which is terminated by a newline. *)
-  | BlockComment of int * string  (** A long comment, which may span multiple lines. *)
+  | BlockComment of string  (** A long comment, which may span multiple lines. *)
   | Whitespace of string  (** Any whitespace, such as spaces, newlines or tabs. *)
 [@@deriving show]
 

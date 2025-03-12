@@ -291,10 +291,7 @@ let tprintf kind out fmt =
   Format.kfprintf (fun x -> Format.pp_close_stag x ()) out fmt
 
 let trivial out = function
-  | Node.LineComment x -> tprintf Comment out "--%s" x
-  | BlockComment (n, x) ->
-      let eq = String.make n '=' in
-      tprintf Comment out "--[%s[%s]%s]" eq x eq
+  | Node.LineComment x | BlockComment x -> tprintf Comment out "%s" x
   | Whitespace x -> Format.fprintf out "%s" x
 
 let trivial_span out { Span.value; _ } = trivial out value

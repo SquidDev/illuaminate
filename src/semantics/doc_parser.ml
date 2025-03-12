@@ -802,34 +802,45 @@ let rec extract_block line column lines = function
   (* Skip whitespace *)
   | { Span.value = Node.Whitespace _; _ } :: xs -> extract_block line column lines xs
   (* Comments aligned with this one on successive lines are included *)
-  | { Span.value = Node.LineComment value; span } :: xs
+  | { Span.value = Node.LineComment contents; span } :: xs
     when Span.start_line span = line + 1 && Span.start_col span = column ->
       let span = span |> Illuaminate.Lens.(Span.start_offset %= fun p -> p + 2) in
+      let value = CCString.drop 2 contents in
       extract_block (line + 1) column ({ Span.span; value } :: lines) xs
   | xs -> (List.rev lines, (List.hd lines).span, xs)
+
+let get_block_comment_start str =
+  let rec worker str i =
+    match str.[i] with
+    | '=' -> worker str (i + 1)
+    | '[' -> i + 1
+    | _ -> failwith "Invalid block comment"
+  in
+  worker str 3
 
 let extract node =
   (* Extract all comments before this token *)
   let rec extract_comments cs = function
     | [] -> cs
-    | { Span.value = Node.BlockComment (n, c); span } :: xs when String.length c > 0 && c.[0] == '-'
-      ->
-        let documented =
-          split_lines (CCString.drop 1 c)
-            (Illuaminate.Lens.(Span.start_offset %= fun p -> p + n + 5) span)
-          |> Indent.drop_rest |> Lex.lex_of_lines |> Parse.comment span
-        in
-        extract_comments (documented :: cs) xs
-    | { Span.value = Node.LineComment c; span } :: xs
-      when String.length c > 0
-           && c.[0] == '-'
-           &&
+    | { Span.value = Node.BlockComment contents; span } :: xs ->
+        let start = get_block_comment_start contents in
+        if contents.[start] == '-' then
+          let documented =
+            split_lines
+              (String.sub contents (start + 1) (String.length contents - start - (start - 1)))
+              (Illuaminate.Lens.(Span.start_offset %= fun p -> p + start + 1) span)
+            |> Indent.drop_rest |> Lex.lex_of_lines |> Parse.comment span
+          in
+          extract_comments (documented :: cs) xs
+        else extract_comments cs xs
+    | { Span.value = Node.LineComment contents; span } :: xs
+      when String.starts_with ~prefix:"---" contents
            (* Skip comments which start with a line entirely composed of '-'. *)
-           (String.length c = 1 || CCString.exists (fun x -> x <> '-') c) ->
+           && (String.length contents = 3 || CCString.exists (fun x -> x <> '-') contents) ->
         let lines, last, xs =
           extract_block (Span.start_line span) (Span.start_col span)
             [ { span = (span |> Illuaminate.Lens.(Span.start_offset %= fun p -> p + 3));
-                value = CCString.drop 1 c
+                value = CCString.drop 3 contents
               }
             ]
             xs

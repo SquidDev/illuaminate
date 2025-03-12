@@ -27,7 +27,7 @@ module ActualSpacing = struct
   let rec get t : Node.trivial Span.spanned list -> t = function
     | [] -> t
     | { value = LineComment _; _ } :: _ -> Newline
-    | { value = BlockComment (_, s) | Whitespace s; _ } :: _ when String.contains s '\n' -> Newline
+    | { value = BlockComment s | Whitespace s; _ } :: _ when String.contains s '\n' -> Newline
     | { value = BlockComment _; _ } :: xs -> get t xs
     | { value = Whitespace _; _ } :: xs -> get Space xs
 

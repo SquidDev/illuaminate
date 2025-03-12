@@ -24,10 +24,13 @@
     Buffer.add_char b char;
     b
 
-  let mk_long_comment eqs c = Trivial (BlockComment (eqs, c))
-  let mk_long_string eqs c =
-    let eqs = String.make eqs '=' in
-    Token (String ("[" ^ eqs ^ "[" ^ c ^ "]" ^ eqs ^ "]"))
+  let buffer_with' len str =
+    let b = Buffer.create len in
+    Buffer.add_string b str;
+    b
+
+  let mk_long_comment c = Trivial (BlockComment c)
+  let mk_long_string c = Token (String c)
 }
 
 let white = [' ' '\t']
@@ -44,7 +47,7 @@ rule token l = parse
 | white+ as x           { Trivial (Whitespace x) }
 | '\n'                  { new_line l; Trivial (Whitespace "\n") }
 | '\r' '\n'             { new_line l; Trivial (Whitespace "\r\n") }
-| "--[" ('='* as x) '[' { long_string (Buffer.create 16) (String.length x) mk_long_comment l lexbuf }
+| ("--[" '='* '[') as x { long_string (buffer_with' 16 x) (String.length x - 4) mk_long_comment l lexbuf }
 (* We split line comments into two parts. Otherwise "--[^\n]*" would match "--[[foo]]". *)
 | "--"                  { line_comment lexbuf }
 
@@ -108,7 +111,7 @@ rule token l = parse
 
 | '\"'          { string (buffer_with 17 '\"') '\"' lexbuf }
 | '\''          { string (buffer_with 17 '\'') '\'' lexbuf }
-| '[' ('='* as x) '[' { long_string (Buffer.create 16) (String.length x) mk_long_string l lexbuf }
+| ('[' '='* '[') as x { long_string (buffer_with' 16 x) (String.length x - 2) mk_long_string l lexbuf }
 
 | eof { Token EoF }
 
@@ -155,13 +158,14 @@ and string contents c = parse
 
 and long_string buf eqs term l = parse
 | [^']' '\r' '\n']+ as x { Buffer.add_string buf x;              long_string buf eqs term l lexbuf }
-| ']' '='* ']' as x      { if String.length x == eqs + 2
-                           then term eqs (Buffer.contents buf)
-                           else (Buffer.add_string buf x;        long_string buf eqs term l lexbuf) }
+| ']' '='* ']' as x      { Buffer.add_string buf x;
+                           if String.length x == eqs + 2
+                           then term (Buffer.contents buf)
+                           else long_string buf eqs term l lexbuf }
 | ']'                    { Buffer.add_char buf ']';              long_string buf eqs term l lexbuf }
 | '\n'                   { Buffer.add_char buf '\n'; new_line l; long_string buf eqs term l lexbuf }
 | '\r' '\n'              { Buffer.add_string buf "\r\n"; new_line l; long_string buf eqs term l lexbuf }
 | eof                    { unterminated_string ~eol:false lexbuf }
 
 and line_comment = parse
-| [^'\r' '\n']* as x     { Trivial (LineComment x) }
+| [^'\r' '\n']* as x     { Trivial (LineComment ("--" ^ x)) }

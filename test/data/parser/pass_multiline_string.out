@@ -3,13 +3,13 @@
       { Syntax.local_local =
         Node.Node {
           leading_trivia =
-          [{ Span.value = (Node.BlockComment (0, " One line "));
+          [{ Span.value = (Node.BlockComment "--[[ One line ]]");
              span = pass_multiline_string.lua[1:1-1:16] };
             { Span.value = (Node.Whitespace "\n");
               span = pass_multiline_string.lua[1:17-1:17] };
             { Span.value = (Node.Whitespace "\n");
               span = pass_multiline_string.lua[2:1-2:1] };
-            { Span.value = (Node.BlockComment (0, "\nMulti-line\n"));
+            { Span.value = (Node.BlockComment "--[[\nMulti-line\n]]");
               span = pass_multiline_string.lua[3:1-5:2] };
             { Span.value = (Node.Whitespace "\n");
               span = pass_multiline_string.lua[5:3-5:3] };

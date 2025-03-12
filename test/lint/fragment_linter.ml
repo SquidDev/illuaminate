@@ -19,9 +19,9 @@ let schema =
   |> Schema.union (Schema.singleton Doc.Extract.Config.key)
 
 let parse_schema : Node.trivial Span.spanned -> _ = function
-  | { value = LineComment c | BlockComment (_, c); _ } ->
-      c
-      |> CCString.drop_while (fun c -> c == '-')
+  | { value = LineComment contents | BlockComment contents; _ } ->
+      contents
+      |> CCString.drop_while (fun c -> c == '-' || c == '[')
       |> String.trim
       |> CCString.chop_prefix ~pre:"config:"
       |> Option.map @@ fun c ->

@@ -49,7 +49,7 @@
                   trailing_trivia =
                   [{ Span.value = (Node.Whitespace " ");
                      span = pass_simple.lua[1:28-1:28] };
-                    { Span.value = (Node.LineComment "- @local");
+                    { Span.value = (Node.LineComment "--- @local");
                       span = pass_simple.lua[1:29-1:38] };
                     { Span.value = (Node.Whitespace "\n");
                       span = pass_simple.lua[1:39-1:39] }

@@ -43,7 +43,7 @@ let tests =
                  [| Token (Ident "x");
                     Trivial (Whitespace "\r\n");
                     Token (Ident "y");
-                    Trivial (LineComment "foo");
+                    Trivial (LineComment "--foo");
                     Trivial (Whitespace "\r\n");
                     Token (String "[[x\r\ny]]");
                     Token EoF
