@@ -1,6 +1,5 @@
 module Span = IlluaminateCore.Span
 module I = Grammar.MenhirInterpreter
-module PE = Lrgrep_runtime.Interpreter (Parse_errors.Table_error_message) (I)
 module Error = Error
 
 type 'a located =
@@ -51,10 +50,7 @@ let lex_token file lexbuf (next : Token.lexer_token located) =
       (Token.make_token leading trailing tok_span token, start, finish, next)
 
 let get_error_message token ~pre_env ~post_env : Error.message =
-  match
-    PE.run pre_env
-    |> List.find_map (fun x -> Parse_errors.execute_error_message x Lexing.dummy_pos token)
-  with
+  match Parse_errors.error_message pre_env Lexing.dummy_pos token with
   | Some x -> x
   | None ->
       let state =
