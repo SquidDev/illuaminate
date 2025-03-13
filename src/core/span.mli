@@ -60,6 +60,9 @@ val pp : Format.formatter -> t -> unit
 (** Compare two spans given their filename and position in the file. *)
 val compare : t -> t -> int
 
+(** Hash a span *)
+val hash : t -> int
+
 (** Make a source span from a pair of lexing positions *)
 val of_pos2 : Lines.t -> Lexing.position -> Lexing.position -> t
 

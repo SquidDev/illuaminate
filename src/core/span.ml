@@ -95,6 +95,8 @@ let compare a b =
   else if a.start <> b.start then Int.compare a.start b.start
   else Int.compare a.finish b.finish
 
+let hash a = (a.start * 31) + (a.finish - a.start)
+
 let of_pos2 lines (start : Lexing.position) (fin : Lexing.position) =
   { lines;
     start = start.pos_cnum;

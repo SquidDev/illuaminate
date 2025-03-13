@@ -856,10 +856,14 @@ let extract node =
     extract_comments [] (node ^. Node.trailing_trivia) |> List.rev )
 
 module Term = struct
-  type t = Node.trivial Span.spanned list * Node.trivial Span.spanned list
+  type t = T : 'a Node.t -> t [@@unboxed]
 
-  let hash (x, y) = (Hashtbl.hash x * 31) + Hashtbl.hash y
-  let equal (al, at) (bl, bt) = al == bl && at == bt
+  let hash (T x) = Node.span x |> Span.hash
+
+  let equal (T x) (T y) =
+    let al, at = (Node.leading_trivia.get x, Node.trailing_trivia.get x) in
+    let bl, bt = (Node.leading_trivia.get x, Node.trailing_trivia.get y) in
+    al == bl && at == bt
 end
 
 module TermTbl = Hashtbl.Make (Term)
@@ -889,14 +893,13 @@ module Data = struct
 
   (** Get the comments before and after a specific node. *)
   let comment node { comments; _ } =
-    let key = (Node.leading_trivia.get node, Node.trailing_trivia.get node) in
-    match TermTbl.find_opt comments key with
+    match TermTbl.find_opt comments (T node) with
     | Some t -> t
     | None ->
         let t = extract node in
         (match t with
         | [], [] -> ()
-        | _ -> TermTbl.add comments key t);
+        | _ -> TermTbl.add comments (T node) t);
         t
 
   let comments t =
