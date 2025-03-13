@@ -61,7 +61,7 @@ type lexer_token =
   | STRING of string
   | NUMBER of string
   (* Trivia *)
-  | TRIVIA of Node.trivial
+  | TRIVIA of Node.Trivia.kind * string
   | EOF
 
 let to_string : Grammar.token -> string = function
@@ -124,7 +124,7 @@ let to_string : Grammar.token -> string = function
   | EOF _ -> "end of file"
 
 let mk ~leading_trivia ~trailing_trivia ~span contents : _ Node.t =
-  Node { leading_trivia; trailing_trivia; span; contents }
+  { leading_trivia; trailing_trivia; span; contents }
 
 (** Convert the token to a parser token.
 

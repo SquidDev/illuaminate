@@ -1,25 +1,25 @@
 "a"
-(Node.Whitespace "\n")
+Whitespace "\n"
 "a\nb"
-(Node.Whitespace "\n")
+Whitespace "\n"
 "a\0b"
-(Node.Whitespace "\n")
+Whitespace "\n"
 "a\x00b"
-(Node.Whitespace "\n")
+Whitespace "\n"
 "a\(b"
-(Node.Whitespace "\n")
-(Node.Whitespace "\n")
+Whitespace "\n"
+Whitespace "\n"
 'a'
-(Node.Whitespace "\n")
+Whitespace "\n"
 'a\nb'
-(Node.Whitespace "\n")
+Whitespace "\n"
 'a\0b'
-(Node.Whitespace "\n")
+Whitespace "\n"
 'a\x00b'
-(Node.Whitespace "\n")
+Whitespace "\n"
 'a\(b'
-(Node.Whitespace "\n")
-(Node.Whitespace "\n")
+Whitespace "\n"
+Whitespace "\n"
 "\u{1F991}"
-(Node.Whitespace "\n")
+Whitespace "\n"
 end of file

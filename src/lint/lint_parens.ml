@@ -2,6 +2,7 @@ open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
 open Illuaminate.Lens
+module IArray = Illuaminate.IArray
 
 module Opt = struct
   type t = { clarifying : bool }
@@ -21,24 +22,21 @@ module Opt = struct
 end
 
 let tag = Error.Tag.make ~attr:[ Default ] ~level:Note "syntax:redundant-parens"
-
-let unpack = function
-  | Node.SimpleNode _ -> []
-  | Node.Node { leading_trivia = l; trailing_trivia = t; _ } -> Node.join_trivia l t
+let unpack (n : _ Node.t) = Node.join_trivia n.leading_trivia n.trailing_trivia
 
 let rec unwrap = function
   | Parens { paren_open = o; paren_expr = e; paren_close = c } ->
       let l, e, t = unwrap e in
       let l' = unpack o and t' = unpack c in
       (Node.join_trivia l' l, e, Node.join_trivia t t')
-  | e -> ([], e, [])
+  | e -> (Illuaminate.IArray.empty, e, Illuaminate.IArray.empty)
 
 let unwrap_all =
   (* The fixer attempts to append the leading/trailing trivia to the current expression. *)
   let join l r has_ws span =
-    match (l, r) with
-    | [], [] when has_ws -> [ { Span.value = Node.Whitespace " "; span } ]
-    | _, _ -> Node.join_trivia l r
+    if IArray.is_empty l && IArray.is_empty r && has_ws then
+      Illuaminate.IArray.singleton (Node.Trivia.make Whitespace " " (Span.start_offset' span))
+    else Node.join_trivia l r
   in
   let fix path = function
     | Parens _ as e ->
@@ -47,8 +45,8 @@ let unwrap_all =
           match path with
           | Expr (UnOp _) :: _ -> (true, false)
           | Expr (BinOp { binop_lhs; binop_rhs; binop_op }) :: _ ->
-              ( e == binop_rhs && Node.trailing_trivia.get binop_op = [],
-                e == binop_lhs && Node.leading_trivia.get binop_op = [] )
+              ( e == binop_rhs && Node.trailing_trivia.get binop_op |> IArray.is_empty,
+                e == binop_lhs && Node.leading_trivia.get binop_op |> IArray.is_empty )
           | _ -> (false, false)
         in
         let l, e, t = unwrap e in

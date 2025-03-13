@@ -48,6 +48,7 @@ type t =
 
 let unpos (Illuaminate.Position_map.Pos x) = x
 let filename x = x.lines.file
+let position_map x = x.lines.map
 
 let to_error_position (span : t) : Illuaminate.Error.Position.t =
   { file = span.lines.file;
@@ -74,6 +75,7 @@ let start_offset =
     over = (fun f ({ lines; start; _ } as l) -> { l with start = Lines.over_offset f lines start })
   }
 
+let start_offset' { start; _ } = Illuaminate.Position_map.Pos start
 let finish_line { lines; finish; _ } = Lines.get_line lines finish
 let finish_col { lines; finish; _ } = Lines.get_col lines finish
 let finish_pos { lines; finish; _ } = Lines.get_pos lines finish

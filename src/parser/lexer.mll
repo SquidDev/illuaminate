@@ -29,7 +29,7 @@
     Buffer.add_string b str;
     b
 
-  let mk_long_comment c = TRIVIA (BlockComment c)
+  let mk_long_comment c = TRIVIA (BlockComment, c)
   let mk_long_string c = STRING c
 }
 
@@ -44,9 +44,9 @@ let ident_head = ['a'-'z' 'A'-'Z' '_']
 let ident_tail = ident_head | '_' | digit
 
 rule token l = parse
-| white+ as x           { TRIVIA (Whitespace x) }
-| '\n'                  { new_line l; TRIVIA (Whitespace "\n") }
-| '\r' '\n'             { new_line l; TRIVIA (Whitespace "\r\n") }
+| white+ as x           { TRIVIA (Whitespace, x) }
+| '\n'                  { new_line l; TRIVIA (Whitespace, "\n") }
+| '\r' '\n'             { new_line l; TRIVIA (Whitespace, "\r\n") }
 | ("--[" '='* '[') as x { long_string (buffer_with' 16 x) (String.length x - 4) mk_long_comment l lexbuf }
 (* We split line comments into two parts. Otherwise "--[^\n]*" would match "--[[foo]]". *)
 | "--"                  { line_comment lexbuf }
@@ -168,4 +168,4 @@ and long_string buf eqs term l = parse
 | eof                    { unterminated_string ~eol:false lexbuf }
 
 and line_comment = parse
-| [^'\r' '\n']* as x     { TRIVIA (LineComment ("--" ^ x)) }
+| [^'\r' '\n']* as x     { TRIVIA (LineComment, "--" ^ x) }

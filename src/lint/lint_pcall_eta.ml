@@ -43,17 +43,16 @@ let fix =
         | None -> SepList1.Mono call.fn
         | Some args ->
             let comma =
-              match Last.expr.get fn with
-              | Node.SimpleNode _ -> Node.SimpleNode { contents = Token.Comma }
-              | Node.Node { span; _ } ->
-                  Node.Node
-                    { contents = Token.Comma;
-                      span = Span.finish span;
-                      leading_trivia = [];
-                      (* TODO: Ideally we wouldn't need to do this, and the formatter would handle
-                         this. *)
-                      trailing_trivia = [ { span; value = Whitespace " " } ]
-                    }
+              let span = Last.expr.get fn |> Node.span in
+              { Node.contents = Token.Comma;
+                span = Span.finish span;
+                leading_trivia = Illuaminate.IArray.empty;
+                (* TODO: Ideally we wouldn't need to do this, and the formatter would handle
+                   this. *)
+                trailing_trivia =
+                  Illuaminate.IArray.of_array
+                    [| Node.Trivia.make Whitespace " " (Span.start_offset' span) |]
+              }
             in
             SepList1.Cons1 (call.fn, comma, args)
       in

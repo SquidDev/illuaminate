@@ -7,18 +7,15 @@ module Emitter = struct
   type t = Format.formatter
 
   let trivial out = function
-    | Node.Whitespace " " -> Format.pp_print_space out ()
+    | { Node.Trivia.kind = Whitespace; contents = " "; _ } -> Format.pp_print_space out ()
     | x -> Emit.trivial out x
 
-  let trivial_span out { Span.value; _ } = trivial out value
   let tagged t f out x = Format.pp_open_stag out t; f out x; Format.pp_close_stag out ()
 
-  let node ~kind body out = function
-    | Node.SimpleNode { contents } -> tagged (Emit.Token kind) body out contents
-    | Node.Node { leading_trivia; contents; trailing_trivia; _ } ->
-        List.iter (trivial_span out) leading_trivia;
-        tagged (Emit.Token kind) body out contents;
-        List.iter (trivial_span out) trailing_trivia
+  let node ~kind body out { Node.leading_trivia; contents; trailing_trivia; _ } =
+    Illuaminate.IArray.iter (trivial out) leading_trivia;
+    tagged (Emit.Token kind) body out contents;
+    Illuaminate.IArray.iter (trivial out) trailing_trivia
 end
 
 module Emit = struct
@@ -127,16 +124,19 @@ class remove_trivia =
     val mutable last_kind = Symbol
 
     method private handle_node : 'a. now:token_kind -> ('a -> 'a) -> 'a Node.t -> 'a Node.t =
-      fun ~now f node ->
-        let open Node in
+      fun ~now f { Node.contents; span; _ } ->
         let node =
-          match node with
-          | SimpleNode { contents } -> SimpleNode { contents = f contents }
-          | Node { contents; span; _ } ->
-              let leading =
-                if needs_space last_kind now then [ { Span.span; value = Whitespace " " } ] else []
-              in
-              Node { contents; span; leading_trivia = leading; trailing_trivia = [] }
+          let leading =
+            if needs_space last_kind now then
+              Illuaminate.IArray.of_array
+                [| Node.Trivia.make Whitespace " " (Span.start_offset' span) |]
+            else Illuaminate.IArray.empty
+          in
+          { Node.contents = f contents;
+            span;
+            leading_trivia = leading;
+            trailing_trivia = Illuaminate.IArray.empty
+          }
         in
         last_kind <- now;
         node

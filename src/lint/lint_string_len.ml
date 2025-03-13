@@ -19,12 +19,11 @@ let fix =
     Ok
       (UnOp
          { unop_op =
-             Node
-               { contents = OpLen;
-                 leading_trivia = Node.leading_trivia.get (First.expr.get fn);
-                 trailing_trivia = [];
-                 span = Spanned.expr fn
-               };
+             { Node.contents = OpLen;
+               leading_trivia = Node.leading_trivia.get (First.expr.get fn);
+               trailing_trivia = Illuaminate.IArray.empty;
+               span = Spanned.expr fn
+             };
            unop_rhs = arg
          })
   in

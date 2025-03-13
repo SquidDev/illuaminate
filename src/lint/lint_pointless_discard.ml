@@ -10,7 +10,7 @@ let is_discard (Var n) = Node.contents.get n = "_"
 module Fix = struct
   type 'a stripped_list =
     | Present of 'a SepList1.t
-    | Empty of Node.trivial Span.spanned list
+    | Empty of Node.Trivia.t Illuaminate.IArray.t
 
   let to_option = function
     | Present x -> Some x
@@ -27,7 +27,7 @@ module Fix = struct
       | Ok (Empty tt) ->
           Ok
             (if is_discard v then Empty tt
-             else Present (SepList1.Mono (trailing.over (fun t -> t @ tt) v)))
+             else Present (SepList1.Mono (trailing.over (fun t -> Node.join_trivia t tt) v)))
       | Ok (Present xs) -> Ok (Present (SepList1.Cons1 (v, s, xs)))
       | Error e -> Error e)
 
@@ -100,7 +100,9 @@ module Fix = struct
         match fix_list1 is_discard lens vs with
         | Error e -> Error e
         | Ok (Empty tt) ->
-            Ok [ ForIn { forp with forp_vars = Mono (lens.over (fun t -> t @ tt) v) } ]
+            Ok
+              [ ForIn { forp with forp_vars = Mono (lens.over (fun t -> Node.join_trivia t tt) v) }
+              ]
         | Ok (Present vs) -> Ok [ ForIn { forp with forp_vars = Cons1 (v, s, vs) } ])
     | LocalFunction _ | AssignFunction _ -> Ok []
     | _ -> Error "Oh no"

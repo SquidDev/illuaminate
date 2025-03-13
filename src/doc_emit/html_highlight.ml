@@ -103,14 +103,13 @@ let do_lua ~options:({ Html_options.data; _ } as options) input =
           { program =
               [ Return
                   { return_return =
-                      Node
-                        { leading_trivia = [];
-                          trailing_trivia = [];
-                          contents = Token.Return;
-                          span =
-                            Syntax.SepList1.first.get tree.repl_exprs
-                            |> Syntax.First.expr.get |> Node.span |> Span.start
-                        };
+                      { leading_trivia = Illuaminate.IArray.empty;
+                        trailing_trivia = Illuaminate.IArray.empty;
+                        contents = Token.Return;
+                        span =
+                          Syntax.SepList1.first.get tree.repl_exprs
+                          |> Syntax.First.expr.get |> Node.span |> Span.start
+                      };
                     return_vals = Some tree.repl_exprs
                   }
               ];

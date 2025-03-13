@@ -2,7 +2,13 @@
  (name illuaminateParser)
  (public_name illuaminate.parser)
  (synopsis "Provides an interface for parsing Lua code")
- (libraries lrgrep.runtime menhirLib illuaminate illuaminate.core fmt)
+ (libraries
+  containers
+  lrgrep.runtime
+  menhirLib
+  illuaminate
+  illuaminate.core
+  fmt)
  (instrumentation
   (backend bisect_ppx)))
 

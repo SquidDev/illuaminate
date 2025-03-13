@@ -12,7 +12,9 @@ let pp_error out contents err =
 
 let pp_token f : IlluaminateParser.Lexer.token -> unit = function
   | Token t -> Format.pp_print_string f t
-  | Trivial t -> Node.pp_trivial f t
+  | Trivial (BlockComment, c) -> Format.fprintf f "BlockComment %S" c
+  | Trivial (LineComment, c) -> Format.fprintf f "LineComment %S" c
+  | Trivial (Whitespace, c) -> Format.fprintf f "Whitespace %S" c
 
 let pp_lex_result ~name out contents =
   match parse_string ~name contents with
@@ -41,10 +43,10 @@ let tests =
               "Parses linebreaks"
               (Ok
                  [| Token "x";
-                    Trivial (Whitespace "\r\n");
+                    Trivial (Whitespace, "\r\n");
                     Token "y";
-                    Trivial (LineComment "--foo");
-                    Trivial (Whitespace "\r\n");
+                    Trivial (LineComment, "--foo");
+                    Trivial (Whitespace, "\r\n");
                     Token "[[x\r\ny]]";
                     Token "end of file"
                  |])

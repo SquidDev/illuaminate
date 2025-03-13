@@ -290,21 +290,18 @@ let tprintf kind out fmt =
   Format.pp_open_stag out (Token kind);
   Format.kfprintf (fun x -> Format.pp_close_stag x ()) out fmt
 
-let trivial out = function
-  | Node.LineComment x | BlockComment x -> tprintf Comment out "%s" x
-  | Whitespace x -> Format.fprintf out "%s" x
-
-let trivial_span out { Span.value; _ } = trivial out value
+let trivial out t =
+  match t.Node.Trivia.kind with
+  | LineComment | BlockComment -> tprintf Comment out "%s" t.contents
+  | Whitespace -> Format.pp_print_string out t.contents
 
 include Make (struct
   type t = Format.formatter
 
   let tagged stag f out x = Format.pp_open_stag out stag; f out x; Format.pp_close_stag out ()
 
-  let node ~kind body out = function
-    | Node.SimpleNode { contents } -> tagged (Token kind) body out contents
-    | Node.Node { leading_trivia; contents; trailing_trivia; _ } ->
-        List.iter (trivial_span out) leading_trivia;
-        tagged (Token kind) body out contents;
-        List.iter (trivial_span out) trailing_trivia
+  let node ~kind body out { Node.leading_trivia; contents; trailing_trivia; _ } =
+    Illuaminate.IArray.iter (trivial out) leading_trivia;
+    tagged (Token kind) body out contents;
+    Illuaminate.IArray.iter (trivial out) trailing_trivia
 end)

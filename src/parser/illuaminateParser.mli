@@ -5,7 +5,7 @@ module Lexer : sig
   (** The type of tokens produced by the lexer. *)
   type token =
     | Token of string
-    | Trivial of IlluaminateCore.Node.trivial
+    | Trivial of IlluaminateCore.Node.Trivia.kind * string
 
   (** Lex a file, producing a simple token stream. *)
   val lex :

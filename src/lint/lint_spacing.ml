@@ -1,5 +1,6 @@
 open IlluaminateCore.Syntax
 open IlluaminateCore
+module IArray = Illuaminate.IArray
 open Linter
 
 (** Missing spaces around binary operators and assignments. *)
@@ -8,37 +9,38 @@ let tag_op_space = Error.Tag.make ~attr:[ Default ] ~level:Note "format:op-space
 (** Missing spaces after separators (`,` and `;`). *)
 let tag_sep_space = Error.Tag.make ~attr:[ Default ] ~level:Note "format:separator-space"
 
-let has_trailing = function
-  | Node.SimpleNode _ -> true
-  | Node.Node { trailing_trivia; _ } -> (
-    match trailing_trivia with
-    | { value = Whitespace ws; _ } :: _ when String.length ws > 0 -> true
-    | _ -> false)
+let has_trailing { Node.trailing_trivia; _ } =
+  IArray.length trailing_trivia > 0 && (IArray.first trailing_trivia).kind = Whitespace
 
-let has_leading prev = function
-  | Node.SimpleNode _ -> true
-  | Node.Node { leading_trivia; span; _ } ->
-      Span.start_col span = 1
-      || (match CCList.last_opt leading_trivia with
-         | Some { value = Whitespace ws; _ } when String.length ws > 0 -> true
-         | _ -> false)
-      || has_trailing prev
+let has_leading prev { Node.leading_trivia; span; _ } =
+  Span.start_col span = 1
+  || (IArray.length leading_trivia > 0 && (IArray.last leading_trivia).kind = Whitespace)
+  || has_trailing prev
 
 module Fix = struct
   let after =
     Fixer.fix @@ fun node ->
     let span = Node.span node in
-    Ok (Node.trailing_trivia.over (fun x -> { value = Whitespace " "; span } :: x) node)
+    Ok
+      (Node.trailing_trivia.over
+         (IArray.push_first (Node.Trivia.make Whitespace " " (Span.start_offset' span)))
+         node)
 
   let around prev node =
     let span = Node.span node in
     let node =
       if has_trailing node then node
-      else Node.trailing_trivia.over (fun x -> { value = Whitespace " "; span } :: x) node
+      else
+        Node.trailing_trivia.over
+          (IArray.push_first (Node.Trivia.make Whitespace " " (Span.start_offset' span)))
+          node
     in
     let node =
       if has_leading prev node then node
-      else Node.leading_trivia.over (fun x -> x @ [ { value = Whitespace " "; span } ]) node
+      else
+        Node.leading_trivia.over
+          (fun x -> IArray.push_last x (Node.Trivia.make Whitespace " " (Span.start_offset' span)))
+          node
     in
     node
 

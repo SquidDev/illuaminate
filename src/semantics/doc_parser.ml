@@ -2,6 +2,11 @@ open IlluaminateCore
 open Doc_comment
 module IntMap = Map.Make (Int)
 
+open struct
+  module IArray = Illuaminate.IArray
+  module Position_map = Illuaminate.Position_map
+end
+
 (* Drop the and [foo!] from references. *)
 let trim_reference x =
   match String.index_opt x '!' with
@@ -798,16 +803,22 @@ let split_lines str span =
   String.split_on_char '\n' str |> build 0 []
 
 (** Extract multiple single-line comments and merge them into one. Returns the last position. *)
-let rec extract_block line column lines = function
-  (* Skip whitespace *)
-  | { Span.value = Node.Whitespace _; _ } :: xs -> extract_block line column lines xs
-  (* Comments aligned with this one on successive lines are included *)
-  | { Span.value = Node.LineComment contents; span } :: xs
-    when Span.start_line span = line + 1 && Span.start_col span = column ->
-      let span = span |> Illuaminate.Lens.(Span.start_offset %= fun p -> p + 2) in
-      let value = CCString.drop 2 contents in
-      extract_block (line + 1) column ({ Span.span; value } :: lines) xs
-  | xs -> (List.rev lines, (List.hd lines).span, xs)
+let rec extract_block ~root line column lines trivias i =
+  if i >= IArray.length trivias then (List.rev lines, (List.hd lines).Span.span, i)
+  else
+    match IArray.get trivias i with
+    (* Skip whitespace *)
+    | { Node.Trivia.kind = Whitespace; _ } -> extract_block ~root line column lines trivias (i + 1)
+    (* Comments aligned with this one on successive lines are included *)
+    | { kind = LineComment; contents; start } as trivia
+      when let line', col' = Position_map.position_of (Span.position_map root) start in
+           (line' :> int) = line + 1 && (col' :> int) = column ->
+        let span =
+          Node.Trivia.span root trivia |> Illuaminate.Lens.(Span.start_offset %= fun p -> p + 2)
+        in
+        let value = CCString.drop 2 contents in
+        extract_block ~root (line + 1) column ({ Span.span; value } :: lines) trivias (i + 1)
+    | _ -> (List.rev lines, (List.hd lines).span, i)
 
 let get_block_comment_start str =
   let rec worker str i =
@@ -818,42 +829,46 @@ let get_block_comment_start str =
   in
   worker str 3
 
-let extract node =
-  (* Extract all comments before this token *)
-  let rec extract_comments cs = function
-    | [] -> cs
-    | { Span.value = Node.BlockComment contents; span } :: xs ->
-        let start = get_block_comment_start contents in
-        if contents.[start] == '-' then
-          let documented =
-            split_lines
-              (String.sub contents (start + 1) (String.length contents - start - (start - 1)))
-              (Illuaminate.Lens.(Span.start_offset %= fun p -> p + start + 1) span)
-            |> Indent.drop_rest |> Lex.lex_of_lines |> Parse.comment span
+let extract (node : _ Node.t) =
+  let root = Node.span node in
+  let rec extract_comments cs trivias i =
+    if i >= IArray.length trivias then cs
+    else
+      match IArray.get trivias i with
+      | { Node.Trivia.kind = BlockComment; contents; _ } as trivia ->
+          let span = Node.Trivia.span root trivia in
+          let start = get_block_comment_start contents in
+          if contents.[start] == '-' then
+            let documented =
+              split_lines
+                (String.sub contents (start + 1) (String.length contents - start - (start - 1)))
+                (Illuaminate.Lens.(Span.start_offset %= fun p -> p + start + 1) span)
+              |> Indent.drop_rest |> Lex.lex_of_lines |> Parse.comment span
+            in
+            extract_comments (documented :: cs) trivias (i + 1)
+          else extract_comments cs trivias (i + 1)
+      | { kind = LineComment; contents; _ } as trivia
+        when String.starts_with ~prefix:"---" contents
+             (* Skip comments which start with a line entirely composed of '-'. *)
+             && (String.length contents = 3 || CCString.exists (fun x -> x <> '-') contents) ->
+          let span = Node.Trivia.span root trivia in
+          let lines, last, i =
+            extract_block ~root (Span.start_line span) (Span.start_col span)
+              [ { span = (span |> Illuaminate.Lens.(Span.start_offset %= fun p -> p + 3));
+                  value = CCString.drop 3 contents
+                }
+              ]
+              trivias (i + 1)
           in
-          extract_comments (documented :: cs) xs
-        else extract_comments cs xs
-    | { Span.value = Node.LineComment contents; span } :: xs
-      when String.starts_with ~prefix:"---" contents
-           (* Skip comments which start with a line entirely composed of '-'. *)
-           && (String.length contents = 3 || CCString.exists (fun x -> x <> '-') contents) ->
-        let lines, last, xs =
-          extract_block (Span.start_line span) (Span.start_col span)
-            [ { span = (span |> Illuaminate.Lens.(Span.start_offset %= fun p -> p + 3));
-                value = CCString.drop 3 contents
-              }
-            ]
-            xs
-        in
-        let documented =
-          Indent.drop_rest lines |> Lex.lex_of_lines |> Parse.comment (Span.of_span2 span last)
-        in
-        extract_comments (documented :: cs) xs
-    | _ :: xs -> extract_comments cs xs
+          let documented =
+            Indent.drop_rest lines |> Lex.lex_of_lines |> Parse.comment (Span.of_span2 span last)
+          in
+          extract_comments (documented :: cs) trivias i
+      | _ -> extract_comments cs trivias (i + 1)
   in
   let open Illuaminate.Lens in
-  ( extract_comments [] (node ^. Node.leading_trivia),
-    extract_comments [] (node ^. Node.trailing_trivia) |> List.rev )
+  ( extract_comments [] (node ^. Node.leading_trivia) 0,
+    extract_comments [] (node ^. Node.trailing_trivia) 0 |> List.rev )
 
 module Term = struct
   type t = T : 'a Node.t -> t [@@unboxed]

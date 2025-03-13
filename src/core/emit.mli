@@ -75,7 +75,7 @@ end
 module Make (E : Emitter) : S with type t := E.t
 
 (** Write a trivial term to a formatter. *)
-val trivial : Format.formatter -> Node.trivial -> unit
+val trivial : Format.formatter -> Node.Trivia.t -> unit
 
 (** By default we provide emitting functions which write to a formatter.*)
 include S with type t := Format.formatter

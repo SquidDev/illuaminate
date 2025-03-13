@@ -21,6 +21,8 @@ type t
 (** Get the filename for this span. *)
 val filename : t -> File_id.t
 
+val position_map : t -> Position_map.t
+
 (** Convert this span to an {! Illuaminate.Error.Position.t error position}. *)
 val to_error_position : t -> Illuaminate.Error.Position.t
 
@@ -35,6 +37,9 @@ val start_bol : t -> int
 
 (** Get the beginning offset of this span. *)
 val start_offset : (t, int) Lens.lens'
+
+(** Get the beginning offset of this span. *)
+val start_offset' : t -> Position_map.pos
 
 (** A lens over the starting column of this span. *)
 val start_col : t -> int

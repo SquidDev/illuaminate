@@ -18,8 +18,8 @@ let schema =
     (Schema.singleton only) Linters.all
   |> Schema.union (Schema.singleton Doc.Extract.Config.key)
 
-let parse_schema : Node.trivial Span.spanned -> _ = function
-  | { value = LineComment contents | BlockComment contents; _ } ->
+let parse_schema : Node.Trivia.t -> _ = function
+  | { kind = LineComment | BlockComment; contents; _ } ->
       contents
       |> CCString.drop_while (fun c -> c == '-' || c == '[')
       |> String.trim
@@ -29,13 +29,14 @@ let parse_schema : Node.trivial Span.spanned -> _ = function
          Schema.to_parser schema |> Parser.fields
          |> Parser.parse_buf (Illuaminate.File_id.mk "=config") buf
          |> Result.fold ~ok:Fun.id ~error:(fun (_, x) -> failwith x)
-  | { value = Whitespace _; _ } -> None
+  | { kind = Whitespace; _ } -> None
 
 let parse_schema program =
   Syntax.First.program program ^. Node.leading_trivia
-  |> CCList.find_map parse_schema
+  |> Illuaminate.IArray.find_map parse_schema
   |> CCOption.or_lazy ~else_:(fun () ->
-         Syntax.Last.program program ^. Node.leading_trivia |> CCList.find_map parse_schema)
+         Syntax.Last.program program ^. Node.leading_trivia
+         |> Illuaminate.IArray.find_map parse_schema)
   |> CCOption.get_lazy @@ fun () -> Schema.default schema
 
 let files ~report extra =

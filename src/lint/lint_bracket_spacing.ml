@@ -2,6 +2,7 @@ open IlluaminateCore.Syntax
 open IlluaminateCore
 open Linter
 open Illuaminate.Lens
+module IArray = Illuaminate.IArray
 
 (** How terms within brackets should be spaced. *)
 module BracketSpace = struct
@@ -24,22 +25,25 @@ module ActualSpacing = struct
     | Space
     | Newline
 
-  let rec get t : Node.trivial Span.spanned list -> t = function
-    | [] -> t
-    | { value = LineComment _; _ } :: _ -> Newline
-    | { value = BlockComment s | Whitespace s; _ } :: _ when String.contains s '\n' -> Newline
-    | { value = BlockComment _; _ } :: xs -> get t xs
-    | { value = Whitespace _; _ } :: xs -> get Space xs
+  let rec get t (xs : Node.Trivia.t Illuaminate.IArray.t) i =
+    if i >= IArray.length xs then t
+    else
+      match IArray.get xs i with
+      | { kind = LineComment; _ } -> Newline
+      | { kind = BlockComment | Whitespace; contents; _ } when String.contains contents '\n' ->
+          Newline
+      | { kind = BlockComment; _ } -> get t xs (i + 1)
+      | { kind = Whitespace; _ } -> get Space xs (i + 1)
 
   let get xs = function
     | Newline -> Newline
-    | (Space | NoSpace) as t -> get t xs
+    | (Space | NoSpace) as t -> get t xs 0
 
   let between l r = NoSpace |> get (Node.trailing_trivia.get l) |> get (Node.leading_trivia.get r)
 
-  let is_comment : Node.trivial Span.spanned -> bool = function
-    | { value = Whitespace _; _ } -> false
-    | { value = BlockComment _ | LineComment _; _ } -> true
+  let is_comment : Node.Trivia.t -> bool = function
+    | { kind = Whitespace; _ } -> false
+    | { kind = BlockComment | LineComment; _ } -> true
 
   let adjust_trailing ~space ~current =
     Node.trailing_trivia.over @@ fun trivia ->
@@ -47,14 +51,15 @@ module ActualSpacing = struct
     (* We insert whitespace on the leading position of the next token, hence need to do nothing when
        this is a space. *)
     | _, Newline | true, _ | false, NoSpace -> trivia
-    | false, Space -> List.filter is_comment trivia
+    | false, Space -> IArray.filter is_comment trivia
 
   let adjust_leading ~space ~current ~span =
     Node.leading_trivia.over @@ fun trivia ->
     match (space, current) with
     | _, Newline | true, Space | false, NoSpace -> trivia
-    | true, NoSpace -> { span; value = Whitespace " " } :: trivia
-    | false, Space -> List.filter is_comment trivia
+    | true, NoSpace ->
+        IArray.push_first (Node.Trivia.make Whitespace " " (Span.start_offset' span)) trivia
+    | false, Space -> IArray.filter is_comment trivia
 end
 
 module Opt = struct

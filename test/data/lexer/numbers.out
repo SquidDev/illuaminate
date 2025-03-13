@@ -1,13 +1,13 @@
 0x2
-(Node.Whitespace "\n")
+Whitespace "\n"
 2
-(Node.Whitespace "\n")
+Whitespace "\n"
 .2
-(Node.Whitespace "\n")
+Whitespace "\n"
 2.
-(Node.Whitespace "\n")
+Whitespace "\n"
 2.e2
-(Node.Whitespace "\n")
+Whitespace "\n"
 2...3
-(Node.Whitespace "\n")
+Whitespace "\n"
 end of file

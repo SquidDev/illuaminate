@@ -414,10 +414,21 @@ let fix_program prog (fixes : Notes.t) =
             | Table t -> CallTable t
             | String t -> CallString t
             | e ->
+                let empty = Illuaminate.IArray.empty in
                 CallArgs
-                  { open_a = SimpleNode { contents = OParen };
+                  { open_a =
+                      { contents = OParen;
+                        leading_trivia = empty;
+                        trailing_trivia = empty;
+                        span = First.expr.get e |> IlluaminateCore.Node.span |> Span.start
+                      };
                     args = Some (Mono e);
-                    close_a = SimpleNode { contents = CParen }
+                    close_a =
+                      { contents = CParen;
+                        leading_trivia = empty;
+                        trailing_trivia = empty;
+                        span = First.expr.get e |> IlluaminateCore.Node.span |> Span.finish
+                      }
                   }
           in
           let args =

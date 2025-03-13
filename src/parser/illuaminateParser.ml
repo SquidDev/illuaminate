@@ -4,6 +4,11 @@ module PE = Lrgrep_runtime.Interpreter (Parse_errors.Table_error_message) (I)
 module Error = Error
 
 type located_token = Token.lexer_token * Lexing.position * Lexing.position
+type trivia_buf = IlluaminateCore.Node.Trivia.t CCVector.vector
+
+let take_vector xs =
+  let contents = CCVector.to_array xs |> Illuaminate.IArray.of_array in
+  CCVector.clear xs; contents
 
 let lex_one lines (lexbuf : Lexing.lexbuf) : located_token =
   let start = lexbuf.lex_curr_p in
@@ -11,29 +16,33 @@ let lex_one lines (lexbuf : Lexing.lexbuf) : located_token =
   let finish = lexbuf.lex_curr_p in
   (token, start, finish)
 
-let rec lex_leading_worker lines (lexbuf : Lexing.lexbuf) xs =
+let rec lex_leading_worker lines (lexbuf : Lexing.lexbuf) (trivia : trivia_buf) =
   let start = lexbuf.lex_curr_p in
   match Lexer.token lines lexbuf with
-  | TRIVIA value ->
-      lex_leading_worker lines lexbuf
-        ({ Span.value; span = Span.of_pos2 lines start lexbuf.lex_curr_p } :: xs)
-  | token -> (List.rev xs, (token, start, lexbuf.lex_curr_p))
+  | TRIVIA (kind, contents) ->
+      CCVector.push trivia { kind; contents; start = Pos start.pos_cnum };
+      lex_leading_worker lines lexbuf trivia
+  | token -> (token, start, lexbuf.lex_curr_p)
 
-let lex_leading lines lexbuf (token : located_token) =
+let lex_leading lines lexbuf (trivia : trivia_buf) (token : located_token) =
   match token with
-  | TRIVIA value, start, finish ->
-      lex_leading_worker lines lexbuf [ { Span.value; span = Span.of_pos2 lines start finish } ]
-  | tok -> ([], tok)
+  | TRIVIA (kind, contents), start, _ ->
+      CCVector.push trivia { kind; contents; start = Pos start.pos_cnum };
+      let t = lex_leading_worker lines lexbuf trivia in
+      (take_vector trivia, t)
+  | tok -> (Illuaminate.IArray.empty, tok)
 
-let lex_trailing lines (lexbuf : Lexing.lexbuf) prev_line =
-  let rec go xs =
-    let start = lexbuf.lex_curr_p in
-    match Lexer.token lines lexbuf with
-    | TRIVIA value when start.pos_lnum = prev_line ->
-        go ({ Span.value; span = Span.of_pos2 lines start lexbuf.lex_curr_p } :: xs)
-    | t -> (List.rev xs, (t, start, lexbuf.lex_curr_p))
-  in
-  go []
+let rec lex_trailing_worker lines (lexbuf : Lexing.lexbuf) (trivia : trivia_buf) prev_line =
+  let start = lexbuf.lex_curr_p in
+  match Lexer.token lines lexbuf with
+  | TRIVIA (kind, contents) when start.pos_lnum = prev_line ->
+      CCVector.push trivia { kind; contents; start = Pos start.pos_cnum };
+      lex_trailing_worker lines lexbuf trivia prev_line
+  | token -> (token, start, lexbuf.lex_curr_p)
+
+let lex_trailing lines (lexbuf : Lexing.lexbuf) trivia prev_line =
+  let t = lex_trailing_worker lines lexbuf trivia prev_line in
+  (take_vector trivia, t)
 
 let get_error_message token ~pre_env ~post_env : Error.message =
   match
@@ -53,6 +62,7 @@ let get_error_message token ~pre_env ~post_env : Error.message =
 let parse start (file : Illuaminate.File_id.t) (lexbuf : Lexing.lexbuf) =
   Span.Lines.using file lexbuf @@ fun lines ->
   let position_map = Span.Lines.position_map lines in
+  let trivia = CCVector.create () in
   let rec go env token next = function
     | I.InputNeeded env as checkpoint -> go_input env checkpoint next
     | (I.Shifting _ | I.AboutToReduce _) as checkpoint -> I.resume checkpoint |> go env token next
@@ -62,17 +72,21 @@ let parse start (file : Illuaminate.File_id.t) (lexbuf : Lexing.lexbuf) =
     | I.Accepted x -> Ok x
     | I.Rejected -> assert false
   and go_input env checkpoint token =
-    let leading_trivia, ((token, start, finish) as lex_token) = lex_leading lines lexbuf token in
+    let leading_trivia, ((token, start, finish) as lex_token) =
+      lex_leading lines lexbuf trivia token
+    in
     let span = Span.of_pos2 lines start lexbuf.lex_curr_p in
     let token, next =
       match token with
       | EOF ->
           (* Just return the current "next" token (we won't inspect it after all, and an EOF token
              with no trailing data. *)
-          ( (Token.make_token ~leading_trivia ~trailing_trivia:[] ~span token, start, finish),
+          ( ( Token.make_token ~leading_trivia ~trailing_trivia:Illuaminate.IArray.empty ~span token,
+              start,
+              finish ),
             lex_token )
       | _ ->
-          let trailing_trivia, next = lex_trailing lines lexbuf start.pos_lnum in
+          let trailing_trivia, next = lex_trailing lines lexbuf trivia start.pos_lnum in
           ((Token.make_token ~leading_trivia ~trailing_trivia ~span token, start, finish), next)
     in
     I.offer checkpoint token |> go env token next
@@ -89,7 +103,7 @@ let repl_exprs = parse Grammar.Incremental.repl_exprs
 module Lexer = struct
   type token =
     | Token of string
-    | Trivial of IlluaminateCore.Node.trivial
+    | Trivial of IlluaminateCore.Node.Trivia.kind * string
 
   let lex (file : Illuaminate.File_id.t) (lexbuf : Lexing.lexbuf) =
     Span.Lines.using file lexbuf @@ fun lines ->
@@ -99,10 +113,12 @@ module Lexer = struct
         let span = Span.of_pos2 lines start finish in
         let value =
           match token with
-          | TRIVIA t -> Trivial t
+          | TRIVIA (k, c) -> Trivial (k, c)
           | t ->
               Token
-                (Token.make_token ~leading_trivia:[] ~trailing_trivia:[] ~span t |> Token.to_string)
+                (Token.make_token ~leading_trivia:Illuaminate.IArray.empty
+                   ~trailing_trivia:Illuaminate.IArray.empty ~span t
+                |> Token.to_string)
         in
         let xs = { Span.value; span } :: xs in
         match token with

@@ -40,19 +40,17 @@ let add_sep insert =
   | Table ({ table_body; _ } as t) ->
       let fix = function
         | i, Some x -> (i, Some (Node.contents.over (fun _ -> insert) x))
-        | i, None -> (
-            let last = Last.table_item.get i in
-            match last with
-            | Node.SimpleNode _ -> (i, Some (Node.SimpleNode { contents = insert }))
-            | Node.Node { trailing_trivia; span; _ } ->
-                ( Illuaminate.Lens.(Last.table_item -| Node.trailing_trivia).over (fun _ -> []) i,
-                  Some
-                    (Node.Node
-                       { contents = insert;
-                         span = Span.finish span;
-                         leading_trivia = [];
-                         trailing_trivia
-                       }) ))
+        | item, None ->
+            let last = Last.table_item.get item in
+            ( Illuaminate.Lens.(
+                (Last.table_item -| Node.trailing_trivia) ^= Illuaminate.IArray.empty)
+                item,
+              Some
+                { Node.contents = insert;
+                  span = Span.finish last.span;
+                  leading_trivia = Illuaminate.IArray.empty;
+                  trailing_trivia = last.trailing_trivia
+                } )
       in
       Ok (Table { t with table_body = over_last fix table_body })
   | _ -> Error "Expected a table"
@@ -61,9 +59,11 @@ let del_sep =
   Fixer.fix @@ function
   | Table ({ table_body; _ } as t) ->
       let fix = function
-        | i, (None | Some (Node.SimpleNode _)) -> (i, None)
-        | i, Some (Node.Node { leading_trivia = []; trailing_trivia = []; _ }) -> (i, None)
-        | i, Some (Node.Node { leading_trivia; trailing_trivia; _ }) ->
+        | i, None -> (i, None)
+        | i, Some { Node.leading_trivia; trailing_trivia; _ }
+          when Illuaminate.IArray.is_empty leading_trivia
+               && Illuaminate.IArray.is_empty trailing_trivia -> (i, None)
+        | i, Some { leading_trivia; trailing_trivia; _ } ->
             ( Illuaminate.Lens.(Last.table_item -| Node.trailing_trivia).over
                 (fun x ->
                   let ( @^ ) = Node.join_trivia in
@@ -75,10 +75,8 @@ let del_sep =
   | _ -> Error "Expected a table"
 
 let expr sep _ r = function
-  | Table
-      { table_open = Node { span = start; _ }; table_body; table_close = Node { span = fin; _ } }
-    -> (
-      let multiline = Span.start_line start <> Span.start_line fin in
+  | Table { table_open; table_body; table_close } -> (
+      let multiline = Span.start_line table_open.span <> Span.start_line table_close.span in
       match CCList.last_opt table_body with
       | None -> () (* If it's an empty table, allow both. *)
       | Some (item, None) when multiline ->
