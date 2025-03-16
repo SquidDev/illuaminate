@@ -876,9 +876,9 @@ module Term = struct
   let hash (T x) = Node.span x |> Span.hash
 
   let equal (T x) (T y) =
-    let al, at = (Node.leading_trivia.get x, Node.trailing_trivia.get x) in
-    let bl, bt = (Node.leading_trivia.get x, Node.trailing_trivia.get y) in
-    al == bl && at == bt
+    let xl, xt = (Node.leading_trivia.get x, Node.trailing_trivia.get x) in
+    let yl, yt = (Node.leading_trivia.get y, Node.trailing_trivia.get y) in
+    xl == yl && xt == yt
 end
 
 module TermTbl = Hashtbl.Make (Term)
